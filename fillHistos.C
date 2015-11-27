@@ -1220,6 +1220,7 @@ void fillHistos::initBasics(string name) {
 	      new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   assert(f->mkdir(name.c_str()));
+  f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *topdir = gDirectory;
   TDirectory *topdir = f->GetDirectory(name.c_str()); assert(topdir);
@@ -1282,6 +1283,7 @@ void fillHistos::initBasics(string name) {
       const char *yname = Form("Eta_%1.1f-%1.1f", y[i], y[i+1]);
       assert(topdir);
       assert(topdir->mkdir(yname));
+      topdir->mkdir(yname);
       assert(topdir->cd(yname));
       //TDirectory *ydir = gDirectory;
       TDirectory *ydir = topdir->GetDirectory(yname); assert(ydir);
@@ -1293,6 +1295,7 @@ void fillHistos::initBasics(string name) {
 	const char *trg = triggers[j].c_str();
 	assert(ydir);
 	assert(ydir->mkdir(trg));
+	ydir->mkdir(trg);
 	assert(ydir->cd(trg));
 	//TDirectory *dir = gDirectory;
 	TDirectory *dir = ydir->GetDirectory(trg); assert(dir);
@@ -2467,6 +2470,7 @@ void fillHistos::writeBasics() {
 	      new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   assert(f->mkdir(name.c_str()));
+  f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *dir = gDirectory;
   TDirectory *dir = f->GetDirectory(name.c_str()); assert(dir);
