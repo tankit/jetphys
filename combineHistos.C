@@ -268,14 +268,16 @@ TH1D* recurseFile(TDirectory *indir,
       if (!atBottom) {
 	if (outdir->FindKey(obj->GetName())==0) outdir->mkdir(obj->GetName());
 	assert(outdir->cd(key->GetName()));
-	outdir2 = gDirectory;
+	outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
+	outdir2->cd();
 	if (_debug) cout << key->GetName() << endl;
       }
       else
 	if (_debug) cout << key->GetName() << " (at bottom)" << endl;      
 
       assert(indir->cd(obj->GetName()));
-      TDirectory *indir2 = gDirectory;
+      TDirectory *indir2 = indir->GetDirectory(obj->GetName()); assert(indir2);
+      indir2->cd();
 
       // Check if directory name contains information on eta bin width
       // If yes, the next level is the bottom level with triggers
