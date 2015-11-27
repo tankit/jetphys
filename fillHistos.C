@@ -1221,7 +1221,9 @@ void fillHistos::initBasics(string name) {
   assert(f && !f->IsZombie());
   assert(f->mkdir(name.c_str()));
   assert(f->cd(name.c_str()));
-  TDirectory *topdir = gDirectory;
+  //TDirectory *topdir = gDirectory;
+  TDirectory *topdir = f->GetDirectory(name.c_str()); assert(topdir);
+  topdir->cd();
 
   // Rapidity bins + HF + barrel
   double y[] = {0., 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7, 0., 1.3};
@@ -1281,7 +1283,9 @@ void fillHistos::initBasics(string name) {
       assert(topdir);
       assert(topdir->mkdir(yname));
       assert(topdir->cd(yname));
-      TDirectory *ydir = gDirectory;
+      //TDirectory *ydir = gDirectory;
+      TDirectory *ydir = topdir->GetDirectory(yname); assert(ydir);
+      ydir->cd();
       
       for (unsigned int j = 0; j != triggers.size(); ++j) {
 	
@@ -1290,7 +1294,9 @@ void fillHistos::initBasics(string name) {
 	assert(ydir);
 	assert(ydir->mkdir(trg));
 	assert(ydir->cd(trg));
-	TDirectory *dir = gDirectory;
+	//TDirectory *dir = gDirectory;
+	TDirectory *dir = ydir->GetDirectory(trg); assert(dir);
+	dir->cd();
 
 	// Initialize and store
 	assert(dir);
@@ -2462,7 +2468,9 @@ void fillHistos::writeBasics() {
   assert(f && !f->IsZombie());
   assert(f->mkdir(name.c_str()));
   assert(f->cd(name.c_str()));
-  TDirectory *dir = gDirectory;
+  //TDirectory *dir = gDirectory;
+  TDirectory *dir = f->GetDirectory(name.c_str()); assert(dir);
+  dir->cd();
 
   runHistos *h = new runHistos(dir, ymin, ymax);
   _runhistos[name] = h;
