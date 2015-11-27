@@ -88,7 +88,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
     // Found a subdirectory: copy it to output and go deeper
     if (obj->InheritsFrom("TDirectory")) {
 
-      assert(outdir->mkdir(obj->GetName()));
+      //assert(outdir->mkdir(obj->GetName()));
       outdir->mkdir(obj->GetName());
       assert(outdir->cd(obj->GetName()));
       TDirectory *outdir2 = outdir->GetDirectory(obj->GetName()); assert(outdir2);
@@ -185,7 +185,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	TH1D *htrigeffsf = (TH1D*)outdir->FindObject("htrigeffsf");
 	TH1D *hpt_notrigeff = 0;
 
-	if (!htrigeff) {
+	if (!htrigeff && _jp_dotrigeff) {
 
 	  TFile *fmc = new TFile("output-MC-1.root","READ");
 	  assert(fmc && !fmc->IsZombie());
@@ -373,6 +373,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	    assert(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0||isgen||
 		   hpt->GetBinCenter(i)<_jp_recopt);
 	  }
+	  /*
 	  if (!(hlumi->GetBinContent(i)!=0 || hpt->GetBinContent(i)==0
 		|| isoth || isgen || hpt->GetBinCenter(i)<_jp_recopt)) {
 	    cerr << "Hist " << hpt->GetName() << " " << dir->GetName()
@@ -380,6 +381,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	    assert(hlumi->GetBinContent(i)!=0 || hpt->GetBinContent(i)==0
 		   || isoth || hpt->GetBinCenter(i)<_jp_recopt);
 	  }
+	  */
 
 	  assert(norm!=0);
 	  hpt->SetBinContent(i, hpt->GetBinContent(i) / norm);
