@@ -147,14 +147,17 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
       if (_debug) cout << key->GetName() << endl;
 
       assert(outdir->mkdir(obj->GetName()));
+      outdir->mkdir(obj->GetName());
       assert(outdir->cd(obj->GetName()));
-      TDirectory *outdir2 = gDirectory;
+      TDirectory *outdir2 = outdir->GetDirectory(obj->GetName()); assert(outdir2);
+      outdir2->cd();
 
       assert(indir->cd(obj->GetName()));
-      TDirectory *indir2a = gDirectory;
+      TDirectory *indir2a = indir->GetDirectory(obj->GetName()); assert(indir2a);
+      indir2a->cd();
 
       if (indir2->cd(obj->GetName())) {
-        TDirectory *indir2b = gDirectory;
+        TDirectory *indir2b = indir2->GetDirectory(obj->GetName()); assert(indir2b);
 
         recurseFile(indir2a, indir2b, outdir2, ismc);
       }
@@ -774,7 +777,8 @@ void drawDagostini(string type) {
   assert(f && !f->IsZombie());
 
   assert(f->cd("Standard"));
-  TDirectory *din = gDirectory;
+  f->cd("Standard");
+  TDirectory *din = f->GetDirectory("Standard"); assert(din);
   curdir->cd();
     
   TCanvas *c1 = new TCanvas("c1","c1",1200,800);
@@ -811,7 +815,8 @@ void drawDagostini(string type) {
 
     double y1 = 0.5*iy; double y2 = 0.5*(iy+1);
     assert(din->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-    TDirectory *d = gDirectory;
+    din->cd(Form("Eta_%1.1f-%1.1f",y1,y2));
+    TDirectory *d = din->GetDirectory(Form("Eta_%1.1f-%1.1f",y1,y2)); assert(d);
 
     TH1D *hreco = (TH1D*)d->Get("hreco"); assert(hreco);
     TH2D *h2resp = (TH2D*)d->Get("mtu"); assert(h2resp);
