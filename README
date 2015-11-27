@@ -1,5 +1,27 @@
 To start using this package, first clone it from git
-<command>
+   git clone https://github.com/miquork/jetphys.git
+   cd jetphys
 
-Next, you need to check out the jet energy corrections software
-<command>
+Then we need to check out some additional packages:
+
+* jet energy corrections (JEC) software from jecsys package in git:
+  cd ..
+  git clone https://github.com/miquork/jecsys.git
+  ln -s jecsys/CondFormats jetphys/
+  cd jetphys
+
+* JEC text files from JECDatabase in github:
+  https://github.com/cms-jet/JECDatabase/tree/master/tarballs/Summer15_50nsV5.tar.gz
+  [save this to CondFormats/JetMETObjects/data]
+  cd CondFormats/JetMETObjects/data
+  tar -xzf Summer15_50nsV5.tar.gz
+  cd ../..
+
+* RooUnfold:
+  svn co https://svnsrv.desy.de/public/unfolding/RooUnfold/trunk RooUnfold
+  cd RooUnfold; make; cd ..
+(see also: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html )
+
+Copy data files, and add a symlink
+
+Then, gen 
