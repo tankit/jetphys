@@ -20,7 +20,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4" or "AK8")
 std::string _jp_algo = "AK4";
 // Data type ("DATA", "MC", or "HW")
-std::string _jp_type = "MC";
+std::string _jp_type = "DATA";
 
 // Number of events to process (-1 for all)
 //Long64_t _jp_nentries = -1;
@@ -101,7 +101,7 @@ const bool _jp_doBasicHistos = true;
 // Process pThatbins instead of flat sample
 const bool _jp_pthatbins = false;
 // Correct for trigger efficiency based on MC
-const bool _jp_dotrigeff = true;
+const bool _jp_dotrigeff = false;//true;
  // Correct pT<114 GeV only, if above _jp_dotrigeff=true
 const bool _jp_dotrigefflowptonly = true;
 // Correct for time-dependence (prescales) in data

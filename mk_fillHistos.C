@@ -27,7 +27,9 @@
 
   gROOT->ProcessLine(".L fillHistos.C+");
 
-  #include "settings.h"
+  // This is already included in the .C files above
+  // Including it again breaks CLING in ROOT 6.04.10
+  // #include "settings.h"
 
   std::string algo = "ak4";
   if (_jp_algo=="AK8") algo = "ak8";
@@ -43,7 +45,7 @@
 
     // Sep 19 files
     c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
-    c->AddFile("moredata/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015B_v2.root");
+    //c->AddFile("moredata/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015B_v2.root");
 
     // Wrong files...
     //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-Cert246908-251883_13TeV_PromptReco_Collisions15-LowPileUp.root");
