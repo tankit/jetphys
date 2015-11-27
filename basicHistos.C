@@ -176,17 +176,19 @@ double vx[neta][nbins] =
 
   // dijet mass
   hdjmass = new TH1D("hdjmass","",nx,&x[0]);
-  //hdjmass0 = new TH1D("hdjmass0","",int(_jp_sqrts),0.,_jp_sqrts);
-  hdjmass0 = new TH1D("hdjmass0","",13000,0.,13000.);
+  hdjmass0 = new TH1D("hdjmass0","",int(_jp_sqrts),0.,_jp_sqrts);
+  //hdjmass0 = new TH1D("hdjmass0","",13000,0.,13000.);
   pdjmass_ptratio = new TProfile("pdjmass_ptratio","",nx,&x[0]);
-  pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","",13000,0.,13000.);
+  pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","",
+				  int(_jp_sqrts),0.,_jp_sqrts);
+  //pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","",13000,0.,13000.);
   //hdjmass->Sumw2();
   //hdjmass0->Sumw2();
   //pdjmass_ptratio->Sumw2();
   //pdjmass0_ptratio->Sumw2();
   hdjmass_ak8 = new TH1D("hdjmass_ak8","",nx,&x[0]);
-  //hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",int(_jp_sqrts),0.,_jp_sqrts);
-  hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",13000,0.,13000.);
+  hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",int(_jp_sqrts),0.,_jp_sqrts);
+  //hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",13000,0.,13000.);
   //hdjmass_ak8->Sumw2();
   //hdjmass0_ak8->Sumw2();
 
