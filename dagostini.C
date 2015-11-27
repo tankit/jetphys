@@ -14,7 +14,7 @@
 #include "TF1.h"
 #include "TMath.h"
 #include "TMatrixD.h"
-#include "TCAnvas.h"
+#include "TCanvas.h"
 #include "TLine.h"
 #include "TStyle.h"
 #include "TLegend.h"
