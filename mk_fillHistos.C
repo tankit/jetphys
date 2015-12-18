@@ -25,7 +25,7 @@
   gROOT->ProcessLine(".L runHistos.C+");
   gROOT->ProcessLine(".L basicHistos.C+");
 
-  gROOT->ProcessLine(".L fillHistos.C+");
+  gROOT->ProcessLine(".L fillHistos.C+g"); // +g for assert to work
 
   // This is already included in the .C files above
   // Including it again breaks CLING in ROOT 6.04.10
@@ -43,8 +43,11 @@
   if (_jp_type=="DATA") {
     cout << "Load trees..." << endl;
 
+    // 2015D
+    c->AddFile("moredata/ProcessedTree_JetHT_2015_PromptReco_goldJSON_upto-260627_SMPJ_ak4_withfilters.root");
+
     // Sep 19 files
-    c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
+    //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
     //c->AddFile("moredata/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015B_v2.root");
 
     // Wrong files...
@@ -76,7 +79,8 @@
       cout << "Running over flat sample" << endl;
       cout << "Load trees..." << endl;
 
-      c->AddFile("moremc/Pythia8-CUETP8M1-Ntuples-PFJets.root");
+      c->AddFile("moremc/ProcessedTree_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_RunIISpring15DR74-Asympt25nsRaw_MCRUN2_74_V9-v3.root"); //  25 ns
+      //c->AddFile("moremc/Pythia8-CUETP8M1-Ntuples-PFJets.root"); // 50 ns
 
       cout << "Got " << c->GetEntries() << " entries" << endl;
 

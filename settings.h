@@ -23,8 +23,8 @@ std::string _jp_algo = "AK4";
 std::string _jp_type = "DATA";
 
 // Number of events to process (-1 for all)
-//Long64_t _jp_nentries = -1;
-Long64_t _jp_nentries = 1000000; // for MC
+Long64_t _jp_nentries = -1;
+//Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning
 Long64_t _jp_nskip = 0;
 
@@ -35,7 +35,8 @@ std::string _jp_pumc   = "pileup/pileup_PY.root";
 
 // JEC text files in CondFormats/JetMETObjects/data/
 bool _jp_redoJEC = true;
-std::string _jp_jecgt = "Summer15_50nsV5";
+std::string _jp_jecgt = "Summer15_25nsV6";
+//std::string _jp_jecgt = "Summer15_50nsV5";
 
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;

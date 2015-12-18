@@ -582,17 +582,17 @@ void fillHistos::Loop()
 		hmcweight->GetBinContent(hmcweight->FindBin(pthat)) :
 		EvtHdr__mWeight);
       // START TEMP PATCH ///
-      if (_mc && !_jp_pthatbins && fabs(weight-1)<1e-4) {
-	weight = pow(pthat,-4.5);
-      }
+      //if (_mc && !_jp_pthatbins && fabs(weight-1)<1e-4) {
+      //weight = pow(pthat,-4.5);
+      //}
       // END TEMP PATCH //
       run = EvtHdr__mRun;
       evt = EvtHdr__mEvent;
       lbn = EvtHdr__mLumi;
 
       trpu = EvtHdr__mTrPu;
-      //itpu = EvtHdr__mINTPU;
-      itpu = EvtHdr__mINTPU / 6.; // TEMP PATCH
+      itpu = EvtHdr__mINTPU;
+      //itpu = EvtHdr__mINTPU / 6.; // TEMP PATCH
       ootpulate = EvtHdr__mOOTPULate;
       ootpuearly = EvtHdr__mOOTPUEarly;
 
@@ -790,11 +790,24 @@ void fillHistos::Loop()
 
       // For data, check trigger bits
       if (_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-      assert(_mc || TriggerDecision_.size()==10); // 50 ns, only v2
+      //assert(_mc || TriggerDecision_.size()==10); // 50 ns, only v2
+      assert(_mc || TriggerDecision_.size()==30); // 23 ns, v2-v4
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
 	bool pass = (TriggerDecision_[itrg]==1); // -1, 0, 1
 	string strg = "";
+	if ( itrg%10 == 0 ) strg = "jt40";
+	if ( itrg%10 == 1 ) strg = "jt60";
+	if ( itrg%10 == 2 ) strg = "jt80";
+	if ( itrg%10 == 3 ) strg = "jt140";
+	if ( itrg%10 == 4 ) strg = "jt200";
+	if ( itrg%10 == 5 ) strg = "jt260";
+	if ( itrg%10 == 6 ) strg = "jt320";
+	if ( itrg%10 == 7 ) strg = "jt400";
+	if ( itrg%10 == 8 ) strg = "jt450";
+	if ( itrg%10 == 9 ) strg = "jt500";
+	if (itrg>=30) assert(false);
+	/* // 50 ns
 	if (            itrg<=0) strg = "jt40";//30";
 	if (itrg>= 1 && itrg<=1) strg = "jt60";
 	if (itrg>= 2 && itrg<=2) strg = "jt80";
@@ -806,6 +819,7 @@ void fillHistos::Loop()
 	if (itrg>= 8 && itrg<=8) strg = "jt450"; // prescale=1
 	if (itrg>= 9 && itrg<=9) strg = "jt500"; // prescale=1
 	if (itrg>=10) assert(false);
+	*/
 	if (pass && strg!="") _trigs.insert(strg);
 
 	// Set prescale from event for now
@@ -1057,8 +1071,8 @@ void fillHistos::Loop()
 
       // Check if overweight PU event
       if (_mc && njt!=0 && _jetids[0] && _pass) {
-	//_pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
-	_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
+	_pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
+	//_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
       }
       if (njt!=0 && _jetids[0] && _pass) ++cnt["10puw"];
 
@@ -1219,7 +1233,7 @@ void fillHistos::initBasics(string name) {
   TFile *f = (_outfile ? _outfile :
 	      new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
-  assert(f->mkdir(name.c_str()));
+  //assert(f->mkdir(name.c_str()));
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *topdir = gDirectory;
@@ -1282,7 +1296,7 @@ void fillHistos::initBasics(string name) {
       // subdirectory for rapidity bin
       const char *yname = Form("Eta_%1.1f-%1.1f", y[i], y[i+1]);
       assert(topdir);
-      assert(topdir->mkdir(yname));
+      //assert(topdir->mkdir(yname));
       topdir->mkdir(yname);
       assert(topdir->cd(yname));
       //TDirectory *ydir = gDirectory;
@@ -1294,7 +1308,7 @@ void fillHistos::initBasics(string name) {
 	// subdirectory for trigger
 	const char *trg = triggers[j].c_str();
 	assert(ydir);
-	assert(ydir->mkdir(trg));
+	//assert(ydir->mkdir(trg));
 	ydir->mkdir(trg);
 	assert(ydir->cd(trg));
 	//TDirectory *dir = gDirectory;
@@ -2469,7 +2483,7 @@ void fillHistos::writeBasics() {
   TFile *f = (_outfile ? _outfile :
 	      new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
-  assert(f->mkdir(name.c_str()));
+  //assert(f->mkdir(name.c_str()));
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *dir = gDirectory;
