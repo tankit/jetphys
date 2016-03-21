@@ -12,6 +12,8 @@
 #include "TF1.h"
 
 #include <iostream>
+#include <string>
+#include <map>
 
 using namespace std;
 
@@ -22,15 +24,16 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
 // Use this to fix luminosity
 double _lumiscale = 1.00;
-bool _mc = false;
-bool _dt = true;
+bool _nh_mc = false;
+bool _nh_dt = true;
+std::map<std::string, double> triglumi;
 
 void normalizeHistos(string type) {
 
   assert(type==_jp_type);
-  _mc = (type=="MC" || type=="HW");
-  _dt = (type=="DATA");
-  assert((_mc || _dt) && !(_mc && _dt));
+  _nh_mc = (type=="MC" || type=="HW");
+  _nh_dt = (type=="DATA");
+  assert((_nh_mc || _nh_dt) && !(_nh_mc && _nh_dt));
 
   TFile *fin = new TFile(Form("output-%s-1.root",type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
@@ -38,9 +41,18 @@ void normalizeHistos(string type) {
   TFile *fout = new TFile(Form("output-%s-2a.root",type.c_str()),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  if (_lumiscale!=1 && !_mc)
+  if (_lumiscale!=1 && !_nh_mc)
     cout << "Attention! : Scaling luminosity to the new estimate"
 	 << " by multiplying with " << _lumiscale << endl;
+  
+  if (_jp_usetriglumi) {
+    cout << "Reading trigger luminosity from settings.h" << endl;
+    for (int i = 0; i != _jp_ntrigger; ++i) {
+      double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
+      cout << Form(" *%s: %1.3f /pb", _jp_triggers[i].c_str(),lumi) << endl;
+      triglumi[_jp_triggers[i]] = lumi;
+    }
+  }
 
   cout << "Calling normalizeHistos("<<type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
@@ -176,7 +188,29 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	bool isjet = (TString(obj2->GetName()).Contains("hpt_jet"));
 
 	TProfile *peff = (TProfile*)dir->Get("peff"); assert(peff);
+
 	TH1D *hlumi = (TH1D*)dir->Get("hlumi"); assert(hlumi);
+	TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi"); assert(hlumi0);
+	if (_jp_usetriglumi) {
+
+	  TH1D *hlumi_orig = (TH1D*)outdir->FindObject("hlumi_orig");
+	  if (!hlumi_orig) hlumi_orig = (TH1D*)hlumi->Clone("hlumi_orig");
+
+	  // regular prescaled luminosity
+	  TH1D *hlumi_new = (TH1D*)outdir->FindObject("hlumi");
+	  if (hlumi_new) hlumi = hlumi_new;
+	  string strg = dir->GetName();
+	  double lumi = triglumi[strg];
+	  for (int i = 1; i != hlumi->GetNbinsX()+1; ++i) {
+	    hlumi->SetBinContent(i, lumi);
+	  }
+	  
+	  // unprescaled luminosity
+	  double lumi0 = triglumi["jt450"];
+	  for (int i = 1; i != hlumi0->GetNbinsX()+1; ++i) {
+	    hlumi0->SetBinContent(i, lumi0);
+	  }
+	} // _jp_usetriglumi
 
 	// Test MC-based normalization for trigger efficiency
 	bool dotrigeff = ((string(obj2->GetName())=="hpt") || isjk || isjet);
@@ -216,7 +250,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	  }	  
 	  
 	  // Add data/MC scale factor for trigger efficiency
-	  if (_dt && !htrigeffsf) {
+	  if (_nh_dt && !htrigeffsf) {
 
 	    assert(dmc->cd(dir->GetName()));
 	    dmc->cd(dir->GetName());
@@ -233,8 +267,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	  if (htrigeffmc) { // not available for 'mc' directory
 	    outdir->cd();
 	    htrigeff = (TH1D*)htrigeffmc->Clone("htrigeff");
-	    assert(!_dt || htrigeffsf);
-	    if (_dt) htrigeff->Multiply(htrigeffsf);
+	    assert(!_nh_dt || htrigeffsf);
+	    if (_nh_dt) htrigeff->Multiply(htrigeffsf);
 
 	    TH1D *h = (TH1D*)dir->Get("hpt");
 	    assert(outdir->FindObject("hpt_notrigeff")==0);
@@ -250,7 +284,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	bool dotimedep = ((string(obj2->GetName())=="hpt") || isjk || isjet);
 	TH1D *htimedep = (TH1D*)outdir->FindObject("htimedep");
 	TH1D *htimefit = (TH1D*)outdir->FindObject("htimefit");
-	TH1D *hpt_notimedep = 0;
+	TH1D *hpt_notimedep = 0, *hpt_withtimedep = 0;
 	double ktime = 1.;
 
 	if (!htimedep) {
@@ -258,7 +292,14 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	  TH1D *h = (TH1D*)dir->Get("hpt");
 	  TH1D *hsel = (TH1D*)dir->Get("hselpt");
 	  TH1D *hpre = (TH1D*)dir->Get("hpt_pre");
-	  TH1D *hlumi0 = (TH1D*)dir->Get("../jt370/hlumi");
+	  //TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi");
+
+	  // Fix luminosity for unprescaled trigger
+	  //string strg = dir->GetName();
+	  //double lum0 = triglumi["jt450"];
+	  //for (int i = 1; i != hlumi0->GetNbinsX()+1; ++i) {
+	  //hlumi0->SetBinContent(i, lum0);
+	  //}
 
 	  outdir->cd();
 	  if (h) hpt_notimedep = (TH1D*)h->Clone("hpt_notimedep");
@@ -274,18 +315,9 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	    htimedep->Scale(lumi / lumi0);
 	  }
 	  
-	  //if (hsel && string(dir->GetName())=="jt30") { // PATCH
-	  //for (int i = 1; i != hsel->GetNbinsX()+1; ++i) {
-	  //  if (hsel->GetBinCenter(i)>97.) {
-	  //hsel->SetBinContent(i, 0);
-	  //hsel->SetBinError(i, 0);
-	  //  }
-	  //}
-	  //} // PATCH
-
 	  // Find proper pT range and fit
 	  double minpt = 0.;
-	  double maxpt = 3500.;
+	  double maxpt = 6500.;
 	  if (hsel) {
 	    for (int i = 1; i != hsel->GetNbinsX()+1; ++i) {
 	      if (hsel->GetBinContent(i)!=0 &&
@@ -305,11 +337,24 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	  if (htimedep) {
 	    outdir->cd();
 	    htimefit = (TH1D*)hsel->Clone("htimefit");
+	    hpt_withtimedep = (TH1D*)h->Clone("hpt_withtimedep");
+
 	    for (int i = 1; i != htimefit->GetNbinsX()+1; ++i) {
+
 	      if (hsel->GetBinContent(i)!=0) {
 		htimefit->SetBinContent(i, ftmp->GetParameter(0));
 		htimefit->SetBinError(i, ftmp->GetParError(0));
 	      }
+
+	      // Calculate with time dependence here to add ktime fit error
+	      hpt_withtimedep->SetBinContent(i, hpt_notimedep->GetBinContent(i)
+					     * htimefit->GetBinContent(i));
+	      double err1 = hpt_notimedep->GetBinError(i)
+		/ hpt_notimedep->GetBinContent(i);
+	      double err2 = htimefit->GetBinError(i)
+		/ htimefit->GetBinContent(i);
+	      hpt_withtimedep->SetBinError(i, hpt_notimedep->GetBinContent(i)
+					   * sqrt(pow(err1,2) + pow(err2,2)));
 	    }
 	  }
 
@@ -343,25 +388,28 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	    }
 	  }
 
-	  // Correct data for time-dependence
-	  if (dotimedep && htimedep && _jp_dotimedep) {
-	    norm *= ktime;
-	  }
-
 	  // Normalization for luminosity
 	  if (hlumi->GetBinContent(i)!=0 && !isoth && !isgen && !ispre)
 	    norm *= hlumi->GetBinContent(i);
 	  if (hlumi->GetBinContent(1)!=0 && isoth && !isgen && !ispre)
 	    norm *= hlumi->GetBinContent(1);
+	  if (hlumi0->GetBinContent(1)!=0 && !isoth && !isgen && ispre)
+	    norm *= hlumi0->GetBinContent(1);
 
 	  // Fix luminosity from .csv VTX to lumiCalc vdM
-	  if (!_mc) norm *= _lumiscale;
+	  if (!_nh_mc) norm *= _lumiscale;
 	  // Scale normalization for jackknife
 	  if (isjk) norm *= 0.9;
 
-	  if (_mc && _jp_pthatbins) norm *= 1.;
-	  if (_mc && !_jp_pthatbins) {
+	  if (_nh_mc && _jp_pthatbins) norm *= 1.;
+	  if (_nh_mc && !_jp_pthatbins) {
 	    norm /= 2500.; //(xsecw / (sumw * adhocw) ); // equals 2551.;
+	  }
+
+	  // Correct data for time-dependence
+	  double norm_notime = norm;
+	  if (dotimedep && htimedep && _jp_dotimedep) {
+	    norm *= ktime;
 	  }
 
 	  if (!(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0 || isgen ||
@@ -394,9 +442,15 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 	  }
 	  if (hpt_notimedep) {
 	    hpt_notimedep->SetBinContent(i, hpt_notimedep->GetBinContent(i)
-					 / norm * ktime);
+					 / norm_notime);
 	    hpt_notimedep->SetBinError(i, hpt_notimedep->GetBinError(i)
-				       / norm * ktime);
+				       / norm_notime);
+	  }
+	  if (hpt_withtimedep) { // ktime already applied => use norm_notime 
+	    hpt_withtimedep->SetBinContent(i, hpt_withtimedep->GetBinContent(i)
+					   / norm_notime);
+	    hpt_withtimedep->SetBinError(i, hpt_withtimedep->GetBinError(i)
+					 / norm_notime);
 	  }
 	} // for i
 

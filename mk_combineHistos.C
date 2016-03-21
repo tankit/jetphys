@@ -5,7 +5,7 @@
 {
 
   // compile code
-  gROOT->ProcessLine(".L combineHistos.C+");
+  gROOT->ProcessLine(".L combineHistos.C+g");
 
   #include "settings.h"
 

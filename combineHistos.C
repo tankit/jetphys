@@ -28,13 +28,13 @@ map<string, map<int, pair<double, double> > > _massranges;
 
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
-bool _dt = false;
-bool _mc = false;
+bool _ch_dt = false;
+bool _ch_mc = false;
 
 void combineHistos(string type) {
 
-  _dt = (type=="DATA");
-  _mc = !_dt;
+  _ch_dt = (type=="DATA");
+  _ch_mc = !_ch_dt;
   
   TDirectory *curdir = gDirectory;
 
@@ -56,7 +56,7 @@ void combineHistos(string type) {
     _ptranges[_jp_triggers[itrg]] =
       pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
 
-    if (_mc && _jp_usemctrig) {
+    if (_ch_mc && _jp_usemctrig) {
       _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
       _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
     }
@@ -71,8 +71,11 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "htrigeffmc");
   recurseFile(fin, fout, "htrigeffsf");
   recurseFile(fin, fout, "hpt_notimedep");
+  recurseFile(fin, fout, "hpt_withtimedep");
   recurseFile(fin, fout, "htimedep");
-  if (_dt) recurseFile(fin, fout, "hlumi");
+  recurseFile(fin, fout, "htimefit");
+  if (_ch_dt) recurseFile(fin, fout, "hlumi");
+  if (_ch_dt) recurseFile(fin, fout, "hlumi_orig");
 
   recurseFile(fin, fout, "hpt_evt");
   recurseFile(fin, fout, "hpt_evtcount");
@@ -113,7 +116,7 @@ void combineHistos(string type) {
     recurseFile(fin, fout, "hpt_jk10");
   }
 
-  if (_mc) recurseFile(fin, fout, "hpt_g0tw");
+  if (_ch_mc) recurseFile(fin, fout, "hpt_g0tw");
 
   recurseFile(fin, fout, "hpt0");
   recurseFile(fin, fout, "hpt1");
@@ -199,7 +202,7 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "hpt_l1fast");
   recurseFile(fin, fout, "hpt_l1off");
 
-  if (_dt) recurseFile(fin, fout, "peff_new");
+  if (_ch_dt) recurseFile(fin, fout, "peff_new");
 
   recurseFile(fin, fout, "pemf");
   recurseFile(fin, fout, "pemftp");

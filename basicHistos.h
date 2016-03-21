@@ -124,6 +124,7 @@ class basicHistos {
   TProfile *pnpvvstrpu;
   TProfile *pnpvallvstrpu;
   TProfile *pitpuvstrpu;
+  TH1D *htrpu2;
   TH1D *hjet_vstrpu;
   TH1D *hlumi_vstrpu;
 
@@ -245,6 +246,7 @@ class basicHistos {
   TProfile *pbetatp_vsnpv;
   TProfile *pbetastartp_vsnpv;
   //
+  /*
   TProfile *pchftp2_vsnpv;
   TProfile *pneftp2_vsnpv;
   TProfile *pnhftp2_vsnpv;
@@ -252,6 +254,16 @@ class basicHistos {
   TProfile *pmuftp2_vsnpv;
   TProfile *phhftp2_vsnpv;
   TProfile *pheftp2_vsnpv;
+  */
+  TProfile *pchftp_vstrpu;
+  TProfile *pneftp_vstrpu;
+  TProfile *pnhftp_vstrpu;
+  TProfile *pceftp_vstrpu;
+  TProfile *pmuftp_vstrpu;
+  //TProfile *phhftp_vstrpu;
+  //TProfile *pheftp_vstrpu;
+  TProfile *pbetatp_vstrpu;
+  TProfile *pbetastartp_vstrpu;
 
   // control plots for topology (JEC)
   TH1D *hselpt;

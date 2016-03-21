@@ -227,6 +227,7 @@ double vx[neta][nbins] =
   pnpvvstrpu = new TProfile("pnpvvstrpu","",50,-0.5,49.5);
   pnpvallvstrpu = new TProfile("pnpvallvstrpu","",50,-0.5,49.5);
   pitpuvstrpu = new TProfile("itpuvstrpu","",50,-0.5,49.5);
+  htrpu2 = new TH1D("htrpu2","",50,-0.5,49.5);
   hjet_vstrpu = new TH1D("hjet_vstrpu","",50,-0.5,49.5);
   hlumi_vstrpu = new TH1D("hlumi_vstrpu","",50,-0.5,49.5);
   //
@@ -332,11 +333,13 @@ double vx[neta][nbins] =
   pbetatp_vsnpv = new TProfile("pbetatp_vsnpv","",50,-0.5,49.5);
   pbetastartp_vsnpv = new TProfile("pbetastartp_vsnpv","",50,-0.5,49.5);
   //
-  pchftp2_vsnpv = new TProfile("pchftp2_vsnpv","",50,-0.5,49.5);
-  pneftp2_vsnpv = new TProfile("pneftp2_vsnpv","",50,-0.5,49.5);
-  pnhftp2_vsnpv = new TProfile("pnhftp2_vsnpv","",50,-0.5,49.5);
-  pceftp2_vsnpv = new TProfile("pceftp2_vsnpv","",50,-0.5,49.5);
-  pmuftp2_vsnpv = new TProfile("pmuftp2_vsnpv","",50,-0.5,49.5);
+  pchftp_vstrpu = new TProfile("pchftp_vstrpu","",50,-0.5,49.5);
+  pneftp_vstrpu = new TProfile("pneftp_vstrpu","",50,-0.5,49.5);
+  pnhftp_vstrpu = new TProfile("pnhftp_vstrpu","",50,-0.5,49.5);
+  pceftp_vstrpu = new TProfile("pceftp_vstrpu","",50,-0.5,49.5);
+  pmuftp_vstrpu = new TProfile("pmuftp_vstrpu","",50,-0.5,49.5);
+  pbetatp_vstrpu = new TProfile("pbetatp_vstrpu","",50,-0.5,49.5);
+  pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",50,-0.5,49.5);
   this->ismc = ismc;
 
 //   pncand->Sumw2();
@@ -449,6 +452,8 @@ double vx[neta][nbins] =
 
 
   // MC checks
+  //htrpu = new TH1D("htrpu","",100,-0.5,99.5);
+  htrpu = new TH1D("htrpu","",120,0.,60.); // for PU reweighing
   if (this->ismc) {
     hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
     hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
@@ -487,7 +492,7 @@ double vx[neta][nbins] =
     myf = new TH1D("myf","my(yreco);p_{T,reco}",3485,15,3500); // pTreco, yreco
     myfuw = new TH1D("myfuw","my(yreco);p_{T,reco}",3485,15,3500); // pTreco, yreco
 
-    htrpu = new TH1D("htrpu","",100,-0.5,99.5);
+    //htrpu = new TH1D("htrpu","",100,-0.5,99.5);
     hitpu = new TH1D("hitpu","",100,-0.5,99.5);
     hootpuearly = new TH1D("hootpuearly","",100,-0.5,99.5);
     hootpulate = new TH1D("hootpulate","",100,-0.5,99.5);

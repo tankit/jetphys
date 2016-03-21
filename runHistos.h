@@ -35,6 +35,7 @@ class runHistos {
 
   // trigger rate counters
   std::map<std::string, std::map<int, int> > t_trg;
+  std::map<std::string, std::map<int, int> > tw_trg; // prescale weight
   std::map<std::string, std::map<int, int> > t_trgtp;
   std::map<std::string, std::map<int, int> > c_trg; // calo
 

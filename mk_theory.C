@@ -5,8 +5,8 @@
 {
 
   // compile code
-  gROOT->ProcessLine(".L tools.C+");
-  gROOT->ProcessLine(".L theory.C+");
+  gROOT->ProcessLine(".L tools.C+g");
+  gROOT->ProcessLine(".L theory.C+g");
 
   #include "settings.h"
 

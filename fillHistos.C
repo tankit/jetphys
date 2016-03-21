@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -98,6 +99,12 @@ void fillHistos::Loop()
        hmcweight->SetBinContent(i+1, 1./lums[i]);
      } // for i
    }
+
+   // Map of mu per (run,lumi)
+   TFile *fmu = new TFile("pileup/MUperLSvsRUN_MB.root","READ");
+   assert(fmu && !fmu->IsZombie());
+   TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU"); assert(h2mu);
+   //TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRuNxMU_cleaned"); assert(h2mu);
 
    // map AK4 events to AK8 events
    map<Int_t, map<Int_t, map<UInt_t, Long64_t> > > ak4entry;
@@ -489,6 +496,9 @@ void fillHistos::Loop()
    // Load PU profiles for MC reweighing
    if (_mc && _jp_reweighPU) loadPUProfiles(_jp_pudata.c_str(),
 					    _jp_pumc.c_str());
+
+   // Load prescale information to patch 76X
+   if (_jp_prescalefile!="") loadPrescales(_jp_prescalefile.c_str());
    
    // load ECAL veto file for cleaning data
    if (_jp_doECALveto) loadECALveto(_jp_ecalveto.c_str());
@@ -540,8 +550,9 @@ void fillHistos::Loop()
    TStopwatch stop;
    stop.Start();
 
+
    Long64_t nbytes = 0, nb = 0;
-   for (Long64_t jentry=nskip; jentry<nentries+nskip;jentry++) {
+   for (Long64_t jentry=nskip; jentry<(nentries+nskip);jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
@@ -582,9 +593,11 @@ void fillHistos::Loop()
 		hmcweight->GetBinContent(hmcweight->FindBin(pthat)) :
 		EvtHdr__mWeight);
       // START TEMP PATCH ///
-      //if (_mc && !_jp_pthatbins && fabs(weight-1)<1e-4) {
-      //weight = pow(pthat,-4.5);
+      //if (!weight && _debug) cout << "weight = " << weight << endl << flush;
+      //if (_mc && !_jp_pthatbins && (fabs(weight-1)<1e-4 || weight==0)) {
+      //weight = (pthat ? pow(pthat,-4.5) : 1);
       //}
+      //assert(weight);
       // END TEMP PATCH //
       run = EvtHdr__mRun;
       evt = EvtHdr__mEvent;
@@ -597,7 +610,13 @@ void fillHistos::Loop()
       ootpuearly = EvtHdr__mOOTPUEarly;
 
       if (_dt) {
-        //trpu = getTruePU(run, lbn);
+	trpu = _avgpu[run][lbn];
+	if (trpu==0) {
+	  //trpu = getTruePU(run, lbn);
+	  int irun = h2mu->GetXaxis()->FindBin(run);
+	  int ilbn = h2mu->GetYaxis()->FindBin(lbn);
+	  trpu = h2mu->GetBinContent(irun, ilbn);
+	}
       }
 
       npv = EvtHdr__mNVtx;
@@ -648,9 +667,22 @@ void fillHistos::Loop()
       gen_njt = GenJets__;
 
       if (_debug) {
+
 	cout << endl << flush;
 	Show(jentry, jentry5);
+	cout << endl << endl << flush;
+
+	cout << "***Checking basic event variables are read out:" << endl;
+	cout << "isdata = " << _dt << " / ismc = " << _mc << endl;
+	cout << "trpu = " << trpu << endl;
+	cout << "pthat = " << pthat << endl;
+	cout << "weight = " << weight << endl;
+	cout << "njt = " << njt << endl;
+	cout << "idloose[0] = " << (njt>0 ? jtidloose[0] : -1) << endl;
+	cout << "idtight[0] = " << (njt>0 ? jtidtight[0] : -1) << endl;
+	cout << "***end basic event variables" << endl;
 	cout << endl << flush;
+
 	if (_jp_ak4ak8) {
 	  cout << "AK4AK8PF: t4_njt="<<t4_njt<<"("<<t4_PFJets__<<")"<<endl;
 	  cout << "EVENT: " << jentry << ", " << jentry5 << endl;
@@ -791,11 +823,85 @@ void fillHistos::Loop()
       // For data, check trigger bits
       if (_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
       //assert(_mc || TriggerDecision_.size()==10); // 50 ns, only v2
-      assert(_mc || TriggerDecision_.size()==30); // 23 ns, v2-v4
+      //assert(_mc || TriggerDecision_.size()==30); // 25 ns, v2-v4
+      //assert(_mc || TriggerDecision_.size()==34); // 25 ns, 76X
+      //assert(_mc || L1Prescale_.size()==34); // 25 ns, 76X
+      //assert(_mc || HLTPrescale_.size()==34); // 25 ns, 76X
+      //assert(_mc || TriggerDecision_.size()==19); // 25 ns, 76X - new C
+      //assert(_mc || L1Prescale_.size()==19); // 25 ns, 76X - new C
+      //assert(_mc || HLTPrescale_.size()==19); // 25 ns, 76X -  new C
+      assert(_mc || (TriggerDecision_.size()==19 ||
+		     TriggerDecision_.size()==29)); // 25 ns, 76X - new C+D
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
 	bool pass = (TriggerDecision_[itrg]==1); // -1, 0, 1
 	string strg = "";
+
+	// 25 ns, 76X - Run2014C+D new tuples
+	if (TriggerDecision_.size()==19) { // 2015C
+	  if ( itrg==0) strg = "jt40"; // v2(C)
+	  if ( itrg==1) strg = "jt60"; // v2(C)
+	  if ( itrg==2) strg = "jt80"; // v2(C)
+	  if ( itrg==3) strg = "jt140"; // v2(C)
+	  if ( itrg==4) strg = "jt200"; // v2(C)
+	  if ( itrg==5) strg = "jt260"; // v2(C)
+	  if ( itrg==6) strg = "jt320"; // v2(C)
+	  if ( itrg==7) strg = "jt400"; // v2(C)
+	  if ( itrg==8) strg = "jt450"; // v2(C)
+	  //if ( itrg==9) strg = "jt500"; // v2(C)
+	  if (itrg>=19) assert(false);
+	}
+	else if (TriggerDecision_.size()==29) { // 2015D
+	  if ( itrg==0 || itrg==10) strg = "jt40"; // v3(D1),v4(D1)
+	  if ( itrg==1 || itrg==11) strg = "jt60"; // v3(D1),v4(D1)
+	  if ( itrg==2 || itrg==12) strg = "jt80"; // v3(D1),v4(D1)
+	  if ( itrg==3 || itrg==13) strg = "jt140"; // v3(D1),v4(D1)
+	  if ( itrg==4 || itrg==14) strg = "jt200"; // v3(D1),v4(D1)
+	  if ( itrg==5 || itrg==15) strg = "jt260"; // v3(D1),v4(D1)
+	  if ( itrg==6 || itrg==16) strg = "jt320"; // v3(D1),v4(D1)
+	  if ( itrg==7 || itrg==17) strg = "jt400"; // v3(D1),v4(D1)
+	  if ( itrg==8 || itrg==18) strg = "jt450"; // v3(D1),v4(D1)
+	  //if ( itrg==9 || itrg==19) strg = "jt500"; // v3(D1),v4(D1)
+	  if (itrg>=29) assert(false);
+	}
+	else
+	  assert(false);
+
+	// 25 ns, 76X - Run2015D
+	//if ( itrg==19 ) strg = "zb";
+	//if ( itrg==0 || itrg==20 || itrg==24) strg = "jt40"; // 20=AK4PF30
+	//if ( itrg==1 || itrg==21 || itrg==25) strg = "jt60"; // 21==AK4PF50
+	//if ( itrg==2 || itrg==22 || itrg==26) strg = "jt80"; // 22=AK4PF80
+	//if ( itrg==3 || itrg==23 || itrg==27) strg = "jt140"; // 24=AK4PF100
+	/*
+	if ( itrg==0 || itrg==24) strg = "jt40";
+	if ( itrg==1 || itrg==25) strg = "jt60";
+	if ( itrg==2 || itrg==26) strg = "jt80";
+	if ( itrg==3 || itrg==27) strg = "jt140";
+	if ( itrg==4 || itrg==28) strg = "jt200";
+	if ( itrg==5 || itrg==29) strg = "jt260";
+	if ( itrg==6 || itrg==30) strg = "jt320";
+	if ( itrg==7 || itrg==31) strg = "jt400";
+	if ( itrg==8 || itrg==32) strg = "jt450";
+	if ( itrg==9 || itrg==33) strg = "jt500";
+	*/
+	/*
+	// Activate only v3 and skip v4
+	if ( itrg==0) strg = "jt40";
+	if ( itrg==1) strg = "jt60";
+	if ( itrg==2) strg = "jt80";
+	if ( itrg==3) strg = "jt140";
+	if ( itrg==4) strg = "jt200";
+	if ( itrg==5) strg = "jt260";
+	if ( itrg==6) strg = "jt320";
+	if ( itrg==7) strg = "jt400";
+	if ( itrg==8) strg = "jt450";
+	if ( itrg==9) strg = "jt500";
+	if (itrg>=34) assert(false);
+	*/
+	// itrg==12 is HLT_PFHT800_v2, first unprescaled HT trigger
+
+	/* // 25 ns, v2-v4
 	if ( itrg%10 == 0 ) strg = "jt40";
 	if ( itrg%10 == 1 ) strg = "jt60";
 	if ( itrg%10 == 2 ) strg = "jt80";
@@ -807,6 +913,7 @@ void fillHistos::Loop()
 	if ( itrg%10 == 8 ) strg = "jt450";
 	if ( itrg%10 == 9 ) strg = "jt500";
 	if (itrg>=30) assert(false);
+	*/
 	/* // 50 ns
 	if (            itrg<=0) strg = "jt40";//30";
 	if (itrg>= 1 && itrg<=1) strg = "jt60";
@@ -820,15 +927,28 @@ void fillHistos::Loop()
 	if (itrg>= 9 && itrg<=9) strg = "jt500"; // prescale=1
 	if (itrg>=10) assert(false);
 	*/
-	if (pass && strg!="") _trigs.insert(strg);
+	//if (pass && strg!="") _trigs.insert(strg);
+	pass = (pass && strg!="");
 
 	// Set prescale from event for now
-	if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0)
-	  _prescales[strg][run] = max(L1Prescale_[itrg] * HLTPrescale_[itrg],
-				      _prescales[strg][run]);
+	if (pass && L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0)
+	  //_prescales[strg][run] = max(L1Prescale_[itrg] * HLTPrescale_[itrg],
+	  //		      _prescales[strg][run]);
+	  _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+	else if (pass) {
+	  //_prescales[strg][run] = max(0,_prescales[strg][run]);
+	  //_prescales[strg][run] = max(0,_premap[strg][run]);
+	  //_prescales[strg][run] = max(0,_premap[strg][run][lbn]);
+	  //assert(false);
+	  cout << "Error for trigger " << strg << " prescales: "
+	       << "L1  =" << L1Prescale_[itrg]
+	       << "HLT =" << HLTPrescale_[itrg] << endl;
+	  _prescales[strg][run] = 0;
+	  //pass = false;
+	}
 
 	// check prescale
-	if (pass) {
+	if (pass && _debug) {
 	  double prescale = _prescales[strg][run];
 	  if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
 	    cout << "Trigger " << strg << ", "
@@ -838,15 +958,24 @@ void fillHistos::Loop()
 	    assert(false);
 	  }
 	} // if pass
+
+	// Set trigger only if prescale information is known
+	if (pass && strg!="" && _prescales[strg][run]!=0) _trigs.insert(strg);
+	// Make sure all info is good!
+	if (pass && strg!="" && _prescales[strg][run]==0) {
+	  cout << "Missing prescale for " << strg
+	       << " in run " << run << endl << flush;
+	  //assert(false); exit(0);
+	}
       } // for itrg
 
       ++_totcounter;
       if (_pass) ++_evtcounter;
       if (_trigs.size()!=0 && _pass) ++_trgcounter;
-      if (_trigs.size()!=0 && _pass) ++cnt["07trg"];
+      if (_trigs.size()!=0 && _pass && _dt) ++cnt["07trg"];
 
       // Retrieve event weight
-      _w0 = (_mc ? weight : 1);
+      _w0 = (_mc ? weight : 1); assert(_w0);
       _w = _w0;
 
       // Calculate trigger PU weight
@@ -858,14 +987,22 @@ void fillHistos::Loop()
 	// Reweigh in-time pile-up
 	if (_mc && _jp_reweighPU) {
 
-          int k = pudist[t]->FindBin(trpu);
-          double w1 = pudist[t]->GetBinContent(k);
+          //int k = pudist[t]->FindBin(trpu);
+          //double w1 = pudist[t]->GetBinContent(k);
+	  int k = pudt->FindBin(trpu);
+	  double w1 = pudt->GetBinContent(k);
           double w2 = pumc->GetBinContent(k);
           Double_t wtrue = (w1==0 || w2==0 ? 1. : w1 / w2);
           _wt[t] *= wtrue;
         }
       } // for itrg
       _wt["mc"] = _wt[_jp_mctrig];
+
+      // check for non-zero PU weight
+      if (_pass && _mc && _jp_reweighPU) {
+	_pass = (pudt->GetBinContent(pudt->FindBin(trpu))!=0);
+      }
+      if (_trigs.size()!=0 && _pass && _mc) ++cnt["07puw"];
 
       // To-do: implement reweighing for k-factor (NLO*NP/LOMC)
 
@@ -1074,7 +1211,7 @@ void fillHistos::Loop()
 	_pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
 	//_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
       }
-      if (njt!=0 && _jetids[0] && _pass) ++cnt["10puw"];
+      if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10puw"];
 
       // Here can categorize events into different triggers, epochs,
       // topologies etc.
@@ -1678,16 +1815,20 @@ void fillHistos::fillBasic(basicHistos *h) {
 	  assert(h->pbetastartp_vsnpv);
 	  h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[i], _w);
 	  //
-	  assert(h->pchftp2_vsnpv);
-	  h->pchftp2_vsnpv->Fill(npvgood, jtchf2[i], _w);
-	  assert(h->pneftp2_vsnpv);
-	  h->pneftp2_vsnpv->Fill(npvgood, jtnef2[i], _w);
-	  assert(h->pnhftp2_vsnpv);
-	  h->pnhftp2_vsnpv->Fill(npvgood, jtnhf2[i], _w);
-	  assert(h->pceftp2_vsnpv);
-	  h->pceftp2_vsnpv->Fill(npvgood, jtcef2[i], _w);
-	  assert(h->pmuftp2_vsnpv);
-	  h->pmuftp2_vsnpv->Fill(npvgood, jtmuf2[i], _w);
+	  assert(h->pchftp_vstrpu);
+	  h->pchftp_vstrpu->Fill(trpu, jtchf2[i], _w);
+	  assert(h->pneftp_vstrpu);
+	  h->pneftp_vstrpu->Fill(trpu, jtnef2[i], _w);
+	  assert(h->pnhftp_vstrpu);
+	  h->pnhftp_vstrpu->Fill(trpu, jtnhf2[i], _w);
+	  assert(h->pceftp_vstrpu);
+	  h->pceftp_vstrpu->Fill(trpu, jtcef2[i], _w);
+	  assert(h->pmuftp_vstrpu);
+	  h->pmuftp_vstrpu->Fill(trpu, jtmuf2[i], _w);
+	  assert(h->pbetatp_vstrpu);
+	  h->pbetatp_vstrpu->Fill(trpu, jtbeta[i], _w);
+	  assert(h->pbetastartp_vstrpu);
+	  h->pbetastartp_vstrpu->Fill(trpu, jtbetastar[i], _w);
 	}
       } // dijet system
     } // tag-and-probe
@@ -1914,6 +2055,8 @@ void fillHistos::fillBasic(basicHistos *h) {
       h->pnpv->Fill(pt, npvgood, _w);
       h->pnpvall->Fill(pt, npv, _w);
       if (pt >= h->ptmin && pt < h->ptmax) {
+	h->htrpu2->Fill(trpu, _w);
+	//
 	h->pnpvvsrho->Fill(rho, npvgood, _w);
 	h->prhovsnpv->Fill(npvgood, rho, _w);
 	h->prhovsnpvall->Fill(npv, rho, _w);
@@ -1992,8 +2135,8 @@ void fillHistos::fillBasic(basicHistos *h) {
 
 	if (_debug) cout << "..control plots for topology" << endl << flush;
 
+	h->htrpu->Fill(trpu, _w);
 	if (h->ismc) {
-	  h->htrpu->Fill(trpu, _w);
 	  h->hitpu->Fill(itpu, _w);
 	  h->hootpuearly->Fill(ootpuearly, _w);
 	  h->hootpulate->Fill(ootpulate, _w);
@@ -2547,6 +2690,7 @@ void fillHistos::fillRunHistos(string name) {
 	string const& t = h->trg[i];
 	h->p_trg[t][run] = 0;
 	h->t_trg[t][run] = 0;
+	h->tw_trg[t][run] = 0;
 	h->npv_trg[t][run] = 0;
 	h->c_chf[t][run] = 0;
 	h->c_nef[t][run] = 0;
@@ -2588,7 +2732,8 @@ void fillHistos::fillRunHistos(string name) {
 
 	if (pt > 18.) ++h->p_trg[t][run];
 	if (pt > h->pt[t]) {
-	  ++h->t_trg[t][run];
+	  ++h->t_trg[t][run]; // unweighted events
+	  h->tw_trg[t][run] += _prescales[t][run]; // prescale weighted events
 	  h->npv_trg[t][run] += npv;
 	  h->npvgood_trg[t][run] += npvgood;
 	  h->c_chf[t][run] += jtchf[i];
@@ -2752,168 +2897,13 @@ void fillHistos::loadLumi(const char* filename) {
   cout << "Processing loadLumi(\"" << filename << "\")..." << endl;
 
   // Check lumi against the list of good runs
-  const int a_goodruns[] = {
-    // **** 5.0/fb, July 16 (for Jan 16 files) ****
-    // May10ReReco
-    160431, 160577, 160578, 160871, 160872, 160873, 160874, 160939, 160940, 160942, 160943, 160955, 160956, 160957, 160998, 161008, 161016, 161103, 161106, 161107, 161113, 161116, 161117, 161119, 161156, 161176, 161217, 161222, 161223, 161233, 161310, 161311, 161312, 162762, 162765, 162803, 162808, 162811, 162822, 162825, 162826, 162828, 162909, 163046, 163069, 163071, 163078, 163232, 163233, 163234, 163235, 163237, 163238, 163252, 163255, 163261, 163270, 163286, 163289, 163296, 163297, 163300, 163301, 163302, 163332, 163333, 163334, 163337, 163338, 163339, 163340, 163358, 163369, 163370, 163371, 163372, 163374, 163375, 163376, 163378, 163385, 163387, 163402, 163475, 163476, 163478, 163479, 163480, 163481, 163482, 163483, 163582, 163583, 163584, 163585, 163586, 163587, 163588, 163589, 163596, 163630, 163655, 163657, 163658, 163659, 163660, 163661, 163662, 163663, 163664, 163668, 163738, 163757, 163758, 163759, 163760, 163761, 163763, 163765, 163795, 163796, 163817, 163869,
-    // PromptV4
-    165088, 165098, 165099, 165102, 165103, 165120, 165121, 165205, 165208, 165364, 165402, 165415, 165467, 165472, 165486, 165487, 165506, 165514, 165548, 165558, 165567, 165570, 165617, 165620, 165633, 165970, 165993, 166011, 166033, 166034, 166049, 166149, 166150, 166161, 166163, 166164, 166346, 166374, 166380, 166408, 166429, 166438, 166462, 166486, 166502, 166512, 166514, 166530, 166554, 166563, 166565, 166699, 166701, 166763, 166781, 166782, 166784, 166787, 166839, 166841, 166842, 166859, 166860, 166861, 166864, 166888, 166889, 166890, 166894, 166895, 166911, 166922, 166923, 166946, 166950, 166960, 166966, 166967, 167039, 167041, 167043, 167078, 167098, 167102, 167103, 167151, 167281, 167282, 167284, 167551, 167673, 167674, 167675, 167676, 167740, 167746, 167754, 167784, 167786, 167807, 167830, 167898, 167913,
-    // Aug5ReReco
-    170826, 170842, 170854, 170876, 170896, 170899, 170901, 171050, 171091, 171098, 171102, 171106, 171117, 171156, 171178, 171219, 171274, 171282, 171315, 171369, 171446, 171484, 171578, 171812, 171876, 171880, 171895, 171897, 171921, 171926, 172014, 172024, 172033, 172163, 172208, 172252, 172254, 172255, 172268, 172286, 172389, 172399, 172400, 172401, 172411, 172478, 172619,
-    // PromptV6
-    172620, 172630, 172635, 172778, 172791, 172798, 172799, 172801, 172802, 172819, 172822, 172824, 172847, 172865, 172868, 172949, 172951, 172952, 172992, 172999, 173198, 173236, 173240, 173241, 173243, 173380, 173381, 173389, 173406, 173430, 173438, 173439, 173657, 173658, 173659, 173660, 173661, 173663, 173664, 173692,
-    // Run2011B
-    175860, 175863, 175865, 175866, 175872, 175873, 175874, 175877, 175881, 175886, 175887, 175888, 175906, 175910, 175921, 175973, 175974, 175975, 175976, 175990, 176023, 176161, 176163, 176165, 176167, 176169, 176201, 176202, 176206, 176207, 176286, 176289, 176304, 176308, 176309, 176467, 176468, 176469, 176545, 176547, 176548, 176697, 176701, 176702, 176765, 176771, 176795, 176796, 176797, 176799, 176801, 176805, 176807, 176841, 176844, 176848, 176850, 176860, 176868, 176885, 176886, 176889, 176928, 176929, 176933, 176959, 176982, 177053, 177074, 177088, 177095, 177096, 177131, 177138, 177139, 177140, 177141, 177183, 177184, 177201, 177222, 177317, 177318, 177319, 177449, 177452, 177718, 177719, 177730, 177776, 177782, 177783, 177788, 177789, 177790, 177791, 177875, 177878, 178098, 178099, 178100, 178101, 178102, 178110, 178116, 178151, 178160, 178162, 178365, 178367, 178380, 178420, 178421, 178424, 178479, 178703, 178708, 178712, 178724, 178731, 178738, 178786, 178803, 178840, 178854, 178866, 178871, 178920, 178970, 178985, 179411, 179434, 179452, 179476, 179497, 179547, 179558, 179563, 179889, 179959, 179977, 180072, 180076, 180093, 180241, 180250, 180252};
-  
-  /*
-    // **** 4.7/fb, Nov13th ****
-    // cat lumicalc/Nov13th/Runs.txt | awk '{print $1","}' | tr '\n' ' '
-    // May10ReReco
-    160431, 160577, 160578, 160871, 160872, 160873, 160874, 160939, 160940, 160942, 160943, 160955, 160956, 160957, 160998, 161008, 161016, 161103, 161106, 161107, 161113, 161116, 161117, 161119, 161176, 161217, 161222, 161223, 161233, 161310, 161311, 161312, 162762, 162765, 162803, 162808, 162811, 162822, 162825, 162826, 162828, 162909, 163046, 163069, 163071, 163078, 163232, 163233, 163234, 163235, 163237, 163238, 163252, 163255, 163261, 163270, 163286, 163289, 163296, 163297, 163300, 163301, 163302, 163332, 163333, 163334, 163337, 163338, 163339, 163340, 163358, 163369, 163370, 163371, 163372, 163374, 163375, 163376, 163378, 163385, 163387, 163402, 163475, 163476, 163478, 163479, 163480, 163481, 163482, 163483, 163582, 163583, 163584, 163585, 163586, 163587, 163588, 163589, 163596, 163630, 163655, 163657, 163658, 163659, 163660, 163661, 163662, 163663, 163664, 163668, 163738, 163757, 163758, 163759, 163760, 163761, 163763, 163765, 163795, 163796, 163817, 163869,
-    // PromptV4
-    165088, 165098, 165099, 165102, 165103, 165120, 165121, 165205, 165208, 165364, 165402, 165415, 165467, 165472, 165486, 165487, 165506, 165514, 165548, 165558, 165567, 165570, 165617, 165620, 165633, 165970, 165993, 166011, 166033, 166034, 166049, 166149, 166150, 166161, 166163, 166164, 166346, 166374, 166380, 166408, 166429, 166438, 166462, 166486, 166502, 166512, 166514, 166530, 166554, 166563, 166565, 166699, 166701, 166763, 166781, 166782, 166784, 166787, 166839, 166841, 166842, 166859, 166860, 166861, 166864, 166888, 166889, 166890, 166894, 166895, 166911, 166922, 166923, 166946, 166950, 166960, 166966, 166967, 167039, 167041, 167043, 167078, 167098, 167102, 167103, 167151, 167281, 167282, 167284, 167551, 167673, 167674, 167675, 167676, 167740, 167746, 167754, 167784, 167786, 167807, 167830, 167898, 167913,
-    // Aug5ReReco    
-    170826, 170842, 170854, 170876, 170896, 170899, 170901, 171050, 171091, 171098, 171102, 171106, 171117, 171156, 171178, 171219, 171274, 171282, 171315, 171369, 171446, 171484, 171578, 171812, 171876, 171880, 171895, 171897, 171921, 171926, 172014, 172024, 172033, 172163, 172208, 172252, 172254, 172255, 172268, 172286, 172389, 172399, 172400, 172401, 172411, 172478, 172619,
-    // PromptV6
-    172620, 172630, 172635, 172778, 172791, 172798, 172799, 172801, 172802, 172819, 172822, 172824, 172847, 172865, 172868, 172949, 172951, 172952, 172992, 172999, 173198, 173236, 173240, 173241, 173243, 173380, 173381, 173389, 173406, 173430, 173438, 173439, 173657, 173658, 173659, 173660, 173661, 173663, 173664, 173692,
-    // Run2011B
-    175860, 175863, 175865, 175866, 175872, 175873, 175874, 175877, 175881, 175886, 175887, 175888, 175906, 175910, 175921, 175973, 175974, 175975, 175976, 175990, 176023, 176161, 176163, 176165, 176167, 176169, 176201, 176202, 176206, 176207, 176286, 176289, 176304, 176308, 176309, 176467, 176468, 176469, 176545, 176547, 176548, 176697, 176701, 176702, 176765, 176771, 176795, 176796, 176797, 176799, 176801, 176805, 176807, 176841, 176844, 176848, 176850, 176860, 176868, 176885, 176886, 176889, 176928, 176929, 176933, 176959, 176982, 177053, 177074, 177088, 177095, 177096, 177131, 177138, 177139, 177140, 177141, 177183, 177184, 177201, 177222, 177317, 177318, 177319, 177449, 177452, 177718, 177719, 177730, 177776, 177782, 177783, 177788, 177789, 177790, 177791, 177875, 177878, 178098, 178099, 178100, 178101, 178102, 178110, 178116, 178151, 178160, 178162, 178365, 178367, 178380, 178420, 178421, 178424, 178479, 178703, 178708, 178712, 178724, 178731, 178738, 178786, 178803, 178840, 178854, 178866, 178871, 178920, 178970, 178985, 179411, 179434, 179452, 179476, 179497, 179547, 179558, 179563, 179889, 179959, 179977, 180072, 180076, 180093, 180241, 180250, 180252};
-  */
-  /*
-    // **** 3.2/fb, Oct11th ****
-    // May10ReReco
-    160431, 160577, 160578, 160871, 160872, 160873, 160874, 160939, 160940,
-    160942, 160943, 160955, 160956, 160957, 160998, 161008, 161016, 161103,
-    161106, 161107, 161113, 161116, 161117, 161119, 161156,
-    161176, 161217, 161222,
-    161223, 161233, 161310, 161311, 161312, 162762, 162765, 162803, 162808,
-    162811, 162822, 162825, 162826, 162828, 162909, 163046, 163069, 163071,
-    163078, 163232, 163233, 163234, 163235, 163237, 163238, 163252, 163255,
-    163261, 163270, 163286, 163289, 163296, 163297, 163300, 163301, 163302,
-    163332, 163333, 163334, 163337, 163338, 163339, 163340, 163358, 163369,
-    163370, 163371, 163372, 163374, 163375, 163376, 163378, 163385, 163387,
-    163402, 163475, 163476, 163478, 163479, 163480, 163481, 163482, 163483,
-    163582, 163583, 163584, 163585, 163586, 163587, 163588, 163589, 163596,
-    163630, 163655, 163657, 163658, 163659, 163660, 163661, 163662, 163663,
-    163664, 163668, 163738, 163757, 163758, 163759, 163760, 163761, 163763,
-    163765, 163795, 163796, 163817, 163869,
-    // PromptV4
-    165088, 165098, 165099, 165102,
-    165103, 165120, 165121, 165205, 165208, 165364, 165402, 165415, 165467,
-    165472, 165486, 165487, 165506, 165514, 165548, 165558, 165567, 165570,
-    165617, 165620, 165633, 165970, 165993, 166011, 166033, 166034, 166049,
-    166149, 166150, 166161, 166163, 166164, 166374, 166380, 166408, 166429,
-    166438, 166462, 166486, 166502, 166512, 166514, 166530, 166554, 166563,
-    166565, 166699, 166701, 166763, 166781, 166782, 166784, 166787, 166839,
-    166841, 166842, 166859, 166860, 166861, 166864, 166888, 166889, 166890,
-    166894, 166895, 166911, 166922, 166923, 166946, 166950, 166960, 166966,
-    166967, 167039, 167041, 167043, 166346, 167078, 167098, 167102, 167103,
-    167151, 167281, 167282, 167284, 167551, 167673, 167674, 167675, 167676,
-    167740, 167746, 167754, 167784, 167786, 167807, 167830, 167898, 167913,
-    // Aug5ReReco
-    170722, 170826, 170842, 170854, 170876, 170896, 170899, 170901, 171050,
-    171091, 171098, 171102, 171106, 171117, 171156, 171178, 171219, 171274,
-    171282, 171315, 171369, 171446, 171484, 171578, 171812, 171876, 171880,
-    171895, 171897, 171921, 171926, 172014, 172024, 172033, 172163, 172208,
-    172252, 172254, 172255, 172268, 172286, 172389, 172399, 172400, 172401,
-    172411, 172478, 172619, 
-    // PromptV6
-    172620, 172630, 172635, 172778, 172791, 172798,
-    172799, 172801, 172802, 172819, 172822, 172824, 172847, 172865, 172868,
-    172949, 172951, 172952, 172992, 172999, 173198, 173236, 173240, 173241,
-    173243, 173380, 173381, 173389, 173406, 173430, 173438, 173439, 173657,
-    173658, 173659, 173660, 173661, 173663, 173664, 173692,
-    // Run2011B
-    175860, 175863,
-    175865, 175866, 175872, 175873, 175874, 175877, 175881, 175886, 175887,
-    175888, 175906, 175910, 175921, 175973, 175974, 175975, 175976, 175990,
-    176023, 176161, 176163, 176165, 176167, 176169, 176201, 176202, 176206,
-    176207, 176286, 176289, 176304, 176308, 176309, 176467, 176468, 176469,
-    176545, 176547, 176548, 176697, 176701, 176702, 176765, 176771, 176795,
-    176796, 176797, 176799, 176801, 176805, 176807, 176841, 176844, 176848,
-    176850, 176860, 176868, 176885, 176886, 176889, 176928, 176929, 176933,
-    176959, 176982, 177053, 177074, 177088, 177095, 177096, 177131, 177138,
-    177139, 177140, 177141, 177183, 177184, 177201, 177222, 177317, 177318,
-    177319, 177449, 177452};
-  */
-  /*
-    // **** 2.2/fb, Sep2nd *****
-    // May10ReReco
-    160431, 160577, 160578, 160871, 160872, 160873, 160874, 160939, 160940,
-    160942, 160943, 160955, 160956, 160957, 160998, 161008, 161016, 161103,
-    161106, 161107, 161113, 161116, 161117, 161119, 161156, 161176, 161217,
-    161222, 161223, 161233, 161310, 161311, 161312, 162762, 162765, 162803,
-    162808, 162811, 162822, 162825, 162826, 162828, 162909, 163046, 163069,
-    163071, 163078, 163232, 163233, 163234, 163235, 163237, 163238, 163252,
-    163255, 163261, 163270, 163286, 163289, 163296, 163297, 163300, 163301,
-    163302, 163332, 163333, 163334, 163337, 163338, 163339, 163340, 163358,
-    163369, 163370, 163371, 163372, 163374, 163375, 163376, 163378, 163385,
-    163387, 163402, 163475, 163476, 163478, 163479, 163480, 163481, 163482,
-    163483, 163582, 163583, 163584, 163585, 163586, 163587, 163588, 163589,
-    163596, 163630, 163655, 163657, 163658, 163659, 163660, 163661, 163662,
-    163663, 163664, 163668, 163738, 163757, 163758, 163759, 163760, 163761,
-    163763, 163765, 163795, 163796, 163817, 163869,
-    // PromptV4
-    165088, 165098, 165099, 165102, 165103, 165120, 165121, 165205, 165208,
-    165364, 165402, 165415, 165467, 165472, 165486, 165487, 165506, 165514,
-    165548, 165558, 165567, 165570, 165617, 165620, 165633, 165970, 165993,
-    166011, 166033, 166034, 166049, 166149, 166150, 166161, 166163, 166164,
-    166346, 166374, 166380, 166408, 166429, 166438, 166462, 166486, 166502,
-    166512, 166514, 166530, 166554, 166563, 166565, 166699, 166701, 166763,
-    166781, 166782, 166784, 166787, 166839, 166841, 166842, 166859, 166860,
-    166861, 166864, 166888, 166889, 166890, 166894, 166895, 166911, 166922,
-    166923, 166946, 166950, 166960, 166966, 166967, 167039, 167041, 167043,
-    167078, 167098, 167102, 167103, 167151, 167281, 167282, 167284, 167551,
-    167673, 167674, 167675, 167676, 167740, 167746, 167754, 167784, 167786,
-    167807, 167830, 167898, 167913,
-    // Aug5ReReco
-    170722, 170826, 170842, 170854, 170876, 170896, 170899, 170901, 171050,
-    171091, 171098, 171102, 171106, 171117, 171156, 171178, 171219, 171274,
-    171282, 171315, 171369, 171446, 171484, 171578, 171812, 171876, 171880,
-    171895, 171897, 171921, 171926, 172014, 172024, 172033, 172163, 172208,
-    172252, 172254, 172255, 172268, 172286, 172389, 172399, 172400, 172401,
-    172411, 172478, 172619,
-    // PromptV6
-    172620, 172630, 172635, 172778, 172791, 172798, 172799, 172801, 172802,
-    172819, 172822, 172824, 172847, 172865, 172868, 172949, 172951, 172952,
-    172992, 172999, 173198, 173236, 173240, 173241, 173243, 173380, 173381,
-    173389, 173406, 173430, 173438, 173439, 173657, 173658, 173659, 173660,
-    173661, 173663, 173664, 173692};
-  */
-/*
-// These are for the 1.1/fb file
-    160431, 160577, 160578, 160871, 160872, 160873, 160874, 160939, 160940,
-    160942, 160943, 160955, 160956, 160957, 160998, 161008, 161016, 161103,
-    161106, 161107, 161113, 161116, 161117, 161119, 161156, 161176, 161217,
-    161222, 161223, 161233, 161310, 161311, 161312, 162762, 162765, 162803,
-    162808, 162811, 162822, 162825, 162826, 162828, 162909, 163046, 163069,
-    163071, 163078, 163232, 163233, 163234, 163235, 163237, 163238, 163252,
-    163255, 163261, 163270, 163286, 163289, 163296, 163297, 163300, 163301,
-    163302, 163332, 163333, 163334, 163337, 163338, 163339, 163340, 163358,
-    163369, 163370, 163371, 163372, 163374, 163375, 163376, 163378, 163385,
-    163387, 163402, 163475, 163476, 163478, 163479, 163480, 163481, 163482,
-    163483, 163582, 163583, 163584, 163585, 163586, 163587, 163588, 163589,
-    163596, 163630, 163655, 163657, 163658, 163659, 163660, 163661, 163662,
-    163663, 163664, 163668, 163738, 163757, 163758, 163759, 163760, 163761,
-    163763, 163765, 163795, 163796, 163817, 163869, 165088, 165098, 165099,
-    165102, 165103, 165120, 165121, 165205, 165208, 165364, 165402, 165415,
-    165467, 165472, 165486, 165487, 165506, 165514, 165548, 165558, 165567,
-    165570, 165617, 165620, 165633, 165970, 165993, 166011, 166033, 166034,
-    166049, 166149, 166150, 166161, 166163, 166164, 166346, 166374, 166380,
-    166408, 166429, 166438, 166462, 166486, 166502, 166512, 166514, 166530,
-    166554, 166563, 166565, 166699, 166701, 166763, 166781, 166782, 166784,
-    166787, 166839, 166841, 166842, 166859, 166860, 166861, 166864, 166888,
-    166889, 166890, 166894, 166895, 166911, 166922, 166923, 166946, 166950,
-    166960, 166966, 166967, 167039, 167041, 167043, 167078, 167098, 167102,
-    167103, 167151, 167281, 167282, 167284, 167551, 167673, 167674, 167675,
-    167740, 167746, 167754, 167784, 167786, 167807, 167830, 167898, 167913};
-*/
-
+  const int a_goodruns[] = {};
   const int ngoodruns = sizeof(a_goodruns)/sizeof(a_goodruns[0]);
   set<int> goodruns;
   for (int i = 0; i != ngoodruns; ++i) {
     goodruns.insert(a_goodruns[i]);
   }
+
   set<pair<int, int> > nolums;
 
   if (true) {
@@ -2929,18 +2919,30 @@ void fillHistos::loadLumi(const char* filename) {
   float secLS = 2.3310e+01;
   string s;
   int rn, fill, ls, ifoo;
-  float del, rec, ffoo;
-  assert(getline(f, s, '\r')); //assert(f >> s);
+  float del, rec, avgpu, ffoo;
+  char sfoo[512];
+  //assert(getline(f, s, '\r'));
+  assert(getline(f, s, '\n'));
+  //assert(f >> s);
   cout << endl << "string: " << s << " !" << endl << flush;
-  bool v1 = (s==string("run,ls,delivered,recorded"));
-  bool v2 = (s==string("Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
-  bool v3 = (s==string("Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
-  assert(v1 || v2 || v3);
+  //bool v1 = (s==string("run,ls,delivered,recorded"));
+  //bool v2 = (s==string("Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
+  //bool v3 = (s==string("Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
+  //assert(v1 || v2 || v3);
+  assert (s=="#Data tag : online , Norm tag: None");
+  //
+  //assert(getline(f, s, '\r'));
+  assert(getline(f, s, '\n'));
+  //assert(f>>s);
+  cout << endl << "string: " << s << " !" << endl << flush;
+  assert (s=="#run:fill,ls,time,beamstatus,E(GeV),delivered(/ub),recorded(/ub),avgpu,source");
+
   int nls(0);
   double lumsum(0);
   double lumsum_good(0);
   double lumsum_json(0);
   bool skip(false);
+  /*
   while ((v1 && f >> s &&
 	  sscanf(s.c_str(),"%d,%d,%f,%f",&rn,&ls,&del,&rec)==4) ||
 	 (v2 && getline(f, s, '\r') &&
@@ -2953,6 +2955,19 @@ void fillHistos::loadLumi(const char* filename) {
 		  "%f,%f,%f", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
 		  &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec)==13 ||
 	   (skip=true)))) {
+  */
+  while (//getline(f, s, '\r') &&
+	 getline(f, s, '\n') &&
+	 //f >> s &&
+	 (sscanf(s.c_str(),"%d:%d,%d:%d,%d/%d/%d %d:%d:%d,STABLE BEAMS,"
+		 "%f,%f,%f,%f,%s", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
+		 &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec,&avgpu,sfoo)==15 ||
+	  (skip=true))) {
+
+    if (_debug) {
+      if (skip) cout << "Skipping line:\n" << s << endl;
+      cout << "Run " << run << " ls " << ls
+	   << " lumi " << rec*1e-6 << "/pb" << endl;
 
     // LS is not STABLE BEAMS but something else:
     // ADJUST, BEAM DUMP, FLAT TOP, INJECTION PHYSICS BEAM, N/A, RAMP DOWN,
@@ -2963,6 +2978,7 @@ void fillHistos::loadLumi(const char* filename) {
     }
 
     assert(_lums[rn][ls]==0);
+    assert(_avgpu[rn][ls]==0);
     // Try to get this in units of pb-1
     // apparently it is given in s^-1 cm^-2
     //double lum = lvtx * secLS * 1e-36 ;
@@ -2979,6 +2995,7 @@ void fillHistos::loadLumi(const char* filename) {
       nolums.insert(pair<int, int>(rn,ls));
     }
 
+    _avgpu[rn][ls] = avgpu * 69000. / 78400.; // brilcalc --minBiasXsec patch
     _lums[rn][ls] = lum;
     _lums2[rn][ls] = lum2;
     lumsum += lum;
@@ -3037,34 +3054,66 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile) {
   TFile *fpumc = new TFile(mcfile,"READ");
   assert(fpumc && !fpumc->IsZombie());
   
-  pumc = (TH1D*)fpumc->Get("hpu370"); assert(pumc);
+  //pumc = (TH1D*)fpumc->Get("hpu370"); assert(pumc);
+  pumc = (TH1F*)fpumc->Get("pileupmc"); assert(pumc);
+  pudt = (TH1F*)fpudist->Get("pileupdt"); assert(pudt);
 
   // Normalize
   pumc->Scale(1./pumc->Integral());
+  pudt->Scale(1./pudt->Integral());
 
   // For data, load each trigger separately
   /*
-  //vector<string> triggers;
-  _triggers.push_back("jt30");
-  _triggers.push_back("jt60");
-  //_triggers.push_back("jt80");
-  _triggers.push_back("jt110");
-  //_triggers.push_back("jt150");
-  _triggers.push_back("jt190");
-  _triggers.push_back("jt240");
-  _triggers.push_back("jt300");
-  _triggers.push_back("jt370");
-  */
-
   for (unsigned int itrg = 0 ; itrg != _triggers.size(); ++itrg) {
 
     const char *t = _triggers[itrg].c_str();
     pudist[t] = (TH1D*)fpudist->Get(Form("pileup_%s",t)); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
+  */
 
   curdir->cd();
 } // loadPUProfiles
+
+void fillHistos::loadPrescales(const char *prescalefile) {
+
+  cout << "Processing loadPrescales(\"" << prescalefile << "\")..." << endl;
+  fstream fin(prescalefile);
+
+  const int ns = 1024;
+  char s[ns];
+
+  fin.getline(s, ns);
+  stringstream ss;
+  ss << s;
+
+  string srun, sls, strg;
+  vector<string> trgs;
+  ss >> srun; assert(srun=="RUN");
+
+  while (ss >> strg) trgs.push_back(strg);
+
+  int run, ls, pre;
+  while(fin.getline(s, ns)) {
+
+    stringstream ss;
+    ss << s;
+    ss >> run >> ls;
+    if (_debug) cout << " run " << run << " ls " << ls << ": ";
+    //ss >> run;
+    //cout << " run " << run << ": ";
+
+    int itrg(0);
+    for (unsigned int itrg = 0; ss >> pre; ++itrg) {
+      //cout << "trg" << trgs[itrg] << " run " << run << " ls " << ls;
+      assert(itrg!=trgs.size());
+      //_premap[trgs[itrg]][run] = pre;
+      _premap[trgs[itrg]][run][ls] = pre;
+      if (_debug) cout << pre << "/" << trgs[itrg] << " ";
+    }
+    if (_debug) cout << endl;
+  }
+} // loadPrescales
 
 void fillHistos::loadECALveto(const char *file) {
   

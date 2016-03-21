@@ -6,9 +6,22 @@
 
   // ***** BEFORE RUNNING THE ANALYSIS ****** //
   // NB: more detailed instructions are at the end
-  // * Provide JSON file (output JSON to lumicalc/)
-  // * Provide lumicalc_by_LS.csv (run lumiCalc.py on lxplus with JSON)
-  // * Provide prescale files (run lumicalc/prescales.C on lxplus)
+  // * Provide output JSON file or get the golden JSON from lxplus:
+  //      /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/
+  //   => settings.h : _jp_json
+  // * Produce brilcalc_lumibyls.csv on lxplus:
+  //   [http://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html]
+  //       brilcalc lumi -i [JSON] -o brilcalc_lumibyls.csv --minBiasXsec 69000 --byls
+  //   [could add --hltpath to calculate luminosity per path]
+  //   => settings.h : _jp_lumifile
+  // * Produce pileup reweighing files for data and MC
+  //   MC: ProcessedTree->Draw("EvtHdr_.TrPu>>pileupmc(500,0,50)");
+  //   Data: use brilcalc_lumibyls.csv [need code for this]
+  //   => settings.h : _jp_pudata , _jp_pumc
+  //
+  // * Run duplicate checker with new data files, but turn of later (slow)
+  //   => settings.h : _jp_checkduplicates
+  //
   // * Point mk_fillHistos.C to correct data/MC files, 
   //   mk_theory.C to correct theory, and fillHistos.C to correct JSON etc.
   //   [tbd: make these all configurable]
@@ -50,12 +63,12 @@
 // Step 2a: - apply corrections, normalize luminosity and eta width
   cout << "\nStep 2a: Apply corrections and normalization factors"
        << "\n====================================================\n";
-  gROOT->ProcessLine(".x mk_normalizehistos.C");
+  gROOT->ProcessLine(".x mk_normalizehistos.C+g");
 
 // Step 2b: - stitch different triggers together
   cout << "\nStep 2b: Stitch different triggers together"
        << "\n===========================================\n";
-  gROOT->ProcessLine(".x mk_combineHistos.C");
+  gROOT->ProcessLine(".x mk_combineHistos.C+g");
 
 // Step 3a: - unfold spectrum iteratively using Ansatz method
 // Step 3b: - unfold spectrum using reweighted Pythia MC
@@ -67,7 +80,7 @@
 // Step 2c:  - reformat theory curves
   cout << "\nStep 2c: Reformat theory predictions"
        << "\n======================================\n";
-  gROOT->ProcessLine(".x mk_theory.C");
+  gROOT->ProcessLine(".x mk_theory.C+g");
 
 // Step 3a: - unfold spectrum using NLO forward smearing
   //cout << "\nStep 3a: Unfold spectrum using NLO forward smearing"
@@ -77,7 +90,7 @@
 // Step 3: - unfold spectrum using d'Agostini method
   cout << "\nStep 3: Unfold spectrum using d'Agostini method"
        << "\n===================================================\n";
-  gROOT->ProcessLine(".x mk_dagostini.C");
+  gROOT->ProcessLine(".x mk_dagostini.C+g");
 
 // JEC/JER residuals: move by hand to systematics.C
 //gROOT->ProcessLine(".x mk_resolution.C");
@@ -90,12 +103,12 @@
 //            for all of these, use parameterized sources
   cout << "\nStep 4: Calculate systematics"
        << "\n============================================\n";
-  //gROOT->ProcessLine(".x mk_systematics.C");
+  //gROOT->ProcessLine(".x mk_systematics.C+g");
 
 // Step 4b: - calculate and plot rapidity bias (+reco efficiency)
   cout << "\nStep 4b: Calculate (and plot) rapidity bias"
        << "\n============================================\n";
-  //gROOT->ProcessLine(".x mk_rapiditybias.C");
+  //gROOT->ProcessLine(".x mk_rapiditybias.C+g");
 
 // Sted 4c: - apply ad-hoc corrections for various biases
 //            (i) rapidity bias
@@ -103,7 +116,7 @@
 //            (iii) JER residual (not yet implemented)
   cout << "\nStep 4c: Apply ad-hoc bias correctios (rapidity, JEC)"
        << "\n=====================================================\n";
-  //gROOT->ProcessLine(".x mk_correctHistos.C");
+  //gROOT->ProcessLine(".x mk_correctHistos.C+g");
 
 // Step 6:  - produce pretty plots of analysis steps
   cout << "\nStep 6: Draw plots (raw spectra, triggers, unfolding)"
@@ -113,12 +126,12 @@
 // Step 7: - plot systematics
   cout << "\nStep 7: Draw plots (systematics)"
        << "\n================================\n";
-  //gROOT->ProcessLine(".x mk_drawSystematics.C");
+  //gROOT->ProcessLine(".x mk_drawSystematics.C+g");
 
 // Step 8: - plot summary
   cout << "\nStep 8: Draw plots (summary)"
        << "\n================================\n";
-  //gROOT->ProcessLine(".x mk_drawSummary.C");
+  //gROOT->ProcessLine(".x mk_drawSummary.C+g");
 
 // Step 9: - plot summary
   cout << "\nStep 9a: Draw plots (comparison)"
@@ -132,7 +145,7 @@
     //gROOT->ProcessLine(".x mk_drawRunHistos.C");  
     cout << "\nStep 9c: Draw JEC checks"
 	 << "\n================================\n";
-    gROOT->ProcessLine(".x mk_jecChecks.C");  
+    gROOT->ProcessLine(".x mk_jecChecks.C+g");  
     //gROOT->ProcessLine(".x mk_drawJEC.C");  
   }
 

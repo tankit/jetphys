@@ -142,13 +142,16 @@ void theory(string type) {
 
   // Select top category
   assert(fin->cd("Standard"));
+  fin->cd("Standard");
   TDirectory *din0 = gDirectory;
 
   assert(fmc->cd("Standard"));
+  fmc->cd("Standard");
   TDirectory *dmc0 = gDirectory;
 
   fout->mkdir("Standard");
   assert(fout->cd("Standard"));
+  fout->cd("Standard");
   TDirectory *dout0 = gDirectory;
 
   // Automatically go through the list of keys (directories)
@@ -167,9 +170,11 @@ void theory(string type) {
 	&& string(obj->GetName())!="Eta_3.2-4.7") {
 
       assert(din0->cd(obj->GetName()));
+      din0->cd(obj->GetName());
       TDirectory *din = gDirectory;
 
       assert(dmc0->cd(obj->GetName()));
+      dmc0->cd(obj->GetName());
       TDirectory *dmc = gDirectory;
       /*
       assert(fnlo_cteq->cd());
@@ -192,6 +197,7 @@ void theory(string type) {
 
       dout0->mkdir(obj->GetName());
       assert(dout0->cd(obj->GetName()));
+      dout0->cd(obj->GetName());
       TDirectory *dout = gDirectory;
       
       // Process subdirectory
@@ -241,6 +247,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
 
   float etamin, etamax;
   assert(sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax)==2);
+  sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax);
   int ieta = int((0.5*(etamin+etamax))/0.5);
   int jeta = (_jp_algo=="AK7" ? min(4,ieta) : ieta);
 
@@ -526,7 +533,9 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
     TFile *fin2010 = new TFile("../pfjet/output-DATA-4c.root","READ");
     assert(fin2010 && !fin2010->IsZombie());
     assert(fin2010->cd("Standard"));
+    fin2010->cd("Standard");
     assert(gDirectory->cd(din->GetName()));
+    gDirectory->cd(din->GetName());
     TDirectory *din2010 = gDirectory;
     TH1D *hpt2010 = (TH1D*)din2010->Get("hpt");
     curdir->cd();
@@ -540,7 +549,9 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
     TFile *fin2011 = new TFile("backup/oct26/output-DATA-4c.root","READ");
     assert(fin2011 && !fin2011->IsZombie());
     assert(fin2011->cd("Standard"));
+    fin2011->cd("Standard");
     assert(gDirectory->cd(din->GetName()));
+    gDirectory->cd(din->GetName());
     TDirectory *din2011 = gDirectory;
     TH1D *hpt2011 = (TH1D*)din2011->Get("hpt");
     curdir->cd();
@@ -592,6 +603,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 
   float y1, y2;
   assert(sscanf(din->GetName(),"Eta_%f-%f",&y1,&y2)==2);
+  sscanf(din->GetName(),"Eta_%f-%f",&y1,&y2);
   int iy = int((0.5*(y1+y2))/0.5);
 
   TH1D *hpt = (TH1D*)din->Get("hpt"); assert(hpt);
@@ -620,13 +632,18 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       assert(sscanf(chr, "%f %f %d %d %f %f %f %f %f",
 		    &ymin, &ymax, &ptmin, &ptmax,
 		    &xsec, &err, &uncorr, &err2, &np)==9);
+      sscanf(chr, "%f %f %d %d %f %f %f %f %f",
+	     &ymin, &ymax, &ptmin, &ptmax,
+	     &xsec, &err, &uncorr, &err2, &np);
     
       // sum up the uncertainty
       float foo;
       stringstream str(chr);
       for (int i = 0; i != 9; ++i) str >> foo; assert(foo==np);
-      assert(str >> foo);
-      assert(str >> foo); // lumierr
+      //assert(str >> foo);
+      str >> foo;
+      //assert(str >> foo); // lumierr
+      str >> foo; // lumierr
       float eup, edw, sumedw(foo*foo), sumeup(foo*foo);
       while (str >> edw >> eup) {
 	sumeup += pow(max(eup, -edw),2);
@@ -681,6 +698,10 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 	     sscanf(chr, "%f %f %f %f %f %f %f %f",
 		    &pt, &ptmin, &ptmax,
 		    &xsec, &err, &err2, &sys, &sys2)==8);
+      if(string(chr)!="")
+	sscanf(chr, "%f %f %f %f %f %f %f %f",
+	       &pt, &ptmin, &ptmax,
+	       &xsec, &err, &err2, &sys, &sys2);
     
       int i = h->FindBin(0.5*(ptmin+ptmax));
       if (h->GetBinLowEdge(i)==ptmin &&
@@ -724,13 +745,18 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       assert(sscanf(chr, "%f %f %d %d %f %f %f %f %f",
 		    &ymin, &ymax, &ptmin, &ptmax,
 		    &xsec, &err, &uncorr, &err2, &np)==9);
+      sscanf(chr, "%f %f %d %d %f %f %f %f %f",
+	     &ymin, &ymax, &ptmin, &ptmax,
+	     &xsec, &err, &uncorr, &err2, &np);
     
       // sum up the uncertainty
       float foo;
       stringstream str(chr);
       for (int i = 0; i != 9; ++i) str >> foo; assert(foo==np);
-      assert(str >> foo);
-      assert(str >> foo); // lumierr
+      //assert(str >> foo);
+      str >> foo;
+      //assert(str >> foo); // lumierr
+      str >> foo; // lumierr
       float eup, edw, sumedw(foo*foo), sumeup(foo*foo);
       while (str >> edw >> eup) {
 	sumeup += pow(max(eup, -edw),2);

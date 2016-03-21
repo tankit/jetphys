@@ -19,34 +19,6 @@ runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
   this->ymin = ymin;
   this->ymax = ymax;
 
-  /*
-  this->trg.push_back("mb");
-  this->trg.push_back("jt6u");
-  this->trg.push_back("jt15u");
-  this->trg.push_back("jt30u");
-  this->trg.push_back("jt50u");
-  this->trg.push_back("jt70u");
-  this->trg.push_back("jt100u");
-  this->trg.push_back("jt140u");
-
-  this->pt["mb"] = 18.;//10.;//20.;
-  this->pt["jt6u"] = 37.;
-  this->pt["jt15u"] = 56.;
-  this->pt["jt30u"] = 84.;
-  this->pt["jt50u"] = 114.;
-  this->pt["jt70u"] = 153.;
-  this->pt["jt100u"] = 196.;
-  this->pt["jt140u"] = 245.;
-  */
-  //this->trg.push_back("jt30");
-  //this->trg.push_back("jt60");
-  ////this->trg.push_back("jt80"); // OFF for QCD-11-004
-  //this->trg.push_back("jt110");
-  ////this->trg.push_back("jt150"); // OFF for QCD-11-004
-  //this->trg.push_back("jt190");
-  //this->trg.push_back("jt240");
-  ////this->trg.push_back("jt300"); // OFF for QCD-11-004
-  //this->trg.push_back("jt370");
   this->trg.push_back("jt40");
   this->trg.push_back("jt60");
   this->trg.push_back("jt80");
@@ -56,36 +28,18 @@ runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
   this->trg.push_back("jt320");
   this->trg.push_back("jt400");
   this->trg.push_back("jt450");
-  this->trg.push_back("jt500");
+  //this->trg.push_back("jt500");
 
-  // Analysis cuts in February 2012
-  //this->pt["jt30"] = 56;
-  //this->pt["jt60"] = 84.;
-  //this->pt["jt80"] = 114.;
-  //this->pt["jt110"] = 153.;
-  //this->pt["jt150"] = 196.;
-  //this->pt["jt190"] = 245.;
-  //this->pt["jt240"] = 300.;
-  //this->pt["jt300"] = 395.;
-  //this->pt["jt370"] = 468.;
-
- // // New thresholds for QCD-11-004
- // this->pt["jt30"] = 56;
- // this->pt["jt60"] = 114;
- // this->pt["jt110"] = 196;
- // this->pt["jt190"] = 300;
- // this->pt["jt240"] = 362;
- // this->pt["jt370"] = 507;
- this->pt["jt40"] = 64;
- this->pt["jt60"] = 97;
- this->pt["jt80"] = 114;
- this->pt["jt140"] = 196;
- this->pt["jt200"] = 272;
- this->pt["jt260"] = 330;
- this->pt["jt320"] = 395;
- this->pt["jt400"] = 548;
- this->pt["jt450"] = 638;
- this->pt["jt500"] = 737;
+  this->pt["jt40"] = 49;//64;
+  this->pt["jt60"] = 74;//97;
+  this->pt["jt80"] = 97;//114;
+  this->pt["jt140"] = 174;//196;
+  this->pt["jt200"] = 300;//272;
+  this->pt["jt260"] = 362;//330;
+  this->pt["jt320"] = 430;//395;
+  this->pt["jt400"] = 507;//548;
+ this->pt["jt450"] = 548;//638;
+ //this->pt["jt500"] = 737;
 
   curdir->cd();
 }
@@ -131,12 +85,14 @@ runHistos::~runHistos() {
   map<string, TH1D*> c_betastartp;
   map<string, TH1D*> h0_trg;
   map<string, TH1D*> h_trg;
+  map<string, TH1D*> hw_trg; // prescale weights
   map<string, TH1D*> r0_trg;
   map<string, TH1D*> r_trg;
+  map<string, TH1D*> rw_trg; // prescale weight
   map<string, TH1D*> r_ctrg; // calo
   map<string, TH1D*> pl_trg;
   map<string, TH1D*> pt_trg;
-  //typedef map<int, int>::const_iterator IR;
+
   for (unsigned int j = 0; j != trg.size(); ++j) {
 
     string const& t1 = trg[j];
@@ -153,19 +109,18 @@ runHistos::~runHistos() {
     c_betastartp[t] = new TH1D(Form("c_betastartp_%s",t),Form("c_betastartp_%s",t),nruns,-0.5,nruns-0.5);
     h0_trg[t] = new TH1D(Form("h0_%s",t),Form("h0_%s",t),nruns,-0.5,nruns-0.5);
     h_trg[t] = new TH1D(Form("h_%s",t),Form("h_%s",t),nruns,-0.5,nruns-0.5);
+    hw_trg[t] = new TH1D(Form("hw_%s",t),Form("hw_%s",t),nruns,-0.5,nruns-0.5);
     r0_trg[t] = new TH1D(Form("r0_%s",t),Form("r0_%s",t),nruns,-0.5,nruns-0.5);
     r_trg[t] = new TH1D(Form("r_%s",t),Form("r_%s",t),nruns,-0.5,nruns-0.5);
+    rw_trg[t] = new TH1D(Form("rw_%s",t),Form("rw_%s",t),nruns,-0.5,nruns-0.5);
     r_ctrg[t] = new TH1D(Form("r_c%s",t),Form("r_c%s",t),nruns,-0.5,nruns-0.5);
     pl_trg[t] = new TH1D(Form("pl_%s",t),Form("pl_%s",t),nruns,-0.5,nruns-0.5);
     pt_trg[t] = new TH1D(Form("pt_%s",t),Form("pt_%s",t),nruns,-0.5,nruns-0.5);
 
     int i = 1;
-    //map<int, int> const& tr = t_trg[t];
-    //for (IR ir = tr.begin(); ir != tr.end(); ++ir, ++i) {
     for (map<int, float>::const_iterator it = runlums.begin();
 	 it != runlums.end(); ++it, ++i) {
 
-      //int run = ir->first;
       int run = it->first;
       runs->SetBinContent(i, run);
 
@@ -196,6 +151,7 @@ runHistos::~runHistos() {
 
       h0_trg[t]->SetBinContent(i, p_trg[t][run]);
       h_trg[t]->SetBinContent(i, t_trg[t][run]);
+      hw_trg[t]->SetBinContent(i, tw_trg[t][run]);
       //
       // Same for TP method
       double ntrigtp = t_trgtp[t][run];
@@ -221,6 +177,10 @@ runHistos::~runHistos() {
       r_trg[t]->SetBinContent(i, lum ? t_trg[t][run] / lum : 0.);
       r_trg[t]->SetBinError(i, lum ? sqrt(t_trg[t][run]) / lum : 0.);
 
+      double lum0 = runlums[run];
+      rw_trg[t]->SetBinContent(i, lum0 ? tw_trg[t][run] / lum0 : 0.);
+      rw_trg[t]->SetBinError(i, lum0 ? sqrt(tw_trg[t][run]) / lum0 : 0.);
+
       r_ctrg[t]->SetBinContent(i, lum ? c_trg[t][run] / lum : 0.);
       r_ctrg[t]->SetBinError(i, lum ? sqrt(c_trg[t][run]) / lum : 0.);
 
@@ -241,8 +201,10 @@ runHistos::~runHistos() {
       npvgood_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       h0_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       h_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
+      hw_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       r0_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       r_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
+      rw_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       r_ctrg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run)); // calo
       pl_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));
       pt_trg[t]->GetXaxis()->SetBinLabel(i,Form("%d",run));

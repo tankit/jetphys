@@ -5,7 +5,7 @@
 {
 
   // compile code
-  gROOT->ProcessLine(".L normalizeHistos.C+");
+  gROOT->ProcessLine(".L normalizeHistos.C+g");
 
   #include "settings.h"
 

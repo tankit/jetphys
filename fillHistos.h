@@ -1,7 +1,7 @@
 // Purpose: Fill jet physics analysis histograms
 // Author:  mikko.voutilainen@cern.ch
 // Created: April 19, 2010
-// Updated: Nov 28, 2015
+// Updated: March 4, 2065
 ////////////////////////////////////////////////////////////////////////
 // Notes:   Automatically created using TChain::MakeClass("fillHistos")
 //          Keep variable declarations in the automatic order,
@@ -10,9 +10,9 @@
 
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Thu Nov 26 11:41:50 2015 by ROOT version 6.02/10
+// Fri Mar  4 11:57:12 2016 by ROOT version 6.06/00
 // from TTree ProcessedTree/ProcessedTree
-// found on file: data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root
+// found on file: /Volumes/Macintosh HD 2Tb/data/QCDJETS/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root
 //////////////////////////////////////////////////////////
 
 #ifndef fillHistos_h
@@ -55,6 +55,7 @@ public :
    Int_t           fCurrent; //!current Tree number in a TChain
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
+/*
    const Int_t kMaxfilterIdList = 1;
    const Int_t kMaxCaloMet__et = 1;
    const Int_t kMaxCaloMet__CaloMetPt = 1;
@@ -64,94 +65,192 @@ public :
    const Int_t kMaxPFMet__CaloMetPt = 1;
    const Int_t kMaxPFMet__sumEt = 1;
    const Int_t kMaxPFMet__phi = 1;
+   const Int_t kMaxMvaMet__et = 1;
+   const Int_t kMaxMvaMet__CaloMetPt = 1;
+   const Int_t kMaxMvaMet__sumEt = 1;
+   const Int_t kMaxMvaMet__phi = 1;
    const Int_t kMaxTriggerDecision = 1;
    const Int_t kMaxtriggerList = 1;
    const Int_t kMaxL1Prescale = 1;
    const Int_t kMaxHLTPrescale = 1;
    const Int_t kMaxHLTObj = 1;
    const Int_t kMaxL1Obj = 1;
-   static const Int_t kMaxGenJets_ = 100;
+*/
+   static const Int_t kMaxGenJets_ = 100;//21;
    static const Int_t kMaxCaloJets_ = 100;
-/*    const Int_t kMaxCaloJets__genR = 1; */
-/*    const Int_t kMaxCaloJets__cor = 1; */
-/*    const Int_t kMaxCaloJets__jecLabels = 1; */
-/*    const Int_t kMaxCaloJets__unc = 1; */
-/*    const Int_t kMaxCaloJets__uncSrc = 1; */
-/*    const Int_t kMaxCaloJets__area = 1; */
-/*    const Int_t kMaxCaloJets__looseID = 1; */
-/*    const Int_t kMaxCaloJets__tightID = 1; */
-/*    const Int_t kMaxCaloJets__emf = 1; */
-/*    const Int_t kMaxCaloJets__fHPD = 1; */
-/*    const Int_t kMaxCaloJets__fRBX = 1; */
-/*    const Int_t kMaxCaloJets__n90hits = 1; */
-/*    const Int_t kMaxCaloJets__nTrkCalo = 1; */
-/*    const Int_t kMaxCaloJets__nTrkVtx = 1; */
-   static const Int_t kMaxPFJets_ = 100;
-/*    const Int_t kMaxPFJets__genR = 100; */
-/*    const Int_t kMaxPFJets__cor = 100; */
-/*    const Int_t kMaxPFJets__jecLabels = 100; */
-/*    const Int_t kMaxPFJets__unc = 100; */
-/*    const Int_t kMaxPFJets__uncSrc = 100; */
-/*    const Int_t kMaxPFJets__area = 100; */
-/*    const Int_t kMaxPFJets__looseID = 100; */
-/*    const Int_t kMaxPFJets__tightID = 100; */
-/*    const Int_t kMaxPFJets__chf = 100; */
-/*    const Int_t kMaxPFJets__nhf = 100; */
-/*    const Int_t kMaxPFJets__nemf = 100; */
-/*    const Int_t kMaxPFJets__cemf = 100; */
-/*    const Int_t kMaxPFJets__muf = 100; */
-/*    const Int_t kMaxPFJets__hf_hf = 100; */
-/*    const Int_t kMaxPFJets__hf_phf = 100; */
-/*    const Int_t kMaxPFJets__hf_hm = 100; */
-/*    const Int_t kMaxPFJets__hf_phm = 100; */
-/*    const Int_t kMaxPFJets__chm = 100; */
-/*    const Int_t kMaxPFJets__nhm = 100; */
-/*    const Int_t kMaxPFJets__phm = 100; */
-/*    const Int_t kMaxPFJets__elm = 100; */
-/*    const Int_t kMaxPFJets__mum = 100; */
-/*    const Int_t kMaxPFJets__ncand = 100; */
-/*    const Int_t kMaxPFJets__beta = 100; */
-/*    const Int_t kMaxPFJets__betaStar = 100; */
-/*    const Int_t kMaxPFJets__mpuTrk = 100; */
-/*    const Int_t kMaxPFJets__mlvTrk = 100; */
-/*    const Int_t kMaxPFJets__mjtTrk = 100; */
-/*    const Int_t kMaxPFJets__hof = 100; */
-/*    const Int_t kMaxPFJets__pujid = 100; */
-/*    const Int_t kMaxPFJets__calojetpt = 100; */
-/*    const Int_t kMaxPFJets__calojetef = 100; */
-   static const Int_t kMaxPFJetsCHS_ = 100;
-/*    const Int_t kMaxPFJetsCHS__genR = 100; */
-/*    const Int_t kMaxPFJetsCHS__cor = 100; */
-/*    const Int_t kMaxPFJetsCHS__jecLabels = 100; */
-/*    const Int_t kMaxPFJetsCHS__unc = 100; */
-/*    const Int_t kMaxPFJetsCHS__uncSrc = 100; */
-/*    const Int_t kMaxPFJetsCHS__area = 100; */
-/*    const Int_t kMaxPFJetsCHS__looseID = 100; */
-/*    const Int_t kMaxPFJetsCHS__tightID = 100; */
-/*    const Int_t kMaxPFJetsCHS__chf = 100; */
-/*    const Int_t kMaxPFJetsCHS__nhf = 100; */
-/*    const Int_t kMaxPFJetsCHS__nemf = 100; */
-/*    const Int_t kMaxPFJetsCHS__cemf = 100; */
-/*    const Int_t kMaxPFJetsCHS__muf = 100; */
-/*    const Int_t kMaxPFJetsCHS__hf_hf = 100; */
-/*    const Int_t kMaxPFJetsCHS__hf_phf = 100; */
-/*    const Int_t kMaxPFJetsCHS__hf_hm = 100; */
-/*    const Int_t kMaxPFJetsCHS__hf_phm = 100; */
-/*    const Int_t kMaxPFJetsCHS__chm = 100; */
-/*    const Int_t kMaxPFJetsCHS__nhm = 100; */
-/*    const Int_t kMaxPFJetsCHS__phm = 100; */
-/*    const Int_t kMaxPFJetsCHS__elm = 100; */
-/*    const Int_t kMaxPFJetsCHS__mum = 100; */
-/*    const Int_t kMaxPFJetsCHS__ncand = 100; */
-/*    const Int_t kMaxPFJetsCHS__beta = 100; */
-/*    const Int_t kMaxPFJetsCHS__betaStar = 100; */
-/*    const Int_t kMaxPFJetsCHS__mpuTrk = 100; */
-/*    const Int_t kMaxPFJetsCHS__mlvTrk = 100; */
-/*    const Int_t kMaxPFJetsCHS__mjtTrk = 100; */
-/*    const Int_t kMaxPFJetsCHS__hof = 100; */
-/*    const Int_t kMaxPFJetsCHS__pujid = 100; */
-/*    const Int_t kMaxPFJetsCHS__calojetpt = 100; */
-/*    const Int_t kMaxPFJetsCHS__calojetef = 100; */
+   /*
+   const Int_t kMaxCaloJets__genR = 1;
+   const Int_t kMaxCaloJets__cor = 1;
+   const Int_t kMaxCaloJets__jecLabels = 1;
+   const Int_t kMaxCaloJets__unc = 1;
+   const Int_t kMaxCaloJets__uncSrc = 1;
+   const Int_t kMaxCaloJets__area = 1;
+   const Int_t kMaxCaloJets__looseID = 1;
+   const Int_t kMaxCaloJets__tightID = 1;
+   const Int_t kMaxCaloJets__emf = 1;
+   const Int_t kMaxCaloJets__fHPD = 1;
+   const Int_t kMaxCaloJets__fRBX = 1;
+   const Int_t kMaxCaloJets__n90hits = 1;
+   const Int_t kMaxCaloJets__nTrkCalo = 1;
+   const Int_t kMaxCaloJets__nTrkVtx = 1;
+   */
+   static const Int_t kMaxPFJets_ = 100;//35;
+   /*
+   const Int_t kMaxPFJets__genR = 35;
+   const Int_t kMaxPFJets__cor = 35;
+   const Int_t kMaxPFJets__jecLabels = 35;
+   const Int_t kMaxPFJets__unc = 35;
+   const Int_t kMaxPFJets__uncSrc = 35;
+   const Int_t kMaxPFJets__area = 35;
+   const Int_t kMaxPFJets__looseID = 35;
+   const Int_t kMaxPFJets__tightID = 35;
+   const Int_t kMaxPFJets__TCHE = 35;
+   const Int_t kMaxPFJets__TCHP = 35;
+   const Int_t kMaxPFJets__TCHEpf = 35;
+   const Int_t kMaxPFJets__TCHPpf = 35;
+   const Int_t kMaxPFJets__SoftMuonTagByIP = 35;
+   const Int_t kMaxPFJets__SoftElectronTagByIP = 35;
+   const Int_t kMaxPFJets__SoftMuonTag = 35;
+   const Int_t kMaxPFJets__SoftElectronTag = 35;
+   const Int_t kMaxPFJets__SimpleSecVertexHE = 35;
+   const Int_t kMaxPFJets__SimpleSecVertexHP = 35;
+   const Int_t kMaxPFJets__SimpleSecVertexHEpf = 35;
+   const Int_t kMaxPFJets__SimpleSecVertexHPpf = 35;
+   const Int_t kMaxPFJets__CSV = 35;
+   const Int_t kMaxPFJets__CSVpf = 35;
+   const Int_t kMaxPFJets__CinclSVpf = 35;
+   const Int_t kMaxPFJets__CMVApf = 35;
+   const Int_t kMaxPFJets__CSVSoftLeptonpf = 35;
+   const Int_t kMaxPFJets__CSVpfPositive = 35;
+   const Int_t kMaxPFJets__CSVpfNegative = 35;
+   const Int_t kMaxPFJets__partonFlavour = 35;
+   const Int_t kMaxPFJets__hadronFlavour = 35;
+   const Int_t kMaxPFJets__recommend1 = 35;
+   const Int_t kMaxPFJets__recommend2 = 35;
+   const Int_t kMaxPFJets__recommend3 = 35;
+   const Int_t kMaxPFJets__chf = 35;
+   const Int_t kMaxPFJets__nhf = 35;
+   const Int_t kMaxPFJets__nemf = 35;
+   const Int_t kMaxPFJets__cemf = 35;
+   const Int_t kMaxPFJets__muf = 35;
+   const Int_t kMaxPFJets__hf_hf = 35;
+   const Int_t kMaxPFJets__hf_phf = 35;
+   const Int_t kMaxPFJets__hf_hm = 35;
+   const Int_t kMaxPFJets__hf_phm = 35;
+   const Int_t kMaxPFJets__chm = 35;
+   const Int_t kMaxPFJets__nhm = 35;
+   const Int_t kMaxPFJets__phm = 35;
+   const Int_t kMaxPFJets__elm = 35;
+   const Int_t kMaxPFJets__mum = 35;
+   const Int_t kMaxPFJets__ncand = 35;
+   const Int_t kMaxPFJets__beta = 35;
+   const Int_t kMaxPFJets__betaStar = 35;
+   const Int_t kMaxPFJets__mpuTrk = 35;
+   const Int_t kMaxPFJets__mlvTrk = 35;
+   const Int_t kMaxPFJets__mjtTrk = 35;
+   const Int_t kMaxPFJets__hof = 35;
+   const Int_t kMaxPFJets__pujid = 35;
+   const Int_t kMaxPFJets__calojetpt = 35;
+   const Int_t kMaxPFJets__calojetef = 35;
+   */
+   static const Int_t kMaxPFJetsCHS_ = 100;//42;
+   /*
+   const Int_t kMaxPFJetsCHS__genR = 42;
+   const Int_t kMaxPFJetsCHS__cor = 42;
+   const Int_t kMaxPFJetsCHS__jecLabels = 42;
+   const Int_t kMaxPFJetsCHS__unc = 42;
+   const Int_t kMaxPFJetsCHS__uncSrc = 42;
+   const Int_t kMaxPFJetsCHS__area = 42;
+   const Int_t kMaxPFJetsCHS__looseID = 42;
+   const Int_t kMaxPFJetsCHS__tightID = 42;
+   const Int_t kMaxPFJetsCHS__TCHE = 42;
+   const Int_t kMaxPFJetsCHS__TCHP = 42;
+   const Int_t kMaxPFJetsCHS__TCHEpf = 42;
+   const Int_t kMaxPFJetsCHS__TCHPpf = 42;
+   const Int_t kMaxPFJetsCHS__SoftMuonTagByIP = 42;
+   const Int_t kMaxPFJetsCHS__SoftElectronTagByIP = 42;
+   const Int_t kMaxPFJetsCHS__SoftMuonTag = 42;
+   const Int_t kMaxPFJetsCHS__SoftElectronTag = 42;
+   const Int_t kMaxPFJetsCHS__SimpleSecVertexHE = 42;
+   const Int_t kMaxPFJetsCHS__SimpleSecVertexHP = 42;
+   const Int_t kMaxPFJetsCHS__SimpleSecVertexHEpf = 42;
+   const Int_t kMaxPFJetsCHS__SimpleSecVertexHPpf = 42;
+   const Int_t kMaxPFJetsCHS__CSV = 42;
+   const Int_t kMaxPFJetsCHS__CSVpf = 42;
+   const Int_t kMaxPFJetsCHS__CinclSVpf = 42;
+   const Int_t kMaxPFJetsCHS__CMVApf = 42;
+   const Int_t kMaxPFJetsCHS__CSVSoftLeptonpf = 42;
+   const Int_t kMaxPFJetsCHS__CSVpfPositive = 42;
+   const Int_t kMaxPFJetsCHS__CSVpfNegative = 42;
+   const Int_t kMaxPFJetsCHS__partonFlavour = 42;
+   const Int_t kMaxPFJetsCHS__hadronFlavour = 42;
+   const Int_t kMaxPFJetsCHS__recommend1 = 42;
+   const Int_t kMaxPFJetsCHS__recommend2 = 42;
+   const Int_t kMaxPFJetsCHS__recommend3 = 42;
+   const Int_t kMaxPFJetsCHS__chf = 42;
+   const Int_t kMaxPFJetsCHS__nhf = 42;
+   const Int_t kMaxPFJetsCHS__nemf = 42;
+   const Int_t kMaxPFJetsCHS__cemf = 42;
+   const Int_t kMaxPFJetsCHS__muf = 42;
+   const Int_t kMaxPFJetsCHS__hf_hf = 42;
+   const Int_t kMaxPFJetsCHS__hf_phf = 42;
+   const Int_t kMaxPFJetsCHS__hf_hm = 42;
+   const Int_t kMaxPFJetsCHS__hf_phm = 42;
+   const Int_t kMaxPFJetsCHS__chm = 42;
+   const Int_t kMaxPFJetsCHS__nhm = 42;
+   const Int_t kMaxPFJetsCHS__phm = 42;
+   const Int_t kMaxPFJetsCHS__elm = 42;
+   const Int_t kMaxPFJetsCHS__mum = 42;
+   const Int_t kMaxPFJetsCHS__ncand = 42;
+   const Int_t kMaxPFJetsCHS__beta = 42;
+   const Int_t kMaxPFJetsCHS__betaStar = 42;
+   const Int_t kMaxPFJetsCHS__mpuTrk = 42;
+   const Int_t kMaxPFJetsCHS__mlvTrk = 42;
+   const Int_t kMaxPFJetsCHS__mjtTrk = 42;
+   const Int_t kMaxPFJetsCHS__hof = 42;
+   const Int_t kMaxPFJetsCHS__pujid = 42;
+   const Int_t kMaxPFJetsCHS__calojetpt = 42;
+   const Int_t kMaxPFJetsCHS__calojetef = 42;
+   const Int_t kMaxgenFlavour = 1;
+   const Int_t kMaxgenFlavourHadron = 1;
+   */
+   static const Int_t kMaxmMuon_ = 100;
+   /*
+   const Int_t kMaxmMuon__genR = 1;
+   const Int_t kMaxmMuon__cor = 1;
+   const Int_t kMaxmMuon__jecLabels = 1;
+   const Int_t kMaxmMuon__unc = 1;
+   const Int_t kMaxmMuon__uncSrc = 1;
+   const Int_t kMaxmMuon__area = 1;
+   const Int_t kMaxmMuon__DxyVertex = 1;
+   const Int_t kMaxmMuon__DzVertex = 1;
+   const Int_t kMaxmMuon__PDGID = 1;
+   const Int_t kMaxmMuon__PfIso = 1;
+   const Int_t kMaxmMuon__PuChargedHadronIso = 1;
+   const Int_t kMaxmMuon__ChargedHadronIso = 1;
+   const Int_t kMaxmMuon__NeutralHadronIso = 1;
+   const Int_t kMaxmMuon__PhotonIso = 1;
+   */
+   static const Int_t kMaxmElectron_ = 100;
+   /*
+   const Int_t kMaxmElectron__genR = 1;
+   const Int_t kMaxmElectron__cor = 1;
+   const Int_t kMaxmElectron__jecLabels = 1;
+   const Int_t kMaxmElectron__unc = 1;
+   const Int_t kMaxmElectron__uncSrc = 1;
+   const Int_t kMaxmElectron__area = 1;
+   const Int_t kMaxmElectron__DxyVertex = 1;
+   const Int_t kMaxmElectron__DzVertex = 1;
+   const Int_t kMaxmElectron__PDGID = 1;
+   const Int_t kMaxmElectron__PfIso = 1;
+   const Int_t kMaxmElectron__PuChargedHadronIso = 1;
+   const Int_t kMaxmElectron__ChargedHadronIso = 1;
+   const Int_t kMaxmElectron__NeutralHadronIso = 1;
+   const Int_t kMaxmElectron__PhotonIso = 1;
+   //static const Int_t kMaxmGenParticle_ = 1;
+   //const Int_t kMaxmGenParticle__status = 1;
+   //const Int_t kMaxmGenParticle__pdgid = 1;
+   */
 
    // Declaration of leaf types
  //QCDEvent        *events;
@@ -160,7 +259,7 @@ public :
    Bool_t          EvtHdr__mHCALNoise;
    Bool_t          EvtHdr__mHCALNoiseNoMinZ;
    Int_t           EvtHdr__mRun;
-   Int_t           EvtHdr__mEvent;
+   UInt_t          EvtHdr__mEvent; // Int_t -> UInt_t
    Int_t           EvtHdr__mLumi;
    Int_t           EvtHdr__mBunch;
    Int_t           EvtHdr__mNVtx;
@@ -189,6 +288,10 @@ public :
    Float_t         PFMet__CaloMetPt_;
    Float_t         PFMet__sumEt_;
    Float_t         PFMet__phi_;
+   Float_t         MvaMet__et_;
+   Float_t         MvaMet__CaloMetPt_;
+   Float_t         MvaMet__sumEt_;
+   Float_t         MvaMet__phi_;
    vector<int>     TriggerDecision_;
    vector<string>  triggerList_;
    vector<int>     L1Prescale_;
@@ -240,6 +343,30 @@ public :
    Float_t         PFJets__area_[kMaxPFJets_];   //[PFJets__]
    Bool_t          PFJets__looseID_[kMaxPFJets_];   //[PFJets__]
    Bool_t          PFJets__tightID_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__TCHE_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__TCHP_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__TCHEpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__TCHPpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SoftMuonTagByIP_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SoftElectronTagByIP_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SoftMuonTag_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SoftElectronTag_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SimpleSecVertexHE_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SimpleSecVertexHP_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SimpleSecVertexHEpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__SimpleSecVertexHPpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CSV_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CSVpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CinclSVpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CMVApf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CSVSoftLeptonpf_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CSVpfPositive_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__CSVpfNegative_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__partonFlavour_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__hadronFlavour_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__recommend1_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__recommend2_[kMaxPFJets_];   //[PFJets__]
+   Float_t         PFJets__recommend3_[kMaxPFJets_];   //[PFJets__]
    Float_t         PFJets__chf_[kMaxPFJets_];   //[PFJets__]
    Float_t         PFJets__nhf_[kMaxPFJets_];   //[PFJets__]
    Float_t         PFJets__nemf_[kMaxPFJets_];   //[PFJets__]
@@ -281,6 +408,30 @@ public :
    Float_t         PFJetsCHS__area_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Bool_t          PFJetsCHS__looseID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Bool_t          PFJetsCHS__tightID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__TCHE_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__TCHP_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__TCHEpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__TCHPpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SoftMuonTagByIP_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SoftElectronTagByIP_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SoftMuonTag_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SoftElectronTag_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SimpleSecVertexHE_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SimpleSecVertexHP_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SimpleSecVertexHEpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__SimpleSecVertexHPpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CSV_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CSVpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CinclSVpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CMVApf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CSVSoftLeptonpf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CSVpfPositive_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__CSVpfNegative_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__recommend1_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__recommend2_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   Float_t         PFJetsCHS__recommend3_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Float_t         PFJetsCHS__chf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Float_t         PFJetsCHS__nhf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Float_t         PFJetsCHS__nemf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -305,6 +456,63 @@ public :
    Float_t         PFJetsCHS__pujid_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Float_t         PFJetsCHS__calojetpt_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
    Float_t         PFJetsCHS__calojetef_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+   vector<float>   genFlavour_;
+   vector<float>   genFlavourHadron_;
+   Int_t           mMuon__;
+   Double_t        mMuon__P4__fCoordinates_fX[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__P4__fCoordinates_fY[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__P4__fCoordinates_fZ[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__P4__fCoordinates_fT[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__genP4__fCoordinates_fX[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__genP4__fCoordinates_fY[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__genP4__fCoordinates_fZ[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__genP4__fCoordinates_fT[kMaxmMuon_];   //[mMuon__]
+   Float_t         mMuon__genR_[kMaxmMuon_];   //[mMuon__]
+   Float_t         mMuon__cor_[kMaxmMuon_];   //[mMuon__]
+   vector<double>  mMuon__jecLabels_[kMaxmMuon_];
+   Float_t         mMuon__unc_[kMaxmMuon_];   //[mMuon__]
+   vector<float>   mMuon__uncSrc_[kMaxmMuon_];
+   Float_t         mMuon__area_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__DxyVertex_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__DzVertex_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__PDGID_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__PfIso_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__PuChargedHadronIso_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__ChargedHadronIso_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__NeutralHadronIso_[kMaxmMuon_];   //[mMuon__]
+   Double_t        mMuon__PhotonIso_[kMaxmMuon_];   //[mMuon__]
+   Int_t           mElectron__;
+   Double_t        mElectron__P4__fCoordinates_fX[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__P4__fCoordinates_fY[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__P4__fCoordinates_fZ[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__P4__fCoordinates_fT[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__genP4__fCoordinates_fX[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__genP4__fCoordinates_fY[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__genP4__fCoordinates_fZ[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__genP4__fCoordinates_fT[kMaxmElectron_];   //[mElectron__]
+   Float_t         mElectron__genR_[kMaxmElectron_];   //[mElectron__]
+   Float_t         mElectron__cor_[kMaxmElectron_];   //[mElectron__]
+   vector<double>  mElectron__jecLabels_[kMaxmElectron_];
+   Float_t         mElectron__unc_[kMaxmElectron_];   //[mElectron__]
+   vector<float>   mElectron__uncSrc_[kMaxmElectron_];
+   Float_t         mElectron__area_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__DxyVertex_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__DzVertex_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__PDGID_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__PfIso_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__PuChargedHadronIso_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__ChargedHadronIso_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__NeutralHadronIso_[kMaxmElectron_];   //[mElectron__]
+   Double_t        mElectron__PhotonIso_[kMaxmElectron_];   //[mElectron__]
+   /*
+   Int_t           mGenParticle__;
+   Double_t        mGenParticle__P4__fCoordinates_fX[kMaxmGenParticle_];   //[mGenParticle__]
+   Double_t        mGenParticle__P4__fCoordinates_fY[kMaxmGenParticle_];   //[mGenParticle__]
+   Double_t        mGenParticle__P4__fCoordinates_fZ[kMaxmGenParticle_];   //[mGenParticle__]
+   Double_t        mGenParticle__P4__fCoordinates_fT[kMaxmGenParticle_];   //[mGenParticle__]
+   Float_t         mGenParticle__status_[kMaxmGenParticle_];   //[mGenParticle__]
+   Float_t         mGenParticle__pdgid_[kMaxmGenParticle_];   //[mGenParticle__]
+   */
 
    // List of branches
    TBranch        *b_events_filterIdList_;   //!
@@ -341,6 +549,10 @@ public :
    TBranch        *b_events_PFMet__CaloMetPt_;   //!
    TBranch        *b_events_PFMet__sumEt_;   //!
    TBranch        *b_events_PFMet__phi_;   //!
+   TBranch        *b_events_MvaMet__et_;   //!
+   TBranch        *b_events_MvaMet__CaloMetPt_;   //!
+   TBranch        *b_events_MvaMet__sumEt_;   //!
+   TBranch        *b_events_MvaMet__phi_;   //!
    TBranch        *b_events_TriggerDecision_;   //!
    TBranch        *b_events_triggerList_;   //!
    TBranch        *b_events_L1Prescale_;   //!
@@ -390,6 +602,30 @@ public :
    TBranch        *b_PFJets__area_;   //!
    TBranch        *b_PFJets__looseID_;   //!
    TBranch        *b_PFJets__tightID_;   //!
+   TBranch        *b_PFJets__TCHE_;   //!
+   TBranch        *b_PFJets__TCHP_;   //!
+   TBranch        *b_PFJets__TCHEpf_;   //!
+   TBranch        *b_PFJets__TCHPpf_;   //!
+   TBranch        *b_PFJets__SoftMuonTagByIP_;   //!
+   TBranch        *b_PFJets__SoftElectronTagByIP_;   //!
+   TBranch        *b_PFJets__SoftMuonTag_;   //!
+   TBranch        *b_PFJets__SoftElectronTag_;   //!
+   TBranch        *b_PFJets__SimpleSecVertexHE_;   //!
+   TBranch        *b_PFJets__SimpleSecVertexHP_;   //!
+   TBranch        *b_PFJets__SimpleSecVertexHEpf_;   //!
+   TBranch        *b_PFJets__SimpleSecVertexHPpf_;   //!
+   TBranch        *b_PFJets__CSV_;   //!
+   TBranch        *b_PFJets__CSVpf_;   //!
+   TBranch        *b_PFJets__CinclSVpf_;   //!
+   TBranch        *b_PFJets__CMVApf_;   //!
+   TBranch        *b_PFJets__CSVSoftLeptonpf_;   //!
+   TBranch        *b_PFJets__CSVpfPositive_;   //!
+   TBranch        *b_PFJets__CSVpfNegative_;   //!
+   TBranch        *b_PFJets__partonFlavour_;   //!
+   TBranch        *b_PFJets__hadronFlavour_;   //!
+   TBranch        *b_PFJets__recommend1_;   //!
+   TBranch        *b_PFJets__recommend2_;   //!
+   TBranch        *b_PFJets__recommend3_;   //!
    TBranch        *b_PFJets__chf_;   //!
    TBranch        *b_PFJets__nhf_;   //!
    TBranch        *b_PFJets__nemf_;   //!
@@ -431,6 +667,30 @@ public :
    TBranch        *b_PFJetsCHS__area_;   //!
    TBranch        *b_PFJetsCHS__looseID_;   //!
    TBranch        *b_PFJetsCHS__tightID_;   //!
+   TBranch        *b_PFJetsCHS__TCHE_;   //!
+   TBranch        *b_PFJetsCHS__TCHP_;   //!
+   TBranch        *b_PFJetsCHS__TCHEpf_;   //!
+   TBranch        *b_PFJetsCHS__TCHPpf_;   //!
+   TBranch        *b_PFJetsCHS__SoftMuonTagByIP_;   //!
+   TBranch        *b_PFJetsCHS__SoftElectronTagByIP_;   //!
+   TBranch        *b_PFJetsCHS__SoftMuonTag_;   //!
+   TBranch        *b_PFJetsCHS__SoftElectronTag_;   //!
+   TBranch        *b_PFJetsCHS__SimpleSecVertexHE_;   //!
+   TBranch        *b_PFJetsCHS__SimpleSecVertexHP_;   //!
+   TBranch        *b_PFJetsCHS__SimpleSecVertexHEpf_;   //!
+   TBranch        *b_PFJetsCHS__SimpleSecVertexHPpf_;   //!
+   TBranch        *b_PFJetsCHS__CSV_;   //!
+   TBranch        *b_PFJetsCHS__CSVpf_;   //!
+   TBranch        *b_PFJetsCHS__CinclSVpf_;   //!
+   TBranch        *b_PFJetsCHS__CMVApf_;   //!
+   TBranch        *b_PFJetsCHS__CSVSoftLeptonpf_;   //!
+   TBranch        *b_PFJetsCHS__CSVpfPositive_;   //!
+   TBranch        *b_PFJetsCHS__CSVpfNegative_;   //!
+   TBranch        *b_PFJetsCHS__partonFlavour_;   //!
+   TBranch        *b_PFJetsCHS__hadronFlavour_;   //!
+   TBranch        *b_PFJetsCHS__recommend1_;   //!
+   TBranch        *b_PFJetsCHS__recommend2_;   //!
+   TBranch        *b_PFJetsCHS__recommend3_;   //!
    TBranch        *b_PFJetsCHS__chf_;   //!
    TBranch        *b_PFJetsCHS__nhf_;   //!
    TBranch        *b_PFJetsCHS__nemf_;   //!
@@ -455,6 +715,71 @@ public :
    TBranch        *b_PFJetsCHS__pujid_;   //!
    TBranch        *b_PFJetsCHS__calojetpt_;   //!
    TBranch        *b_PFJetsCHS__calojetef_;   //!
+   TBranch        *b_events_genFlavour_;   //!
+   TBranch        *b_events_genFlavourHadron_;   //!
+   TBranch        *b_events_mMuon__;   //!
+   TBranch        *b_mMuon__P4__fCoordinates_fX;   //!
+   TBranch        *b_mMuon__P4__fCoordinates_fY;   //!
+   TBranch        *b_mMuon__P4__fCoordinates_fZ;   //!
+   TBranch        *b_mMuon__P4__fCoordinates_fT;   //!
+   TBranch        *b_mMuon__genP4__fCoordinates_fX;   //!
+   TBranch        *b_mMuon__genP4__fCoordinates_fY;   //!
+   TBranch        *b_mMuon__genP4__fCoordinates_fZ;   //!
+   TBranch        *b_mMuon__genP4__fCoordinates_fT;   //!
+   TBranch        *b_mMuon__genR_;   //!
+   TBranch        *b_mMuon__cor_;   //!
+   TBranch        *b_mMuon__jecLabels_;   //!
+   TBranch        *b_mMuon__unc_;   //!
+   TBranch        *b_mMuon__uncSrc_;   //!
+   TBranch        *b_mMuon__area_;   //!
+   TBranch        *b_mMuon__DxyVertex_;   //!
+   TBranch        *b_mMuon__DzVertex_;   //!
+   TBranch        *b_mMuon__PDGID_;   //!
+   TBranch        *b_mMuon__PfIso_;   //!
+   TBranch        *b_mMuon__PuChargedHadronIso_;   //!
+   TBranch        *b_mMuon__ChargedHadronIso_;   //!
+   TBranch        *b_mMuon__NeutralHadronIso_;   //!
+   TBranch        *b_mMuon__PhotonIso_;   //!
+   TBranch        *b_events_mElectron__;   //!
+   TBranch        *b_mElectron__P4__fCoordinates_fX;   //!
+   TBranch        *b_mElectron__P4__fCoordinates_fY;   //!
+   TBranch        *b_mElectron__P4__fCoordinates_fZ;   //!
+   TBranch        *b_mElectron__P4__fCoordinates_fT;   //!
+   TBranch        *b_mElectron__genP4__fCoordinates_fX;   //!
+   TBranch        *b_mElectron__genP4__fCoordinates_fY;   //!
+   TBranch        *b_mElectron__genP4__fCoordinates_fZ;   //!
+   TBranch        *b_mElectron__genP4__fCoordinates_fT;   //!
+   TBranch        *b_mElectron__genR_;   //!
+   TBranch        *b_mElectron__cor_;   //!
+   TBranch        *b_mElectron__jecLabels_;   //!
+   TBranch        *b_mElectron__unc_;   //!
+   TBranch        *b_mElectron__uncSrc_;   //!
+   TBranch        *b_mElectron__area_;   //!
+   TBranch        *b_mElectron__DxyVertex_;   //!
+   TBranch        *b_mElectron__DzVertex_;   //!
+   TBranch        *b_mElectron__PDGID_;   //!
+   TBranch        *b_mElectron__PfIso_;   //!
+   TBranch        *b_mElectron__PuChargedHadronIso_;   //!
+   TBranch        *b_mElectron__ChargedHadronIso_;   //!
+   TBranch        *b_mElectron__NeutralHadronIso_;   //!
+   TBranch        *b_mElectron__PhotonIso_;   //!
+   /*
+   TBranch        *b_events_mGenParticle__;   //!
+   TBranch        *b_mGenParticle__P4__fCoordinates_fX;   //!
+   TBranch        *b_mGenParticle__P4__fCoordinates_fY;   //!
+   TBranch        *b_mGenParticle__P4__fCoordinates_fZ;   //!
+   TBranch        *b_mGenParticle__P4__fCoordinates_fT;   //!
+   TBranch        *b_mGenParticle__status_;   //!
+   TBranch        *b_mGenParticle__pdgid_;   //!
+   */
+
+   /////////////////////////////////////////////////////////////////////////////
+   // Following lines added by hand and must come *after* auto-generated header
+   /////////////////////////////////////////////////////////////////////////////
+
+   /////////////////////////////////////////////////////////////////////////////
+   // start manually added code
+   /////////////////////////////////////////////////////////////////////////////
 
   // _ak4ak8 tree
    Int_t           t4_EvtHdr__mRun;
@@ -650,7 +975,11 @@ public :
    Float_t         met2;
    Float_t         metphi2;
 
-   fillHistos(TTree *tree=0, std::string type="DATA", TTree *tree2=0);
+   /////////////////////////////////////////////////////////////////////////////
+   // end manually added code
+   /////////////////////////////////////////////////////////////////////////////
+
+   fillHistos(TTree *tree=0, std::string type="DATA", TTree *tree2=0); // custom
    virtual ~fillHistos();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
@@ -660,14 +989,18 @@ public :
    virtual Bool_t   Notify();
    virtual void     Show(Long64_t entry = -1, Long64_t entry4 = -1); // custom
 
+   /////////////////////////////////////////////////////////////////////////////
+   // start more manually added code
+   /////////////////////////////////////////////////////////////////////////////
+
    // Additional code for processing
    ofstream *ferr;
    std::string _type;
    TFile *_outfile;
-   //TH1D *pudist;
-   std::map<string, TH1D*> pudist;
+   //std::map<string, TH1D*> pudist;
    std::vector<std::string> _triggers;
-   TH1D *pumc;
+   TH1F *pumc;
+   TH1F *pudt;
    std::set<std::string> _trigs;
    std::vector<bool> _jetids;
    std::vector<bool> _jetids5;
@@ -677,8 +1010,9 @@ public :
 
    void loadJSON(const char* filename);
    void loadLumi(const char* filename);
-   //void loadPrescale(const char* filename, std::string trigger);
    void loadPUProfiles(const char* datafile, const char* mcfile);
+   void loadPrescales(const char* prescalefilename);
+
    void loadECALveto(const char* filename);
 
    void initBasics(std::string name);
@@ -723,8 +1057,11 @@ public :
 
    std::set<int> _runveto;
    std::map<int, std::map<int, int> > _json;
+   std::map<int, std::map<int, float> > _avgpu;
    std::map<int, std::map<int, float> > _lums;
    std::map<int, std::map<int, float> > _lums2;
+   //std::map<std::string, std::map<int, int> > _premap;
+   std::map<std::string, std::map<int, std::map<int, int> > > _premap;
    std::map<std::string, std::map<int, int> > _prescales;
    TH2F *ecalveto;
 
@@ -754,12 +1091,17 @@ public :
    int _totcounter;
 
    TLorentzVector j1, j2;
+
+   /////////////////////////////////////////////////////////////////////////////
+   // end more manually added code
+   /////////////////////////////////////////////////////////////////////////////
+
 };
 
 #endif
 
 #ifdef fillHistos_cxx
-fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2)
+fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2) : fChain(0) 
 {
   _type = type;
 
@@ -767,11 +1109,11 @@ fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2)
 // used to generate this class and read the Tree.
 /*
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/Volumes/Macintosh HD 2Tb/data/QCDJETS/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
+         f = new TFile("/Volumes/Macintosh HD 2Tb/data/QCDJETS/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root");
       }
-      TDirectory * dir = (TDirectory*)f->Get("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root:/ak4");
+      TDirectory * dir = (TDirectory*)f->Get("/Volumes/Macintosh HD 2Tb/data/QCDJETS/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root:/ak4");
       dir->GetObject("ProcessedTree",tree);
 
    }
@@ -869,15 +1211,19 @@ void fillHistos::Init(TTree *tree, TTree *tree2)
    fChain->SetBranchAddress("PFMet_.CaloMetPt_", &PFMet__CaloMetPt_, &b_events_PFMet__CaloMetPt_);
    fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_, &b_events_PFMet__sumEt_);
    fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_, &b_events_PFMet__phi_);
+   fChain->SetBranchAddress("MvaMet_.et_", &MvaMet__et_, &b_events_MvaMet__et_);
+   fChain->SetBranchAddress("MvaMet_.CaloMetPt_", &MvaMet__CaloMetPt_, &b_events_MvaMet__CaloMetPt_);
+   fChain->SetBranchAddress("MvaMet_.sumEt_", &MvaMet__sumEt_, &b_events_MvaMet__sumEt_);
+   fChain->SetBranchAddress("MvaMet_.phi_", &MvaMet__phi_, &b_events_MvaMet__phi_);
    fChain->SetBranchAddress("TriggerDecision_", &TriggerDecision_, &b_events_TriggerDecision_);
    fChain->SetBranchAddress("triggerList_", &triggerList_, &b_events_triggerList_);
    fChain->SetBranchAddress("L1Prescale_", &L1Prescale_, &b_events_L1Prescale_);
    fChain->SetBranchAddress("HLTPrescale_", &HLTPrescale_, &b_events_HLTPrescale_);
    fChain->SetBranchAddress("GenJets_", &GenJets__, &b_events_GenJets__);
-   fChain->SetBranchAddress("GenJets_.fCoordinates.fX", &GenJets__fCoordinates_fX, &b_GenJets__fCoordinates_fX);
-   fChain->SetBranchAddress("GenJets_.fCoordinates.fY", &GenJets__fCoordinates_fY, &b_GenJets__fCoordinates_fY);
-   fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", &GenJets__fCoordinates_fZ, &b_GenJets__fCoordinates_fZ);
-   fChain->SetBranchAddress("GenJets_.fCoordinates.fT", &GenJets__fCoordinates_fT, &b_GenJets__fCoordinates_fT);
+   fChain->SetBranchAddress("GenJets_.fCoordinates.fX", GenJets__fCoordinates_fX, &b_GenJets__fCoordinates_fX);
+   fChain->SetBranchAddress("GenJets_.fCoordinates.fY", GenJets__fCoordinates_fY, &b_GenJets__fCoordinates_fY);
+   fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", GenJets__fCoordinates_fZ, &b_GenJets__fCoordinates_fZ);
+   fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT, &b_GenJets__fCoordinates_fT);
    fChain->SetBranchAddress("CaloJets_", &CaloJets__, &b_events_CaloJets__);
    fChain->SetBranchAddress("CaloJets_.P4_.fCoordinates.fX", &CaloJets__P4__fCoordinates_fX, &b_CaloJets__P4__fCoordinates_fX);
    fChain->SetBranchAddress("CaloJets_.P4_.fCoordinates.fY", &CaloJets__P4__fCoordinates_fY, &b_CaloJets__P4__fCoordinates_fY);
@@ -918,6 +1264,30 @@ void fillHistos::Init(TTree *tree, TTree *tree2)
    fChain->SetBranchAddress("PFJets_.area_", PFJets__area_, &b_PFJets__area_);
    fChain->SetBranchAddress("PFJets_.looseID_", PFJets__looseID_, &b_PFJets__looseID_);
    fChain->SetBranchAddress("PFJets_.tightID_", PFJets__tightID_, &b_PFJets__tightID_);
+   fChain->SetBranchAddress("PFJets_.TCHE_", PFJets__TCHE_, &b_PFJets__TCHE_);
+   fChain->SetBranchAddress("PFJets_.TCHP_", PFJets__TCHP_, &b_PFJets__TCHP_);
+   fChain->SetBranchAddress("PFJets_.TCHEpf_", PFJets__TCHEpf_, &b_PFJets__TCHEpf_);
+   fChain->SetBranchAddress("PFJets_.TCHPpf_", PFJets__TCHPpf_, &b_PFJets__TCHPpf_);
+   fChain->SetBranchAddress("PFJets_.SoftMuonTagByIP_", PFJets__SoftMuonTagByIP_, &b_PFJets__SoftMuonTagByIP_);
+   fChain->SetBranchAddress("PFJets_.SoftElectronTagByIP_", PFJets__SoftElectronTagByIP_, &b_PFJets__SoftElectronTagByIP_);
+   fChain->SetBranchAddress("PFJets_.SoftMuonTag_", PFJets__SoftMuonTag_, &b_PFJets__SoftMuonTag_);
+   fChain->SetBranchAddress("PFJets_.SoftElectronTag_", PFJets__SoftElectronTag_, &b_PFJets__SoftElectronTag_);
+   fChain->SetBranchAddress("PFJets_.SimpleSecVertexHE_", PFJets__SimpleSecVertexHE_, &b_PFJets__SimpleSecVertexHE_);
+   fChain->SetBranchAddress("PFJets_.SimpleSecVertexHP_", PFJets__SimpleSecVertexHP_, &b_PFJets__SimpleSecVertexHP_);
+   fChain->SetBranchAddress("PFJets_.SimpleSecVertexHEpf_", PFJets__SimpleSecVertexHEpf_, &b_PFJets__SimpleSecVertexHEpf_);
+   fChain->SetBranchAddress("PFJets_.SimpleSecVertexHPpf_", PFJets__SimpleSecVertexHPpf_, &b_PFJets__SimpleSecVertexHPpf_);
+   fChain->SetBranchAddress("PFJets_.CSV_", PFJets__CSV_, &b_PFJets__CSV_);
+   fChain->SetBranchAddress("PFJets_.CSVpf_", PFJets__CSVpf_, &b_PFJets__CSVpf_);
+   fChain->SetBranchAddress("PFJets_.CinclSVpf_", PFJets__CinclSVpf_, &b_PFJets__CinclSVpf_);
+   fChain->SetBranchAddress("PFJets_.CMVApf_", PFJets__CMVApf_, &b_PFJets__CMVApf_);
+   fChain->SetBranchAddress("PFJets_.CSVSoftLeptonpf_", PFJets__CSVSoftLeptonpf_, &b_PFJets__CSVSoftLeptonpf_);
+   fChain->SetBranchAddress("PFJets_.CSVpfPositive_", PFJets__CSVpfPositive_, &b_PFJets__CSVpfPositive_);
+   fChain->SetBranchAddress("PFJets_.CSVpfNegative_", PFJets__CSVpfNegative_, &b_PFJets__CSVpfNegative_);
+   fChain->SetBranchAddress("PFJets_.partonFlavour_", PFJets__partonFlavour_, &b_PFJets__partonFlavour_);
+   fChain->SetBranchAddress("PFJets_.hadronFlavour_", PFJets__hadronFlavour_, &b_PFJets__hadronFlavour_);
+   fChain->SetBranchAddress("PFJets_.recommend1_", PFJets__recommend1_, &b_PFJets__recommend1_);
+   fChain->SetBranchAddress("PFJets_.recommend2_", PFJets__recommend2_, &b_PFJets__recommend2_);
+   fChain->SetBranchAddress("PFJets_.recommend3_", PFJets__recommend3_, &b_PFJets__recommend3_);
    fChain->SetBranchAddress("PFJets_.chf_", PFJets__chf_, &b_PFJets__chf_);
    fChain->SetBranchAddress("PFJets_.nhf_", PFJets__nhf_, &b_PFJets__nhf_);
    fChain->SetBranchAddress("PFJets_.nemf_", PFJets__nemf_, &b_PFJets__nemf_);
@@ -959,6 +1329,30 @@ void fillHistos::Init(TTree *tree, TTree *tree2)
    fChain->SetBranchAddress("PFJetsCHS_.area_", PFJetsCHS__area_, &b_PFJetsCHS__area_);
    fChain->SetBranchAddress("PFJetsCHS_.looseID_", PFJetsCHS__looseID_, &b_PFJetsCHS__looseID_);
    fChain->SetBranchAddress("PFJetsCHS_.tightID_", PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
+   fChain->SetBranchAddress("PFJetsCHS_.TCHE_", PFJetsCHS__TCHE_, &b_PFJetsCHS__TCHE_);
+   fChain->SetBranchAddress("PFJetsCHS_.TCHP_", PFJetsCHS__TCHP_, &b_PFJetsCHS__TCHP_);
+   fChain->SetBranchAddress("PFJetsCHS_.TCHEpf_", PFJetsCHS__TCHEpf_, &b_PFJetsCHS__TCHEpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.TCHPpf_", PFJetsCHS__TCHPpf_, &b_PFJetsCHS__TCHPpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.SoftMuonTagByIP_", PFJetsCHS__SoftMuonTagByIP_, &b_PFJetsCHS__SoftMuonTagByIP_);
+   fChain->SetBranchAddress("PFJetsCHS_.SoftElectronTagByIP_", PFJetsCHS__SoftElectronTagByIP_, &b_PFJetsCHS__SoftElectronTagByIP_);
+   fChain->SetBranchAddress("PFJetsCHS_.SoftMuonTag_", PFJetsCHS__SoftMuonTag_, &b_PFJetsCHS__SoftMuonTag_);
+   fChain->SetBranchAddress("PFJetsCHS_.SoftElectronTag_", PFJetsCHS__SoftElectronTag_, &b_PFJetsCHS__SoftElectronTag_);
+   fChain->SetBranchAddress("PFJetsCHS_.SimpleSecVertexHE_", PFJetsCHS__SimpleSecVertexHE_, &b_PFJetsCHS__SimpleSecVertexHE_);
+   fChain->SetBranchAddress("PFJetsCHS_.SimpleSecVertexHP_", PFJetsCHS__SimpleSecVertexHP_, &b_PFJetsCHS__SimpleSecVertexHP_);
+   fChain->SetBranchAddress("PFJetsCHS_.SimpleSecVertexHEpf_", PFJetsCHS__SimpleSecVertexHEpf_, &b_PFJetsCHS__SimpleSecVertexHEpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.SimpleSecVertexHPpf_", PFJetsCHS__SimpleSecVertexHPpf_, &b_PFJetsCHS__SimpleSecVertexHPpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.CSV_", PFJetsCHS__CSV_, &b_PFJetsCHS__CSV_);
+   fChain->SetBranchAddress("PFJetsCHS_.CSVpf_", PFJetsCHS__CSVpf_, &b_PFJetsCHS__CSVpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.CinclSVpf_", PFJetsCHS__CinclSVpf_, &b_PFJetsCHS__CinclSVpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.CMVApf_", PFJetsCHS__CMVApf_, &b_PFJetsCHS__CMVApf_);
+   fChain->SetBranchAddress("PFJetsCHS_.CSVSoftLeptonpf_", PFJetsCHS__CSVSoftLeptonpf_, &b_PFJetsCHS__CSVSoftLeptonpf_);
+   fChain->SetBranchAddress("PFJetsCHS_.CSVpfPositive_", PFJetsCHS__CSVpfPositive_, &b_PFJetsCHS__CSVpfPositive_);
+   fChain->SetBranchAddress("PFJetsCHS_.CSVpfNegative_", PFJetsCHS__CSVpfNegative_, &b_PFJetsCHS__CSVpfNegative_);
+   fChain->SetBranchAddress("PFJetsCHS_.partonFlavour_", PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
+   fChain->SetBranchAddress("PFJetsCHS_.hadronFlavour_", PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
+   fChain->SetBranchAddress("PFJetsCHS_.recommend1_", PFJetsCHS__recommend1_, &b_PFJetsCHS__recommend1_);
+   fChain->SetBranchAddress("PFJetsCHS_.recommend2_", PFJetsCHS__recommend2_, &b_PFJetsCHS__recommend2_);
+   fChain->SetBranchAddress("PFJetsCHS_.recommend3_", PFJetsCHS__recommend3_, &b_PFJetsCHS__recommend3_);
    fChain->SetBranchAddress("PFJetsCHS_.chf_", PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
    fChain->SetBranchAddress("PFJetsCHS_.nhf_", PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
    fChain->SetBranchAddress("PFJetsCHS_.nemf_", PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
@@ -983,6 +1377,63 @@ void fillHistos::Init(TTree *tree, TTree *tree2)
    fChain->SetBranchAddress("PFJetsCHS_.pujid_", PFJetsCHS__pujid_, &b_PFJetsCHS__pujid_);
    fChain->SetBranchAddress("PFJetsCHS_.calojetpt_", PFJetsCHS__calojetpt_, &b_PFJetsCHS__calojetpt_);
    fChain->SetBranchAddress("PFJetsCHS_.calojetef_", PFJetsCHS__calojetef_, &b_PFJetsCHS__calojetef_);
+   fChain->SetBranchAddress("genFlavour_", &genFlavour_, &b_events_genFlavour_);
+   fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_, &b_events_genFlavourHadron_);
+   fChain->SetBranchAddress("mMuon_", &mMuon__, &b_events_mMuon__);
+   fChain->SetBranchAddress("mMuon_.P4_.fCoordinates.fX", &mMuon__P4__fCoordinates_fX, &b_mMuon__P4__fCoordinates_fX);
+   fChain->SetBranchAddress("mMuon_.P4_.fCoordinates.fY", &mMuon__P4__fCoordinates_fY, &b_mMuon__P4__fCoordinates_fY);
+   fChain->SetBranchAddress("mMuon_.P4_.fCoordinates.fZ", &mMuon__P4__fCoordinates_fZ, &b_mMuon__P4__fCoordinates_fZ);
+   fChain->SetBranchAddress("mMuon_.P4_.fCoordinates.fT", &mMuon__P4__fCoordinates_fT, &b_mMuon__P4__fCoordinates_fT);
+   fChain->SetBranchAddress("mMuon_.genP4_.fCoordinates.fX", &mMuon__genP4__fCoordinates_fX, &b_mMuon__genP4__fCoordinates_fX);
+   fChain->SetBranchAddress("mMuon_.genP4_.fCoordinates.fY", &mMuon__genP4__fCoordinates_fY, &b_mMuon__genP4__fCoordinates_fY);
+   fChain->SetBranchAddress("mMuon_.genP4_.fCoordinates.fZ", &mMuon__genP4__fCoordinates_fZ, &b_mMuon__genP4__fCoordinates_fZ);
+   fChain->SetBranchAddress("mMuon_.genP4_.fCoordinates.fT", &mMuon__genP4__fCoordinates_fT, &b_mMuon__genP4__fCoordinates_fT);
+   fChain->SetBranchAddress("mMuon_.genR_", &mMuon__genR_, &b_mMuon__genR_);
+   fChain->SetBranchAddress("mMuon_.cor_", &mMuon__cor_, &b_mMuon__cor_);
+   fChain->SetBranchAddress("mMuon_.jecLabels_", &mMuon__jecLabels_, &b_mMuon__jecLabels_);
+   fChain->SetBranchAddress("mMuon_.unc_", &mMuon__unc_, &b_mMuon__unc_);
+   fChain->SetBranchAddress("mMuon_.uncSrc_", &mMuon__uncSrc_, &b_mMuon__uncSrc_);
+   fChain->SetBranchAddress("mMuon_.area_", &mMuon__area_, &b_mMuon__area_);
+   fChain->SetBranchAddress("mMuon_.DxyVertex_", &mMuon__DxyVertex_, &b_mMuon__DxyVertex_);
+   fChain->SetBranchAddress("mMuon_.DzVertex_", &mMuon__DzVertex_, &b_mMuon__DzVertex_);
+   fChain->SetBranchAddress("mMuon_.PDGID_", &mMuon__PDGID_, &b_mMuon__PDGID_);
+   fChain->SetBranchAddress("mMuon_.PfIso_", &mMuon__PfIso_, &b_mMuon__PfIso_);
+   fChain->SetBranchAddress("mMuon_.PuChargedHadronIso_", &mMuon__PuChargedHadronIso_, &b_mMuon__PuChargedHadronIso_);
+   fChain->SetBranchAddress("mMuon_.ChargedHadronIso_", &mMuon__ChargedHadronIso_, &b_mMuon__ChargedHadronIso_);
+   fChain->SetBranchAddress("mMuon_.NeutralHadronIso_", &mMuon__NeutralHadronIso_, &b_mMuon__NeutralHadronIso_);
+   fChain->SetBranchAddress("mMuon_.PhotonIso_", &mMuon__PhotonIso_, &b_mMuon__PhotonIso_);
+   fChain->SetBranchAddress("mElectron_", &mElectron__, &b_events_mElectron__);
+   fChain->SetBranchAddress("mElectron_.P4_.fCoordinates.fX", &mElectron__P4__fCoordinates_fX, &b_mElectron__P4__fCoordinates_fX);
+   fChain->SetBranchAddress("mElectron_.P4_.fCoordinates.fY", &mElectron__P4__fCoordinates_fY, &b_mElectron__P4__fCoordinates_fY);
+   fChain->SetBranchAddress("mElectron_.P4_.fCoordinates.fZ", &mElectron__P4__fCoordinates_fZ, &b_mElectron__P4__fCoordinates_fZ);
+   fChain->SetBranchAddress("mElectron_.P4_.fCoordinates.fT", &mElectron__P4__fCoordinates_fT, &b_mElectron__P4__fCoordinates_fT);
+   fChain->SetBranchAddress("mElectron_.genP4_.fCoordinates.fX", &mElectron__genP4__fCoordinates_fX, &b_mElectron__genP4__fCoordinates_fX);
+   fChain->SetBranchAddress("mElectron_.genP4_.fCoordinates.fY", &mElectron__genP4__fCoordinates_fY, &b_mElectron__genP4__fCoordinates_fY);
+   fChain->SetBranchAddress("mElectron_.genP4_.fCoordinates.fZ", &mElectron__genP4__fCoordinates_fZ, &b_mElectron__genP4__fCoordinates_fZ);
+   fChain->SetBranchAddress("mElectron_.genP4_.fCoordinates.fT", &mElectron__genP4__fCoordinates_fT, &b_mElectron__genP4__fCoordinates_fT);
+   fChain->SetBranchAddress("mElectron_.genR_", &mElectron__genR_, &b_mElectron__genR_);
+   fChain->SetBranchAddress("mElectron_.cor_", &mElectron__cor_, &b_mElectron__cor_);
+   fChain->SetBranchAddress("mElectron_.jecLabels_", &mElectron__jecLabels_, &b_mElectron__jecLabels_);
+   fChain->SetBranchAddress("mElectron_.unc_", &mElectron__unc_, &b_mElectron__unc_);
+   fChain->SetBranchAddress("mElectron_.uncSrc_", &mElectron__uncSrc_, &b_mElectron__uncSrc_);
+   fChain->SetBranchAddress("mElectron_.area_", &mElectron__area_, &b_mElectron__area_);
+   fChain->SetBranchAddress("mElectron_.DxyVertex_", &mElectron__DxyVertex_, &b_mElectron__DxyVertex_);
+   fChain->SetBranchAddress("mElectron_.DzVertex_", &mElectron__DzVertex_, &b_mElectron__DzVertex_);
+   fChain->SetBranchAddress("mElectron_.PDGID_", &mElectron__PDGID_, &b_mElectron__PDGID_);
+   fChain->SetBranchAddress("mElectron_.PfIso_", &mElectron__PfIso_, &b_mElectron__PfIso_);
+   fChain->SetBranchAddress("mElectron_.PuChargedHadronIso_", &mElectron__PuChargedHadronIso_, &b_mElectron__PuChargedHadronIso_);
+   fChain->SetBranchAddress("mElectron_.ChargedHadronIso_", &mElectron__ChargedHadronIso_, &b_mElectron__ChargedHadronIso_);
+   fChain->SetBranchAddress("mElectron_.NeutralHadronIso_", &mElectron__NeutralHadronIso_, &b_mElectron__NeutralHadronIso_);
+   fChain->SetBranchAddress("mElectron_.PhotonIso_", &mElectron__PhotonIso_, &b_mElectron__PhotonIso_);
+   /*
+   fChain->SetBranchAddress("mGenParticle_", &mGenParticle__, &b_events_mGenParticle__);
+   fChain->SetBranchAddress("mGenParticle_.P4_.fCoordinates.fX", &mGenParticle__P4__fCoordinates_fX, &b_mGenParticle__P4__fCoordinates_fX);
+   fChain->SetBranchAddress("mGenParticle_.P4_.fCoordinates.fY", &mGenParticle__P4__fCoordinates_fY, &b_mGenParticle__P4__fCoordinates_fY);
+   fChain->SetBranchAddress("mGenParticle_.P4_.fCoordinates.fZ", &mGenParticle__P4__fCoordinates_fZ, &b_mGenParticle__P4__fCoordinates_fZ);
+   fChain->SetBranchAddress("mGenParticle_.P4_.fCoordinates.fT", &mGenParticle__P4__fCoordinates_fT, &b_mGenParticle__P4__fCoordinates_fT);
+   fChain->SetBranchAddress("mGenParticle_.status_", &mGenParticle__status_, &b_mGenParticle__status_);
+   fChain->SetBranchAddress("mGenParticle_.pdgid_", &mGenParticle__pdgid_, &b_mGenParticle__pdgid_);
+   */
    Notify();
 }
 
