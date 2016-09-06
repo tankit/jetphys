@@ -5,6 +5,7 @@
 #ifndef __settings_h__
 #define __settings_h__
 #include <string>
+using std::string;
 
 // All the settings variables are in global name space
 // To avoid conflicts, and to make them easier to find
@@ -40,23 +41,25 @@ std::string _jp_prescalefile = "";//pileup/prescales74x.txt";
 
 // JEC text files in CondFormats/JetMETObjects/data/
 bool _jp_redoJEC = true;
-std::string _jp_jecgt = "Fall15_25nsV2"; // 76X
+std::string _jp_jecgt = "Spring16_25nsV6";
+//std::string _jp_jecgt = "Fall15_25nsV2"; // 76X
 //std::string _jp_jecgt = "Summer15_25nsV7"; // 74X
 //std::string _jp_jecgt = "Summer15_25nsV6";
 //std::string _jp_jecgt = "Summer15_50nsV5";
 
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;
-std::string _jp_ecalveto = "lumicalc/ecalveto.root";
+string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
 const bool _jp_dojson = false;//true;
-std::string _jp_json = "lumicalc/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt";
+string _jp_json = "lumicalc/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt";
 
 // Calculate luminosity on the fly based on .csv file
 const bool _jp_dolumi = true;
-std::string _jp_lumifile = "lumicalc/brilcalc_lumibyls_silver.csv"; // Run II
-//std::string _jp_lumifile = "lumicalc/pixellumi_by_LS_jan16.csv"; // Run I
+string _jp_lumifile = "lumicalc/brilcalc_lumibyls.csv"; // Run II
+//string _jp_lumifile = "lumicalc/brilcalc_lumibyls_silver.csv"; // Run II
+//string _jp_lumifile = "lumicalc/pixellumi_by_LS_jan16.csv"; // Run I
 
 // List of triggers used in the analysis
 /*

@@ -44,30 +44,22 @@
   if (_jp_type=="DATA") {
     cout << "Load trees..." << endl;
 
-    // 2015D
-    //c->AddFile("moredata/ProcessedTree_JetHT_2015_PromptReco_goldJSON_upto-260627_SMPJ_ak4_withfilters.root");
-    // 76X with botched prescales (and other problems?)
-    //c->AddFile("%sNtuples-Data-RunC-ReReco16Dec2015.root"); // different trigs
-//     c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-part1.root",p));
-//     c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-part2.root",p));
-//     c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-part3.root",p));
-//     c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-part4.root",p));
-//     c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-part5.root",p));
-    // New 76X with fixed prescales
-    c->AddFile(Form("%sNtuples-Data-RunC-ReReco16Dec2015-76X.root",p));
-    c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-76X-part1.root",p));
-    c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-76X-part2.root",p));
-    c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-76X-part3.root",p));
-    c->AddFile(Form("%sNtuples-Data-RunD-ReReco16Dec2015-76X-part4.root",p));
+    // 2016B
+    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part1.root");
+    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part2.root");
+    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part3.root");
+    // 2016C
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part1.root");
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part2.root");
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part3.root");
+    // 2016D
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunD-part1.root");
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunD-part2.root");
+    // 2016E
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part1.root");
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part2.root");
+    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part3.root");
 
-    // Sep 19 files
-    //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
-    //c->AddFile("moredata/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015B_v2.root");
-
-    // Wrong files...
-    //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-Cert246908-251883_13TeV_PromptReco_Collisions15-LowPileUp.root");
-    //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
-    //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFIle-254833-Run2015C.root");
     cout << "Got " << c->GetEntries() << " entries" << endl;
 
     if (_jp_ak4ak8) {
