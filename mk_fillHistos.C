@@ -43,7 +43,7 @@
     cout << "Load trees..." << endl;
 
     // 2016B
-    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part2.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part3.root",p));
     // 2016C
@@ -51,8 +51,8 @@
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunC-v2-part2.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunC-v2-part3.root",p));
     // 2016D
-    //c->AddFile("Form("%sData/2016/Ntuples-Data-2016-RunD-part1.root",p));
-    //c->AddFile("Form("%sData/2016/Ntuples-Data-2016-RunD-part2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part2.root",p));
     // 2016E
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));

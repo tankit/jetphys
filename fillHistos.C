@@ -18,7 +18,7 @@ void fillHistos::Loop()
   assert(nskip+nentries);
 
   //nentries = 10; // debug
-  nentries = 1000;//very short test runs
+  //nentries = 1000;//very short test runs
   //nentries = 100000;//short test runs
   //nentries = 1000000;//medium test runs
   //nentries = 5000000; // lunch-break run for MC (with trigsim off)

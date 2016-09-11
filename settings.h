@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4" or "AK8")
 std::string _jp_algo = "AK4";
 // Data type ("DATA", "MC", or "HW")
-std::string _jp_type = "MC";
+std::string _jp_type = "DATA";
 
 // Number of events to process (-1 for all)
 Long64_t _jp_nentries = -1; // all
