@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4" or "AK8")
 std::string _jp_algo = "AK4";
 // Data type ("DATA", "MC", or "HW")
-std::string _jp_type = "DATA";
+std::string _jp_type = "MC";
 
 // Number of events to process (-1 for all)
 Long64_t _jp_nentries = -1; // all
@@ -53,7 +53,7 @@ string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
 const bool _jp_dojson = false;//true;
-string _jp_json = "lumicalc/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt";
+string _jp_json = "lumicalc/Cert_271036-277148_13TeV_PromptReco_Collisions16_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file
 const bool _jp_dolumi = true;
@@ -127,7 +127,7 @@ const bool _jp_doEras = false;
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = false;
 // Produce run-level histograms
-const bool _jp_doRunHistos = true;//false;
+const bool _jp_doRunHistos = true;
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
 

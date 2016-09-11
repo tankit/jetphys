@@ -3,9 +3,7 @@
 // Created: March 20, 2010
 // Updated: June 1, 2015
 
-//void mk_fillHistos() {
 {
-
   //gROOT->ProcessLine(".exception");
 
   // Jet energy corrections and uncertainties
@@ -29,88 +27,69 @@
 
   // This is already included in the .C files above
   // Including it again breaks CLING in ROOT 6.04.10
-  // #include "settings.h"
+  //#include "settings.h"
 
-  std::string algo = "ak4";
+  string algo = "ak4";
   if (_jp_algo=="AK8") algo = "ak8";
   if (_jp_algo=="AK4") algo = "ak4";
-  const char *a = algo.c_str();
 
   // connect trees
-  TChain *c = new TChain(Form("%s/ProcessedTree",a));
+  TChain *c = new TChain(Form("%s/ProcessedTree",algo.c_str()));
   TChain *d = (_jp_ak4ak8 ? new TChain("ak4/ProcessedTree") : 0);
-  const char *p = "/Volumes/Macintosh HD 2Tb/data/QCDJETS/";
+  const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
   if (_jp_type=="DATA") {
+    cout << "Running over DT" << endl;
     cout << "Load trees..." << endl;
 
     // 2016B
-    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part1.root");
-    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part2.root");
-    c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunB-part3.root");
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part3.root",p));
     // 2016C
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part1.root");
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part2.root");
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunC-v2-part3.root");
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunC-v2-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunC-v2-part2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunC-v2-part3.root",p));
     // 2016D
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunD-part1.root");
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunD-part2.root");
+    //c->AddFile("Form("%sData/2016/Ntuples-Data-2016-RunD-part1.root",p));
+    //c->AddFile("Form("%sData/2016/Ntuples-Data-2016-RunD-part2.root",p));
     // 2016E
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part1.root");
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part2.root");
-    //c->AddFile("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/Data/2016/Ntuples-Data-2016-RunE-part3.root");
-
-    cout << "Got " << c->GetEntries() << " entries" << endl;
-
-    if (_jp_ak4ak8) {
-      cout << "Load friend trees..." << endl;
-
-      //c->AddFile("data/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015C_v2.root");
-      //c->AddFile("moredata/Ntuples-Data-MagneticField-JetHt-JsonFile-25-Run2015B_v2.root");
-
-      cout << "Got " << d->GetEntries() << " entries" << endl;
-    }
-  }
-
-  if (_jp_type=="MC") {
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part3.root",p));
+  } else if (_jp_type=="MC") {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins" << endl;
+
       cout << "Load trees..." << endl;
+      cout << "Files for a pthat bin run not specified" << endl;
+    } else {
+      cout << "Running overi pythia flat sample" << endl;
 
-      if (_jp_ak4ak8) {
-	cout << "Load friend trees..." << endl;
-      }
-    }
-    else {
-      cout << "Running over flat sample" << endl;
       cout << "Load trees..." << endl;
-
-      //c->AddFile("moremc/ProcessedTree_QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8_RunIISpring15DR74-Asympt25nsRaw_MCRUN2_74_V9-v3.root"); //  25 ns
-      //c->AddFile("moremc/Pythia8-CUETP8M1-Ntuples-PFJets.root"); // 50 ns
-      c->AddFile(Form("%sNtuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root",p));//76
-
-      cout << "Got " << c->GetEntries() << " entries" << endl;
-
-      if (_jp_ak4ak8) {
-	cout << "Load friend trees..." << endl;
-	cout << "Got " << d->GetEntries() << " entries" << endl;
-      }
+      c->AddFile(Form("%sMC/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root",p));
     }
-  }
-
-  if (_jp_type=="HW") {
+  } else if (_jp_type=="HW") {
     cout << "Running over Herwig flat sample" << endl;
     cout << "Load trees..." << endl;
-    cout << "Got " << c->GetEntries() << " entries" << endl;
-
-    if (_jp_ak4ak8) {
-      cout << "Load friend trees..." << endl;
-      cout << "Got " << d->GetEntries() << " entries" << endl;
-    }
+    c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X.root",p));
+  } else {
+    cout << "Enter a proper _jp_type" << endl;
   }
 
-  // Awkward patch for ROOT6:
-  // Call 'Loop()' and 'delete this;' inside constructor;
-  fillHistos(c, _jp_type, d);
+  int centries = c->GetEntries();
+  cout << "Got " << centries << " entries" << endl;
+  if (_jp_ak4ak8) {
+    cout << "No ak8 trees currently specified" << endl;
+    //cout << "Got " << d->GetEntries() << " entries" << endl;
+  }
 
+  if (centries > 0) {
+    // ROOT 6 does not load the libraries before it thinks it has to.
+    // Thus everything needs to be done in the initializer
+    fillHistos(c, _jp_type, d);
+  } else {
+    cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;
+  }
+  //gROOT->ProcessLine(".q");
 }

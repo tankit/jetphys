@@ -1,7 +1,7 @@
 // Purpose: Fill jet physics analysis histograms
 // Author:  mikko.voutilainen@cern.ch
 // Created: April 19, 2010
-// Updated: March 4, 2065
+// Updated: March 4, 2016
 ////////////////////////////////////////////////////////////////////////
 // Notes:   Automatically created using TChain::MakeClass("fillHistos")
 //          Keep variable declarations in the automatic order,
@@ -12,7 +12,6 @@
 // This class has been automatically generated on
 // Fri Mar  4 11:57:12 2016 by ROOT version 6.06/00
 // from TTree ProcessedTree/ProcessedTree
-// found on file: /Volumes/Macintosh HD 2Tb/data/QCDJETS/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root
 //////////////////////////////////////////////////////////
 
 #ifndef fillHistos_h
@@ -608,7 +607,7 @@ public :
 
   // _ak4ak8 tree
   Int_t           t4_EvtHdr__mRun;
-  Int_t           t4_EvtHdr__mEvent;
+  UInt_t          t4_EvtHdr__mEvent;
   Int_t           t4_EvtHdr__mLumi;
   Float_t         t4_EvtHdr__mPthat;
   Int_t           t4_EvtHdr__mOOTPUEarly;
@@ -929,7 +928,7 @@ private:
 #endif
 
 #ifdef fillHistos_cxx
-fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2) : fChain(0) 
+fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2) : fChain(0)
 {
   _type = type;
 
@@ -939,9 +938,8 @@ fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2) : fChain(0)
   // Reset some pointers
   _outfile = 0;
 
-  // Awkward patch for ROOT6 to call Loop
+  // ROOT 6 requires this
   Loop();
-  //delete this; // Needed?
 }
 
 fillHistos::~fillHistos()
@@ -966,7 +964,7 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
     return centry;
 
   // If a new tree is opened, reload the triggers and print them
-  if (fChain->GetTreeNumber() != fCurrent) {
+  if (_dt && fChain->GetTreeNumber() != fCurrent) {
     fCurrent = fChain->GetTreeNumber();
     getTriggers();
     *ferr << "Tree " << fCurrent << " triggers:" << endl;
@@ -1101,7 +1099,7 @@ void fillHistos::Init(TTree *tree, TTree *tree2)
   fChain->SetBranchAddress("PFJets_.CSVSoftLeptonpf_", PFJets__CSVSoftLeptonpf_, &b_PFJets__CSVSoftLeptonpf_);
   fChain->SetBranchAddress("PFJets_.CSVpfPositive_", PFJets__CSVpfPositive_, &b_PFJets__CSVpfPositive_);
   fChain->SetBranchAddress("PFJets_.CSVpfNegative_", PFJets__CSVpfNegative_, &b_PFJets__CSVpfNegative_);
-  fChain->SetBranchAddress("PFJets_.QGtagger_", PFJets__QGtagger_, &b_PFJets__QGtagger_);
+  //fChain->SetBranchAddress("PFJets_.QGtagger_", PFJets__QGtagger_, &b_PFJets__QGtagger_);
   fChain->SetBranchAddress("PFJets_.partonFlavour_", PFJets__partonFlavour_, &b_PFJets__partonFlavour_);
   fChain->SetBranchAddress("PFJets_.hadronFlavour_", PFJets__hadronFlavour_, &b_PFJets__hadronFlavour_);
   fChain->SetBranchAddress("PFJets_.recommend1_", PFJets__recommend1_, &b_PFJets__recommend1_);

@@ -18,7 +18,7 @@ void fillHistos::Loop()
   assert(nskip+nentries);
 
   //nentries = 10; // debug
-  //nentries = 1000;//very short test runs
+  nentries = 1000;//very short test runs
   //nentries = 100000;//short test runs
   //nentries = 1000000;//medium test runs
   //nentries = 5000000; // lunch-break run for MC (with trigsim off)
@@ -401,7 +401,7 @@ void fillHistos::Loop()
     vector<JetCorrectorParameters> vrc;
     vrc.push_back(*par_l1rc);
     _L1RC = new FactorizedJetCorrector(vrc);
-    
+
   } // JEC redone
   assert(_JEC);
   assert(_L1RC);
@@ -440,21 +440,21 @@ void fillHistos::Loop()
   for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
     _triggers.push_back(_jp_triggers[itrg]);
   }
-  
+
   // Load latest JSON selection
   if (_dt && _jp_dojson) loadJSON(_jp_json.c_str());
 
   // Load PU profiles for MC reweighing
-  if (_mc && _jp_reweighPU) 
+  if (_mc && _jp_reweighPU)
     loadPUProfiles(_jp_pudata.c_str(), _jp_pumc.c_str());
 
   // Load prescale information to patch 76X
   if (_jp_prescalefile!="")
     loadPrescales(_jp_prescalefile.c_str());
-   
+
    // load ECAL veto file for cleaning data
    if (_jp_doECALveto) loadECALveto(_jp_ecalveto.c_str());
-   
+
    // Add these runs to the manual veto list
    if (_dt) {
      // Veto list for 38X 36/pb
@@ -632,8 +632,8 @@ void fillHistos::Loop()
           continue;
         }
         events.insert(evt);
-      }      
-      
+      }
+
       ++cnt["01all"];
 
       // Check if good run/LS, including JSON selection
@@ -669,7 +669,7 @@ void fillHistos::Loop()
           //continue; // Could be Poisson fluctuation to zero
         }
       } // _dt && _jp_dolumi
-      
+
       // Do we exercise run veto based on cross section stability?
       if (_runveto.find(run)!=_runveto.end()) {
         ++_nbadevts_veto;
@@ -755,26 +755,42 @@ void fillHistos::Loop()
 
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
-        bool pass = (TriggerDecision_[itrg]==1); // -1, 0, 1
         string strg = _availTrigs[itrg];
-        if (pass && strg!="") _trigs.insert(strg);
+        bool pass = (TriggerDecision_[itrg]==1) && strg != ""; // -1, 0, 1
 
-        // Set prescale from event for now
-        if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0)
-          _prescales[strg][run] = max(L1Prescale_[itrg] * HLTPrescale_[itrg],
-                                      _prescales[strg][run]);
+        if (pass) {
 
-        // check prescale
-        if (pass && strg!="") {
-          double prescale = _prescales[strg][run];
-          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-            cout << "Trigger " << strg << ", "
-                 << "Prescale(txt file) = " << prescale << endl;
-            cout << "L1 = " << L1Prescale_[itrg] << ", "
-                 << "HLT = " << HLTPrescale_[itrg] << endl;
-            assert(false);
+          // Set prescale from event for now
+          if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
+            _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+          } else {
+            cout << "Error for trigger " << strg << " prescales: "
+                 << "L1  =" << L1Prescale_[itrg]
+                 << "HLT =" << HLTPrescale_[itrg] << endl;
+            _prescales[strg][run] = 0;
           }
-        } // if pass
+
+          // check prescale
+          if (_debug) {
+            double prescale = _prescales[strg][run];
+            if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
+              cout << "Trigger " << strg << ", "
+                   << "Prescale(txt file) = " << prescale << endl;
+              cout << "L1 = " << L1Prescale_[itrg] << ", "
+                   << "HLT = " << HLTPrescale_[itrg] << endl;
+              assert(false);
+            }
+          } // debug
+
+          if (_prescales[strg][run]!=0) {
+            // Set trigger only if prescale information is known
+            _trigs.insert(strg);
+          } else {
+            // Make sure all info is good!
+            cout << "Missing prescale for " << strg
+                 << " in run " << run << endl << flush;
+          }
+        }
       } // for itrg
 
       ++_totcounter;
@@ -788,7 +804,7 @@ void fillHistos::Loop()
 
       // Calculate trigger PU weight
       for (unsigned int itrg = 0; itrg != _triggers.size(); ++itrg) {
-      
+
         const char *t = _triggers[itrg].c_str();
         _wt[t] = 1.;
 
@@ -851,12 +867,12 @@ void fillHistos::Loop()
         assert((_dt && v.size()==4) || (_mc && v.size()==3));
         double jec_l1 = v[0];
         double jec_l2l3 = v[2]/v[0];
-        double jec_res = (_dt ? v[3]/v[2] : 1.); 
+        double jec_res = (_dt ? v[3]/v[2] : 1.);
         jtjes_l1[i] = jec_l1;
         jtjes_l2l3[i] = jec_l2l3;
         jtjes_res[i] = jec_res;
         assert(jtjesnew[i] = v[v.size()-1]);
-        
+
         // Correct jets
         p4 *= jtjesnew[i];
         jte[i] = p4.E();
@@ -871,7 +887,7 @@ void fillHistos::Loop()
           jtgenpt[i] = gp4.Pt();
           jtgeny[i] = gp4.Rapidity();
         }
-        
+
         // Oversmear MC to match data
         // Results from Matthias Schroeder, JA July 21, 2011:
         // https://indico.cern.ch/getFile.py/access?contribId=2&resId=0&materialId=slides&confId=148123
@@ -912,7 +928,7 @@ void fillHistos::Loop()
           gen_jty[i] = genp4.Rapidity();
           // for matching
         } // for i
-        
+
         if (_jp_ak4ak8) {
           for (int i = 0; i != t4gen_njt; ++i) {
 
@@ -931,11 +947,11 @@ void fillHistos::Loop()
       double ucx = -mex;
       double ucy = -mey;
       for (int i = 0; i != njt; ++i) {
-        
+
         // Only use jets with corr. pT>25 GeV to equalize data and MC thresholds
         if (jtpt[i] > _jp_recopt && fabs(jteta[i])<4.7) {
 
-          // Subtract uncorrected jet pT from met, put back corrected  
+          // Subtract uncorrected jet pT from met, put back corrected
           // Also add RC offset to keep PU isotropic
           // Remember that MET is negative vector sum
           _L1RC->setRho(rho);
@@ -948,7 +964,7 @@ void fillHistos::Loop()
           mex -= dpt * cos(jtphi[i]);
           mey -= dpt * sin(jtphi[i]);
 
-          // Keep track of remaining pT in unclustered energy, i.e. 
+          // Keep track of remaining pT in unclustered energy, i.e.
           // subtract jets from -MET to have the non-jet component
           // treat UE and PU underneath jets as unclustered in order
           // to keep the homogeneous
@@ -956,19 +972,19 @@ void fillHistos::Loop()
           ucx -= (l1corr * jtptu[i] - ue) * cos(jtphi[i]);
           ucy -= (l1corr * jtptu[i] - ue) * sin(jtphi[i]);
         }
-      } // for i                                                                
-      // Type I MET                                                             
+      } // for i
+      // Type I MET
 
       met1 = tools::oplus(mex, mey);
       metphi1 = atan2(mey, mex);
-      // Correct unclustered energy; jec for 10 GeV jets varies between         
-      // 1.1-1.22 at |y|<2.5, 2.5-3.0 even goes up to 1.35                      
-      // => assume average correction of about 1.15 needed                      
-      // => did not seem even nearly enough; try 1.5                            
+      // Correct unclustered energy; jec for 10 GeV jets varies between
+      // 1.1-1.22 at |y|<2.5, 2.5-3.0 even goes up to 1.35
+      // => assume average correction of about 1.15 needed
+      // => did not seem even nearly enough; try 1.5
       // => reduce down to 1.25 (high pT threshold on jets)
-      mex -= 0.25*ucx;//0.5*ucx;                                             
+      mex -= 0.25*ucx;//0.5*ucx;
       mey -= 0.25*ucy;//0.5*ucy;
-      // Type II MET                                                            
+      // Type II MET
       met2 = tools::oplus(mex, mey);
       metphi2 = atan2(mey, mex);
 
@@ -989,7 +1005,7 @@ void fillHistos::Loop()
           _JEC_ak4pf->setJetE(t4_jteu[i]);
           _JEC_ak4pf->setJetEta(pp4.Eta());
           t4_jtjesnew[i] = _JEC_ak4pf->getCorrection();
-          
+
           // Correct jets
           pp4 *= t4_jtjesnew[i];
           t4_jte[i] = pp4.E();
@@ -1001,7 +1017,7 @@ void fillHistos::Loop()
       } // _jp_ak4ak8
 
       if (njt!=0 && _pass) ++cnt["08njt"];
-        
+
       _jetids.resize(njt);
       for (unsigned int i = 0; i != _jetids.size(); ++i) _jetids[i] = true;
       fillJetID(_jetids);
@@ -1023,7 +1039,7 @@ void fillHistos::Loop()
 
       // Here can categorize events into different triggers, epochs,
       // topologies etc.
-      // Eta and pT binning are handled in the fillBasic class 
+      // Eta and pT binning are handled in the fillBasic class
       if (_jp_doBasicHistos) {
         fillBasics("Standard");
         if (_dt && _jp_doEras) {
@@ -1247,9 +1263,9 @@ void fillHistos::initBasics(string name)
       //TDirectory *ydir = gDirectory;
       TDirectory *ydir = topdir->GetDirectory(yname); assert(ydir);
       ydir->cd();
-      
+
       for (unsigned int j = 0; j != triggers.size(); ++j) {
-        
+
         // subdirectory for trigger
         const char *trg = triggers[j].c_str();
         assert(ydir);
@@ -1326,7 +1342,7 @@ void fillHistos::fillBasic(basicHistos *h)
     if (ip==_prescales[h->trigname].end()) {
       if (fired) {
         *ferr << "No prescale info for trigger " << h->trigname
-              << " in run " << run << "!" << endl << flush; 
+              << " in run " << run << "!" << endl << flush;
         assert(false);
       }
     }
@@ -1335,7 +1351,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
     if (prescale==0 && fired) {
       *ferr << "Prescale zero for trigger " << h->trigname
-            << " in run " << run << "!" << endl << flush; 
+            << " in run " << run << "!" << endl << flush;
       prescale = 1.;
       assert(false);
     }
@@ -1346,7 +1362,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
     h->hlumi_vstrpu->Fill(trpu, prescale ? lum / prescale : 0.);
   }
-  // For MC vs truePU                                                           
+  // For MC vs truePU
   if (_mc)
     h->hlumi_vstrpu->Fill(trpu, _w);
 
@@ -1589,10 +1605,10 @@ void fillHistos::fillBasic(basicHistos *h)
           h->hchftp->Fill(jtchf[i], _w);
           h->hneftp->Fill(jtnef[i], _w);
           h->hnhftp->Fill(jtnhf[i], _w);
-          h->hceftp->Fill(jtcef[i], _w); 
-          h->hmuftp->Fill(jtmuf[i], _w); 
-          h->hbetatp->Fill(jtbeta[i], _w); 
-          h->hbetastartp->Fill(jtbetastar[i], _w); 
+          h->hceftp->Fill(jtcef[i], _w);
+          h->hmuftp->Fill(jtmuf[i], _w);
+          h->hbetatp->Fill(jtbeta[i], _w);
+          h->hbetastartp->Fill(jtbetastar[i], _w);
           //
           if (dr4min<0.4) h->hak4ak8tp->Fill(ptprobepf4/jtpt[i]);
           //
@@ -1714,7 +1730,7 @@ void fillHistos::fillBasic(basicHistos *h)
     << " dr = " << jtgenr[i]
     << " genpt = " << (igen!=-1 ? gen_jtpt[igen] : -1)
     << " drmin = " << drmin
-    << " gen/reco = " << jtgenpt[i]/jtpt[i] << endl; 
+    << " gen/reco = " << jtgenpt[i]/jtpt[i] << endl;
     }
     } // debugging JEC
      */
@@ -1918,11 +1934,11 @@ void fillHistos::fillBasic(basicHistos *h)
       h->pbeta->Fill(pt, jtbeta[i], _w);
       assert(h->pbetastar);
       h->pbetastar->Fill(pt, jtbetastar[i], _w);
-      
+
       // Find AK4 match for AK4/AK8 ratio studies
       double ptpf4(0.), dr4min(999.);
       if (h->ak4ak8) {
-        
+
         int ipf4 = -1;
         dr4min = 999.;
         for (int j = 0; j != t4_njt; ++j) {
@@ -1943,8 +1959,8 @@ void fillHistos::fillBasic(basicHistos *h)
       if (pt >= h->ptmin && pt < h->ptmax) {
         if (_debug) cout << "..control plots for topology" << endl << flush;
 
+        h->htrpu->Fill(trpu, _w);
         if (h->ismc) {
-          h->htrpu->Fill(trpu, _w);
           h->hitpu->Fill(itpu, _w);
           h->hootpuearly->Fill(ootpuearly, _w);
           h->hootpulate->Fill(ootpulate, _w);
@@ -2004,7 +2020,7 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hbetabetastar->Fill(jtbeta[i], jtbetastar[i], _w);
         h->hetaphi->Fill(eta, phi, _w);
       } // within trigger pT range
-      
+
       int iprobe = i;
       int itag = (iprobe==0 ? 1 : 0);
       double pttag = (njt>=2 ? jtpt[itag] : 0);
@@ -2070,12 +2086,12 @@ void fillHistos::fillBasic(basicHistos *h)
           if (r) h->p2r_g->Fill(ptgen, r, _w);
           if (r) h->p2r_ruw->Fill(pt, r); // unweighted!
           if (r) h->p2r_guw->Fill(ptgen, r); // unweighted!
-          
+
           // Rapidity closure
           if (r) h->h2dy_r->Fill(pt, dy, _w);
-          if (r) h->h2dy_g->Fill(ptgen, dy, _w); 
+          if (r) h->h2dy_g->Fill(ptgen, dy, _w);
           if (r) h->p2dy_r->Fill(pt, dy, _w);
-          if (r) h->p2dy_g->Fill(ptgen, dy, _w); 
+          if (r) h->p2dy_g->Fill(ptgen, dy, _w);
           if (r) h->p2dy_ruw->Fill(pt, dy); // unweighted
           if (r) h->p2dy_guw->Fill(ptgen, dy); // unweighted
           if (r) h->pdy_r->Fill(pt, fabs(y), dy, _w);
@@ -2100,23 +2116,23 @@ void fillHistos::fillBasic(basicHistos *h)
   } // for i
 
   if (h->ak4ak8) { // _jp_ak4ak8
-    
+
     bool evtid5 = (met < 0.4 * metsumet || met < 45.);
-    
+
     for (int i = 0; i != t4_njt; ++i) {
-      
+
       double y = t4_jty[i];
       if (evtid5 && t4_jtidtight[i] && _pass &&
           fabs(y) >= h->ymin && fabs(y) < h->ymax) {
-        
+
         double pt = t4_jtpt[i];
-        
+
         if (pt > _jp_recopt) {
-          
+
           h->hpt_ak4pf->Fill(pt, _w);
           h->hpt_tmp_ak4pf->Fill(pt); // Event statistics
         } // reco pt
-      } // y bin                                                                
+      } // y bin
     } // for i
   } // _jp_ak4ak8
 
@@ -2132,14 +2148,14 @@ void fillHistos::fillBasic(basicHistos *h)
       h->hpt_jet->Fill(pt, _w*njet);
     }
   } // for i
-  
+
   //if (_jp_ak4ak8) {
   if (h->ak4ak8) {
 
     for (int i = 1; i != h->hpt_tmp_ak4pf->GetNbinsX()+1; ++i) {
 
       if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0) {
-        
+
         double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
         int njet = h->hpt_tmp_ak4pf->GetBinContent(i);
         h->hpt_evtcount_ak4pf->Fill(pt);
@@ -2263,7 +2279,7 @@ void fillHistos::fillBasic(basicHistos *h)
   }
   //
   if (h->ismc) {
-    
+
     // unfolding studies (Mikael)
     for (int i = 0; i != gen_njt; ++i) {
 
@@ -2273,11 +2289,11 @@ void fillHistos::fillBasic(basicHistos *h)
 
         //double yreco = fabs(jty[j]);
         bool id = (_jetids[j] && evtid && _pass);
-        
+
         if ((ygen >= h->ymin && ygen < h->ymax && gen_jtpt[i]>_jp_recopt) &&
-            //(yreco >= h->ymin && yreco < h->ymax) 
+            //(yreco >= h->ymin && yreco < h->ymax)
             (jtpt[j]>_jp_recopt && id)) {
-        
+
           double dr = tools::oplus(delta_phi(gen_jtphi[i], jtphi[j]),
                                    fabs(gen_jteta[i] - jteta[j]));
           if (dr < 0.25) {
@@ -2310,7 +2326,7 @@ void fillHistos::fillBasic(basicHistos *h)
         h->myfuw->Fill(jtpt[j]);
       }
     } // for j
-    
+
     for (int i = 0; i != gen_njt; ++i) {
       double y = gen_jty[i];
       if (fabs(y) >= h->ymin && fabs(y) < h->ymax) {
@@ -2331,12 +2347,12 @@ void fillHistos::fillBasic(basicHistos *h)
         }
       } // for i
     } // _ak4pf
-   
+
 
     if (h->ak4ak8) {
 
       for (int i = 1; i != h->hpt_g0_tmp_ak4pf->GetNbinsX()+1; ++i) {
-        
+
         // Jet number correlations
         if (h->hpt_g0_tmp->GetBinContent(i)!=0 ||
             h->hpt_g0_tmp_ak4pf->GetBinContent(i)!=0) {
@@ -2368,7 +2384,7 @@ void fillHistos::fillBasic(basicHistos *h)
           int n5 = h->hpt_g0_tmp_ak4pf->GetBinContent(i+1);
           int n7 = h->hpt_g0_tmp->GetBinContent(i);
           h->hpt_g0_ak4ak8p1->Fill(pt, min(n7,2), min(n5,2), _w);
-        }       
+        }
       } // for i
     } // _jp_ak4ak8
   } // gen spectrum
@@ -2378,7 +2394,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
 // Write and delete histograms
 void fillHistos::writeBasics()
-{ 
+{
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeBasics():" << endl << flush;
   MemInfo_t info;
@@ -2389,7 +2405,6 @@ void fillHistos::writeBasics()
 
   for (map<string, vector<basicHistos*> >::iterator it = _histos.begin();
        it != _histos.end(); ++it) {
-
     for (unsigned int i = 0; i != it->second.size(); ++i) {
 
       // Luminosity information
@@ -2398,11 +2413,11 @@ void fillHistos::writeBasics()
         h->hlumi->SetBinContent(j, _dt ? h->lumsum : 1. );
         h->hlumi2->SetBinContent(j, _dt ? h->lumsum2 : 1. );
       }
-      
+
       delete h;//it->second[i];
     } // for i
   } // for it
-  
+
   cout << "\nOutput stored in " << _outfile->GetName() << endl;
   _outfile->Close();
   _outfile->Delete();
@@ -2486,7 +2501,7 @@ void fillHistos::fillRunHistos(string name)
           assert(false);
         }
       }
-      else 
+      else
         prescale = _prescales[t][run]; //assert(prescale);
       h->runlums_trg[t][run] += (prescale ? lum / prescale : 0.);
     } // for i
@@ -2536,7 +2551,8 @@ void fillHistos::fillRunHistos(string name)
 
         if (pt > 18.) ++h->p_trg[t][run];
         if (pt > h->pt[t]) {
-          ++h->t_trg[t][run];
+          ++h->t_trg[t][run]; // unweighted events
+          h->tw_trg[t][run] += _prescales[t][run]; // prescale weighted events
           h->npv_trg[t][run] += npv;
           h->npvgood_trg[t][run] += npvgood;
           h->c_chf[t][run] += jtchf[i];
@@ -2554,10 +2570,10 @@ void fillHistos::fillRunHistos(string name)
           h->c_nhftp[t][run] += jtnhf[i];
           h->c_betastartp[t][run] += jtbetastar[i];
         }
-        
-        for (set<string>::const_iterator jt = _trigs.begin(); 
+
+        for (set<string>::const_iterator jt = _trigs.begin();
              jt != _trigs.end(); ++jt) {
-          
+
           string const& t2 = *jt;
           if (t!=t2) ++h->p_trgpair[t+t2][run];
         } // for jt
@@ -2585,9 +2601,8 @@ void fillHistos::writeRunHistos()
     runHistos *h = it->second;
     delete h;
   } // for it
-  
+
   cout << "\nOutput (runHistos) stored in " << _outfile->GetName() << endl;
-  _outfile->Close();
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeRunHistos() finished:" << endl << flush;
@@ -2787,7 +2802,7 @@ void fillHistos::loadLumi(const char* filename)
     // apparently it is given in s^-1 cm^-2
     //double lum = lvtx * secLS * 1e-36 ;
     //if (lum==0) lum = lhf * secLS * 1e-36 ;
-    // lumiCalc.py returns lumi in units of mub-1 (=>nb-1=>pb-1) 
+    // lumiCalc.py returns lumi in units of mub-1 (=>nb-1=>pb-1)
     double lum = rec*1e-6;
     //double lum2 = lhf * secLS * 1e-36 ;
     //if (lum2==0) lum2 = lvtx * secLS * 1e-36 ;
@@ -2842,7 +2857,7 @@ void fillHistos::loadLumi(const char* filename)
     } // for it
     cout << endl;
   } // nolums
-  
+
 } // loadLumi
 
 
@@ -2851,13 +2866,13 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
   cout << "Processing loadPUProfiles(\"" << datafile << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
-  
+
   // Load pile-up files and hists from them
   TFile *fpudist = new TFile(datafile, "READ");
   assert(fpudist && !fpudist->IsZombie());
   TFile *fpumc = new TFile(mcfile,"READ");
   assert(fpumc && !fpumc->IsZombie());
-  
+
   //pumc = (TH1D*)fpumc->Get("hpu370"); assert(pumc);
   pumc = (TH1F*)fpumc->Get("pileupmc"); assert(pumc);
   pudt = (TH1F*)fpudist->Get("pileupdt"); assert(pudt);
@@ -2922,16 +2937,16 @@ void fillHistos::loadPrescales(const char *prescalefile)
 
 
 void fillHistos::loadECALveto(const char *file)
-{  
+{
   cout << "Processing loadECALveto(\"" << file << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
-  
+
   TFile *fe = new TFile(file, "READ");
   assert(fe && !fe->IsZombie());
-  
+
   ecalveto = (TH2F*)fe->Get("ecalveto"); assert(ecalveto);
-  
+
   curdir->cd();
 } // loadECALveto
 

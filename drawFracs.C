@@ -269,7 +269,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
 	  hdt->SetBinContent(i, hdt->GetBinContent(i)+hdt2->GetBinContent(i));
 	}
-	delete hdt2;
 	
 	assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
 	TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spmuf%s%s",
@@ -280,7 +279,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
 	  hmc->SetBinContent(i, hmc->GetBinContent(i)+hmc2->GetBinContent(i));
 	}
-	delete hmc2;
       } // sf="cef"
       
       // For betastar, multiply by chf
@@ -294,7 +292,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
 	  hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
 	}
-	delete hdt2;
 	
 	assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
 	TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
@@ -305,7 +302,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
 	  hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
 	}
-	delete hmc2;
       } // betastar -> chf * betastar
       
       // For beta, multiply by chf
@@ -319,7 +315,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
 	  hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
 	}
-	delete hdt2;
 	
 	assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
 	TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
@@ -330,7 +325,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 	for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
 	  hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
 	}
-	delete hmc2;
       } // beta -> chf * beta
       
       // For chf, multiply by (1-beta-betastar)
@@ -351,8 +345,6 @@ void drawFracs(string type = "MC", string stp = "tp") {
 			     * (1 - (dobeta ? hdt2->GetBinContent(i) : 0)
 				- hdt3->GetBinContent(i)));
 	}
-	delete hdt2;
-	delete hdt3;
 	
 	assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
 	TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
@@ -370,11 +362,8 @@ void drawFracs(string type = "MC", string stp = "tp") {
 			     * (1 - (dobeta ? hmc2->GetBinContent(i) : 0)
 				- hmc3->GetBinContent(i)));
 	}
-	delete hmc2;
-	delete hmc3;
       } // chf -> chf*(1-beta-betastar)
       
-      delete href;
       
       hmc->SetMarkerStyle(kNone);
       hmc->SetFillStyle(1001);
