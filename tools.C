@@ -27,7 +27,7 @@ int tools::addFiles(TChain *c, string filelistname) {
   cout << "Loaded " << igood << " files." << endl; 
   if (ibad!=0)
     cerr << "Warning: failed to load " << ibad << " files  out of "
-	 << igood << endl;
+         << igood << endl;
   
   return igood;
 }
@@ -63,7 +63,7 @@ vector<double> tools::make_vector(double *a, int na) {
 } // make_vector
 // Interpolation between bin centers
 double tools::interpolate(double x, vector<double> const& vx,
-			  vector<double> const& vy) {
+                          vector<double> const& vy) {
 
   assert(vx.size()==vy.size());
   assert(vx.size()>=2);
@@ -83,13 +83,13 @@ double tools::interpolate(double x, vector<double> const& vx,
 
 // Ratio of two graphs
 void tools::GetPoint(TGraphErrors *g, int n, double &x, double &y,
-		     double &ex, double &ey) {
+                     double &ex, double &ey) {
   g->GetPoint(n, x, y);
   ex = g->GetErrorX(n);
   ey = g->GetErrorY(n);
 }
 void tools::SetPoint(TGraphErrors *g, int n, double x, double y,
-	      double ex, double ey) {
+              double ex, double ey) {
   g->SetPoint(n, x, y);
   g->SetPointError(n, ex, ey);
 }
@@ -103,13 +103,13 @@ TGraphErrors *tools::makeGraph(TH1 *hx, TH1 *hy, double scale ) {
     assert(hx->GetBinLowEdge(i)==hy->GetBinLowEdge(i));
     int n = g->GetN();
     SetPoint(g, n, hx->GetBinContent(i), scale*hy->GetBinContent(i),
-	     hx->GetBinError(i), scale*hy->GetBinError(i));
+             hx->GetBinError(i), scale*hy->GetBinError(i));
   }
 
   return g;
 }
 TGraphErrors *tools::ratioGraphs(TGraphErrors *g1, TGraphErrors *g2,
-				 double erry) {
+                                 double erry) {
 
   assert(g1); assert(g2);
   TGraphErrors *g = new TGraphErrors(0);
@@ -132,11 +132,11 @@ TGraphErrors *tools::ratioGraphs(TGraphErrors *g1, TGraphErrors *g2,
     GetPoint(g2, j, x2, y2, ex2, ey2);
 
     if (fabs(x1-x2)<=fabs(x1-x2m) && fabs(x1-x2)<=fabs(x1-x2p) &&
-	fabs(x1-x2)<=fabs(x2-x1m) && fabs(x1-x2)<=fabs(x2-x1p)) {
+        fabs(x1-x2)<=fabs(x2-x1m) && fabs(x1-x2)<=fabs(x2-x1p)) {
 
       int n = g->GetN();
       SetPoint(g, n, 0.5*(x1+x2), (y2 ? y1/y2 : 0.), 0.5*fabs(x1-x2),
-	       oplus(ey1/y1, ey2/y2) * fabs(y2 ? y1/y2 : 0.) * erry); 
+               oplus(ey1/y1, ey2/y2) * fabs(y2 ? y1/y2 : 0.) * erry); 
       ++i, ++j;
     }
     else
@@ -179,7 +179,7 @@ int tools::findPoint(TGraph *g, double x) {
 
 // Divide histograms, invoking rebin if needed
 TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
-		    const char *opt) {
+                    const char *opt) {
 
   TH1D *h1r(0), *h2r(0);
   if (h1->GetNbinsX()>h2->GetNbinsX()) {
@@ -204,8 +204,8 @@ TH1D *tools::Rebin(const TH1D *h, const TH1D* href) {
   //assert(href->GetNbinsX()<=h->GetNbinsX());
   if (!(href->GetNbinsX()<=h->GetNbinsX())) {
     cout << "Histo has less bins than ref: "
-	 << h->GetNbinsX() << " vs " << href->GetNbinsX()
-	 << " for " << h->GetName() << endl;
+         << h->GetNbinsX() << " vs " << href->GetNbinsX()
+         << " for " << h->GetName() << endl;
   }
   
   // First, we need to rebin inclusive jets to match b-tagged jets
@@ -220,23 +220,23 @@ TH1D *tools::Rebin(const TH1D *h, const TH1D* href) {
     if (h->GetBinContent(i)!=0) {
 
       if (!(h->GetBinLowEdge(i)>=hre->GetBinLowEdge(j) - 1e-5 &&
-	    h->GetBinLowEdge(i+1)<=hre->GetBinLowEdge(j+1) + 1e-5)) {
-	cerr << Form("Warning, bin edges overlapping: h=[%1.0f,%1.0f],"
-		     " hre=[%1.0f,%1.0f] (%s)",
-		     h->GetBinLowEdge(i), h->GetBinLowEdge(i+1),
-		     hre->GetBinLowEdge(j), hre->GetBinLowEdge(j+1),
-		     h->GetName()) << endl;
+            h->GetBinLowEdge(i+1)<=hre->GetBinLowEdge(j+1) + 1e-5)) {
+        cerr << Form("Warning, bin edges overlapping: h=[%1.0f,%1.0f],"
+                     " hre=[%1.0f,%1.0f] (%s)",
+                     h->GetBinLowEdge(i), h->GetBinLowEdge(i+1),
+                     hre->GetBinLowEdge(j), hre->GetBinLowEdge(j+1),
+                     h->GetName()) << endl;
       }
 
       double y = ( hre->GetBinContent(j)*hre->GetBinWidth(j)
-		   + h->GetBinContent(i)*h->GetBinWidth(i) )
-	/ hre->GetBinWidth(j);
+                   + h->GetBinContent(i)*h->GetBinWidth(i) )
+        / hre->GetBinWidth(j);
       //double ey = ( hre->GetBinError(j)*hre->GetBinWidth(j)
-      //	    + h->GetBinError(i)*h->GetBinWidth(i) )
+      //            + h->GetBinError(i)*h->GetBinWidth(i) )
       // / hre->GetBinWidth(j);
       double ey = sqrt( pow(hre->GetBinError(j)*hre->GetBinWidth(j),2)
-			+ pow(h->GetBinError(i)*h->GetBinWidth(i),2) )
-	/ hre->GetBinWidth(j);
+                        + pow(h->GetBinError(i)*h->GetBinWidth(i),2) )
+        / hre->GetBinWidth(j);
       hre->SetBinContent(j, y);
       hre->SetBinError(j, ey);
     }
@@ -257,7 +257,7 @@ void tools::Hadd(TH1 *h1, TH1 *h2, double ptmax, bool syserr) {
     double ey1 = h1->GetBinError(i);
     int j = h2->FindBin(h1->GetBinCenter(i));
     if (j>0 && j<h2->GetNbinsX()+1 &&
-	(ptmax==0 || h1->GetBinLowEdge(i+1)<=ptmax)) {
+        (ptmax==0 || h1->GetBinLowEdge(i+1)<=ptmax)) {
 
       double y2 = h2->GetBinContent(j);
       double ey2 = h2->GetBinError(j);

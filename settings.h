@@ -92,7 +92,8 @@ double _jp_trigthr[_jp_ntrigger] =
   {40,       60,        80,       140,       200,       260,       320,       400,      450};
 double _jp_trigranges[_jp_ntrigger][2] =
   //{ {0,0}, {0,97}, {97,174},  {97,174}, {174,300}, {300,362}, {362,507}, {362,507}, {507,548}, {548,6500}};
-  { {0,74}, {74,97},  {97,174}, {174,245}, {245,330}, {330,430}, {430,507}, {507,548}, {548,6500}}; // V2c, AK4
+  //{ {0,74}, {74,97},  {97,174}, {174,245}, {245,330}, {330,430}, {430,507}, {507,548}, {548,6500}}; // V2c, AK4
+  { {0,74}, {74,114}, {114,174}, {174,245}, {245,300}, {300,395}, {395,468}, {468,507}, {507,6500} }; // V[3,4], AK4
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
@@ -101,8 +102,11 @@ double _jp_triglumi[_jp_ntrigger] = // in /ub
   //{2.33091e+05, 3.42068e+05, 6.91877e+05, 2.72039e+06, 1.87110e+07, 1.90199e+08, 3.97959e+08, 8.81065e+08, 2.17573e+09}; // Cert_fillHistos.json
   //
   //brilcalc lumi -i Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/OfflineNormtagV2.json --hltpath "HLT_PFJet40_v*"
-  {2.454848e+05, 3.593645e+05, 7.241042e+05, 2.832670e+06, 1.947122e+07,
-   1.981668e+08, 4.145646e+08, 9.180884e+08, 2.263472e+09}; // normtag golden
+  //{2.454848e+05, 3.593645e+05, 7.241042e+05, 2.832670e+06, 1.947122e+07,
+  // 1.981668e+08, 4.145646e+08, 9.180884e+08, 2.263472e+09}; // normtag golden
+  // brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-277148_13TeV_PromptReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o lumifile.txt --byls
+  {1.285288e+05, 3.982032e+05, 1.790111e+06, 1.457794e+07, 7.017733e+07,
+   3.223131e+08, 9.543050e+08, 2.769190e+09, 1.593845e+10}; // normtag golden
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = false;
 // Use "mc" trigger for whole pT range instead of stiching triggers together

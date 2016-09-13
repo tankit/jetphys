@@ -756,10 +756,9 @@ void fillHistos::Loop()
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
         string strg = _availTrigs[itrg];
-        bool pass = (TriggerDecision_[itrg]==1) && strg != ""; // -1, 0, 1
+        bool pass = TriggerDecision_[itrg]==1 && strg.length()!=0; // -1, 0, 1
 
         if (pass) {
-
           // Set prescale from event for now
           if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
             _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
