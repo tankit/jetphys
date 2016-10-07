@@ -54,9 +54,14 @@
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part2.root",p));
     // 2016E
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part3.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part3.root",p));
+    // 2016F
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-PromptReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-PromptReco-80Xpart2.root",p));
+    // 2016G
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80X.root",p));
   } else if (_jp_type=="MC") {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins" << endl;

@@ -34,7 +34,7 @@ Long64_t _jp_nskip = 0;
 // PU profiles for data and MC
 bool _jp_reweighPU = true;
 std::string _jp_pudata = "pileup/pileup_DT.root";
-std::string _jp_pumc   = "pileup/pileup_PY_76X.root";
+std::string _jp_pumc   = "pileup/pileup_PY_80X.root";
 //std::string _jp_pumc   = "pileup/pileup_PY_74X.root";
 //std::string _jp_prescalefile = "pileup/prescales74x_run.txt";
 std::string _jp_prescalefile = "";//pileup/prescales74x.txt";
@@ -52,8 +52,8 @@ const bool _jp_doECALveto = false;
 string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
-const bool _jp_dojson = false;//true;
-string _jp_json = "lumicalc/Cert_271036-277148_13TeV_PromptReco_Collisions16_JSON.txt";
+const bool _jp_dojson = true;
+string _jp_json = "lumicalc/Cert_271036-280385_13TeV_PromptReco_Collisions16_JSON_NoL1T_v2.txt";
 
 // Calculate luminosity on the fly based on .csv file
 const bool _jp_dolumi = true;
@@ -105,16 +105,17 @@ double _jp_triglumi[_jp_ntrigger] = // in /ub
   //{2.454848e+05, 3.593645e+05, 7.241042e+05, 2.832670e+06, 1.947122e+07,
   // 1.981668e+08, 4.145646e+08, 9.180884e+08, 2.263472e+09}; // normtag golden
   // brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-277148_13TeV_PromptReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o lumifile.txt --byls
-  {1.285288e+05, 3.982032e+05, 1.790111e+06, 1.457794e+07, 7.017733e+07,
-   3.223131e+08, 9.543050e+08, 2.769190e+09, 1.593845e+10}; // normtag golden
+//  {1.285288e+05, 3.982032e+05, 1.790111e+06, 1.457794e+07, 7.017733e+07,
+//   3.223131e+08, 9.543050e+08, 2.769190e+09, 1.593845e+10}; // normtag golden
+//   brilcalc lumi -i Cert_271036-277933_13TeV_PromptReco_Collisions16_JSON.txt -o lumifile.txt --minBiasXsec 69000 --byls
+{129098.561,396242.209,1745714.678,14425249.076,69073106.767,319519910.406,946041227.436,2750512588.614,16110310686.358};
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = false;
 // Use "mc" trigger for whole pT range instead of stiching triggers together
 bool _jp_usemctrig = true;
 std::string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
-
 // Unprescaled luminosity for plots
-const double _jp_lumi = 2.2635; // /fb from brilcalc for jt450
+const double _jp_lumi = 16.110310686; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
 const double _jp_emax = _jp_sqrts/2.; // GeV
 

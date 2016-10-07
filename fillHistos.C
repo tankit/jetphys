@@ -810,10 +810,10 @@ void fillHistos::Loop()
         // Reweigh in-time pile-up
         if (_mc && _jp_reweighPU) {
 
-          //int k = pudist[t]->FindBin(trpu);
-          //double w1 = pudist[t]->GetBinContent(k);
-          int k = pudt->FindBin(trpu);
-          double w1 = pudt->GetBinContent(k);
+          int k = pudist[t]->FindBin(trpu);
+          double w1 = pudist[t]->GetBinContent(k);
+          //int k = pudt->FindBin(trpu);
+          //double w1 = pudt->GetBinContent(k);
           double w2 = pumc->GetBinContent(k);
           Double_t wtrue = (w1==0 || w2==0 ? 1. : w1 / w2);
           _wt[t] *= wtrue;
@@ -823,7 +823,8 @@ void fillHistos::Loop()
 
       // check for non-zero PU weight
       if (_pass && _mc && _jp_reweighPU) {
-        _pass = (pudt->GetBinContent(pudt->FindBin(trpu))!=0);
+        _pass = (pudist[t]->GetBinContent(pudist[t]->FindBin(trpu))!=0);
+        //_pass = (pudt->GetBinContent(pudt->FindBin(trpu))!=0);
       }
       if (_trigs.size()!=0 && _pass && _mc) ++cnt["07puw"];
 
@@ -2874,21 +2875,19 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
 
   //pumc = (TH1D*)fpumc->Get("hpu370"); assert(pumc);
   pumc = (TH1F*)fpumc->Get("pileupmc"); assert(pumc);
-  pudt = (TH1F*)fpudist->Get("pileupdt"); assert(pudt);
 
   // Normalize
   pumc->Scale(1./pumc->Integral());
-  pudt->Scale(1./pudt->Integral());
 
   // For data, load each trigger separately
-  /*
   for (unsigned int itrg = 0 ; itrg != _triggers.size(); ++itrg) {
-
     const char *t = _triggers[itrg].c_str();
     pudist[t] = (TH1D*)fpudist->Get(Form("pileup_%s",t)); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
-  */
+  // data with only one histo:
+  //pudt = (TH1F*)fpudist->Get("pileupdt"); assert(pudt);
+  //pudt->Scale(1./pudt->Integral());
 
   curdir->cd();
 } // loadPUProfiles
