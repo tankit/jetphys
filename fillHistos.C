@@ -804,28 +804,25 @@ void fillHistos::Loop()
       // Calculate trigger PU weight
       for (unsigned int itrg = 0; itrg != _triggers.size(); ++itrg) {
 
-        const char *t = _triggers[itrg].c_str();
-        _wt[t] = 1.;
+        const char *trg_name = _triggers[itrg].c_str();
+        _wt[trg_name] = 1.;
 
         // Reweigh in-time pile-up
         if (_mc && _jp_reweighPU) {
-
-          int k = pudist[t]->FindBin(trpu);
-          double w1 = pudist[t]->GetBinContent(k);
+          int k = pudist[trg_name]->FindBin(trpu);
+          double w1 = pudist[trg_name]->GetBinContent(k);
           //int k = pudt->FindBin(trpu);
           //double w1 = pudt->GetBinContent(k);
           double w2 = pumc->GetBinContent(k);
           Double_t wtrue = (w1==0 || w2==0 ? 1. : w1 / w2);
-          _wt[t] *= wtrue;
+          _wt[trg_name] *= wtrue;
+
+          // check for non-zero PU weight
+          if (_pass)
+            _pass = (pudist[trg_name]->GetBinContent(pudist[trg_name]->FindBin(trpu))!=0);
         }
       } // for itrg
       _wt["mc"] = _wt[_jp_mctrig];
-
-      // check for non-zero PU weight
-      if (_pass && _mc && _jp_reweighPU) {
-        _pass = (pudist[t]->GetBinContent(pudist[t]->FindBin(trpu))!=0);
-        //_pass = (pudt->GetBinContent(pudt->FindBin(trpu))!=0);
-      }
       if (_trigs.size()!=0 && _pass && _mc) ++cnt["07puw"];
 
       // To-do: implement reweighing for k-factor (NLO*NP/LOMC)
@@ -1208,46 +1205,29 @@ void fillHistos::initBasics(string name)
   // define triggers
   vector<string> triggers;
   if (_mc) triggers.push_back("mc");
-  //triggers.push_back("jt30");
-  //triggers.push_back("jt60");
-  //triggers.push_back("jt110");
-  //triggers.push_back("jt190");
-  //triggers.push_back("jt240");
-  //triggers.push_back("jt370");
-   for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
-     triggers.push_back(_jp_triggers[itrg]);
-   }
+  for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
+    triggers.push_back(_jp_triggers[itrg]);
+  }
 
   // define efficient pT ranges for triggers for control plots
   map<string, pair<double, double> > pt;
   if (_mc) pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
-//   pt["jt30"] = pair<double, double>(56, 97);
-//   pt["jt60"] = pair<double, double>(97, 174);
-//   pt["jt110"] = pair<double, double>(174,300);
-//   pt["jt190"] = pair<double, double>(300,362);
-//   pt["jt240"] = pair<double, double>(362,507);
-//   pt["jt370"] = pair<double, double>(507, 2500);
+
   for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
     string trg = _jp_triggers[itrg];
     double pt1 = _jp_trigranges[itrg][0];
     double pt2 = _jp_trigranges[itrg][1];
     pt[trg] = pair<double, double>(pt1, pt2);
-   }
+  }
 
+  // define pT values for triggers
   map<string, double> pttrg;
   if (_mc) pttrg["mc"] = _jp_recopt;
-//   pttrg["jt30"] = 30.;
-//   pttrg["jt60"] = 60.;
-//   pttrg["jt110"] = 110.;
-//   pttrg["jt190"] = 190.;
-//   pttrg["jt240"] = 240.;
-//   pttrg["jt300"] = 300.;
-//   pttrg["jt370"] = 370.
   for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
     string trg = _jp_triggers[itrg];
     double pt0 = _jp_trigthr[itrg];
     pttrg[trg] = pt0;
-   }
+  }
 
   // Loop over rapidity, trigger bins
   for (int i = 0; i != ny; ++i) {
@@ -2882,7 +2862,7 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
   // For data, load each trigger separately
   for (unsigned int itrg = 0 ; itrg != _triggers.size(); ++itrg) {
     const char *t = _triggers[itrg].c_str();
-    pudist[t] = (TH1D*)fpudist->Get(Form("pileup_%s",t)); assert(pudist[t]);
+    pudist[t] = (TH1D*)fpudist->Get(Form("%s",t)); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
   // data with only one histo:

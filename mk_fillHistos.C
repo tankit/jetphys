@@ -42,6 +42,8 @@
     cout << "Running over DT" << endl;
     cout << "Load trees..." << endl;
 
+    // Uncomment the one you want to use:
+
     // 2016B
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part2.root",p));
@@ -54,14 +56,16 @@
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunD-part2.root",p));
     // 2016E
-    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
-    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));
-    c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part3.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunE-part3.root",p));
     // 2016F
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-PromptReco-80Xpart1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-PromptReco-80Xpart2.root",p));
     // 2016G
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80X.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart3.root",p));
   } else if (_jp_type=="MC") {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins" << endl;
@@ -75,9 +79,16 @@
       c->AddFile(Form("%sMC/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root",p));
     }
   } else if (_jp_type=="HW") {
-    cout << "Running over Herwig flat sample" << endl;
-    cout << "Load trees..." << endl;
-    c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X.root",p));
+    if (_jp_pthatbins) {
+      cout << "Running over pthat bins" << endl;
+
+      cout << "Load trees..." << endl;
+      cout << "Files for a pthat bin run not specified" << endl;
+    } else {
+      cout << "Running over Herwig flat sample" << endl;
+      cout << "Load trees..." << endl;
+      c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X.root",p));
+    }
   } else {
     cout << "Enter a proper _jp_type" << endl;
   }

@@ -821,10 +821,10 @@ public :
   ofstream *ferr;
   string _type;
   TFile *_outfile;
-  //map<string, TH1D*> pudist;
+  map<string, TH1D*> pudist;
   vector<string> _triggers;
   TH1F *pumc;
-  TH1F *pudt;
+  //TH1F *pudt;
   set<string> _trigs;
   vector<bool> _jetids;
   vector<bool> _jetids5;
