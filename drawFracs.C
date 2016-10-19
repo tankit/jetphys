@@ -19,10 +19,16 @@
 using namespace std;
 using namespace tools;
 
+// Everyday settings:
+
 bool _shiftJES = false;//true;
-bool _vspu = true;
+bool _vspu = false;
 TF1 *_fjes(0);
-string plot_title = "RunG"; // fb^{-1}
+string plot_title = "RunFvsG"; // fb^{-1}
+
+// Setting a path for each file
+string dt_path = "results/RunF/";
+string mc_path = "results/RunG/";
 
 double jesShift(double x) {
 
@@ -59,59 +65,53 @@ Double_t jesFit(Double_t *x, Double_t *p) {
 } // jesFit
 
 
-void drawFracs(string type = "MC", string stp = "tp") {
+void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
   setTDRStyle();
+  
+  // The mode of operation can be overridden to compare only MC or only DT.
+  // The MC mode names are evaluated strictly; DT type can be anything. {
+  bool all_DT = false, all_MC = false;
+  if (mc_type!="MC" && mc_type!="HW")
+    all_DT = true;
+  if (dt_type=="MC" || dt_type=="HW")
+    all_MC = true;
+  assert(!(all_MC && all_DT));
+  // }
 
-  assert(type=="MC" || type=="HW");
   assert(stp=="tp" || stp=="");
   bool tp = (stp=="tp");
   string smethod = (tp ? "Tag-and-probe method" : "Direct match method");
   const char *cmethod = smethod.c_str();
 
-  // Retrieve data on component fractions
   TDirectory *curdir = gDirectory;
   setTDRStyle();
 
-  const char *sd = "";
-  const char *dird = "./";
-  //const char *dird = "tuples_Summer15_25nsV7/";
-  //const char *dirm = "tuples_Fall15_25nsV2/";
-  const char *dirm = "./";
-  //const char *dirm = "tuples_Summer15_25nsV6/";
 
-  TFile *fdt = new TFile(_vspu ? Form("%soutput-DATA-1.root",dird) :
-                         Form("%soutput-DATA-2b.root",dird),
-                         "READ"); sd = "Data";
-  /*
-  TFile *fdt = new TFile(_vspu ? "tuples_Fall15_25nsV2/output-DATA-1.root" :
-                         "tuples_Fall15_25nsV2/output-DATA-2b.root",
-                         "READ"); sd = "DATA";//sd = "76X";
-  */
+  // Opening the requested files {
+  string dt_file = all_MC ? dt_type : "DATA";
+  dt_file = "output-" + dt_file + (_vspu ? "-1" : "-2b") + ".root";
+  TFile *fdt = new TFile(Form("%s%s",dt_path.c_str(),dt_file.c_str()),"READ");
+
   assert(fdt && !fdt->IsZombie());
   assert(fdt->cd("Standard"));
   TDirectory *ddt = gDirectory;
+  
+  cout << "Opened the data file: ";
+  cout << Form("%s%s",dt_path.c_str(),dt_file.c_str()) << endl;
 
-  const char *sm = type.c_str();
-  /*
-  TFile *fmc = new TFile(_vspu ? Form("output-%s-1.root",sm) :
-                         Form("output-%s-2b.root",sm),"READ");
-  */
-  /*
-  TFile *fmc = new TFile(_vspu ? "tuples_Summer15_25nsV7/output-DATA-1.root" :
-                         "tuples_Summer15_25nsV7/output-DATA-2b.root","READ"); sm = "74X";
-  */
-  /*
-  TFile *fmc = new TFile(_vspu ? "tuples_Fall15_25nsV2/output-MC-1.root" :
-                         "tuples_Fall15_25nsV2/output-MC-2b.root","READ"); sm = "MC";
-  */
-  TFile *fmc = new TFile(_vspu ?
-                         Form("%soutput-%s-1.root",dirm,sm) :
-                         Form("%soutput-%s-2b.root",dirm,sm),
-                         "READ");
+
+  string mc_file = all_DT ? "DATA" : mc_type;
+  mc_file = "output-" + mc_file + (_vspu ? "-1" : "-2b") + ".root";
+  TFile *fmc = new TFile(Form("%s%s",mc_path.c_str(),mc_file.c_str()),"READ");
+
   assert(fmc && !fdt->IsZombie());
   assert(fmc->cd("Standard"));
   TDirectory *dmc = gDirectory;
+
+  cout << "Opened the mc file: ";
+  cout << Form("%s%s",mc_path.c_str(),mc_file.c_str()) << endl;
+  // }
 
   vector<pair<double,double> > etas;
   etas.push_back(make_pair<double, double>(0., 1.3));
@@ -121,6 +121,8 @@ void drawFracs(string type = "MC", string stp = "tp") {
   //etas.push_back(make_pair<double, double>(1.5, 2.0));
   //etas.push_back(make_pair<double, double>(2.0, 2.5));
   //etas.push_back(make_pair<double, double>(2.5, 3.0));
+  //etas.push_back(make_pair<double, double>(3.0, 3.2));
+  //etas.push_back(make_pair<double, double>(3.2, 4.7));
 
   //string fracs[] = {"betastar","chf", "beta", "nef", "nhf", "cef"}; bool dobeta=true;
   string fracs[] = {"betastar","chf", "nef", "nhf", "cef"}; bool dobeta=false;
@@ -205,7 +207,7 @@ void drawFracs(string type = "MC", string stp = "tp") {
     h->SetMinimum(0+1e-5);
 
     //TH1D *h2 = new TH1D("h2",";p_{T} (GeV);Data-MC (%)",nx,&x[0]);
-    TH1D *h2 = new TH1D("h2",Form(";p_{T} (GeV);%s-%s (%%)",sd,sm),nx,&x[0]);
+    TH1D *h2 = new TH1D("h2",Form(";p_{T} (GeV);%s-%s (%%)",dt_type.c_str(),mc_type.c_str()),nx,&x[0]);
     if (_vspu) {
       h2->SetXTitle("N_{PV,good}");
       h2->GetXaxis()->SetRangeUser(pvmin,pvmax);
@@ -232,9 +234,9 @@ void drawFracs(string type = "MC", string stp = "tp") {
 
       string spu = (_vspu ? "_vsnpv" : "");
       const char *cpu = spu.c_str();
-      string spudt = (_vspu ? "jt40/" : "");
+      string spudt = (_vspu ? (all_MC ? "mc/" : "jt40/") : "");
       const char *cpudt = spudt.c_str();
-      string spumc = (_vspu ? "mc/" : "");
+      string spumc = (_vspu ? (all_DT ? "jt40/" : "mc/") : "");
       const char *cpumc = spumc.c_str();
 
       assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));

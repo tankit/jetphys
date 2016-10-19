@@ -93,7 +93,8 @@ double _jp_trigthr[_jp_ntrigger] =
 double _jp_trigranges[_jp_ntrigger][2] =
   //{ {0,0}, {0,97}, {97,174},  {97,174}, {174,300}, {300,362}, {362,507}, {362,507}, {507,548}, {548,6500}};
   //{ {0,74}, {74,97},  {97,174}, {174,245}, {245,330}, {330,430}, {430,507}, {507,548}, {548,6500}}; // V2c, AK4
-  { {0,74}, {74,114}, {114,174}, {174,245}, {245,300}, {300,395}, {395,468}, {468,507}, {507,6500} }; // V[3,4], AK4
+  //{ {0,74}, {74,114}, {114,174}, {174,245}, {245,300}, {300,395}, {395,468}, {468,507}, {507,6500} }; // V[3,4], AK4
+  { {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
@@ -108,14 +109,17 @@ double _jp_triglumi[_jp_ntrigger] = // in /ub
 //  {1.285288e+05, 3.982032e+05, 1.790111e+06, 1.457794e+07, 7.017733e+07,
 //   3.223131e+08, 9.543050e+08, 2.769190e+09, 1.593845e+10}; // normtag golden
 //   brilcalc lumi -i Cert_271036-277933_13TeV_PromptReco_Collisions16_JSON.txt -o lumifile.txt --minBiasXsec 69000 --byls
-{129098.561,396242.209,1745714.678,14425249.076,69073106.767,319519910.406,946041227.436,2750512588.614,16110310686.358};
+//{129098.561,396242.209,1745714.678,14425249.076,69073106.767,319519910.406,946041227.436,2750512588.614,16110310686.358};
+// lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-282037_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lumibyls.csv --byls --minBiasXsec 69000
+{227834.792,629822.985,2468355.373,21428981.332,94676061.988,510573038.617,1522019655.941,4451438401.059,29522909900.17};
+
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = false;
 // Use "mc" trigger for whole pT range instead of stiching triggers together
 bool _jp_usemctrig = true;
 std::string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
 // Unprescaled luminosity for plots
-const double _jp_lumi = 16.110310686; // /fb from brilcalc for jt450
+//const double _jp_lumi = 16.110310686; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
 const double _jp_emax = _jp_sqrts/2.; // GeV
 

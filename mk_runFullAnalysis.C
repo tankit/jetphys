@@ -201,7 +201,7 @@
   // root -l -b -q mk_calcPileup.C (calcPileup.C::calcPileupJSON, ::mergeJSON)
   // (new tools to replace above, not tested:
   //   pileupReCalc_HLTpaths.py -i YourOutput.csv --inputLumiJSON pileup_2011_JSON_pixelLumi.txt -o My_HLT_corrected_PileupJSON.txt
-  //   pileupCalc.py -i lumiSummary_Jan16th.json --inputLumiJSON pileupJSON_jt60.txt --calcMode observed --minBiasXsec 73500 --maxPileupBin 50 --numPileupBins 50  pileup_jt30.root)
+  //   pileupCalc.py -i lumiSummary_Jan16th.json --inputLumiJSON pileupJSON_jt60.txt --calcMode true --minBiasXsec 73500 --maxPileupBin 50 --numPileupBins 50  pileup_jt30.root)
   // - MC profiles should be created by hand and are found at
   //   qcdjet/pileup/pileup_PY.root
 

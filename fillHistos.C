@@ -2794,7 +2794,7 @@ void fillHistos::loadLumi(const char* filename)
       nolums.insert(pair<int, int>(rn,ls));
     }
 
-    _avgpu[rn][ls] = avgpu * 69000. / 78400.; // brilcalc --minBiasXsec patch
+    _avgpu[rn][ls] = avgpu; // * 69000. / 78400.; // brilcalc --minBiasXsec patch
     _lums[rn][ls] = lum;
     _lums2[rn][ls] = lum2;
     lumsum += lum;
