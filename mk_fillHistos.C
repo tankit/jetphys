@@ -44,6 +44,36 @@
 
     // Uncomment the one you want to use:
 
+  //// Run2 2016 ReReco
+    // 2016B
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart3.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart4.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart5.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart6.root",p));
+    // 2016C
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunC-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunC-ReReco-80Xpart2.root",p));
+    // 2016D
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p));
+    // 2016E
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p));
+    // 2016F
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunF-ReReco-80Xpart2.root",p));
+    // 2016G
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
+
+  //// Run2 2016 PromptReco
     // 2016B
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016-RunB-part2.root",p));
@@ -66,6 +96,13 @@
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart1.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart2.root",p));
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart3.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-PromptReco-80Xpart4.root",p));
+    // 2016H
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart3.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart4.root",p));
+    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart5.root",p));
   } else if (_jp_type=="MC") {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins" << endl;
@@ -73,7 +110,7 @@
       cout << "Load trees..." << endl;
       cout << "Files for a pthat bin run not specified" << endl;
     } else {
-      cout << "Running overi pythia flat sample" << endl;
+      cout << "Running over pythia flat sample" << endl;
 
       cout << "Load trees..." << endl;
       c->AddFile(Form("%sMC/Ntuples-MC-Pythia8-Flat15to7000-25ns-CUETM1-13TeV.root",p));
@@ -87,7 +124,8 @@
     } else {
       cout << "Running over Herwig flat sample" << endl;
       cout << "Load trees..." << endl;
-      c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X.root",p));
+      //c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X.root",p));
+      c->AddFile(Form("%sMC/QCD_Pt-15to7000_TuneCUETHS1_Flat_13TeV_herwigpp_80X_v2.root",p));
     }
   } else {
     cout << "Enter a proper _jp_type" << endl;

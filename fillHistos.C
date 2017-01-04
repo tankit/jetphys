@@ -371,7 +371,7 @@ void fillHistos::Loop()
   const char *s;
   const char *p = "CondFormats/JetMETObjects/data/";
   //const char *t = "GR_R_42_V23_";
-  string jecgt = _jp_jecgt + "_" + (_dt ? "DATA" : "MC") + "_";
+  string jecgt = (_dt ? _jp_jecgt_dt : _jp_jecgt_mc) + "_" + (_dt ? "DATA" : "MC") + "_";
   const char *t = jecgt.c_str();
 
   _JEC = 0;

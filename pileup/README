@@ -40,7 +40,7 @@ Step4:
 
 Make sure that you have also generated MC pu histos. Basically this is done by
 
-ProcessedTree->Draw("EvtHdr_.mTrPu>>pileup(600,0,60)")
-TH1D* th = gROOT->FindObject("pileup")
+ProcessedTree->Draw("EvtHdr_.mTrPu>>pileupmc(600,0,60)")
+TH1D* th = gROOT->FindObject("pileupmc")
 
 from within the SMP jet tuples.
