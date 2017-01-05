@@ -9,11 +9,16 @@
   // * Provide output JSON file or get the golden JSON from lxplus:
   //      /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/
   //   => settings.h : _jp_json
+  //
   // * Produce brilcalc_lumibyls.csv on lxplus:
   //   [http://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html]
-  //       brilcalc lumi -i [JSON] -o brilcalc_lumibyls.csv --minBiasXsec 69000 --byls
+  //       cd public
+  //       setenv PATH $HOME/.local/bin:/afs/cern.ch/cms/lumi/brilconda-1.0.3/bin:$PATH
+  //       brilcalc lumi -b "STABLE BEAMS" --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json -i [JSON] -u /fb
+  //       brilcalc lumi -i [JSON] -b "STABLE BEAMS" -o brilcalc_lumibyls.csv --byls --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json  --minBiasXsec 69000
   //   [could add --hltpath to calculate luminosity per path]
   //   => settings.h : _jp_lumifile
+  //
   // * Produce pileup reweighing files for data and MC
   //   MC: ProcessedTree->Draw("EvtHdr_.TrPu>>pileupmc(500,0,50)");
   //   Data: use brilcalc_lumibyls.csv [need code for this]
