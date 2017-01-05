@@ -635,9 +635,10 @@ void fillHistos::Loop()
 
       njt = PFJets__;       //assert(njt < kMaxPFJets_);
       t4_njt = t4_PFJets__;
+      gen_njt = GenJets__;
       t4gen_njt = t4_GenJets__;
 
-      assert(njt<_njt);
+      //assert(njt<_njt);
       if (!(njt < _njt)) {
 	*ferr << "Array overflow: njt = " << njt
 	      << " > njtmax=" << _njt << endl;
@@ -645,6 +646,16 @@ void fillHistos::Loop()
 	      << " > njtmax=" << _njt << endl;
 	cout << flush;
 	assert(njt<_njt);
+      }
+
+      //assert(!_mc || gen_njt<_njt);
+      if (_mc && !(gen_njt < _njt)) {
+	*ferr << "Array overflow: gen_njt = " << gen_njt
+	      << " > njtmax=" << _njt << endl;
+	cout << "Array overflow: gen_njt = "<< njt
+	      << " > njtmax=" << _njt << endl;
+	cout << flush;
+	assert(gen_njt<_njt);
       }
       /*
       if (!(njt <= kMaxPFJets_ //&& c_njt <= kMaxCaloJets_
@@ -664,7 +675,6 @@ void fillHistos::Loop()
 	t4gen_njt = min(t4gen_njt, kMaxGenJets_);//PFJets__);
       }
       */
-      gen_njt = GenJets__;
 
       if (_debug) {
 
@@ -831,7 +841,8 @@ void fillHistos::Loop()
       //assert(_mc || L1Prescale_.size()==19); // 25 ns, 76X - new C
       //assert(_mc || HLTPrescale_.size()==19); // 25 ns, 76X -  new C
       assert(_mc || (TriggerDecision_.size()==19 ||
-		     TriggerDecision_.size()==29)); // 25 ns, 76X - new C+D
+		     TriggerDecision_.size()==29 || // 25 ns, 76X - new C+D
+		     TriggerDecision_.size()==63)); // 25 ns, 80X - RunC
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
 	bool pass = (TriggerDecision_[itrg]==1); // -1, 0, 1
@@ -863,6 +874,20 @@ void fillHistos::Loop()
 	  if ( itrg==8 || itrg==18) strg = "jt450"; // v3(D1),v4(D1)
 	  //if ( itrg==9 || itrg==19) strg = "jt500"; // v3(D1),v4(D1)
 	  if (itrg>=29) assert(false);
+	}
+	else if (TriggerDecision_.size()==63) { // 2015D
+	  if ( itrg==0 || itrg==10) strg = "jt40"; // v5,v4
+	  if ( itrg==1 || itrg==11) strg = "jt60"; // v5,v4
+	  if ( itrg==2 || itrg==12) strg = "jt80"; // v5,v4
+	  if ( itrg==3 || itrg==13) strg = "jt140"; // v5,v4
+	  if ( itrg==4 || itrg==14) strg = "jt200"; // v5,v4
+	  if ( itrg==5 || itrg==15) strg = "jt260"; // v5,v4
+	  if ( itrg==6 || itrg==16) strg = "jt320"; // v5,v4
+	  if ( itrg==7 || itrg==17) strg = "jt400"; // v5,v4
+	  if ( itrg==8 || itrg==18) strg = "jt450"; // v5,v4
+	  //if ( itrg==9 || itrg==19) strg = "jt500"; // v5,v4
+	  // others PFHT v2,v3,v4 (3x11) and AK8PFJet v1 (10)
+	  if (itrg>=63) assert(false);
 	}
 	else
 	  assert(false);
@@ -931,10 +956,20 @@ void fillHistos::Loop()
 	pass = (pass && strg!="");
 
 	// Set prescale from event for now
-	if (pass && L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0)
+	if (pass && L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
 	  //_prescales[strg][run] = max(L1Prescale_[itrg] * HLTPrescale_[itrg],
 	  //		      _prescales[strg][run]);
+	  // TEMP PATCH
+	  if (L1Prescale_[itrg]==1) {
+	    if (strg=="jt200") L1Prescale_[itrg] = 42;//180;
+	    if (strg=="jt140") L1Prescale_[itrg] = 850;//2000;
+	    if (strg=="jt80") L1Prescale_[itrg] = 700;//1500;
+	    if (strg=="jt60") L1Prescale_[itrg] = 2200;//4000;
+	    if (strg=="jt40") L1Prescale_[itrg] = 7499;//15013;
+	  }
+	  // TEMP PATCH
 	  _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+	}
 	else if (pass) {
 	  //_prescales[strg][run] = max(0,_prescales[strg][run]);
 	  //_prescales[strg][run] = max(0,_premap[strg][run]);
@@ -1211,7 +1246,7 @@ void fillHistos::Loop()
 	_pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
 	//_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
       }
-      if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10puw"];
+      if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10pthat"];
 
       // Here can categorize events into different triggers, epochs,
       // topologies etc.
@@ -2234,6 +2269,11 @@ void fillHistos::fillBasic(basicHistos *h) {
       // MC extras
       if (_mc && jtgenr[i]<0.25) {
 	h->hpt_gtw->Fill(jtgenpt[i], _w);
+	if (_debug) {
+	  cout << "genmatch " << i
+	       << " ptg="<<jtgenpt[i] << " yg="<<jtgeny[i]
+	       << " yr="<< y << endl;
+	}
       }
       //
       if (h->ismc) {
@@ -2429,13 +2469,18 @@ void fillHistos::fillBasic(basicHistos *h) {
 
     } // for i
   } // _jp_ak4ak8
-
+  
   // Unbiased generator spectrum (for each trigger)
   if (_mc) {
+    if (_debug) cout << "Truth loop:" << endl;
     for (int i = 0; i != gen_njt; ++i) {
-      double y = gen_jty[i];
-      if (fabs(y) >= h->ymin && fabs(y) < h->ymax) {
+      double geny = gen_jty[i];
+      if (fabs(geny) >= h->ymin && fabs(geny) < h->ymax) {
 	h->hpt_g0tw->Fill(gen_jtpt[i], _w);
+	if (_debug) {
+	  cout << "genjet " << i << "/" << gen_njt
+	       << " ptg="<<gen_jtpt[i] << " yg="<<gen_jty[i] << endl;
+	}
       }
 
       if (h->ak4ak8) {
@@ -2445,7 +2490,7 @@ void fillHistos::fillBasic(basicHistos *h) {
 	  for (int j = 0; j != t4gen_njt; ++j) {
 	    double y5 = t4gen_jty[j];
 	    double phi5 = t4gen_jty[j];
-	    double dr = tools::oplus(y-y5, phi-phi5);
+	    double dr = tools::oplus(geny-y5, phi-phi5);
 	    if (dr<0.25) {
 	      assert(h->hak4ak8g0);
 	      h->hak4ak8g0->Fill(t4gen_jtpt[j]/gen_jtpt[i], _w);
@@ -2506,8 +2551,8 @@ void fillHistos::fillBasic(basicHistos *h) {
     } // for j
     
     for (int i = 0; i != gen_njt; ++i) {
-      double y = gen_jty[i];
-      if (fabs(y) >= h->ymin && fabs(y) < h->ymax) {
+      double ygen = gen_jty[i];
+      if (fabs(ygen) >= h->ymin && fabs(ygen) < h->ymax) {
 	h->hpt_g0->Fill(gen_jtpt[i], _w);
 	assert(h->hpt_g0_tmp);
 	h->hpt_g0_tmp->Fill(gen_jtpt[i]);
@@ -2929,7 +2974,8 @@ void fillHistos::loadLumi(const char* filename) {
   //bool v2 = (s==string("Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
   //bool v3 = (s==string("Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
   //assert(v1 || v2 || v3);
-  assert (s=="#Data tag : online , Norm tag: None");
+  //assert (s=="#Data tag : online , Norm tag: None");
+  assert (s=="#Data tag : v1 , Norm tag: None");
   //
   //assert(getline(f, s, '\r'));
   assert(getline(f, s, '\n'));
@@ -2963,11 +3009,12 @@ void fillHistos::loadLumi(const char* filename) {
 		 "%f,%f,%f,%f,%s", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
 		 &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec,&avgpu,sfoo)==15 ||
 	  (skip=true))) {
-
+    
     if (_debug) {
       if (skip) cout << "Skipping line:\n" << s << endl;
       cout << "Run " << run << " ls " << ls
 	   << " lumi " << rec*1e-6 << "/pb" << endl;
+    }      
 
     // LS is not STABLE BEAMS but something else:
     // ADJUST, BEAM DUMP, FLAT TOP, INJECTION PHYSICS BEAM, N/A, RAMP DOWN,
