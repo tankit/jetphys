@@ -1,0 +1,21 @@
+
+10.9.16 (Hannu)
+
+ - ROOT6 tends to use very much memory with the scripts, so running on lxplus is encouraged
+ - Cleaned up some 'delete's that are better handled by ROOT's over-zealous ownership system
+ - Hunted down some small bugs produced between version-updates
+ - Cleaned up the code here and there
+ - On LXPLUS a run tends to end with a segfault, but this is only ROOT's own memory-handling after the program has been run
+
+31.8.16. LXPLUS usage, cleaning up and modernization (Hannu)
+
+fillHistos:
+ - Centralized includes fillHistos.C -> fillHistos.h
+ - Removed the (redundant) explicit branch declarations from fillHistos.h
+ - Changed t4_EvtHdr__mEvent from UInt_t to Int
+ - Added missing branches to PFJets (but these are not loaded)
+ - Added an adaptive method for handling triggers: uninteresting triggers are denoted by a blank ("") or in the output by the letter "x"
+ - LXPLUS running options:
+   - Run everything in one run
+   - Run piecewisely, hadd the results (be sure to change the filenames or locations!)
+   - Run in batch; the files are parsed together using hadd

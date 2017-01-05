@@ -1,0 +1,6 @@
+lumicalc/
+CondFormats
+*.root
+*_C*
+*.log
+pileup/Run*

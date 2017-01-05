@@ -1,0 +1,46 @@
+
+Instructions to produce PU histos for DT (7.10.2016, Hannu Siikonen)
+
+Step1:
+
+Copy the latest certificate and pileup_latest.txt to the current directory.
+These should be found in /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/
+Finally, set the names of these files in the beginning of the puhistos.sh script.
+
+- Why copy? This way we can easily check afterwards how progressed jsons were previously used
+- Also the normtag may be changed if really needed
+
+Step2:
+
+Go to CMS DAS and search for and look for: (here 2016B and PromptReco-v1 are just an example)
+
+dataset=/JetHT/Run2016B-*/MINIAOD and select some of these datasets to work with (preferably PromptReco)
+
+continue by asking (in plain mode)
+run,lumi dataset=/JetHT/Run2016B-PromptReco-v1/MINIAOD
+
+Finally, create a folder RunB/ (or such) and put the plain run,lumi output into a file lumis.txt.
+This is not a JSON but something close to that, which is easy to process.
+
+Repeat this to all the datasets you want to use. Put the folder names in use into the FOLDERS
+array given in the beginning of puhistos.sh.
+
+Far in the future also the trigger names might change, so also these need to be checked.
+
+Step3:
+
+Run 'bash puhistos.sh' and hope for the best.
+
+- In general tons of error messages may be produced. Sometimes running python on lxplus generates
+some error messages that needn't be worried about. There are also error messages about missing
+events and over-one-weights. Some of these are related to the HLT selection etc. However, one
+should be cautious with all these errors flying around.
+
+Step4:
+
+Make sure that you have also generated MC pu histos. Basically this is done by
+
+ProcessedTree->Draw("EvtHdr_.mTrPu>>pileupmc(600,0,60)")
+TH1D* th = gROOT->FindObject("pileupmc")
+
+from within the SMP jet tuples.

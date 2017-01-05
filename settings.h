@@ -5,6 +5,7 @@
 #ifndef __settings_h__
 #define __settings_h__
 #include <string>
+using std::string;
 
 // All the settings variables are in global name space
 // To avoid conflicts, and to make them easier to find
@@ -33,30 +34,53 @@ Long64_t _jp_nskip = 0;
 // PU profiles for data and MC
 bool _jp_reweighPU = true;
 std::string _jp_pudata = "pileup/pileup_DT.root";
-std::string _jp_pumc   = "pileup/pileup_PY_76X.root";
+std::string _jp_pumc   = "pileup/pileup_PY_80X.root";
 //std::string _jp_pumc   = "pileup/pileup_PY_74X.root";
 //std::string _jp_prescalefile = "pileup/prescales74x_run.txt";
 std::string _jp_prescalefile = "";//pileup/prescales74x.txt";
 
-// JEC text files in CondFormats/JetMETObjects/data/
+//// JEC text files in CondFormats/JetMETObjects/data/
 bool _jp_redoJEC = true;
-std::string _jp_jecgt = "Fall15_25nsV2"; // 76X
+//// Due to the HIP problem and other intricacies in Run2-16, the datasets are handled separately.
+//// Note: different corrections for PromptReco and ReReco {
+
+/// PromptReco
+std::string _jp_jecgt_dt = "Spring16_25nsV10BCD"; // IOV [1,276811] B,C,D
+//std::string _jp_jecgt_dt = "Spring16_25nsV10E";   // IOV [276831,277420] E
+//std::string _jp_jecgt_dt = "Spring16_25nsV10F";   // IOV [277772,278801] Fearly
+//std::string _jp_jecgt_dt = "Spring16_25nsV10p2";  // IOV [278802,Infinity] Flate,G,H
+std::string _jp_jecgt_mc = "Spring16_25nsV10";
+/// ReReco
+//std::string _jp_jecgt_dt = "Spring16_23Sep2016BCDV2"; // IOV [1,276811] B,C,D
+//std::string _jp_jecgt_dt = "Spring16_23Sep2016EFV2";  // IOV [276831,278801] E,Fearly
+//std::string _jp_jecgt_dt = "Spring16_23Sep2016GV2";   // IOV [278802,280385] Flate,G
+//std::string _jp_jecgt_dt = "Spring16_23Sep2016HV2";   // IOV [280919,Infinity] H
+//std::string _jp_jecgt_mc = "Spring16_23Sep2016V2";
+
+/// Old format: no distinct dt filenames
+//std::string _jp_jecgt = "Spring16_25nsV6";
+//std::string _jp_jecgt = "Fall15_25nsV2"; // 76X
 //std::string _jp_jecgt = "Summer15_25nsV7"; // 74X
 //std::string _jp_jecgt = "Summer15_25nsV6";
 //std::string _jp_jecgt = "Summer15_50nsV5";
 
+// }
+
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;
-std::string _jp_ecalveto = "lumicalc/ecalveto.root";
+string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
-const bool _jp_dojson = false;//true;
-std::string _jp_json = "lumicalc/Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt";
+const bool _jp_dojson = true;
+// Here: there are slight differences between PromptReco and ReReco in the 2016 run
+//string _jp_json = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
+string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file
 const bool _jp_dolumi = true;
-std::string _jp_lumifile = "lumicalc/brilcalc_lumibyls_silver.csv"; // Run II
-//std::string _jp_lumifile = "lumicalc/pixellumi_by_LS_jan16.csv"; // Run I
+string _jp_lumifile = "lumicalc/brilcalc_lumibyls.csv"; // Run II
+//string _jp_lumifile = "lumicalc/brilcalc_lumibyls_silver.csv"; // Run II
+//string _jp_lumifile = "lumicalc/pixellumi_by_LS_jan16.csv"; // Run I
 
 // List of triggers used in the analysis
 /*
@@ -81,6 +105,7 @@ double _jp_trigranges[_jp_ntrigger][2] =
   { {0,97}, {97,174},  {97,174}, {174,300}, {300,362}, {362,507}, {362,507}, {507,548}, {548,6500}};
 */
 
+/*
 // This is the 13 TeV 25 ns list (Run2015D)
 const int _jp_ntrigger = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
 std::string _jp_triggers[_jp_ntrigger] =
@@ -90,24 +115,53 @@ double _jp_trigthr[_jp_ntrigger] =
 double _jp_trigranges[_jp_ntrigger][2] =
   //{ {0,0}, {0,97}, {97,174},  {97,174}, {174,300}, {300,362}, {362,507}, {362,507}, {507,548}, {548,6500}};
   { {0,74}, {74,97},  {97,174}, {174,245}, {245,330}, {330,430}, {430,507}, {507,548}, {548,6500}}; // V2c, AK4
+*/
+
+// This is the 13 TeV 25 ns list (Run2016BCDEFG)
+// Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
+const int _jp_ntrigger = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
+std::string _jp_triggers[_jp_ntrigger] =
+  {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"};
+double _jp_trigthr[_jp_ntrigger] =
+  {40,       60,        80,       140,       200,       260,       320,       400,      450};
+double _jp_trigranges[_jp_ntrigger][2] =
+  //{ {0,0}, {0,97}, {97,174},  {97,174}, {174,300}, {300,362}, {362,507}, {362,507}, {507,548}, {548,6500}};
+  //{ {0,74}, {74,97},  {97,174}, {174,245}, {245,330}, {330,430}, {430,507}, {507,548}, {548,6500}}; // V2c, AK4
+  //{ {0,74}, {74,114}, {114,174}, {174,245}, {245,300}, {300,395}, {395,468}, {468,507}, {507,6500} }; // V[3,4], AK4
+  { {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
+//// 2015: ////
   //{2.331314e+05, 3.424242e+05, 6.931689e+05, 2.727443e+06, 1.87656e+07, 1.90751e+08, 3.99126e+08,  8.83649e+08, 2.18260e+09}; // golden
-//{2.345463e+05, 3.987553e+05, 9.188639e+05, 2.874062e+06, 2.169800e+07, 2.347366e+08, 4.870975e+08, 1.059592e+09, 2.534487e+09}; // silver
+  //{2.345463e+05, 3.987553e+05, 9.188639e+05, 2.874062e+06, 2.169800e+07, 2.347366e+08, 4.870975e+08, 1.059592e+09, 2.534487e+09}; // silver
   //{2.33091e+05, 3.42068e+05, 6.91877e+05, 2.72039e+06, 1.87110e+07, 1.90199e+08, 3.97959e+08, 8.81065e+08, 2.17573e+09}; // Cert_fillHistos.json
   //
-  //brilcalc lumi -i Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/OfflineNormtagV2.json --hltpath "HLT_PFJet40_v*"
-  {2.454848e+05, 3.593645e+05, 7.241042e+05, 2.832670e+06, 1.947122e+07,
-   1.981668e+08, 4.145646e+08, 9.180884e+08, 2.263472e+09}; // normtag golden
+//// 2016: ////
+  // brilcalc lumi -i Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/OfflineNormtagV2.json --hltpath "HLT_PFJet40_v*"
+  //{2.454848e+05, 3.593645e+05, 7.241042e+05, 2.832670e+06, 1.947122e+07,
+  // 1.981668e+08, 4.145646e+08, 9.180884e+08, 2.263472e+09}; // normtag golden
+  //
+  // brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-277148_13TeV_PromptReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o lumifile.txt --byls
+  //{1.285288e+05, 3.982032e+05, 1.790111e+06, 1.457794e+07, 7.017733e+07,
+  // 3.223131e+08, 9.543050e+08, 2.769190e+09, 1.593845e+10}; // normtag golden
+  //
+  // brilcalc lumi -i Cert_271036-277933_13TeV_PromptReco_Collisions16_JSON.txt -o lumifile.txt --minBiasXsec 69000 --byls
+  //{129098.561,396242.209,1745714.678,14425249.076,69073106.767,319519910.406,946041227.436,2750512588.614,16110310686.358};
+  //
+  // brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Cert_271036-282037_13TeV_PromptReco_Collisions16_JSON_NoL1T.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lumibyls.csv --byls --minBiasXsec 69000
+  //{227834.792,629822.985,2468355.373,21428981.332,94676061.988,510573038.617,1522019655.941,4451438401.059,29522909900.17};
+  //
+  // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lemibyls.csv --byls --minBiasXsec 69000
+  {271792.436,738011.349,2806215.978,24609118.02,105577219.6,603409186.2,1800913935,5277989761,36810440678};
+
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = false;
 // Use "mc" trigger for whole pT range instead of stiching triggers together
 bool _jp_usemctrig = true;
 std::string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
-
 // Unprescaled luminosity for plots
-const double _jp_lumi = 2.2635; // /fb from brilcalc for jt450
+const double _jp_lumi = 36.810440678; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
 const double _jp_emax = _jp_sqrts/2.; // GeV
 
@@ -124,7 +178,7 @@ const bool _jp_doEras = false;
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = false;
 // Produce run-level histograms
-const bool _jp_doRunHistos = true;//false;
+const bool _jp_doRunHistos = true;
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
 
