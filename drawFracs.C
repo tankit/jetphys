@@ -22,7 +22,7 @@ using namespace tools;
 // Everyday settings:
 
 bool _shiftJES = false;//true;
-bool _vspu = false;
+
 TF1 *_fjes(0);
 // Format: DT vs MC
 string plot_title = "RunH"; // fb^{-1}
@@ -32,7 +32,7 @@ string dt_path = "RR_H/";
 string mc_path = "RR_H/";
 
 // Vectors holding changing values: these are indexed as 'mode' (see above the drawFracs -function).
-vector<string> name = {"","_vstrpu","_vsnpv"};
+vector<string> modenames = {"","_vstrpu","_vsnpv"};
 vector<double> rangemin = {37, 0.5, 0.5};
 vector<double> rangemax = {3450, 32.5, 32.5};
 // 3832
@@ -105,6 +105,15 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
     all_MC = true;
   assert(!(all_MC && all_DT));
   assert(mode>=0 && mode<=2);
+
+  // Bool flags for mode
+  bool _vspt = false, _vspu = false, _vsnpv = false;
+  if (mode==0)
+    _vspt=true;
+  else if (mode==1)
+    _vspu=true;
+  else
+    _vsnpv=true;
   // }
 
   assert(stp=="tp" || stp=="");
@@ -118,7 +127,7 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
   // Opening the requested files {
   string dt_file = all_MC ? dt_type : "DATA";
-  dt_file = "output-" + dt_file + (mode>0 ? "-1" : "-2b") + ".root";
+  dt_file = "output-" + dt_file + (_vspt ? "-2b" : "-1") + ".root";
   cout << Form("%s%s",dt_path.c_str(),dt_file.c_str()) << endl;
   TFile *fdt = new TFile(Form("%s%s",dt_path.c_str(),dt_file.c_str()),"READ");
 
@@ -131,7 +140,7 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
 
   string mc_file = all_DT ? "DATA" : mc_type;
-  mc_file = "output-" + mc_file + (mode>0 ? "-1" : "-2b") + ".root";
+  mc_file = "output-" + mc_file + (_vspt ? "-2b" : "-1") + ".root";
   TFile *fmc = new TFile(Form("%s%s",mc_path.c_str(),mc_file.c_str()),"READ");
 
   assert(fmc && !fdt->IsZombie());
@@ -146,10 +155,10 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
   etas.push_back(make_pair<double, double>(0., 1.3));
   //etas.push_back(make_pair<double, double>(0.0, 0.5));
   //etas.push_back(make_pair<double, double>(0.5, 1.0));
-  etas.push_back(make_pair<double, double>(1.0, 1.5));
-  etas.push_back(make_pair<double, double>(1.5, 2.0));
-  etas.push_back(make_pair<double, double>(2.0, 2.5));
-  etas.push_back(make_pair<double, double>(2.5, 3.0));
+  //etas.push_back(make_pair<double, double>(1.0, 1.5));
+  //etas.push_back(make_pair<double, double>(1.5, 2.0));
+  //etas.push_back(make_pair<double, double>(2.0, 2.5));
+  //etas.push_back(make_pair<double, double>(2.5, 3.0));
   //etas.push_back(make_pair<double, double>(3.0, 3.2));
   //etas.push_back(make_pair<double, double>(3.2, 4.7));
 
@@ -204,11 +213,11 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
     // Build appropriate wide binning
     vector<double> x;
-    if (mode==0) {
+    if (_vspt) {
       for (int i = 0; i != nbins && xw[i]!=0; ++i) {
         x.push_back(xw[i]);
       } // for i
-    } else if (mode==1) {
+    } else if (_vspu) {
       for (int i = 0; i < 24; ++i) {
         x.push_back(0.5+2*i);
       } // for i
@@ -224,14 +233,14 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
     THStack *hsdf = new THStack(Form("hsdf%d",ieta),"differences");
 
     TH1D *h = new TH1D("h",";p_{T} (GeV);PF energy fractions",nx,&x[0]);
-    //TH1D *h2 = new TH1D("h2",";p_{T} (GeV);Data-MC (%)",nx,&x[0]);
     TH1D *h2 = new TH1D("h2",Form(";p_{T} (GeV);%s-%s (%%)",dt_type.c_str(),mc_type.c_str()),nx,&x[0]);
-    if (mode==0) {
+
+    if (_vspt) {
       h->GetXaxis()->SetMoreLogLabels();
       h->GetXaxis()->SetNoExponent();
       h2->GetXaxis()->SetMoreLogLabels();
       h2->GetXaxis()->SetNoExponent();
-    } else if (mode==1) {
+    } else if (_vspu) {
       h->SetXTitle("TruePU");
       h2->SetXTitle("TruePU");
     } else {
@@ -245,7 +254,6 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
     h2->SetMinimum(h2min[mode]);
     h2->SetMaximum(h2max[mode]);
 
-    //lumi_13TeV = "2.1 fb^{-1}";
     lumi_13TeV = plot_title;
     TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,0);
 
@@ -258,11 +266,11 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
       const char *cf = fracs[jfrac].c_str();
       const char *ctp = stp.c_str();
 
-      string spu = (mode>0 ? (mode>1 ? "_vsnpv" : "_vstrpu") : "");
+      string spu = modenames[mode];
       const char *cpu = spu.c_str();
-      string spudt = (mode>0 ? (all_MC ? "mc/" : "jt40/") : "");
+      string spudt = (_vspt ? "" : (all_MC ? "mc/" : "jt40/"));
       const char *cpudt = spudt.c_str();
-      string spumc = (mode>0 ? (all_DT ? "jt40/" : "mc/") : "");
+      string spumc = (_vspt ? "" : (all_DT ? "jt40/" : "mc/"));
       const char *cpumc = spumc.c_str();
 
       assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
@@ -283,29 +291,25 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
       // Rebin histogram
       TH1D *href = new TH1D("href","", nx, &x[0]);
-      //TH1D *hmc = (_vspu ? pmc->ProjectionX() : tools::Rebin(pmc, href));
-      //TH1D *hdt = (_vspu ? pdt->ProjectionX() : tools::Rebin(pdt, href));
-      TH1D *hmc = tools::Rebin(pmc, href);
-      TH1D *hdt = tools::Rebin(pdt, href);
+      TH1D *hmc = (_vspu ? pmc->ProjectionX() : tools::Rebin(pmc, href));
+      TH1D *hdt = (_vspu ? pdt->ProjectionX() : tools::Rebin(pdt, href));
 
       // Scale data by response to MC-equivalent energy fractions
       if (_shiftJES) {
         for (int i = 1; i != hdt->GetNbinsX()+1; ++i) {
 
-          //double jec = 1.02;
           double jec = jesShift(hdt->GetBinCenter(i));
           hdt->SetBinContent(i, hdt->GetBinContent(i)/jec);
         } // for i
       } // _shiftJES
       
-      // For cef, add muf
-      if (sf=="cef") {
+      
+      if (sf=="cef") { // For cef, add muf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spmuf%s%s",
                                                          cpudt,ctp,cpu));
         assert(pdt2);
-      //TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href)); 
-        TH1D *hdt2 = tools::Rebin(pdt2, href); 
+        TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href)); 
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)+hdt2->GetBinContent(i));
         }
@@ -315,22 +319,18 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spmuf%s%s",
                                                          cpumc,ctp,cpu));
         assert(pmc2);
-      //TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        TH1D *hmc2 = tools::Rebin(pmc2, href);
+        TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
         for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
           hmc->SetBinContent(i, hmc->GetBinContent(i)+hmc2->GetBinContent(i));
         }
         delete hmc2;
-      } // sf="cef"
-      
-      // For betastar, multiply by chf
-      if (sf=="betastar") {
+      } // cef -> cef + muf
+      else if (sf=="betastar") { // For betastar, multiply by chf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
                                                          cpudt,ctp,cpu));
         assert(pdt2);
-        //TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        TH1D *hdt2 = tools::Rebin(pdt2, href);
+        TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
         }
@@ -340,22 +340,18 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
                                                          cpumc,ctp,cpu));
         assert(pmc2);
-        //TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        TH1D *hmc2 = tools::Rebin(pmc2, href);
+        TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
         for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
           hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
         }
         delete hmc2;
       } // betastar -> chf * betastar
-      
-      // For beta, multiply by chf
-      if (sf=="beta") {
+      else if (sf=="beta") { // For beta, multiply by chf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
                                                          cpudt,ctp,cpu));
         assert(pdt2);
-        //TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        TH1D *hdt2 = tools::Rebin(pdt2, href);
+        TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
         }
@@ -365,27 +361,22 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
                                                          cpumc,ctp,cpu));
         assert(pmc2);
-        //TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        TH1D *hmc2 = tools::Rebin(pmc2, href);
+        TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
         for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
           hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
         }
         delete hmc2;
       } // beta -> chf * beta
-      
-      // For chf, multiply by (1-beta-betastar)
-      if (sf=="chf") {
+      if (sf=="chf") { // For chf, multiply by (1-beta-betastar)
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
                                                          cpudt,ctp,cpu));
         assert(pdt2);
-        //TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        TH1D *hdt2 = tools::Rebin(pdt2, href);
+        TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
         TProfile *pdt3 = (TProfile*)gDirectory->Get(Form("%spbetastar%s%s",
                                                          cpudt,ctp,cpu));
         assert(pdt3);
-        //TH1D *hdt3 = (_vspu ? pdt3->ProjectionX() : tools::Rebin(pdt3, href));
-        TH1D *hdt3 = tools::Rebin(pdt3, href);
+        TH1D *hdt3 = (_vspu ? pdt3->ProjectionX() : tools::Rebin(pdt3, href));
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)
                              * (1 - (dobeta ? hdt2->GetBinContent(i) : 0)
@@ -398,13 +389,11 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
                                                          cpumc,ctp,cpu));
         assert(pmc2);
-        //TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        TH1D *hmc2 = tools::Rebin(pmc2, href);
+        TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
         TProfile *pmc3 = (TProfile*)gDirectory->Get(Form("%spbetastar%s%s",
                                                          cpumc,ctp,cpu));
         assert(pmc3);
-        //TH1D *hmc3 = (_vspu ? pmc3->ProjectionX() : tools::Rebin(pmc3, href));
-        TH1D *hmc3 = tools::Rebin(pmc3, href);
+        TH1D *hmc3 = (_vspu ? pmc3->ProjectionX() : tools::Rebin(pmc3, href));
         for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
           hmc->SetBinContent(i, hmc->GetBinContent(i)
                              * (1 - (dobeta ? hmc2->GetBinContent(i) : 0)
@@ -428,7 +417,7 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
       hdt->SetLineColor(style[cf].first + 1);
       hdt->SetMarkerStyle(style[cf].second);
       hdt->SetMarkerSize(sf=="nhf"||(sf=="chf"&&dobeta) ? 1.3 : 1.0);
-      if (mode==0)
+      if (_vspt)
         hdt->GetXaxis()->SetRangeUser(rangemin[mode], rangemax[mode]);
       hsdt->Add(hdt, "SAME P");
       
@@ -461,7 +450,7 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
     } // for jfrac
 
     c1->cd(1);
-    if (mode==0) gPad->SetLogx();
+    if (_vspt) gPad->SetLogx();
     hsmc->Draw("SAME");
     hsdt->Draw("SAME");
     leg->Draw("SAME"); // redraw
@@ -469,13 +458,14 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
 
     c1->cd(2);
-    if (mode==0) gPad->SetLogx();
+    if (_vspt) gPad->SetLogx();
     //hsdf->Draw("SAME");
     gPad->RedrawAxis();
     
-    c1->SaveAs(Form("pdf/drawFracs_%1.1f-%1.1f%s%s.pdf",
+    c1->SaveAs(Form("pdf/drawFracs_%1.1f-%1.1f%s%s%s.pdf",
                     y1, y2, _shiftJES ? "_shiftJES" : "",
-                    mode>0 ? (mode>1 ? "_vsNPV" : "_vsTRPU") : ""));
+                    _vsnpv ? "_vsNPV" : "",
+                    _vspu ?  "_vsTRPU" : ""));
 
 
     // Estimate jet response slope by analyzing composition
@@ -544,9 +534,10 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
     h2->SetMaximum(+5);//+3.0);
     h2->SetMinimum(-5);//-1.5);
-    if (ieta==0) c1->SaveAs(Form("pdf/drawFracs_WithFit%s%s.pdf",
+    if (ieta==0) c1->SaveAs(Form("pdf/drawFracs_WithFit%s%s%s.pdf",
                                  _shiftJES ? "_shiftJES" : "",
-                                 mode>0 ? (mode>1 ? "_vsNPV" : "_vsTRPU") : ""));
+                                 _vsnpv ? "_vsNPV" : "",
+                                 _vspu ? "_vsTRPU" : ""));
   }
   // For ieta
   
