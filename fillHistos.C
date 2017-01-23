@@ -1571,17 +1571,6 @@ void fillHistos::fillBasic(basicHistos *h)
         assert(h->pbetastartp);
         h->pbetastartp->Fill(ptref, jtbetastar[i], _w);
         //
-        assert(h->pchftp2);
-        h->pchftp2->Fill(ptref, jtchf2[i], _w);
-        assert(h->pneftp2);
-        h->pneftp2->Fill(ptref, jtnef2[i], _w);
-        assert(h->pnhftp2);
-        h->pnhftp2->Fill(ptref, jtnhf2[i], _w);
-        assert(h->pceftp2);
-        h->pceftp2->Fill(ptref, jtcef2[i], _w);
-        assert(h->pmuftp2);
-        h->pmuftp2->Fill(ptref, jtmuf2[i], _w);
-        //
         if (dr4min<0.4) h->pak4ak8tp_50->Fill(ptref, ptprobepf4/jtpt[i]);
         if (dr4min<0.2) h->pak4ak8tp_25->Fill(ptref, ptprobepf4/jtpt[i]);
 
@@ -1632,15 +1621,15 @@ void fillHistos::fillBasic(basicHistos *h)
           h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[i], _w);
           //
           assert(h->pchftp_vstrpu);
-          h->pchftp_vstrpu->Fill(trpu, jtchf2[i], _w);
+          h->pchftp_vstrpu->Fill(trpu, jtchf[i], _w);
           assert(h->pneftp_vstrpu);
-          h->pneftp_vstrpu->Fill(trpu, jtnef2[i], _w);
+          h->pneftp_vstrpu->Fill(trpu, jtnef[i], _w);
           assert(h->pnhftp_vstrpu);
-          h->pnhftp_vstrpu->Fill(trpu, jtnhf2[i], _w);
+          h->pnhftp_vstrpu->Fill(trpu, jtnhf[i], _w);
           assert(h->pceftp_vstrpu);
-          h->pceftp_vstrpu->Fill(trpu, jtcef2[i], _w);
+          h->pceftp_vstrpu->Fill(trpu, jtcef[i], _w);
           assert(h->pmuftp_vstrpu);
-          h->pmuftp_vstrpu->Fill(trpu, jtmuf2[i], _w);
+          h->pmuftp_vstrpu->Fill(trpu, jtmuf[i], _w);
           assert(h->pbetatp_vstrpu);
           h->pbetatp_vstrpu->Fill(trpu, jtbeta[i], _w);
           assert(h->pbetastartp_vstrpu);

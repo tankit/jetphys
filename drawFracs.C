@@ -1,4 +1,4 @@
-// Purpose: Plot PF energy fractions vs pT (Run II cleaned code)
+// Purpose: Plot PF energy fractions vs pT/PU/NPV (Run II cleaned code)
 // Author: mikko.voutilainen(at)nospam.cern.ch
 // Created: Dec 11, 2015
 #include "TFile.h"
@@ -24,11 +24,20 @@ using namespace tools;
 bool _shiftJES = false;//true;
 bool _vspu = false;
 TF1 *_fjes(0);
-string plot_title = "RunFvsG"; // fb^{-1}
+// Format: DT vs MC
+string plot_title = "RunH"; // fb^{-1}
 
 // Setting a path for each file
-string dt_path = "results/RunF/";
-string mc_path = "results/RunG/";
+string dt_path = "RR_H/";
+string mc_path = "RR_H/";
+
+// Vectors holding changing values: these are indexed as 'mode' (see above the drawFracs -function).
+vector<string> name = {"","_vstrpu","_vsnpv"};
+vector<double> rangemin = {37, 0.5, 0.5};
+vector<double> rangemax = {3450, 32.5, 32.5};
+// 3832
+vector<double> h2min = {-4+1e-5 -6, -6+1e-5, -6+1e-5};
+vector<double> h2max = {+4-1e-5 +6, +6+10-1e-5, +6+10-1e-5}; 
 
 double jesShift(double x) {
 
@@ -64,8 +73,26 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   return (p[0] + p[1]/3.*100*(fhb->Eval(ptx)-fhb->Eval(ptref)));
 } // jesFit
 
-
-void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
+/* 
+ * mode:
+ *  0 - Pt
+ *  1 - trpu
+ *  2 - npv
+ *
+ * mc_type:
+ *  "MC" (Pythia, default)
+ *  "HW" (Herwig)
+ *  "DT" (For dt vs dt mode)
+ *
+ * dt_type:
+ *  "DT" (Data sample, default)
+ *  "MC" (Pythia, for mc vs mc)
+ *  "HW" (Herwig, for mc vs mc)
+ *
+ * stp:
+ *  tag and probe
+ */
+void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
   setTDRStyle();
   
@@ -77,6 +104,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
   if (dt_type=="MC" || dt_type=="HW")
     all_MC = true;
   assert(!(all_MC && all_DT));
+  assert(mode>=0 && mode<=2);
   // }
 
   assert(stp=="tp" || stp=="");
@@ -90,7 +118,8 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
   // Opening the requested files {
   string dt_file = all_MC ? dt_type : "DATA";
-  dt_file = "output-" + dt_file + (_vspu ? "-1" : "-2b") + ".root";
+  dt_file = "output-" + dt_file + (mode>0 ? "-1" : "-2b") + ".root";
+  cout << Form("%s%s",dt_path.c_str(),dt_file.c_str()) << endl;
   TFile *fdt = new TFile(Form("%s%s",dt_path.c_str(),dt_file.c_str()),"READ");
 
   assert(fdt && !fdt->IsZombie());
@@ -102,7 +131,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
 
   string mc_file = all_DT ? "DATA" : mc_type;
-  mc_file = "output-" + mc_file + (_vspu ? "-1" : "-2b") + ".root";
+  mc_file = "output-" + mc_file + (mode>0 ? "-1" : "-2b") + ".root";
   TFile *fmc = new TFile(Form("%s%s",mc_path.c_str(),mc_file.c_str()),"READ");
 
   assert(fmc && !fdt->IsZombie());
@@ -117,10 +146,10 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
   etas.push_back(make_pair<double, double>(0., 1.3));
   //etas.push_back(make_pair<double, double>(0.0, 0.5));
   //etas.push_back(make_pair<double, double>(0.5, 1.0));
-  //etas.push_back(make_pair<double, double>(1.0, 1.5));
-  //etas.push_back(make_pair<double, double>(1.5, 2.0));
-  //etas.push_back(make_pair<double, double>(2.0, 2.5));
-  //etas.push_back(make_pair<double, double>(2.5, 3.0));
+  etas.push_back(make_pair<double, double>(1.0, 1.5));
+  etas.push_back(make_pair<double, double>(1.5, 2.0));
+  etas.push_back(make_pair<double, double>(2.0, 2.5));
+  etas.push_back(make_pair<double, double>(2.5, 3.0));
   //etas.push_back(make_pair<double, double>(3.0, 3.2));
   //etas.push_back(make_pair<double, double>(3.2, 4.7));
 
@@ -175,13 +204,17 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
     // Build appropriate wide binning
     vector<double> x;
-    if (_vspu) {
+    if (mode==0) {
+      for (int i = 0; i != nbins && xw[i]!=0; ++i) {
+        x.push_back(xw[i]);
+      } // for i
+    } else if (mode==1) {
       for (int i = 0; i < 24; ++i) {
         x.push_back(0.5+2*i);
       } // for i
     } else {
-      for (int i = 0; i != nbins && xw[i]!=0; ++i) {
-        x.push_back(xw[i]);
+      for (int i = 0; i < 24; ++i) {
+        x.push_back(0.5+2*i);
       } // for i
     }
     const int nx = x.size()-1;
@@ -190,37 +223,30 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
     THStack *hsmc = new THStack(Form("hsmc%d",ieta),"stacked histograms");
     THStack *hsdf = new THStack(Form("hsdf%d",ieta),"differences");
 
-    const double ptmin = 37;
-    const double ptmax = 3450;//3832;
-    const double pvmin = 0.5;
-    const double pvmax = 32.5;
     TH1D *h = new TH1D("h",";p_{T} (GeV);PF energy fractions",nx,&x[0]);
-    if (_vspu) {
-      h->SetXTitle("N_{PV,good}");
-      h->GetXaxis()->SetRangeUser(pvmin,pvmax);
-    } else {
-      h->GetXaxis()->SetMoreLogLabels();
-      h->GetXaxis()->SetNoExponent();
-      h->GetXaxis()->SetRangeUser(ptmin,ptmax);
-    }
-    h->SetMaximum(1-1e-5);
-    h->SetMinimum(0+1e-5);
-
     //TH1D *h2 = new TH1D("h2",";p_{T} (GeV);Data-MC (%)",nx,&x[0]);
     TH1D *h2 = new TH1D("h2",Form(";p_{T} (GeV);%s-%s (%%)",dt_type.c_str(),mc_type.c_str()),nx,&x[0]);
-    if (_vspu) {
-      h2->SetXTitle("N_{PV,good}");
-      h2->GetXaxis()->SetRangeUser(pvmin,pvmax);
-    } else {
+    if (mode==0) {
+      h->GetXaxis()->SetMoreLogLabels();
+      h->GetXaxis()->SetNoExponent();
       h2->GetXaxis()->SetMoreLogLabels();
       h2->GetXaxis()->SetNoExponent();
-      h2->GetXaxis()->SetRangeUser(37,3832);
+    } else if (mode==1) {
+      h->SetXTitle("TruePU");
+      h2->SetXTitle("TruePU");
+    } else {
+      h->SetXTitle("N_{PV,good}");
+      h2->SetXTitle("N_{PV,good}");
     }
-    h2->SetMaximum(_vspu ? +6+10-1e-5 : +4-1e-5 +6);
-    h2->SetMinimum(_vspu ? -6+1e-5 : -4+1e-5 -6);
+    h->GetXaxis()->SetRangeUser(rangemin[mode],rangemax[mode]);
+    h2->GetXaxis()->SetRangeUser(rangemin[mode], rangemax[mode]);
+    h->SetMaximum(1-1e-5);
+    h->SetMinimum(0+1e-5);
+    h2->SetMinimum(h2min[mode]);
+    h2->SetMaximum(h2max[mode]);
 
     //lumi_13TeV = "2.1 fb^{-1}";
-    lumi_13TeV = plot_title.c_str();
+    lumi_13TeV = plot_title;
     TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,0);
 
     c1->cd(1);
@@ -232,11 +258,11 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
       const char *cf = fracs[jfrac].c_str();
       const char *ctp = stp.c_str();
 
-      string spu = (_vspu ? "_vsnpv" : "");
+      string spu = (mode>0 ? (mode>1 ? "_vsnpv" : "_vstrpu") : "");
       const char *cpu = spu.c_str();
-      string spudt = (_vspu ? (all_MC ? "mc/" : "jt40/") : "");
+      string spudt = (mode>0 ? (all_MC ? "mc/" : "jt40/") : "");
       const char *cpudt = spudt.c_str();
-      string spumc = (_vspu ? (all_DT ? "jt40/" : "mc/") : "");
+      string spumc = (mode>0 ? (all_DT ? "jt40/" : "mc/") : "");
       const char *cpumc = spumc.c_str();
 
       assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
@@ -394,7 +420,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
       hmc->SetFillStyle(1001);
       hmc->SetFillColor(style[cf].first - 7);
       hmc->SetLineColor(style[cf].first + 1);
-      hmc->GetXaxis()->SetRangeUser(_vspu ? pvmin : ptmin, _vspu ? pvmin : ptmax);
+      hmc->GetXaxis()->SetRangeUser(rangemin[mode], rangemax[mode]);
       hsmc->Add(hmc, "SAME H");
       
       hdt->SetFillStyle(1001); // for legend
@@ -402,8 +428,8 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
       hdt->SetLineColor(style[cf].first + 1);
       hdt->SetMarkerStyle(style[cf].second);
       hdt->SetMarkerSize(sf=="nhf"||(sf=="chf"&&dobeta) ? 1.3 : 1.0);
-      if (!_vspu)
-        hdt->GetXaxis()->SetRangeUser(_vspu ? pvmin : ptmin, _vspu ? pvmin : ptmax);
+      if (mode==0)
+        hdt->GetXaxis()->SetRangeUser(rangemin[mode], rangemax[mode]);
       hsdt->Add(hdt, "SAME P");
       
       // Then, do the difference
@@ -420,7 +446,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
       if (jfrac==0) {
         TLine *l = new TLine();
-        l->DrawLine(_vspu ? pvmin : ptmin, 0, _vspu ? pvmax : ptmax, 0);
+        l->DrawLine(rangemin[mode], 0, rangemax[mode], 0);
         TLatex *tex = new TLatex();
         tex->SetNDC();
         tex->SetTextSize(h2->GetYaxis()->GetLabelSize());
@@ -435,7 +461,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
     } // for jfrac
 
     c1->cd(1);
-    if (!_vspu) gPad->SetLogx();
+    if (mode==0) gPad->SetLogx();
     hsmc->Draw("SAME");
     hsdt->Draw("SAME");
     leg->Draw("SAME"); // redraw
@@ -443,13 +469,13 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
 
     c1->cd(2);
-    if (!_vspu) gPad->SetLogx();
+    if (mode==0) gPad->SetLogx();
     //hsdf->Draw("SAME");
     gPad->RedrawAxis();
     
     c1->SaveAs(Form("pdf/drawFracs_%1.1f-%1.1f%s%s.pdf",
                     y1, y2, _shiftJES ? "_shiftJES" : "",
-                    _vspu ? "_vsNPV" : ""));
+                    mode>0 ? (mode>1 ? "_vsNPV" : "_vsTRPU") : ""));
 
 
     // Estimate jet response slope by analyzing composition
@@ -520,7 +546,7 @@ void drawFracs(string mc_type = "MC", string dt_type="DT", string stp = "tp") {
     h2->SetMinimum(-5);//-1.5);
     if (ieta==0) c1->SaveAs(Form("pdf/drawFracs_WithFit%s%s.pdf",
                                  _shiftJES ? "_shiftJES" : "",
-                                 _vspu ? "_vsNPV" : ""));
+                                 mode>0 ? (mode>1 ? "_vsNPV" : "_vsTRPU") : ""));
   }
   // For ieta
   
