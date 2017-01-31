@@ -24,4 +24,10 @@ Then we need to check out some additional packages:
 
 Copy data files, and add a symlink
 
-Then, gen 
+Then, gen.
+
+Nowadays it is best to run one step at a time. At least 1, 2a and 2b tend to be useful.
+For plotting purposes there is the script drawFracs.C. This is operated by
+mk_mcPlots.C and mk_generalPlots.C. These are designed for streamlining the process
+of generating various plots with the same script. That is, different parameter
+valuues, which have an effect on the mode of operation.

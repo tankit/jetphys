@@ -24,17 +24,11 @@ using namespace tools;
 bool _shiftJES = false;//true;
 
 TF1 *_fjes(0);
-// Format: DT vs MC
-string plot_title = "RunH"; // fb^{-1}
-
-// Setting a path for each file
-string dt_path = "RR_H/";
-string mc_path = "RR_H/";
 
 // Vectors holding changing values: these are indexed as 'mode' (see above the drawFracs -function).
 vector<string> modenames = {"","_vstrpu","_vsnpv"};
 vector<double> rangemin = {37, 0.5, 0.5};
-vector<double> rangemax = {3450, 32.5, 32.5};
+vector<double> rangemax = {3450, 38.5, 40.5};
 // 3832
 vector<double> h2min = {-4+1e-5 -6, -6+1e-5, -6+1e-5};
 vector<double> h2max = {+4-1e-5 +6, +6+10-1e-5, +6+10-1e-5}; 
@@ -92,7 +86,7 @@ Double_t jesFit(Double_t *x, Double_t *p) {
  * stp:
  *  tag and probe
  */
-void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string stp = "tp") {
+void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string plot_title="RunH", string savedir=".", string mc_type = "MC", string dt_type="DT", string stp = "tp") {
 
   setTDRStyle();
   
@@ -155,10 +149,10 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
   etas.push_back(make_pair<double, double>(0., 1.3));
   //etas.push_back(make_pair<double, double>(0.0, 0.5));
   //etas.push_back(make_pair<double, double>(0.5, 1.0));
-  //etas.push_back(make_pair<double, double>(1.0, 1.5));
-  //etas.push_back(make_pair<double, double>(1.5, 2.0));
-  //etas.push_back(make_pair<double, double>(2.0, 2.5));
-  //etas.push_back(make_pair<double, double>(2.5, 3.0));
+  etas.push_back(make_pair<double, double>(1.0, 1.5));
+  etas.push_back(make_pair<double, double>(1.5, 2.0));
+  etas.push_back(make_pair<double, double>(2.0, 2.5));
+  etas.push_back(make_pair<double, double>(2.5, 3.0));
   //etas.push_back(make_pair<double, double>(3.0, 3.2));
   //etas.push_back(make_pair<double, double>(3.2, 4.7));
 
@@ -367,7 +361,7 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
         }
         delete hmc2;
       } // beta -> chf * beta
-      if (sf=="chf") { // For chf, multiply by (1-beta-betastar)
+      else if (sf=="chf") { // For chf, multiply by (1-beta-betastar)
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
                                                          cpudt,ctp,cpu));
@@ -462,8 +456,8 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
     //hsdf->Draw("SAME");
     gPad->RedrawAxis();
     
-    c1->SaveAs(Form("pdf/drawFracs_%1.1f-%1.1f%s%s%s.pdf",
-                    y1, y2, _shiftJES ? "_shiftJES" : "",
+    c1->SaveAs(Form("%s/drawFracs_%1.1f-%1.1f%s%s%s.pdf",
+                    savedir.c_str(), y1, y2, _shiftJES ? "_shiftJES" : "",
                     _vsnpv ? "_vsNPV" : "",
                     _vspu ?  "_vsTRPU" : ""));
 
@@ -534,7 +528,8 @@ void drawFracs(unsigned mode, string mc_type = "MC", string dt_type="DT", string
 
     h2->SetMaximum(+5);//+3.0);
     h2->SetMinimum(-5);//-1.5);
-    if (ieta==0) c1->SaveAs(Form("pdf/drawFracs_WithFit%s%s%s.pdf",
+    if (ieta==0) c1->SaveAs(Form("%s/drawFracs_WithFit%s%s%s.pdf",
+                                 savedir.c_str(),
                                  _shiftJES ? "_shiftJES" : "",
                                  _vsnpv ? "_vsNPV" : "",
                                  _vspu ? "_vsTRPU" : ""));
