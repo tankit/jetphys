@@ -31,7 +31,6 @@ class basicHistos {
   double ptmax;
   bool ismc;
   bool dofriends;
-  bool ak4ak8;
 
   // raw spectrum
   TH1D *hpt;
@@ -51,27 +50,6 @@ class basicHistos {
   TH1D *hpt_evtcount;
   TH1D *hpt_evt;
   TH1D *hpt_jet;
-  //
-  TH1D *hpt_ak4pf;
-  TH1D *hpt_tmp_ak4pf;
-  TH1D *hpt_evtcount_ak4pf;
-  TH1D *hpt_evt_ak4pf;
-  TH1D *hpt_jet_ak4pf;
-  //
-  TH3D *hpt_ak4ak8;
-  TH3D *hpt_ak4ak8m1;
-  TH3D *hpt_ak4ak8m2;
-  TH3D *hpt_ak4ak8p1;
-  //
-  TH3D *hpt_ak4ak4;
-  TH3D *hpt_ak4ak4m1;
-  TH3D *hpt_ak4ak4m2;
-  TH3D *hpt_ak4ak4p1;
-  //
-  TH3D *hpt_ak8ak8;
-  TH3D *hpt_ak8ak8m1;
-  TH3D *hpt_ak8ak8m2;
-  TH3D *hpt_ak8ak8p1;
 
   // 1 GeV ins
   TH1D *hpt0;
@@ -86,8 +64,6 @@ class basicHistos {
   TH1D *hdjmass0;
   TProfile *pdjmass_ptratio;
   TProfile *pdjmass0_ptratio;
-  TH1D *hdjmass_ak8;
-  TH1D *hdjmass0_ak8;
 
   // basic properties
   TProfile *ppt;
@@ -159,8 +135,6 @@ class basicHistos {
   TProfile *phef;
   TProfile *pbeta;
   TProfile *pbetastar;
-  TProfile *pak4ak8_50;
-  TProfile *pak4ak8_25;
   TH1D *hncand;
   TH1D *hnch;
   TH1D *hnne;
@@ -178,8 +152,6 @@ class basicHistos {
   TH1D *hhef;
   TH1D *hbeta;
   TH1D *hbetastar;
-  TH1D *hak4ak8;
-  TH1D *hak4ak8g0;
   // control plots of components (JEC tag-and-probe)
   TProfile *pncandtp;
   TProfile *pnchtp;
@@ -207,8 +179,6 @@ class basicHistos {
   TProfile *phhftp2;
   TProfile *pheftp2;
   //
-  TProfile *pak4ak8tp_50;
-  TProfile *pak4ak8tp_25;
   TH1D *hncandtp;
   TH1D *hnchtp;
   TH1D *hnnetp;
@@ -226,7 +196,6 @@ class basicHistos {
   TH1D *hheftp;
   TH1D *hbetatp;
   TH1D *hbetastartp;
-  TH1D *hak4ak8tp;
   //
   TProfile *pncandtp_vsnpv;
   TProfile *pnchtp_vsnpv;
@@ -246,15 +215,6 @@ class basicHistos {
   TProfile *pbetatp_vsnpv;
   TProfile *pbetastartp_vsnpv;
   //
-  /*
-  TProfile *pchftp2_vsnpv;
-  TProfile *pneftp2_vsnpv;
-  TProfile *pnhftp2_vsnpv;
-  TProfile *pceftp2_vsnpv;
-  TProfile *pmuftp2_vsnpv;
-  TProfile *phhftp2_vsnpv;
-  TProfile *pheftp2_vsnpv;
-  */
   TProfile *pchftp_vstrpu;
   TProfile *pneftp_vstrpu;
   TProfile *pnhftp_vstrpu;
@@ -368,18 +328,8 @@ class basicHistos {
   TH1D *hpt_gg0;
   TH1D *hpt_g0;
   TH1D *hpt_g0tw;
-  TH1D *hpt_g_ak8;
-  TH1D *hpt_gg_ak8;
-  TH1D *hpt_g0_ak8;
-  TH1D *hpt_g0_tmp; // _ak4ak8
-  TH1D *hpt_g0_ak4pf; // _ak4ak8
-  TH1D *hpt_g0_tmp_ak4pf; // _ak4ak8
+  TH1D *hpt_g0_tmp;
   //
-  //
-  TH3D *hpt_g0_ak4ak8;
-  TH3D *hpt_g0_ak4ak8m1;
-  TH3D *hpt_g0_ak4ak8m2;
-  TH3D *hpt_g0_ak4ak8p1;
 
   TProfile *ppt_r;
   TProfile *ppt_g;
@@ -407,7 +357,7 @@ class basicHistos {
   basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="",
 	      double ymin = 0., double ymax = 2.0,
 	      double pttrg = 10., double ptmin = 10., double ptmax = 50.,
-	      bool ismc = false, bool dofriends = false, bool ak4ak8 = false);
+	      bool ismc = false, bool dofriends = false);
   ~basicHistos();
 
  private:

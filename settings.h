@@ -169,16 +169,10 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 // Additional analysis switches //
 //////////////////////////////////
 
-// Do additional AK4/AK8 histograms
-const bool _jp_ak4ak8 = (_jp_algo=="AK8" && false);
-// Apply "CHS" through betaStar
-const bool _jp_doCHS = false;
-// Fill histograms separately for each five eras
-const bool _jp_doEras = false;
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = false;
 // Produce run-level histograms
-const bool _jp_doRunHistos = true;
+const bool _jp_doRunHistos = false; // Set to false to save time
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
 

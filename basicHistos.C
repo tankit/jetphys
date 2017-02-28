@@ -15,7 +15,7 @@ using namespace std;
 basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 			 double ymin, double ymax,
 			 double pttrg, double ptmin, double ptmax,
-			 bool ismc, bool dofriends, bool ak4ak8)
+			 bool ismc, bool dofriends)
   : lumsum(0), lumsum2(0) {
 
   TDirectory *curdir = gDirectory;
@@ -31,7 +31,6 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
   this->ptmin = ptmin;
   this->ptmax = ptmax;
   this->dofriends = dofriends;
-  this->ak4ak8 = ak4ak8;
 
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
@@ -140,29 +139,8 @@ double vx[neta][nbins] =
   hpt_evt = new TH1D("hpt_evt","",nx,&x[0]);
   hpt_jet = new TH1D("hpt_jet","",nx,&x[0]);
   //
-  hpt_ak4pf = (ak4ak8 ? new TH1D("hpt_ak4pf","",nx,&x[0]) : 0);
-  hpt_tmp_ak4pf = (ak4ak8 ? new TH1D("hpt_tmp_ak4pf","",nx,&x[0]) : 0);
-  hpt_evtcount_ak4pf = (ak4ak8 ? new TH1D("hpt_evtcount_ak4pf","",nx,&x[0]) : 0);
-  hpt_evt_ak4pf = (ak4ak8 ? new TH1D("hpt_evt_ak4pf","",nx,&x[0]) : 0);
-  hpt_jet_ak4pf = (ak4ak8 ? new TH1D("hpt_jet_ak4pf","",nx,&x[0]) : 0);
-  //
   const double nj = 3;
   vector<double> vnj(nj+1); vnj[0]=0; vnj[1]=1; vnj[2]=2; vnj[3]=3;
-  hpt_ak4ak8 = (ak4ak8 ? new TH3D("hpt_ak4ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8m1 = (ak4ak8 ? new TH3D("hpt_ak4ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8m2 = (ak4ak8 ? new TH3D("hpt_ak4ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8p1 = (ak4ak8 ? new TH3D("hpt_ak4ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  //
-  hpt_ak4ak4 = (ak4ak8 ? new TH3D("hpt_ak4ak4","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4m1 = (ak4ak8 ? new TH3D("hpt_ak4ak4m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4m2 = (ak4ak8 ? new TH3D("hpt_ak4ak4m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4p1 = (ak4ak8 ? new TH3D("hpt_ak4ak4p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  //
-  hpt_ak8ak8 = (ak4ak8 ? new TH3D("hpt_ak8ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8m1 = (ak4ak8 ? new TH3D("hpt_ak8ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8m2 = (ak4ak8 ? new TH3D("hpt_ak8ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8p1 = (ak4ak8 ? new TH3D("hpt_ak8ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-
 
   // 1 GeV bins for localizing leading jets
   //hpt0 = new TH1D("hpt0","",int(_jp_emax),0.,_jp_emax);
@@ -186,11 +164,6 @@ double vx[neta][nbins] =
   //hdjmass0->Sumw2();
   //pdjmass_ptratio->Sumw2();
   //pdjmass0_ptratio->Sumw2();
-  hdjmass_ak8 = new TH1D("hdjmass_ak8","",nx,&x[0]);
-  hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",int(_jp_sqrts),0.,_jp_sqrts);
-  //hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",13000,0.,13000.);
-  //hdjmass_ak8->Sumw2();
-  //hdjmass0_ak8->Sumw2();
 
   // basic properties
   ppt = new TProfile("ppt","",nx,&x[0]);
@@ -264,8 +237,6 @@ double vx[neta][nbins] =
   pmuf = new TProfile("pmuf","",nx0,&x0[0]);
   pbeta = new TProfile("pbeta","",nx0,&x0[0]);
   pbetastar = new TProfile("pbetastar","",nx0,&x0[0]);
-  pak4ak8_50 = (ak4ak8 ? new TProfile("pak4ak8_50","",nx0,&x0[0]) : 0);
-  pak4ak8_25 = (ak4ak8 ? new TProfile("pak4ak8_25","",nx0,&x0[0]) : 0);
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
   hnne = new TH1D("hnne","",300,-0.5,299.5);
@@ -279,8 +250,6 @@ double vx[neta][nbins] =
   hmuf = new TH1D("hmuf","",110,0.,1.1);
   hbeta = new TH1D("hbeta","",110,0.,1.1);
   hbetastar = new TH1D("hbetastar","",110,0.,1.1);
-  hak4ak8 = (ak4ak8 ? new TH1D("hak4ak8","",200,0,2) : 0);
-  hak4ak8g0 = (ak4ak8 ? new TH1D("hak4ak8g0","",200,0,2) : 0);
   // control plots of components (JEC tag-and-probe)
   pncandtp = new TProfile("pncandtp","",nx0,&x0[0]);
   pnchtp = new TProfile("pnchtp","",nx0,&x0[0]);
@@ -302,8 +271,6 @@ double vx[neta][nbins] =
   pceftp2 = new TProfile("pceftp2","",nx0,&x0[0]);
   pmuftp2 = new TProfile("pmuftp2","",nx0,&x0[0]);
   //
-  pak4ak8tp_50 = (ak4ak8 ? new TProfile("pak4ak8tp_50","",nx0,&x0[0]) : 0);
-  pak4ak8tp_25 = (ak4ak8 ? new TProfile("pak4ak8tp_25","",nx0,&x0[0]) : 0);
   hncandtp = new TH1D("hncandtp","",300,-0.5,299.5);
   hnchtp = new TH1D("hnchtp","",300,-0.5,299.5);
   hnnetp = new TH1D("hnnetp","",300,-0.5,299.5);
@@ -317,7 +284,6 @@ double vx[neta][nbins] =
   hmuftp = new TH1D("hmuftp","",110,0.,1.1);
   hbetatp = new TH1D("hbetatp","",110,0.,1.1);
   hbetastartp = new TH1D("hbetastartp","",110,0.,1.1);
-  hak4ak8tp = (ak4ak8 ? new TH1D("hak4ak8tp","",200,0,2) : 0);
   // control plots vs NPV
   pncandtp_vsnpv = new TProfile("pncandtp_vsnpv","",50,-0.5,49.5);
   pnchtp_vsnpv = new TProfile("pnchtp_vsnpv","",50,-0.5,49.5);
@@ -512,17 +478,11 @@ double vx[neta][nbins] =
     hpt_gg0 = new TH1D("hpt_gg0","",nx,&x[0]);
     hpt_g0 = new TH1D("hpt_g0","",nx,&x[0]);
     hpt_g0_tmp = new TH1D("hpt_g0_tmp","",nx,&x[0]);
-    hpt_g0_ak4pf = (ak4ak8 ? new TH1D("hpt_g0_ak4pf","",nx,&x[0]) : 0);
-    hpt_g0_tmp_ak4pf = (ak4ak8 ? new TH1D("hpt_g0_tmp_ak4pf","",nx,&x[0]) : 0);
     ppt_r = new TProfile("ppt_r","",nx,&x[0]);
     ppt_g = new TProfile("ppt_g","",nx,&x[0]);
 
     const double nj = 3;
     vector<double> vnj(nj+1); vnj[0]=0; vnj[1]=1; vnj[2]=2; vnj[3]=3;
-    hpt_g0_ak4ak8 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8m1 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8m2 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8p1 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
 
     // Response closure
     p3rvsnpv = new TProfile3D("p3rvsnpv","",nx,&x[0],ny,&y[0],npv,&pv[0]);

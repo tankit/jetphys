@@ -65,7 +65,6 @@ using std::endl;
 class fillHistos {
 public :
   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
-  TTree          *fChain2;  // _ak4ak8
   Int_t           fCurrent; //!current Tree number in a TChain
 
   static const Int_t kMaxGenJets_ = 100;//21;
@@ -606,31 +605,6 @@ public :
   // start manually added code
   /////////////////////////////////////////////////////////////////////////////
 
-  // _ak4ak8 tree
-  Int_t           t4_EvtHdr__mRun;
-  UInt_t          t4_EvtHdr__mEvent;
-  Int_t           t4_EvtHdr__mLumi;
-  Float_t         t4_EvtHdr__mPthat;
-  Int_t           t4_EvtHdr__mOOTPUEarly;
-  Int_t           t4_EvtHdr__mOOTPULate;
-  Int_t           t4_EvtHdr__mINTPU;
-  //
-  Int_t           t4_PFJets__;
-  Double_t        t4_PFJets__P4__fCoordinates_fX[kMaxPFJets_];   //[PFJets__]
-  Double_t        t4_PFJets__P4__fCoordinates_fY[kMaxPFJets_];   //[PFJets__]
-  Double_t        t4_PFJets__P4__fCoordinates_fZ[kMaxPFJets_];   //[PFJets__]
-  Double_t        t4_PFJets__P4__fCoordinates_fT[kMaxPFJets_];   //[PFJets__]
-  Float_t         t4_PFJets__cor_[kMaxPFJets_];   //[PFJets__]
-  Float_t         t4_PFJets__area_[kMaxPFJets_];   //[PFJets__]
-  Bool_t          t4_PFJets__looseID_[kMaxPFJets_];   //[PFJets__]
-  Bool_t          t4_PFJets__tightID_[kMaxPFJets_];   //[PFJets__]
-  //
-  Int_t           t4_GenJets__;
-  Double_t        t4_GenJets__fCoordinates_fX[kMaxGenJets_];
-  Double_t        t4_GenJets__fCoordinates_fY[kMaxGenJets_];
-  Double_t        t4_GenJets__fCoordinates_fZ[kMaxGenJets_];
-  Double_t        t4_GenJets__fCoordinates_fT[kMaxGenJets_];
-
   // Auxiliary variables (declare after TTree variables only)
   Float_t         pthat;
   Float_t         weight;
@@ -693,53 +667,6 @@ public :
   //
   static const bool dofriends = false;//true;
 
-  // _ak4ak8
-  Int_t           t4_njt;
-  Double_t        *t4_jtp4x;//[_njt];   //[njt]
-  Double_t        *t4_jtp4y;//[_njt];   //[njt]
-  Double_t        *t4_jtp4z;//[_njt];   //[njt]
-  Double_t        *t4_jtp4t;//[_njt];   //[njt]
-  Float_t         t4_jte[_njt];   //[njt]
-  Float_t         t4_jtpt[_njt];   //[njt]
-  Float_t         t4_jtptu[_njt];   //EXTRA
-  Float_t         t4_jteu[_njt];   //EXTRA
-  Float_t         t4_jteta[_njt];   //[njt]
-  Float_t         t4_jtphi[_njt];   //[njt]
-  Float_t         t4_jty[_njt];   //[njt]
-  Float_t         *t4_jta;//[_njt];   //[njt]
-  Float_t         *t4_jtjes;//[_njt];   //[njt]
-  Float_t         t4_jtjesnew[_njt];   //[njt]
-  Bool_t          *t4_jtidloose;//[_njt];   //[njt]
-  Bool_t          *t4_jtidtight;//[_njt];   //[njt]
-  //
-  Int_t           t4gen_njt;
-  Double_t        *t4gen_jtp4x;
-  Double_t        *t4gen_jtp4y;
-  Double_t        *t4gen_jtp4z;
-  Double_t        *t4gen_jtp4t;
-  Float_t         t4gen_jtpt[_njt];   //[njt]
-  Float_t         t4gen_jteta[_njt];   //[njt]
-  Float_t         t4gen_jtphi[_njt];   //[njt]
-  Float_t         t4gen_jty[_njt];   //[njt]
-  // For trigger matching
-  Int_t           t4c_njt;
-  Double_t        *t4c_jtp4x;//[_njt];   //[njt]
-  Double_t        *t4c_jtp4y;//[_njt];   //[njt]
-  Double_t        *t4c_jtp4z;//[_njt];   //[njt]
-  Double_t        *t4c_jtp4t;//[_njt];   //[njt]
-  Float_t         t4c_jte[_njt];   //[njt]
-  Float_t         t4c_jtpt[_njt];   //[njt]
-  Float_t         t4c_jtptu[_njt];   //EXTRA
-  Float_t         t4c_jteu[_njt];   //EXTRA
-  Float_t         t4c_jteta[_njt];   //[njt]
-  Float_t         t4c_jtphi[_njt];   //[njt]
-  Float_t         t4c_jty[_njt];   //[njt]
-  //Float_t         *t4c_jta;//[_njt];   //[njt]
-  Float_t         t4c_jta;//[_njt];   //[njt]
-  Float_t         *t4c_jtjes;//[_njt];   //[njt]
-  Float_t         t4c_jtjesnew[_njt];   //[njt]
-
-  //
   //Short_t         jtgenid[_njt];   //[njt]
   //Short_t         jtgenflv[_njt];   //[njt]
   Float_t         *jtgenr;//[_njt];   //[njt]
@@ -804,15 +731,15 @@ public :
   // end manually added code
   /////////////////////////////////////////////////////////////////////////////
 
-  fillHistos(TTree *tree=0, string type="DATA", TTree *tree2=0); // custom
+  fillHistos(TTree *tree=0); // custom
   virtual ~fillHistos();
   virtual Int_t    Cut(Long64_t entry);
   virtual Int_t    GetEntry(Long64_t entry);
   virtual Long64_t LoadTree(Long64_t entry);
-  virtual void     Init(TTree *tree, TTree *tree2=0); // custom
+  virtual void     Init(TTree *tree); // custom
   virtual void     Loop();
   virtual Bool_t   Notify();
-  virtual void     Show(Long64_t entry = -1, Long64_t entry4 = -1); // custom
+  virtual void     Show(Long64_t entry = -1); // custom
 
   /////////////////////////////////////////////////////////////////////////////
   // start more manually added code
@@ -851,7 +778,6 @@ public :
   void writeRunHistos();
 
   void fillJetID(vector<bool> &id);
-  void fillJetID5(vector<bool> &id);
 
   void getTriggers();
 
@@ -877,7 +803,6 @@ private:
   TLorentzVector p4, gp4, genp4, cp4, pp4;
   jec::IOV *iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
-  FactorizedJetCorrector *_JEC_ak4pf;
   JetCorrectionUncertainty *_jecUnc;
   //L3Corr *_jecUnc2;
 
@@ -929,12 +854,12 @@ private:
 #endif
 
 #ifdef fillHistos_cxx
-fillHistos::fillHistos(TTree *tree, std::string type, TTree *tree2) : fChain(0)
+fillHistos::fillHistos(TTree *tree) : fChain(0)
 {
-  _type = type;
+  _type = _jp_type;
 
   assert(tree);
-  Init(tree, tree2); // custom
+  Init(tree); // custom
 
   // Reset some pointers
   _outfile = 0;
@@ -980,16 +905,12 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
   return centry;
 }
 
-void fillHistos::Init(TTree *tree, TTree *tree2)
+void fillHistos::Init(TTree *tree)
 {
   if (!tree) return;
   fChain = tree;
   fCurrent = -1;
   fChain->SetMakeClass(1);
-
-  fChain2 = tree2;
-  assert(!_jp_ak4ak8 || fChain2);
-  if (fChain2) fChain2->SetMakeClass(1);
 
   _dt = (_type=="DATA");
   _mc = !_dt;
@@ -1259,12 +1180,10 @@ Bool_t fillHistos::Notify()
   return kTRUE;
 }
 
-void fillHistos::Show(Long64_t entry, Long64_t entry4)
+void fillHistos::Show(Long64_t entry)
 {
   if (!fChain) return;
   fChain->Show(entry);
-  // careful here, showing entry will also load it
-  if (fChain2) fChain2->Show(entry4);
 }
 
 Int_t fillHistos::Cut(Long64_t entry)

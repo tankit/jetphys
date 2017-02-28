@@ -35,7 +35,6 @@
 
   // connect trees
   TChain *c = new TChain(Form("%s/ProcessedTree",algo.c_str()));
-  TChain *d = (_jp_ak4ak8 ? new TChain("ak4/ProcessedTree") : 0);
   const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
   if (_jp_type=="DATA") {
@@ -135,15 +134,11 @@
 
   int centries = c->GetEntries();
   cout << "Got " << centries << " entries" << endl;
-  if (_jp_ak4ak8) {
-    cout << "No ak8 trees currently specified" << endl;
-    //cout << "Got " << d->GetEntries() << " entries" << endl;
-  }
 
   if (centries > 0) {
     // ROOT 6 does not load the libraries before it thinks it has to.
     // Thus everything needs to be done in the initializer
-    fillHistos(c, _jp_type, d);
+    fillHistos(c);
   } else {
     cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;
   }

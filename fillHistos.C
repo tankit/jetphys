@@ -69,100 +69,9 @@ void fillHistos::Loop()
   TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU"); assert(h2mu);
   //TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRuNxMU_cleaned"); assert(h2mu);
 
-  // map AK4 events to AK8 events
-  map<Int_t, map<Int_t, map<UInt_t, Long64_t> > > ak4entry;
-  map<Double_t, map<Int_t, Long64_t> > ak4entrymc;
-  if (_jp_ak4ak8) {
-    if (_dt) {
-      assert(fChain2);
-      fChain2->SetBranchStatus("*",0);
-      fChain2->SetBranchStatus("EvtHdr_.mRun",1);
-      fChain2->SetBranchStatus("EvtHdr_.mLumi",1);
-      fChain2->SetBranchStatus("EvtHdr_.mEvent",1);
-
-      cout << "Mapping AK4 to AK8 events for data" << endl;
-      Long64_t nentries5 = fChain2->GetEntriesFast();
-      for (Long64_t jentry5=0; jentry5<nentries5;jentry5++) {
-        fChain2->GetEntry(jentry5);
-        // Check for duplicate entries
-        assert(ak4entry[t4_EvtHdr__mRun][t4_EvtHdr__mLumi][t4_EvtHdr__mEvent]==0);
-        ak4entry[t4_EvtHdr__mRun][t4_EvtHdr__mLumi][t4_EvtHdr__mEvent] = jentry5;
-      } // for jentry5
-      cout << "Found mapping for " << ak4entry.size() << " runs" <<endl<<flush;
-    }
-
-    if (_mc) {
-      assert(fChain2);
-      fChain2->SetBranchStatus("*",0);
-      fChain2->SetBranchStatus("EvtHdr_.mPthat",1);
-      fChain2->SetBranchStatus("EvtHdr_.mINTPU",1);
-      fChain2->SetBranchStatus("EvtHdr_.mOOTPUEarly",1);
-      fChain2->SetBranchStatus("EvtHdr_.mOOTPULate",1);
-
-      cout << "Mapping AK4 to AK8 events for MC" << endl;
-      Long64_t nentries5 = fChain2->GetEntriesFast();
-      int ndup(0);
-      for (Long64_t jentry5=0; jentry5<nentries5;jentry5++) {
-
-        fChain2->GetEntry(jentry5);
-        Int_t npu = t4_EvtHdr__mINTPU + 500*t4_EvtHdr__mOOTPUEarly
-          + 250000*t4_EvtHdr__mOOTPULate;
-        // Check for duplicate entries
-        if (!(ak4entrymc[t4_EvtHdr__mPthat][npu]==0)) {
-          cout << "Error: Duplicates in entries "
-               << ak4entrymc[t4_EvtHdr__mPthat][npu]
-               << " and " << jentry5 << ": "
-               << " pThat="<<t4_EvtHdr__mPthat
-               << " INTPU="<<t4_EvtHdr__mINTPU
-               << " Early="<<t4_EvtHdr__mOOTPUEarly
-               << " Late="<<t4_EvtHdr__mOOTPULate
-               << endl << flush;
-          //assert(ak4entrymc[t4_EvtHdr__mPthat][npu]==0);
-          ++ndup;
-        } else {
-          ak4entrymc[t4_EvtHdr__mPthat][npu] = jentry5;
-        }
-      } // for jentry5
-      cout << "Found mapping for "<<ak4entrymc.size()<<" pThats"<<endl<<flush;
-      if (ndup!=0) {
-        cout << "Found "<<ndup<<" duplicates, first ones kept"<<endl<<flush;
-      }
-    } // _mc
-
-    cout << "/nCreating a shuffled list of jackknife removals based on AK4/n";
-
-    // Modification pre-CWR, Sep 27, 2013
-    // Randomly remove event from one of the histograms that was not
-    // yet left out in the latest cycle (these are tracked in jkmore)
-    // ...but how to make sure same event is removed from AK4 and AK8?
-    // => Create list here at the beginning together with ak4entry mappin
-    TRandom3 *rnd = new TRandom3();
-    Long64_t nentries5 = (fChain2 ? fChain2->GetEntriesFast()
-                          : fChain->GetEntriesFast());
-    for (Long64_t jentry5=0; jentry5<nentries5; jentry5++) {
-
-      int n = 10;//h->hpt_jk.size();
-      if (_jkmore.size()==0) { // if jkmore is empty, reset it first
-        for (int ijk = 0; ijk != n; ++ijk) _jkmore.push_back(ijk);
-      }
-      int m = _jkmore.size(); assert(m!=0);
-      int mout = rnd->Integer(m);
-      int iout = _jkmore[mout];
-      _outlist[jentry5] = iout;
-      _jkmore.erase(_jkmore.begin()+mout);
-      if (jentry5<300) {
-        cout << " " << iout;
-        if (jentry5%10==9) cout << ",  ";
-        if (jentry5%20==19) cout << endl;
-      }
-    }
-    cout << endl;
-  } // _jp_ak4ak8
-
   if (_jp_quick) {
 
     fChain->SetBranchStatus("*",0);
-    if (fChain2) fChain2->SetBranchStatus("*",0);
 
     // Luminosity calculation
     if (_mc) fChain->SetBranchStatus("EvtHdr_.mPthat",1); // pthat
@@ -236,35 +145,8 @@ void fillHistos::Loop()
       fChain->SetBranchStatus("GenJets_.fCoordinates.fZ",1); // gen_jtp4z
       fChain->SetBranchStatus("GenJets_.fCoordinates.fT",1); // gen_jtp4t
     }
-
-    if (_jp_ak4ak8) {
-      cout << "Activating friend branches" << endl;
-      if (_dt) {
-        fChain2->SetBranchStatus("EvtHdr_.mRun",1); // run
-        fChain2->SetBranchStatus("EvtHdr_.mEvent",1); // evt
-        fChain2->SetBranchStatus("EvtHdr_.mLumi",1); // lbn
-      }
-      if (_mc) {
-        fChain2->SetBranchStatus("EvtHdr_.mPthat",1);
-        fChain2->SetBranchStatus("EvtHdr_.mOOTPUEarly",1);
-        fChain2->SetBranchStatus("EvtHdr_.mOOTPULate",1);
-        fChain2->SetBranchStatus("EvtHdr_.mINTPU",1);
-        fChain2->SetBranchStatus("GenJets_",1); // njt
-        fChain2->SetBranchStatus("GenJets_.fCoordinates.fX",1);
-        fChain2->SetBranchStatus("GenJets_.fCoordinates.fY",1);
-        fChain2->SetBranchStatus("GenJets_.fCoordinates.fZ",1);
-        fChain2->SetBranchStatus("GenJets_.fCoordinates.fT",1);
-      }
-      fChain2->SetBranchStatus("PFJets_",1); // njt
-      fChain2->SetBranchStatus("PFJets_.P4_*",1); // jtp4x
-      fChain2->SetBranchStatus("PFJets_.cor_",1); // jtjes
-      fChain2->SetBranchStatus("PFJets_.area_",1); // jta
-      fChain2->SetBranchStatus("PFJets_.tightID_",1); // jtidtight
-      fChain2->SetBranchStatus("PFJets_.looseID_",1); // jtidloose
-    }
   } else {
     fChain->SetBranchStatus("*",1);
-    if (fChain2) fChain2->SetBranchStatus("*",1);
   } // quick/slow
 
   // Set pointers to branches
@@ -304,23 +186,6 @@ void fillHistos::Loop()
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
 
-  if (_jp_ak4ak8) {
-    t4_jtp4x = &t4_PFJets__P4__fCoordinates_fX[0];
-    t4_jtp4y = &t4_PFJets__P4__fCoordinates_fY[0];
-    t4_jtp4z = &t4_PFJets__P4__fCoordinates_fZ[0];
-    t4_jtp4t = &t4_PFJets__P4__fCoordinates_fT[0];
-    t4_jta = &t4_PFJets__area_[0];
-    t4_jtjes = &t4_PFJets__cor_[0];
-    t4_jtidloose = &t4_PFJets__looseID_[0];
-    t4_jtidtight = &t4_PFJets__tightID_[0];
-    if (_mc) {
-      t4gen_jtp4x = &t4_GenJets__fCoordinates_fX[0];
-      t4gen_jtp4y = &t4_GenJets__fCoordinates_fY[0];
-      t4gen_jtp4z = &t4_GenJets__fCoordinates_fZ[0];
-      t4gen_jtp4t = &t4_GenJets__fCoordinates_fT[0];
-    }
-  }
-
   //assert(_jp_algo=="AK4" || _jp_algo=="AK8");
   const char *a = _jp_algo.c_str();
   cout << "\nCONFIGURATION DUMP:" << endl;
@@ -332,12 +197,8 @@ void fillHistos::Loop()
            "Using stored JEC in the root tuple") << endl;
   cout << (_jp_useIOV ? "Applying" : "Not applying")
        << " time-dependent JEC (IOV)" << endl;
-  cout << (_jp_doEras ? "Storing all " : "Not storing")
-       << " eras separately" << endl;
   cout << (_jp_doECALveto ? "Vetoing" : "Not vetoing")
        << " jets in bad ECAL towers" << endl;
-  cout << (_jp_doCHS ? "Applying" : "Not applying")
-       << " CHS through betaStar" << endl;
   cout << endl;
 
   if (_dt) {
@@ -353,9 +214,6 @@ void fillHistos::Loop()
          << " pileup profile in MC to data" << endl;
     cout << (_jp_pthatbins ? "Processing pThat binned samples"
              : "Processing \"flat\" samples") << endl;
-  }
-  if (_jp_ak4ak8) {
-    cout << "Adding extra information for AK4/AK8 ratio" << endl;
   }
   cout << endl;
 
@@ -411,29 +269,6 @@ void fillHistos::Loop()
   assert(_JEC);
   assert(_L1RC);
 
-  // Full redoing of JEC
-  _JEC_ak4pf = 0;
-  if (_jp_ak4ak8) {
-    cout << "Loading "<<a<<"PF JEC" << endl;
-    s = Form("%s%sL1FastJet_%sPF.txt",p,t,"AK4"); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l1 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2Relative_%sPF.txt",p,t,"AK4"); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
-    s = Form("%s%sL3Absolute_%sPF.txt",p,t,"AK4"); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2L3Residual_%sPF.txt",p,t,"AK4"); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
-
-    vector<JetCorrectorParameters> vpar;
-    vpar.push_back(*par_l1);
-    vpar.push_back(*par_l2);
-    vpar.push_back(*par_l3);
-    if (_dt) vpar.push_back(*par_l2l3res);
-    _JEC_ak4pf = new FactorizedJetCorrector(vpar);
-
-    assert(_JEC_ak4pf);
-  } // JEC redone
-  return;
   _jecUnc = 0;
   if (_dt) {
     s = Form("%s%sUncertainty_%sPFchs.txt",p,t,a);
@@ -474,10 +309,6 @@ void fillHistos::Loop()
   // Initialize histograms for different epochs and DQM selections
   if (_jp_doBasicHistos) {
     initBasics("Standard");
-    if (_dt && _jp_doEras) {
-      initBasics("RunA");
-      initBasics("RunB");
-    }
   }
 
   if (_dt && _jp_doRunHistos) {
@@ -508,21 +339,7 @@ void fillHistos::Loop()
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-    Long64_t jentry5 = jentry;
-    if (_jp_ak4ak8 && _dt) {
-      jentry5 = ak4entry[EvtHdr__mRun][EvtHdr__mLumi][EvtHdr__mEvent];
-      if (jentry5==0 && jentry!=0) continue;
-    }
-    if (_jp_ak4ak8 && _mc) {
-      Int_t npu = EvtHdr__mINTPU + 500*EvtHdr__mOOTPUEarly
-        + 250000*EvtHdr__mOOTPULate;
-      jentry5 = ak4entrymc[EvtHdr__mPthat][npu];
-      if (jentry5==0 && jentry!=0) continue;
-    }
-    if (fChain2) fChain2->GetEntry(jentry5);
-
-    // For jackknife in MC (and now data as well)
-    _entry = jentry5;
+    _entry = jentry;
 
     if (jentry%50000==0) cout << "." << flush;
 
@@ -577,9 +394,7 @@ void fillHistos::Loop()
 
     njt = PFJets__;       //assert(njt < kMaxPFJets_);
     gen_njt = GenJets__;
-    t4_njt = t4_PFJets__;
     gen_njt = GenJets__;
-    t4gen_njt = t4_GenJets__;
 
     //assert(njt<_njt);
     if (!(njt < _njt)) {
@@ -603,7 +418,7 @@ void fillHistos::Loop()
 
     if (_debug) {
       cout << endl << flush;
-      Show(jentry, jentry5);
+      Show(jentry);
       cout << endl << endl << flush;
 
       cout << "***Checking basic event variables are read out:" << endl;
@@ -616,17 +431,6 @@ void fillHistos::Loop()
       cout << "idtight[0] = " << (njt>0 ? jtidtight[0] : -1) << endl;
       cout << "***end basic event variables" << endl;
       cout << endl << flush;
-
-      if (_jp_ak4ak8) {
-        cout << "AK4AK8PF: t4_njt="<<t4_njt<<"("<<t4_PFJets__<<")"<<endl;
-        cout << "EVENT: " << jentry << ", " << jentry5 << endl;
-        cout << "mRun: "<<EvtHdr__mRun<<" vs "<<t4_EvtHdr__mRun << endl;
-        cout << "mLumi: "<<EvtHdr__mLumi<<" vs "<<t4_EvtHdr__mLumi << endl;
-        cout << "mEvent: "<<EvtHdr__mEvent<<" vs "<<t4_EvtHdr__mEvent << endl;
-        cout << endl << flush;
-        assert(EvtHdr__mRun == t4_EvtHdr__mRun);
-        assert(EvtHdr__mEvent == t4_EvtHdr__mEvent);
-      }
     }
 
     // Check if duplicate
@@ -730,8 +534,7 @@ void fillHistos::Loop()
 
 
     // Reset prescales (dynamic can change within run)
-    for (map<std::string, std::map<int, int> >::iterator it
-           = _prescales.begin(); it != _prescales.end(); ++it) {
+    for (auto it = _prescales.begin(); it != _prescales.end(); ++it) {
       it->second[run] = 0;
     }
 
@@ -793,6 +596,23 @@ void fillHistos::Loop()
         }
       }
     } // for itrg
+    cout << endl << "Scenario: " << _trigs.size() << " triggers found." << endl;
+    cout << "Triggers available: " << _availTrigs.size() << " " << " decisions: " << TriggerDecision_.size() << endl;
+    
+    for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
+      cout << "|" << _availTrigs[itrg];
+    }
+    cout << "|" << endl;
+    for (auto &trg : _trigs)
+      cout << " " << trg << endl;
+    cout << " Trigger pattern:" << endl;
+    for (unsigned trg = 0; trg < TriggerDecision_.size(); ++trg) {
+      if (TriggerDecision_[trg]==1)
+        cout << "|" << _availTrigs[trg] << "|" << L1Prescale_[trg] << "|" << HLTPrescale_[trg] << "|";
+      else
+        cout << "0";
+    }
+    cout << endl;
 
     ++_totcounter;
     if (_pass) ++_evtcounter;
@@ -902,19 +722,6 @@ void fillHistos::Loop()
         gen_jty[i] = genp4.Rapidity();
         // for matching
       } // for i
-
-      if (_jp_ak4ak8) {
-        for (int i = 0; i != t4gen_njt; ++i) {
-
-          genp4.SetPxPyPzE(t4gen_jtp4x[i],t4gen_jtp4y[i],
-                           t4gen_jtp4z[i],t4gen_jtp4t[i]);
-          t4gen_jtpt[i] = genp4.Pt();
-          t4gen_jteta[i] = genp4.Eta(); // for matching
-          t4gen_jtphi[i] = genp4.Phi(); // for matching
-          t4gen_jty[i] = genp4.Rapidity();
-          // for matching
-        } // for i
-      } // _jp_ak4ak8
     } // _mc
 
     // Propagate jec to MET
@@ -962,34 +769,6 @@ void fillHistos::Loop()
     met2 = tools::oplus(mex, mey);
     metphi2 = atan2(mey, mex);
 
-    // Repeat for AK8 jets
-    if (_jp_ak4ak8) {
-      for (int i = 0; i != t4_njt; ++i) {
-
-        // Kostas stores UNCORRECTED four-vector
-        pp4.SetPxPyPzE(t4_jtp4x[i],t4_jtp4y[i],t4_jtp4z[i],t4_jtp4t[i]);
-        t4_jtptu[i] = pp4.Pt();
-        t4_jteu[i] = pp4.E();
-
-        // Recalculate JEC
-        _JEC_ak4pf->setRho(rho);
-        _JEC_ak4pf->setNPV(npvgood);
-        _JEC_ak4pf->setJetA(t4_jta[i]);
-        _JEC_ak4pf->setJetPt(t4_jtptu[i]);
-        _JEC_ak4pf->setJetE(t4_jteu[i]);
-        _JEC_ak4pf->setJetEta(pp4.Eta());
-        t4_jtjesnew[i] = _JEC_ak4pf->getCorrection();
-
-        // Correct jets
-        pp4 *= t4_jtjesnew[i];
-        t4_jte[i] = pp4.E();
-        t4_jtpt[i] = pp4.Pt();
-        t4_jteta[i] = pp4.Eta();
-        t4_jtphi[i] = pp4.Phi();
-        t4_jty[i] = pp4.Rapidity();
-      } // for i
-    } // _jp_ak4ak8
-
     if (njt!=0 && _pass) ++cnt["08njt"];
 
     _jetids.resize(njt);
@@ -1002,7 +781,6 @@ void fillHistos::Loop()
     // Check if overweight PU event
     if (_mc && njt!=0 && _jetids[0] && _pass) {
       _pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
-      //_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
     }
     if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10pthat"];
   
@@ -1014,10 +792,6 @@ void fillHistos::Loop()
     // Eta and pT binning are handled in the fillBasic class
     if (_jp_doBasicHistos) {
       fillBasics("Standard");
-      if (_dt && _jp_doEras) {
-        //if (run>=160431 && run<=163869) fillBasics("RunA");
-        //if (run>=165088 && run<=167913) fillBasics("RunB");
-      }
     }
 
     // Run quality checks
@@ -1166,7 +940,6 @@ void fillHistos::initBasics(string name)
   TFile *f = (_outfile ? _outfile :
               new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
-  //assert(f->mkdir(name.c_str()));
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *topdir = gDirectory;
@@ -1230,7 +1003,7 @@ void fillHistos::initBasics(string name)
         assert(dir);
         basicHistos *h = new basicHistos(dir, trg, "", y[i], y[i+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second,
-                                         triggers[j]=="mc", dofriends, _jp_ak4ak8);
+                                         triggers[j]=="mc", dofriends);
         _histos[name].push_back(h);
       } // for j
     } // real bin
@@ -1265,13 +1038,6 @@ void fillHistos::fillBasic(basicHistos *h)
   if (h->ismc) {
     assert(h->hpt_g0_tmp);
     h->hpt_g0_tmp->Reset();
-  }
-  if (h->ak4ak8) {
-    h->hpt_tmp_ak4pf->Reset();
-  }
-  if (h->ak4ak8 && h->ismc) {
-    assert(h->hpt_g0_tmp_ak4pf);
-    h->hpt_g0_tmp_ak4pf->Reset();
   }
 
   _w = _w0 * _wt[h->trigname]; assert(_w);
@@ -1466,17 +1232,6 @@ void fillHistos::fillBasic(basicHistos *h)
       int ipf4(-1);
       double dr4min(999.);
       double ptprobepf4(0.);
-      if (h->ak4ak8) {
-        for (int j = 0; j != t4_njt; ++j) {
-          double dr = tools::oplus(delta_phi(t4_jtphi[j], jtphi[i]),
-              fabs(t4_jteta[j] - jteta[i]));
-          if (dr < dr4min) {
-            ipf4 = j;
-            dr4min = dr;
-          }
-        }
-        ptprobepf4 = (dr4min<0.8 ? t4_jtpt[ipf4] : 0.);
-      }
 
       // This used previously yref and ptref
       if (_evtid && id && _jetids[iref] &&
@@ -1510,9 +1265,6 @@ void fillHistos::fillBasic(basicHistos *h)
         assert(h->pbetastartp);
         h->pbetastartp->Fill(ptref, jtbetastar[i], _w);
         //
-        if (dr4min<0.4) h->pak4ak8tp_50->Fill(ptref, ptprobepf4/jtpt[i]);
-        if (dr4min<0.2) h->pak4ak8tp_25->Fill(ptref, ptprobepf4/jtpt[i]);
-
         if (ptref > h->ptmin && ptref < h->ptmax) {
 
           h->hncandtp->Fill(jtn[i], _w);
@@ -1528,8 +1280,6 @@ void fillHistos::fillBasic(basicHistos *h)
           h->hmuftp->Fill(jtmuf[i], _w);
           h->hbetatp->Fill(jtbeta[i], _w);
           h->hbetastartp->Fill(jtbetastar[i], _w);
-          //
-          if (dr4min<0.4) h->hak4ak8tp->Fill(ptprobepf4/jtpt[i]);
           //
           assert(h->pncandtp_vsnpv);
           h->pncandtp_vsnpv->Fill(npvgood, jtn[i], _w);
@@ -1669,28 +1419,6 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hptevt->Fill(pt, _w);
       h->hpttmp->Fill(pt);
 
-      // REMOVED: "delete-m jackknife for AK4/AK8 statistics"
-      if (_jp_ak4ak8) {
-        // Modification pre-CWR, Sep 27, 2013
-        // Randomly remove event from one of the histograms that was not
-        // yet left out in the latest cycle (these are tracked in jkmore)
-        // ...but how to make sure same event is removed from AK4 and AK8?
-        // => move into beginning to pre-create removal list
-        int n = h->hpt_jk.size(); assert(n==10);
-        //if (_jkmore.size()==0) { // if jkmore is empty, reset it first
-        //for (int ijk = 0; ijk != n; ++ijk) _jkmore.push_back(ijk);
-        //}
-        ///int m = _jkmore.size(); assert(m!=0);
-        //int mout = gRandom3->Integer(m);
-        //int iout = _jkmore[mout];
-        int iout = _outlist[_entry];
-        for (int ijk = 0; ijk != n; ++ijk) {
-          if (ijk!=iout) h->hpt_jk[ijk]->Fill(pt, _w);
-        }
-        h->h2jk->Fill(_entry%n, iout, _w);
-        //_jkmore.erase(_jkmore.begin()+mout);
-      }
-
       // leading and non-leading jets
       assert(h->hpt1);
       if (i==0) { h->hpt1->Fill(pt, _w); }
@@ -1775,26 +1503,6 @@ void fillHistos::fillBasic(basicHistos *h)
       assert(h->pbetastar);
       h->pbetastar->Fill(pt, jtbetastar[i], _w);
 
-      // Find AK4 match for AK4/AK8 ratio studies
-      double ptpf4(0.), dr4min(999.);
-      if (h->ak4ak8) {
-
-        int ipf4 = -1;
-        dr4min = 999.;
-        for (int j = 0; j != t4_njt; ++j) {
-          double dr = tools::oplus(delta_phi(t4_jtphi[j], phi),
-                                   fabs(t4_jteta[j] - eta));
-          if (dr < dr4min) {
-            ipf4 = j;
-            dr4min = dr;
-          }
-        }
-        ptpf4 = (dr4min<0.4 ? t4_jtpt[ipf4] : 0.);
-        if (dr4min<0.4) h->pak4ak8_50->Fill(pt, ptpf4/pt);
-        if (dr4min<0.2) h->pak4ak8_25->Fill(pt, ptpf4/pt);
-
-      } // _jp_ak4ak8
-
       // control plots for topology (JEC)
       if (pt >= h->ptmin && pt < h->ptmax) {
         if (_debug) cout << "..control plots for topology" << endl << flush;
@@ -1852,8 +1560,6 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hmuf->Fill(jtmuf[i], _w);
         h->hbeta->Fill(jtbeta[i], _w);
         h->hbetastar->Fill(jtbetastar[i], _w);
-        //
-        if (dr4min<0.4) h->hak4ak8->Fill(ptpf4/pt);
 
         h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
         h->hyeta2->Fill(y-eta, _w);
@@ -1958,28 +1664,6 @@ void fillHistos::fillBasic(basicHistos *h)
     } // if id && MC
   } // for i
 
-  if (h->ak4ak8) { // _jp_ak4ak8
-
-    bool evtid5 = (met < 0.4 * metsumet || met < 45.);
-
-    for (int i = 0; i != t4_njt; ++i) {
-
-      double y = t4_jty[i];
-      if (evtid5 && t4_jtidtight[i] && _pass &&
-          fabs(y) >= h->ymin && fabs(y) < h->ymax) {
-
-        double pt = t4_jtpt[i];
-
-        if (pt > _jp_recopt) {
-
-          h->hpt_ak4pf->Fill(pt, _w);
-          h->hpt_tmp_ak4pf->Fill(pt); // Event statistics
-        } // reco pt
-      } // y bin
-    } // for i
-  } // _jp_ak4ak8
-
-
   // Event statistics
   for (int i = 1; i != h->hpt_tmp->GetNbinsX()+1; ++i) {
     if (h->hpt_tmp->GetBinContent(i)!=0) {
@@ -1992,109 +1676,6 @@ void fillHistos::fillBasic(basicHistos *h)
     }
   } // for i
 
-  //if (_jp_ak4ak8) {
-  if (h->ak4ak8) {
-
-    for (int i = 1; i != h->hpt_tmp_ak4pf->GetNbinsX()+1; ++i) {
-
-      if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0) {
-
-        double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
-        int njet = h->hpt_tmp_ak4pf->GetBinContent(i);
-        h->hpt_evtcount_ak4pf->Fill(pt);
-        h->hpt_evt_ak4pf->Fill(pt, _w);
-        h->hpt_jet_ak4pf->Fill(pt, _w*njet);
-      }
-
-      // Jet number correlations
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          h->hpt_tmp_ak4pf->GetBinContent(i)!=0) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        h->hpt_ak4ak8->Fill(pt, min(n7,2), min(n5,2), _w);
-      }
-      if (h->hpt_tmp->GetBinContent(i)!=0) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        h->hpt_ak8ak8->Fill(pt, min(n7,2), min(n7,2), _w);
-      }
-      if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0) {
-        double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i);
-        h->hpt_ak4ak4->Fill(pt, min(n5,2), min(n5,2), _w);
-      }
-      // Jet number correlations for nearby off-diagonals
-      // Minus one
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          (i>1 && h->hpt_tmp_ak4pf->GetBinContent(i-1)!=0)) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i-1);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        h->hpt_ak4ak8m1->Fill(pt, min(n7,2), min(n5,2), _w);
-      }
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          (i>1 && h->hpt_tmp->GetBinContent(i-1)!=0)) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        int n7m1 = h->hpt_tmp->GetBinContent(i-1);
-        h->hpt_ak8ak8m1->Fill(pt, min(n7,2), min(n7m1,2), _w);
-      }
-      if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0 ||
-          (i>1 && h->hpt_tmp_ak4pf->GetBinContent(i-1)!=0)) {
-        double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i);
-        int n5m1 = h->hpt_tmp_ak4pf->GetBinContent(i-1);
-        h->hpt_ak4ak4m1->Fill(pt, min(n5,2), min(n5m1,2), _w);
-      }
-      // Minus two
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          (i>2 && h->hpt_tmp_ak4pf->GetBinContent(i-2)!=0)) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i-2);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        h->hpt_ak4ak8m2->Fill(pt, min(n7,2), min(n5,2), _w);
-      }
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          (i>2 && h->hpt_tmp->GetBinContent(i-2)!=0)) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        int n7m2 = h->hpt_tmp->GetBinContent(i-2);
-        h->hpt_ak8ak8m2->Fill(pt, min(n7,2), min(n7m2,2), _w);
-      }
-      if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0 ||
-          (i>2 && h->hpt_tmp_ak4pf->GetBinContent(i-2)!=0)) {
-        double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i);
-        int n5m2 = h->hpt_tmp_ak4pf->GetBinContent(i-2);
-        h->hpt_ak4ak4m2->Fill(pt, min(n5,2), min(n5m2,2), _w);
-      }
-      // Plus one
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          h->hpt_tmp_ak4pf->GetBinContent(i+1)!=0) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i+1);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        h->hpt_ak4ak8p1->Fill(pt, min(n7,2), min(n5,2), _w);
-      }
-      if (h->hpt_tmp->GetBinContent(i)!=0 ||
-          h->hpt_tmp->GetBinContent(i+1)!=0) {
-        double pt = h->hpt_tmp->GetBinCenter(i);
-        int n7 = h->hpt_tmp->GetBinContent(i);
-        int n7p1 = h->hpt_tmp->GetBinContent(i+1);
-        h->hpt_ak8ak8p1->Fill(pt, min(n7,2), min(n7p1,2), _w);
-      }
-      if (h->hpt_tmp_ak4pf->GetBinContent(i)!=0 ||
-          h->hpt_tmp_ak4pf->GetBinContent(i+1)!=0) {
-        double pt = h->hpt_tmp_ak4pf->GetBinCenter(i);
-        int n5 = h->hpt_tmp_ak4pf->GetBinContent(i);
-        int n5p1 = h->hpt_tmp_ak4pf->GetBinContent(i+1);
-        h->hpt_ak4ak4p1->Fill(pt, min(n5,2), min(n5p1,2), _w);
-      }
-
-    } // for i
-  } // _jp_ak4ak8
-  
   // Unbiased generator spectrum (for each trigger)
   if (_mc) {
     if (_debug) cout << "Truth loop:" << endl;
@@ -2107,22 +1688,6 @@ void fillHistos::fillBasic(basicHistos *h)
                << " ptg="<<gen_jtpt[i] << " yg="<<gen_jty[i] << endl;
         }
       }
-
-      if (h->ak4ak8) {
-        double pt = gen_jtpt[i];
-        double phi = gen_jtphi[i];
-        if (pt >= h->ptmin && pt < h->ptmax) {
-          for (int j = 0; j != t4gen_njt; ++j) {
-            double y5 = t4gen_jty[j];
-            double phi5 = t4gen_jty[j];
-            double dr = tools::oplus(geny-y5, phi-phi5);
-            if (dr<0.25) {
-              assert(h->hak4ak8g0);
-              h->hak4ak8g0->Fill(t4gen_jtpt[j]/gen_jtpt[i], _w);
-            }
-          } // for j
-        }
-      } // _jp_ak4ak8
     }
   }
   //
@@ -2184,57 +1749,6 @@ void fillHistos::fillBasic(basicHistos *h)
       }
     } // for i
 
-    if (h->ak4ak8) {
-      for (int i = 0; i != t4gen_njt; ++i) {
-        double y = t4gen_jty[i];
-        if (fabs(y) >= h->ymin && fabs(y) < h->ymax) {
-          assert(h->hpt_g0_ak4pf);
-          h->hpt_g0_ak4pf->Fill(t4gen_jtpt[i], _w);
-          assert(h->hpt_g0_tmp_ak4pf);
-          h->hpt_g0_tmp_ak4pf->Fill(t4gen_jtpt[i]);
-        }
-      } // for i
-    } // _ak4pf
-
-
-    if (h->ak4ak8) {
-
-      for (int i = 1; i != h->hpt_g0_tmp_ak4pf->GetNbinsX()+1; ++i) {
-
-        // Jet number correlations
-        if (h->hpt_g0_tmp->GetBinContent(i)!=0 ||
-            h->hpt_g0_tmp_ak4pf->GetBinContent(i)!=0) {
-          double pt = h->hpt_g0_tmp->GetBinCenter(i);
-          int n5 = h->hpt_g0_tmp_ak4pf->GetBinContent(i);
-          int n7 = h->hpt_g0_tmp->GetBinContent(i);
-          h->hpt_g0_ak4ak8->Fill(pt, min(n7,2), min(n5,2), _w);
-        }
-        // Jet number correlations for nearby off-diagonals
-        if (h->hpt_g0_tmp->GetBinContent(i)!=0 ||
-          (i>1 && h->hpt_g0_tmp_ak4pf->GetBinContent(i-1)!=0)) {
-          double pt = h->hpt_g0_tmp->GetBinCenter(i);
-          int n5 = h->hpt_g0_tmp_ak4pf->GetBinContent(i-1);
-          int n7 = h->hpt_g0_tmp->GetBinContent(i);
-          h->hpt_g0_ak4ak8m1->Fill(pt, min(n7,2), min(n5,2), _w);
-        }
-        //
-        if (h->hpt_g0_tmp->GetBinContent(i)!=0 ||
-            (i>2 && h->hpt_g0_tmp_ak4pf->GetBinContent(i-2)!=0)) {
-          double pt = h->hpt_g0_tmp->GetBinCenter(i);
-          int n5 = h->hpt_g0_tmp_ak4pf->GetBinContent(i-2);
-          int n7 = h->hpt_g0_tmp->GetBinContent(i);
-          h->hpt_g0_ak4ak8m2->Fill(pt, min(n7,2), min(n5,2), _w);
-        }
-        //
-        if (h->hpt_g0_tmp->GetBinContent(i)!=0 ||
-            h->hpt_g0_tmp_ak4pf->GetBinContent(i+1)!=0) {
-          double pt = h->hpt_g0_tmp->GetBinCenter(i);
-          int n5 = h->hpt_g0_tmp_ak4pf->GetBinContent(i+1);
-          int n7 = h->hpt_g0_tmp->GetBinContent(i);
-          h->hpt_g0_ak4ak8p1->Fill(pt, min(n7,2), min(n5,2), _w);
-        }
-      } // for i
-    } // _jp_ak4ak8
   } // gen spectrum
 
 } // fillBasic
@@ -2476,24 +1990,6 @@ void fillHistos::fillJetID(vector<bool> &id)
   }
 
 } // fillJetID
-
-
-void fillHistos::fillJetID5(vector<bool> &id)
-{
-  assert(int(id.size())==t4_njt);
-
-  for (int i = 0; i != t4_njt; ++i) {
-
-    id[i] = ((fabs(t4_jty[i])<2.5 ? t4_jtidtight[i] : t4_jtidloose[i]));
-
-    if (_jp_doECALveto) {
-      assert(ecalveto);
-      int ibin = ecalveto->FindBin(t4_jteta[i],t4_jtphi[i]);
-      id[i] = (id[i] && ecalveto->GetBinContent(ibin)==0);
-    }
-  }
-
-} // fillJetID5
 
 
 // Load good run and LS information
