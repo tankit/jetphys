@@ -31,3 +31,9 @@ For plotting purposes there is the script drawFracs.C. This is operated by
 mk_mcPlots.C and mk_generalPlots.C. These are designed for streamlining the process
 of generating various plots with the same script. That is, different parameter
 valuues, which have an effect on the mode of operation.
+
+IF ODD PROBLEMS ARE OCCURRING, CHECK THE PIECES OF CODE WITH A "HOX" MENTION.
+THERE MIGHT BE SOMETHING THAT NEEDS TO BE UPDATED FROM TIME TO TIME.
+
+TO FIND SOME OLD PIECES OF CODE NO LONGER IN USE, REFER TO THE GITHUB VERSION FROM
+JAN 31 2017 OR BEFORE. A FORMAT OF '// REMOVED: "X"' IS IN USE FOR NOTABLE REMOVALS.
