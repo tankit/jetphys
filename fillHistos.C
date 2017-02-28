@@ -583,7 +583,7 @@ void fillHistos::Loop()
 
     //assert(njt<_njt);
     if (!(njt < _njt)) {
-      ferr << "Array overflow: njt = " << njt
+      *ferr << "Array overflow: njt = " << njt
            << " > njtmax=" << _njt << endl;
       cout << "Array overflow: njt = "<< njt
            << " > njtmax=" << _njt << endl;
@@ -593,7 +593,7 @@ void fillHistos::Loop()
 
      //assert(!_mc || gen_njt<_njt);
     if (_mc && !(gen_njt < _njt)) {
-      ferr << "Array overflow: gen_njt = " << gen_njt
+      *ferr << "Array overflow: gen_njt = " << gen_njt
            << " > njtmax=" << _njt << endl;
       cout << "Array overflow: gen_njt = "<< njt
            << " > njtmax=" << _njt << endl;
@@ -1387,7 +1387,7 @@ void fillHistos::fillBasic(basicHistos *h)
     assert(h->hdjmpftp);
     // Look for both combinations (first combo follows t&p terminology, second is inverted) 
     if (etaref < 1.3 && etaprobe >= h->ymin && etaprobe < h->ymax) {
-      double asymmtp = (ptprobe - ptref)/(2*pt1);
+      double asymmtp = (ptprobe - ptref)/(2*ptref);
       double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
       double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
       double alphatp = pt3/ptref;
@@ -1397,7 +1397,7 @@ void fillHistos::fillBasic(basicHistos *h)
       h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
     } // first combo
     if (etaprobe < 1.3 && etaref >= h->ymin && etaref < h->ymax) {
-      double asymmtp = (ptref - ptprobe)/(2*pt2);
+      double asymmtp = (ptref - ptprobe)/(2*ptprobe);
       double mpf = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptave;
       double mpftp = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptprobe;
       double alphatp = pt3/ptprobe;
