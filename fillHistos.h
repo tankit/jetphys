@@ -827,7 +827,6 @@ public :
   //TH1F *pudt;
   set<string> _trigs;
   vector<bool> _jetids;
-  vector<bool> _jetids5;
   map<string, vector<basicHistos*> > _histos;
   map<string, runHistos*> _runhistos;
   TH1D *hmcweight;

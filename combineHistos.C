@@ -22,7 +22,7 @@
 using namespace std;
 
 TH1D *recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt",
-		  bool atBottom = false, TH1D *_hpt = 0, double etamid = 0);
+                  bool atBottom = false, TH1D *_hpt = 0, double etamid = 0);
 map<string, pair<double, double> > _ptranges;
 map<string, map<int, pair<double, double> > > _massranges;
 
@@ -170,6 +170,7 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "pbetastar");
   recurseFile(fin, fout, "pjec");
   recurseFile(fin, fout, "pjec2");
+  //recurseFile(fin, fout, "pjec_res");
   //
   recurseFile(fin, fout, "pncandtp");
   recurseFile(fin, fout, "pnchtp");
@@ -241,8 +242,8 @@ void combineHistos(string type) {
 
 
 TH1D* recurseFile(TDirectory *indir,
-		  TDirectory *outdir, string hname,
-		  bool atBottom, TH1D *_hpt, double etamid) {
+                  TDirectory *outdir, string hname,
+                  bool atBottom, TH1D *_hpt, double etamid) {
 
   TDirectory *curdir = gDirectory;
 
@@ -269,14 +270,14 @@ TH1D* recurseFile(TDirectory *indir,
 
       TDirectory *outdir2 = outdir;
       if (!atBottom) {
-	if (outdir->FindKey(obj->GetName())==0) outdir->mkdir(obj->GetName());
-	assert(outdir->cd(key->GetName()));
-	outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
-	outdir2->cd();
-	if (_debug) cout << key->GetName() << endl;
+        if (outdir->FindKey(obj->GetName())==0) outdir->mkdir(obj->GetName());
+        assert(outdir->cd(key->GetName()));
+        outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
+        outdir2->cd();
+        if (_debug) cout << key->GetName() << endl;
       }
       else
-	if (_debug) cout << key->GetName() << " (at bottom)" << endl;      
+        if (_debug) cout << key->GetName() << " (at bottom)" << endl;      
 
       assert(indir->cd(obj->GetName()));
       TDirectory *indir2 = indir->GetDirectory(obj->GetName()); assert(indir2);
@@ -287,18 +288,18 @@ TH1D* recurseFile(TDirectory *indir,
       // set flag and reset the combined histogram pointer
       float etamin, etamax;
       if ( (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2)
-	   && (etamax>etamin) ) {
+         && (etamax>etamin) ) {
 
-	_hpt = recurseFile(indir2, outdir2, hname, true, _hpt,
-			   0.5*(etamin+etamax));
-	if (_hpt) {
-	  outdir2->cd();
-	  _hpt->Write();
-	  _hpt = 0;
-	}
+        _hpt = recurseFile(indir2, outdir2, hname, true, _hpt,
+               0.5*(etamin+etamax));
+        if (_hpt) {
+          outdir2->cd();
+          _hpt->Write();
+          _hpt = 0;
+        }
       }
       else {
-	_hpt = recurseFile(indir2, outdir2, hname, atBottom, _hpt, etamid);
+        _hpt = recurseFile(indir2, outdir2, hname, atBottom, _hpt, etamid);
       }
 
     } // inherits from TDirectory
@@ -307,9 +308,9 @@ TH1D* recurseFile(TDirectory *indir,
     if (kname==hname && obj->InheritsFrom("TProfile")) {
 
       if (_hpt==0) {
-	outdir->cd();
-	_hpt = ((TProfile*)obj)->ProjectionX(obj->GetName());
-	indir->cd();
+        outdir->cd();
+        _hpt = ((TProfile*)obj)->ProjectionX(obj->GetName());
+        indir->cd();
       }
     } // TProfile
 
@@ -317,9 +318,9 @@ TH1D* recurseFile(TDirectory *indir,
     if (kname==hname && obj->InheritsFrom("TProfile3D")) {
 
       if (_hpt==0) {
-	outdir->cd();
-	_hpt = (TH1D*)((TProfile3D*)obj)->ProjectionXYZ(obj->GetName());
-	indir->cd();
+        outdir->cd();
+        _hpt = (TH1D*)((TProfile3D*)obj)->ProjectionXYZ(obj->GetName());
+        indir->cd();
       }
     } // TProfile3D
 
@@ -331,35 +332,35 @@ TH1D* recurseFile(TDirectory *indir,
       TH3D *hpt3 = (TH3D*)obj;
 
       if (_hpt==0) {
-	outdir->cd();
-	_hpt = (TH1D*)hpt3->Clone(hpt3->GetName());
-	_hpt->Reset();
-	indir->cd();
-	assert(_hpt);
-	if (_debug) cout << "Cloned _" << hpt3->GetName() << endl;
+        outdir->cd();
+        _hpt = (TH1D*)hpt3->Clone(hpt3->GetName());
+        _hpt->Reset();
+        indir->cd();
+        assert(_hpt);
+        if (_debug) cout << "Cloned _" << hpt3->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())
-	cout << "pT range not found for directory "
-	     << indir->GetName() << endl;
+        cout << "pT range not found for directory "
+             << indir->GetName() << endl;
       assert(_ptranges.find(indir->GetName())!=_ptranges.end());
       double ptmin = _ptranges[indir->GetName()].first;
       double ptmax = _ptranges[indir->GetName()].second;
 
       TH3D *_hpt3 = (TH3D*)_hpt;
       for (int i = 1; i != _hpt3->GetNbinsX()+1; ++i) {
-	
-	double pt = _hpt3->GetXaxis()->GetBinCenter(i);
-	if (pt > ptmin && pt < ptmax) {
-
-	  for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
-	    for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
-
-	      _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
-	      _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
-	    } // for l
-	  } // for j
-	} // in ptrange
+        
+        double pt = _hpt3->GetXaxis()->GetBinCenter(i);
+        if (pt > ptmin && pt < ptmax) {
+        
+          for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
+            for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
+        
+              _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
+              _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
+            } // for l
+          } // for j
+        } // in ptrange
       } // for i
 
     } // TH3
@@ -368,33 +369,33 @@ TH1D* recurseFile(TDirectory *indir,
       TH2D *hpt2 = (TH2D*)obj;
 
       if (_hpt==0) {
-	outdir->cd();
-	_hpt = (TH1D*)hpt2->Clone(hpt2->GetName());
-	_hpt->Reset();
-	indir->cd();
-	assert(_hpt);
-	if (_debug) cout << "Cloned _" << hpt2->GetName() << endl;
+        outdir->cd();
+        _hpt = (TH1D*)hpt2->Clone(hpt2->GetName());
+        _hpt->Reset();
+        indir->cd();
+        assert(_hpt);
+        if (_debug) cout << "Cloned _" << hpt2->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())
-	cout << "pT range not found for directory "
-	     << indir->GetName() << endl;
+        cout << "pT range not found for directory "
+             << indir->GetName() << endl;
       assert(_ptranges.find(indir->GetName())!=_ptranges.end());
       double ptmin = _ptranges[indir->GetName()].first;
       double ptmax = _ptranges[indir->GetName()].second;
 
       TH2D *_hpt2 = (TH2D*)_hpt;
       for (int i = 1; i != _hpt2->GetNbinsX()+1; ++i) {
-	
-	double pt = _hpt2->GetXaxis()->GetBinCenter(i);
-	if (pt > ptmin && pt < ptmax) {
-
-	  for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
-
-	      _hpt2->SetBinContent(i,j, hpt2->GetBinContent(i,j));
-	      _hpt2->SetBinError(i,j, hpt2->GetBinError(i,j));
-	  } // for j
-	} // in ptrange
+        
+        double pt = _hpt2->GetXaxis()->GetBinCenter(i);
+        if (pt > ptmin && pt < ptmax) {
+        
+          for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
+        
+              _hpt2->SetBinContent(i,j, hpt2->GetBinContent(i,j));
+              _hpt2->SetBinError(i,j, hpt2->GetBinError(i,j));
+          } // for j
+        } // in ptrange
       } // for i
 
     } // TH2
@@ -403,17 +404,17 @@ TH1D* recurseFile(TDirectory *indir,
       TH1D *hpt = (TH1D*)obj;
 
       if (_hpt==0) {
-	outdir->cd();
-	_hpt = (TH1D*)hpt->Clone(hpt->GetName());
-	_hpt->Reset();
-	indir->cd();
-	assert(_hpt);
-	if (_debug) cout << "Cloned _" << hpt->GetName() << endl;
+        outdir->cd();
+        _hpt = (TH1D*)hpt->Clone(hpt->GetName());
+        _hpt->Reset();
+        indir->cd();
+        assert(_hpt);
+        if (_debug) cout << "Cloned _" << hpt->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())
-	cout << "pT range not found for directory "
-	     << indir->GetName() << endl;
+        cout << "pT range not found for directory "
+             << indir->GetName() << endl;
       assert(_ptranges.find(indir->GetName())!=_ptranges.end());
       double ptmin = _ptranges[indir->GetName()].first;
       double ptmax = _ptranges[indir->GetName()].second;
@@ -421,22 +422,22 @@ TH1D* recurseFile(TDirectory *indir,
       // Replace ranges for mass histograms
       if (TString(hname.c_str()).Contains("hdjmass")) {
 
-	assert(etamid!=0);
-	int ieta = int(etamid/0.5); assert(ieta<=7);
-	ptmin = _massranges[indir->GetName()][ieta].first;
-	ptmax = _massranges[indir->GetName()][ieta].second;
-	if (ptmin==0) ptmin = 10.;
-	if (ptmax==0) ptmax = 3000.;
+        assert(etamid!=0);
+        int ieta = int(etamid/0.5); assert(ieta<=7);
+        ptmin = _massranges[indir->GetName()][ieta].first;
+        ptmax = _massranges[indir->GetName()][ieta].second;
+        if (ptmin==0) ptmin = 10.;
+        if (ptmax==0) ptmax = 3000.;
       } // mass histo
 
       for (int i = 1; i != _hpt->GetNbinsX()+1; ++i) {
-	
-	double pt = _hpt->GetBinCenter(i);
-	if (pt > ptmin && pt < ptmax) {
-	  
-	  _hpt->SetBinContent(i, hpt->GetBinContent(i));
-	  _hpt->SetBinError(i, hpt->GetBinError(i));
-	} // in ptrange
+        
+        double pt = _hpt->GetBinCenter(i);
+        if (pt > ptmin && pt < ptmax) {
+          
+          _hpt->SetBinContent(i, hpt->GetBinContent(i));
+          _hpt->SetBinError(i, hpt->GetBinError(i));
+        } // in ptrange
       } // for i
 
     } // TH1D

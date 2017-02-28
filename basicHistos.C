@@ -65,7 +65,7 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 
 // Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
 // Using NLOxNP theory fit as input when available
-  const int neta = 9;
+  const int neta = 8;
   const int nbins = 65;
 double vx[neta][nbins] =
   {{10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3832, 6076, 6389}, // Eta_0.0-0.5
@@ -74,8 +74,8 @@ double vx[neta][nbins] =
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2500, 2640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_1.5-2.0
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.0-2.5
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_2.5-3.0
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_3.0-3.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_3.5-4.0
 
 
   int ieta = int(0.5*(ymin+ymax)/0.5); assert(ieta<neta);
@@ -342,35 +342,35 @@ double vx[neta][nbins] =
   pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",50,-0.5,49.5);
   this->ismc = ismc;
 
-//   pncand->Sumw2();
-//   pnch->Sumw2();
-//   pnne->Sumw2();
-//   pnnh->Sumw2();
-//   pchf->Sumw2();
-//   pnef->Sumw2();
-//   pnhf->Sumw2();
-//   hncand->Sumw2();
-//   hnch->Sumw2();
-//   hnne->Sumw2();
-//   hnnh->Sumw2();
-//   hchf->Sumw2();
-//   hnef->Sumw2();
-//   hnhf->Sumw2();
-//   //
-//   pncandtp->Sumw2();
-//   pnchtp->Sumw2();
-//   pnnetp->Sumw2();
-//   pnnhtp->Sumw2();
-//   pchftp->Sumw2();
-//   pneftp->Sumw2();
-//   pnhftp->Sumw2();
-//   hncandtp->Sumw2();
-//   hnchtp->Sumw2();
-//   hnnetp->Sumw2();
-//   hnnhtp->Sumw2();
-//   hchftp->Sumw2();
-//   hneftp->Sumw2();
-//   hnhftp->Sumw2();
+  //pncand->Sumw2();
+  //pnch->Sumw2();
+  //pnne->Sumw2();
+  //pnnh->Sumw2();
+  //pchf->Sumw2();
+  //pnef->Sumw2();
+  //pnhf->Sumw2();
+  //hncand->Sumw2();
+  //hnch->Sumw2();
+  //hnne->Sumw2();
+  //hnnh->Sumw2();
+  //hchf->Sumw2();
+  //hnef->Sumw2();
+  //hnhf->Sumw2();
+  ////
+  //pncandtp->Sumw2();
+  //pnchtp->Sumw2();
+  //pnnetp->Sumw2();
+  //pnnhtp->Sumw2();
+  //pchftp->Sumw2();
+  //pneftp->Sumw2();
+  //pnhftp->Sumw2();
+  //hncandtp->Sumw2();
+  //hnchtp->Sumw2();
+  //hnnetp->Sumw2();
+  //hnnhtp->Sumw2();
+  //hchftp->Sumw2();
+  //hneftp->Sumw2();
+  //hnhftp->Sumw2();
 
   // control plots for topology (JEC)
   hselpt = new TH1D("hselpt","",nx,&x[0]);
@@ -455,28 +455,28 @@ double vx[neta][nbins] =
   //htrpu = new TH1D("htrpu","",100,-0.5,99.5);
   htrpu = new TH1D("htrpu","",120,0.,60.); // for PU reweighing
   if (this->ismc) {
-    hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
-    hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
-    hpt_jt110 = new TH1D("hpt_jt110","",nx,&x[0]);
-    hpt_jt190 = new TH1D("hpt_jt190","",nx,&x[0]);
-    hpt_jt240 = new TH1D("hpt_jt240","",nx,&x[0]);
-    hpt_jt300 = new TH1D("hpt_jt300","",nx,&x[0]);
-    hpt_jt370 = new TH1D("hpt_jt370","",nx,&x[0]);
-    //
-    hpt0_jt30 = new TH1D("hpt0_jt30","",3450,0.,3450.);
-    hpt0_jt60 = new TH1D("hpt0_jt60","",3450,0.,3450.);
-    hpt0_jt110 = new TH1D("hpt0_jt110","",3450,0.,3450.);
-    hpt0_jt190 = new TH1D("hpt0_jt190","",3450,0.,3450.);
-    hpt0_jt240 = new TH1D("hpt0_jt240","",3450,0.,3450.);
-    hpt0_jt300 = new TH1D("hpt0_jt300","",3450,0.,3450.);
-    hpt0_jt370 = new TH1D("hpt0_jt370","",3450,0.,3450.);
+    //hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
+    //hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
+    //hpt_jt110 = new TH1D("hpt_jt110","",nx,&x[0]);
+    //hpt_jt190 = new TH1D("hpt_jt190","",nx,&x[0]);
+    //hpt_jt240 = new TH1D("hpt_jt240","",nx,&x[0]);
+    //hpt_jt300 = new TH1D("hpt_jt300","",nx,&x[0]);
+    //hpt_jt370 = new TH1D("hpt_jt370","",nx,&x[0]);
+    ////
+    //hpt0_jt30 = new TH1D("hpt0_jt30","",3450,0.,3450.);
+    //hpt0_jt60 = new TH1D("hpt0_jt60","",3450,0.,3450.);
+    //hpt0_jt110 = new TH1D("hpt0_jt110","",3450,0.,3450.);
+    //hpt0_jt190 = new TH1D("hpt0_jt190","",3450,0.,3450.);
+    //hpt0_jt240 = new TH1D("hpt0_jt240","",3450,0.,3450.);
+    //hpt0_jt300 = new TH1D("hpt0_jt300","",3450,0.,3450.);
+    //hpt0_jt370 = new TH1D("hpt0_jt370","",3450,0.,3450.);
 
 
     hpthat = new TH1D("hpthat","",nx,&x[0]);
     hpthatnlo = new TH1D("hpthatnlo","",nx,&x[0]);
     
-    // unfolding studies (Mikael)
-    // mT: (pTgen,ygen); (pTreco,yreco)
+    //unfolding studies (Mikael)
+    //mT: (pTgen,ygen); (pTreco,yreco)
     mT = new TH2D("mT","mT(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
     mTuw = new TH2D("mTuw","mTuw(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
     mTf = new TH2D("mTf","mT(yjet);p_{T,gen};p_{T,reco}",
@@ -497,10 +497,10 @@ double vx[neta][nbins] =
     hootpuearly = new TH1D("hootpuearly","",100,-0.5,99.5);
     hootpulate = new TH1D("hootpulate","",100,-0.5,99.5);
     h2itvsoot = new TH2D("h2itvsoot","",25,-0.5,24.5,50,-0.5,49.5);
-//     hitpu->Sumw2();
-//     hootpuearly->Sumw2();
-//     hootpulate->Sumw2();
-//     h2itvsoot->Sumw2();
+    //hitpu->Sumw2();
+    //hootpuearly->Sumw2();
+    //hootpulate->Sumw2();
+    //h2itvsoot->Sumw2();
 
     hpt_noid_g = new TH1D("hpt_noid_g","",nx,&x[0]);
     hpt_nojetid_g = new TH1D("hpt_nojetid_g","",nx,&x[0]);
@@ -544,30 +544,30 @@ double vx[neta][nbins] =
     p2dy_guw = new TProfile("p2dy_guw","",nx,&x[0]);
     pdy_r = new TProfile2D("pdy_r","",nx,&x[0],144,0.,TMath::Pi());
     pdy_g = new TProfile2D("pdy_g","",nx,&x[0],144,0.,TMath::Pi());
-//     hpthat->Sumw2();
-
-//     hpt_noid_g->Sumw2();
-//     hpt_nojetid_g->Sumw2();
-//     hpt_noevtid_g->Sumw2();
-
-//     hpt_r->Sumw2();
-//     hpt_g->Sumw2();
-//     hpt_gg->Sumw2();
-//     hpt_g0->Sumw2();
-//     //
-//     p3rvsnpv->Sumw2();
-//     p2rvsnpv->Sumw2();
-//     h2r_r->Sumw2();
-//     h2r_g->Sumw2();
-//     p2r_r->Sumw2();
-//     p2r_g->Sumw2();
-//     // was missing from dec3 first attempt
-//     h2dy_r->Sumw2();
-//     h2dy_g->Sumw2();
-//     p2dy_r->Sumw2();
-//     p2dy_g->Sumw2();
-//     pdy_r->Sumw2();
-//     pdy_g->Sumw2();
+    //hpthat->Sumw2();
+    
+    //hpt_noid_g->Sumw2();
+    //hpt_nojetid_g->Sumw2();
+    //hpt_noevtid_g->Sumw2();
+    
+    //hpt_r->Sumw2();
+    //hpt_g->Sumw2();
+    //hpt_gg->Sumw2();
+    //hpt_g0->Sumw2();
+    ////
+    //p3rvsnpv->Sumw2();
+    //p2rvsnpv->Sumw2();
+    //h2r_r->Sumw2();
+    //h2r_g->Sumw2();
+    //p2r_r->Sumw2();
+    //p2r_g->Sumw2();
+    //// was missing from dec3 first attempt
+    //h2dy_r->Sumw2();
+    //h2dy_g->Sumw2();
+    //p2dy_r->Sumw2();
+    //p2dy_g->Sumw2();
+    //pdy_r->Sumw2();
+    //pdy_g->Sumw2();
 
   } // ismc
 

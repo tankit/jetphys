@@ -69,11 +69,11 @@
     // 2016Flate
     //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p));
     // 2016G
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart1.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
-    //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart1.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
+    c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
 
   //// Run2 2016 PromptReco
     // 2016B
