@@ -1,7 +1,8 @@
 // Purpose: Fill jet physics analysis histograms
 // Author:  mikko.voutilainen@cern.ch
+// Co-author: hannu.siikonen@cern.ch
 // Created: April 19, 2010
-// Updated: March 4, 2016
+
 ////////////////////////////////////////////////////////////////////////
 // Notes:   Automatically created using TChain::MakeClass("fillHistos")
 //          Keep variable declarations in the automatic order,
@@ -881,6 +882,7 @@ private:
   //L3Corr *_jecUnc2;
 
   bool   _pass;
+  bool   _evtid;
 
   set<int> _runveto;
   map<int, map<int, int> > _json;
@@ -917,7 +919,7 @@ private:
   int _evtcounter;
   int _totcounter;
 
-  TLorentzVector j1, j2;
+  TLorentzVector _j1, _j2;
 
   /////////////////////////////////////////////////////////////////////////////
   // end more manually added code

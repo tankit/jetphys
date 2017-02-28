@@ -1,7 +1,7 @@
 // Purpose: Analysis settings for jet physics package
 // Author:  mikko.voutilainen@cern.ch
+// Co-author: hannu.siikonen@cern.ch
 // Created: June 1, 2015
-// Updated: June 1, 2015
 #ifndef __settings_h__
 #define __settings_h__
 #include <string>

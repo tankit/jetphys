@@ -460,12 +460,7 @@ void fillHistos::Loop()
   // load ECAL veto file for cleaning data
   if (_jp_doECALveto) loadECALveto(_jp_ecalveto.c_str());
 
-  // Add these runs to the manual veto list
-  if (_dt) {
-    // Veto list for 38X 36/pb
-    //_runveto.insert(142418);
-    // _runveto.insert(162765); // rate 30% in all triggers for 1.1/fb
-  }
+  // REMOVED: "manual veto list"
 
   // load luminosity tables (prescales now stored in event)
   if (_dt && _jp_dolumi) loadLumi(_jp_lumifile.c_str());
@@ -547,25 +542,19 @@ void fillHistos::Loop()
     weight = (_jp_pthatbins ?
               hmcweight->GetBinContent(hmcweight->FindBin(pthat)) :
               EvtHdr__mWeight);
-    // START TEMP PATCH ///
-    //if (_mc && !_jp_pthatbins && (fabs(weight-1)<1e-4 || weight==0)) {
-    //weight = (pthat ? pow(pthat/15.0,-4.5) : 1);
-    //}
-    // END TEMP PATCH //
+    // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
     evt = EvtHdr__mEvent;
     lbn = EvtHdr__mLumi;
 
     trpu = EvtHdr__mTrPu;
     itpu = EvtHdr__mINTPU;
-    //itpu = EvtHdr__mINTPU / 6.; // TEMP PATCH
     ootpulate = EvtHdr__mOOTPULate;
     ootpuearly = EvtHdr__mOOTPUEarly;
 
     if (_dt) {
       trpu = _avgpu[run][lbn];
       if (trpu==0) {
-        //trpu = getTruePU(run, lbn);
         int irun = h2mu->GetXaxis()->FindBin(run);
         int ilbn = h2mu->GetYaxis()->FindBin(lbn);
         trpu = h2mu->GetBinContent(irun, ilbn);
@@ -707,8 +696,8 @@ void fillHistos::Loop()
     if (_pass) ++cnt["03vtx"];
 
     // Event cuts against beam backgrounds
-    if (_pass && (tools::oplus(pvx-bsx, pvy-bsy)>0.15 ||
-                  pvndof<=4 || fabs(pvz) >= 24.)) {
+    if (_pass && (tools::oplus(pvx-bsx, pvy-bsy)>0.15 || pvndof<=4 || fabs(pvz) >= 24.)) 
+    {
       ++_bscounter_bad;
       _pass = false;
     }
@@ -716,16 +705,13 @@ void fillHistos::Loop()
     if (_pass) ++cnt["04bsc"];
 
     // Event cuts against beam backgrounds
-    /* // Commented out on Aug 4 for testing
     if (_pass && ecalveto &&
-        ((njt>=1 &&
-          ecalveto->GetBinContent(ecalveto->FindBin(jteta[0],jtphi[0]))!=0) ||
-         (njt>=2 &&
-          ecalveto->GetBinContent(ecalveto->FindBin(jteta[1],jtphi[1]))!=0))){
+         ( (njt>=1 && ecalveto->GetBinContent(ecalveto->FindBin(jteta[0],jtphi[0]))!=0)
+        || (njt>=2 && ecalveto->GetBinContent(ecalveto->FindBin(jteta[1],jtphi[1]))!=0) ))
+    {
       ++_ecalcounter_bad;
       _pass = false;
     } // ecal veto
-    */
     if (_pass) ++_ecalcounter_good;
     if (_pass) ++cnt["05ecal"];
 
@@ -827,8 +813,6 @@ void fillHistos::Loop()
       if (_mc && _jp_reweighPU) {
         int k = pudist[trg_name]->FindBin(trpu);
         double w1 = pudist[trg_name]->GetBinContent(k);
-        //int k = pudt->FindBin(trpu);
-        //double w1 = pudt->GetBinContent(k);
         double w2 = pumc->GetBinContent(k);
         Double_t wtrue = (w1==0 || w2==0 ? 1. : w1 / w2);
         _wt[trg_name] *= wtrue;
@@ -841,7 +825,7 @@ void fillHistos::Loop()
     _wt["mc"] = _wt[_jp_mctrig];
     if (_trigs.size()!=0 && _pass && _mc) ++cnt["07puw"];
 
-    // To-do: implement reweighing for k-factor (NLO*NP/LOMC)
+    // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 
     // load correct IOV for JEC
     if (_dt && _jp_useIOV) {
@@ -855,6 +839,7 @@ void fillHistos::Loop()
     for (int i = 0; i != njt; ++i) {
 
       // Kostas stores UNCORRECTED four-vector
+      // HOX: this is a source of constant anxiety, should be rechecked from time to time
       p4.SetPxPyPzE(jtp4x[i],jtp4y[i],jtp4z[i],jtp4t[i]);
       jtptu[i] = p4.Pt();
       jteu[i] = p4.E();
@@ -901,31 +886,7 @@ void fillHistos::Loop()
         jtgeny[i] = gp4.Rapidity();
       }
 
-      // Oversmear MC to match data
-      // Results from Matthias Schroeder, JA July 21, 2011:
-      // https://indico.cern.ch/getFile.py/access?contribId=2&resId=0&materialId=slides&confId=148123
-      /* // Turned off on Oct 4 for testing
-      if (_mc && jtgenr[i] < 0.25 && jtgenpt[i] > 0. &&
-          jtpt[i] > 0.5*jtgenpt[i] && jtpt[i] < 2.0*jtgenpt[i]) {
-        double kover = 1.00;
-        double x = fabs(jteta[i]);
-        // updated to noResJEC on Aug29 (for |eta|>2.3 in particular)
-        if (x < 0.5)              kover = 1.062;//1.052;
-        if (x >= 0.5 && x < 1.1)  kover = 1.057;//1.057;
-        if (x >= 1.1 && x < 1.7)  kover = 1.089;//1.096;
-        if (x >= 1.7 && x < 2.3)  kover = 1.127;//1.134;
-        if (x >= 2.3 && x < 5.0)  kover = 1.158;//1.288;
-        double dpt = (kover - 1) * (jtpt[i] - jtgenpt[i]);
-        double kf = 1 + dpt / jtpt[i];
-        jte[i] *= kf;
-        jtpt[i] *= kf;
-        jtptu[i] *= kf;
-        // To-do: propagate this to MET also
-        mex -= dpt * cos(jtphi[i]) / jtjesnew[i];
-        //mey -= dpt * cos(jtphi[i]) / jtjesnew[i]; // BUG!!!
-        mey -= dpt * sin(jtphi[i]) / jtjesnew[i]; // BUG!!!
-      }
-      */
+      // REMOVED: "Oversmear MC to match data"
 
       met = tools::oplus(mex, mey);
       metphi = atan2(mey, mex);
@@ -1044,6 +1005,9 @@ void fillHistos::Loop()
       //_pass = (jtpt[0] < 2.0*jtgenpt[0] || jtpt[0] < 2.0*pthat);
     }
     if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10pthat"];
+  
+    // Equipped in fillBasics and fillRunHistos
+    _evtid = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
 
     // Here can categorize events into different triggers, epochs,
     // topologies etc.
@@ -1318,11 +1282,6 @@ void fillHistos::fillBasic(basicHistos *h)
   if (_dt && h->lums[run][lbn]==0) {
     double lum = _lums[run][lbn];
     double lum2 = _lums2[run][lbn];
-    if (lum==0) {
-      // cerr << "Run " << run << " LS " << lbn << " empty!" << endl;
-      // apparently these can be Poisson fluctuations in the .csv file
-    }
-
     double prescale(0);
     map<int, int>::const_iterator ip = _prescales[h->trigname].find(run);
     if (ip==_prescales[h->trigname].end()) {
@@ -1366,9 +1325,6 @@ void fillHistos::fillBasic(basicHistos *h)
   // check if required trigger fired
   if (!fired) return;
 
-  // Check if event looks good
-  bool evtid = (met <= 0.4 * metsumet || met < 45.); // QCD-11-004
-
   if (_debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",
       h->ymin,h->ymax,h->trigname.c_str()) << endl;
   if (_debug) cout << "Calculate and fill dijet mass" << endl << flush;
@@ -1389,22 +1345,22 @@ void fillHistos::fillBasic(basicHistos *h)
     int i0 = (ptorder.begin())->second;
     int i1 = (++ptorder.begin())->second;
 
-    //TLorentzVector j1, j2; // use class variables, save instantiation
-    j1.SetPtEtaPhiE(jtpt[i0],jteta[i0],jtphi[i0],jte[i0]);
-    j2.SetPtEtaPhiE(jtpt[i1],jteta[i1],jtphi[i1],jte[i1]);
-    double djmass = (j1+j2).M();
+    // We are within a loop, so the class variables _j1 and _j2 should not be initialized here
+    _j1.SetPtEtaPhiE(jtpt[i0],jteta[i0],jtphi[i0],jte[i0]);
+    _j2.SetPtEtaPhiE(jtpt[i1],jteta[i1],jtphi[i1],jte[i1]);
+    double djmass = (_j1+_j2).M();
     double ymaxdj = max(fabs(jty[i0]),fabs(jty[i1]));
     bool goodmass = (jtpt[i0]>30. && jtpt[i1]>30.);
-    if (evtid && goodmass && _jetids[i0] && _jetids[i1] &&
+    if (_evtid && goodmass && _jetids[i0] && _jetids[i1] &&
         ymaxdj >= h->ymin && ymaxdj < h->ymax) {
       assert(h->hdjmass);
       h->hdjmass->Fill(djmass, _w);
       assert(h->hdjmass0);
       h->hdjmass0->Fill(djmass, _w);
       assert(h->pdjmass_ptratio);
-      h->pdjmass_ptratio->Fill(djmass, j1.Pt()/j2.Pt(), _w);
+      h->pdjmass_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
       assert(h->pdjmass0_ptratio);
-      h->pdjmass0_ptratio->Fill(djmass, j1.Pt()/j2.Pt(), _w);
+      h->pdjmass0_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
     }
 
   } // dijet mass
@@ -1412,7 +1368,7 @@ void fillHistos::fillBasic(basicHistos *h)
   if (_debug) cout << "Calculate and fill dijet balance" << endl << flush;
 
   // Calculate and fill dijet balance histograms
-  if (njt>=2 && jtpt[0]>0 && jtpt[1]>0 && evtid && delta_phi(jtphi[0],jtphi[1])>2.8
+  if (njt>=2 && jtpt[0]>0 && jtpt[1]>0 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
       && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
     int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
     int iprobe = (iref==0 ? 1 : 0);
@@ -1459,7 +1415,7 @@ void fillHistos::fillBasic(basicHistos *h)
       fabs(jty[2])>=h->ymin && fabs(jty[2])<h->ymax
       && jtpt[1] > 0.70 * jtpt[0]);
   bool has32 = (has3 && fabs(jty[1]) < 1.3);
-  if (_pass && evtid && _jetids[0] && jtpt[0]>=h->ptmin && jtpt[0]<h->ptmax &&
+  if (_pass && _evtid && _jetids[0] && jtpt[0]>=h->ptmin && jtpt[0]<h->ptmax &&
       fabs(jty[0]) < 1.3) {
 
     h->hr21->Fill(has2 ? jtpt[1] / jtpt[0] : 0.);
@@ -1523,7 +1479,7 @@ void fillHistos::fillBasic(basicHistos *h)
       }
 
       // This used previously yref and ptref
-      if (evtid && id && _jetids[iref] &&
+      if (_evtid && id && _jetids[iref] &&
           fabs(etaref) < 1.3 && dphi > 2.7 && pt3 < 0.3*ptref) {
 
         assert(h->pncandtp);
@@ -1629,21 +1585,21 @@ void fillHistos::fillBasic(basicHistos *h)
         cout << "..." << h->trigname << " | " << " index " << i << "/" << njt
           << " jet pt: " << pt << " y : " << y
           << " id " << id << " jec: " << jec << endl;
-        cout << "...evt id: " << evtid << " weight: " << _w
+        cout << "...evt id: " << _evtid << " weight: " << _w
           << " met: " << met << " metsumet: " << metsumet << endl;
       }
 
       assert(h->hpt_noid);
       h->hpt_noid->Fill(pt, _w);
       assert(h->hpt_nojetid);
-      if (evtid) h->hpt_nojetid->Fill(pt, _w);
+      if (_evtid) h->hpt_nojetid->Fill(pt, _w);
       assert(h->hpt_noevtid);
       if (id)    h->hpt_noevtid->Fill(pt, _w);
       // Same versus generator pT as MC extra
       // to decouple efficiency from JEC and JER
       if (h->ismc) {
         h->hpt_noid_g->Fill(jtgenpt[i], _w);
-        if (evtid) h->hpt_nojetid_g->Fill(jtgenpt[i], _w);
+        if (_evtid) h->hpt_nojetid_g->Fill(jtgenpt[i], _w);
         if (id)    h->hpt_noevtid_g->Fill(jtgenpt[i], _w);
       }
     } // ID cuts
@@ -1652,7 +1608,7 @@ void fillHistos::fillBasic(basicHistos *h)
     if (h->ismc) {
       double ygen = jtgeny[i]; // use jtgeny, if available
       // GenJets matched to good reco jets in good events
-      if (evtid && id && pt>_jp_recopt && jtgenr[i] < 0.25 &&
+      if (_evtid && id && pt>_jp_recopt && jtgenr[i] < 0.25 &&
           fabs(ygen) >= h->ymin && fabs(ygen) < h->ymax) {
         h->hpt_gg->Fill(jtgenpt[i], _w);
       }
@@ -1663,43 +1619,10 @@ void fillHistos::fillBasic(basicHistos *h)
       }
     }
 
-    // Debugging JEC
-    /*
-       if (h->ismc && h->ymin==0 && h->ymax==0.5) {
-
-       int igen = -1;
-    // Find matching genjet
-    double drmin = 999;
-    for (int j = 0; j != gen_njt; ++j) {
-    double dr = tools::oplus(delta_phi(gen_jtphi[j], jtphi[i]),
-    fabs(gen_jteta[j] - jteta[i]));
-    if (dr < drmin) {
-    igen = j;
-    drmin = dr;
-    }
-    }
-
-    if (npvgood==1 && fabs(jteta[i])<1.3 &&
-    jtgenpt[i]>=80 && jtgenpt[i]<120.) {
-    cout << "jet " << i << " eta = " << jteta[i]
-    << " y " << jty[i] << " ygen = " << jtgeny[i]
-    << " pt = " << jtpt[i]
-    << " ptuncorr = " << jtptu[i]
-    << " (ratio = " << jtpt[i]/jtptu[i]
-    << " , jec = " << jtjesnew[i]
-    << " , old = " << jtjes[i] << ")"
-    << " npvgood = " << npvgood
-    << " jtgenpt = " << jtgenpt[i]
-    << " dr = " << jtgenr[i]
-    << " genpt = " << (igen!=-1 ? gen_jtpt[igen] : -1)
-    << " drmin = " << drmin
-    << " gen/reco = " << jtgenpt[i]/jtpt[i] << endl;
-    }
-    } // debugging JEC
-     */
+    // REMOVED: "Debugging JEC"
 
     // calculate efficiencies and fill histograms
-    if (evtid && id && pt>_jp_recopt &&
+    if (_evtid && id && pt>_jp_recopt &&
         fabs(y) >= h->ymin && fabs(y) < h->ymax) {
 
       if (_debug) cout << "..jec uncertainty" << endl << flush;
@@ -1729,28 +1652,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
       if (_debug) cout << "..raw spectrum" << endl << flush;
 
-      // For trigger efficiency
-      //if (h->ismc) {
-      //  h->hpt_jt30->Fill(pt, _w0 * _wt["jt30"]);
-      //  h->hpt_jt60->Fill(pt, _w0 * _wt["jt60"]);
-      //  //h->hpt_jt80->Fill(pt, _w0 * _wt["jt80"]);
-      //  h->hpt_jt110->Fill(pt, _w0 * _wt["jt110"]);
-      //  //h->hpt_jt150->Fill(pt, _w0 * _wt["jt150"]);
-      //  h->hpt_jt190->Fill(pt, _w0 * _wt["jt190"]);
-      //  h->hpt_jt240->Fill(pt, _w0 * _wt["jt240"]);
-      //  h->hpt_jt300->Fill(pt, _w0 * _wt["jt300"]);
-      //  h->hpt_jt370->Fill(pt, _w0 * _wt["jt370"]);
-      //  //
-      //  h->hpt0_jt30->Fill(pt, _w0 * _wt["jt30"]);
-      //  h->hpt0_jt60->Fill(pt, _w0 * _wt["jt60"]);
-      //  //h->hpt0_jt80->Fill(pt, _w0 * _wt["jt80"]);
-      //  h->hpt0_jt110->Fill(pt, _w0 * _wt["jt110"]);
-      //  //h->hpt0_jt150->Fill(pt, _w0 * _wt["jt150"]);
-      //  h->hpt0_jt190->Fill(pt, _w0 * _wt["jt190"]);
-      //  h->hpt0_jt240->Fill(pt, _w0 * _wt["jt240"]);
-      //  h->hpt0_jt300->Fill(pt, _w0 * _wt["jt300"]);
-      //  h->hpt0_jt370->Fill(pt, _w0 * _wt["jt370"]);
-      //}
+      // REMOVED: "For trigger efficiency"
 
       // raw spectrum
       assert(h->hpt);
@@ -1761,38 +1663,13 @@ void fillHistos::fillBasic(basicHistos *h)
       if (_mc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
       assert(h->hpt0);
       h->hpt0->Fill(pt, _w);
-      //if (y>=0) {
-      //h->hpt_plus->Fill(pt, _w);
-      //h->hpt0_plus->Fill(pt, _w);
-      //h->hpt_plus_38x->Fill(pt, _w);
-      //}
-      //if (y<0) {
-      //h->hpt_minus->Fill(pt, _w);
-      //h->hpt0_minus->Fill(pt, _w);
-      //h->hpt_minus_38x->Fill(pt, _w);
-      //}
+      // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
       // Do proper event statistics
       if (h->hpttmp->GetBinContent(h->hpttmp->FindBin(pt))==0)
         h->hptevt->Fill(pt, _w);
       h->hpttmp->Fill(pt);
 
-      // delete-m jackknife for AK4/AK8 statistics
-      /*
-         if (_dt) {
-         int n = h->hpt_jk.size();
-         for (int iout = 0; iout != n; ++iout) {
-      //if (evt%n!=iout) h->hpt_jk[iout]->Fill(pt, _w);
-      if (_entry%n!=iout) h->hpt_jk[iout]->Fill(pt, _w); // March 28, 2013
-      }
-      }
-      if (_mc) {
-      int n = h->hpt_jk.size();
-      for (int iout = 0; iout != n; ++iout) {
-      if (_entry%n!=iout) h->hpt_jk[iout]->Fill(pt, _w);
-      }
-      }
-       */
-      //if (_dt || _mc) {
+      // REMOVED: "delete-m jackknife for AK4/AK8 statistics"
       if (_jp_ak4ak8) {
         // Modification pre-CWR, Sep 27, 2013
         // Randomly remove event from one of the histograms that was not
@@ -2043,8 +1920,6 @@ void fillHistos::fillBasic(basicHistos *h)
           h->ppt_g->Fill(ptgen, ptgen, _w);
 
           // Response closure vs NPV
-          //if (r) h->p3rvsnpv->Fill(ptgen, jteta[i], npvgood, resp, _w);
-          //if (r) h->p3rvsnpvW->Fill(ptgen, fabs(jteta[i]), npvgood, resp, _w);
           if (r) h->p2rvsnpv->Fill(ptgen, npvgood, r, _w);
 
           // Response closure
@@ -2070,16 +1945,16 @@ void fillHistos::fillBasic(basicHistos *h)
     } // if id && etabin
 
     // MC: Filling outside of eta bin
-    if (h->ismc && evtid && id && pt > _jp_recopt &&
+    if (h->ismc && _evtid && id && pt > _jp_recopt &&
         jtgenr[i]<0.25 && jtgenpt[i]!=0 && jtjesnew[i]!=0) {
 
       double ptgen = jtgenpt[i];
-      double r = pt / ptgen;
+      double r = (ptgen ? pt / ptgen : 0);
       double resp = r / jtjesnew[i];
 
       // Response closure vs NPV
-      h->p3rvsnpv->Fill(ptgen, jteta[i], npvgood, resp, _w);
-      h->p3rvsnpvW->Fill(ptgen, fabs(jteta[i]), npvgood, resp, _w);
+      if (r) h->p3rvsnpv->Fill(ptgen, jteta[i], npvgood, resp, _w);
+      if (r) h->p3rvsnpvW->Fill(ptgen, fabs(jteta[i]), npvgood, resp, _w);
     } // if id && MC
   } // for i
 
@@ -2261,7 +2136,7 @@ void fillHistos::fillBasic(basicHistos *h)
       for (int j = 0; j != njt; ++j) {
 
         //double yreco = fabs(jty[j]);
-        bool id = (_jetids[j] && evtid && _pass);
+        bool id = (_jetids[j] && _evtid && _pass);
 
         if ((ygen >= h->ymin && ygen < h->ymax && gen_jtpt[i]>_jp_recopt) &&
             //(yreco >= h->ymin && yreco < h->ymax)
@@ -2291,7 +2166,7 @@ void fillHistos::fillBasic(basicHistos *h)
     //
     for (int j = 0; j != njt; ++j) {
       double yreco = fabs(jty[j]);
-      bool id  = (_jetids[j] && evtid && _pass && jtpt[j]>_jp_recopt);
+      bool id  = (_jetids[j] && _evtid && _pass && jtpt[j]>_jp_recopt);
       if (yreco >= h->ymin && yreco < h->ymax && id) {
         h->my->Fill(jtpt[j], _w);
         h->myf->Fill(jtpt[j], _w);
@@ -2454,8 +2329,7 @@ void fillHistos::fillRunHistos(string name)
 
     double lum = _lums[run][lbn];
     double lum2 = _lums2[run][lbn];
-    //if (lum==0) return; // no lumi no pass
-    // let pass, lum==0 can be Poisson fluctuation for a valid LS
+    // Let lum==0 pass, it can be a Poisson fluctuation for a valid LS
 
     h->lumsum += lum;
     h->lumsum2 += lum2;
@@ -2505,8 +2379,6 @@ void fillHistos::fillRunHistos(string name)
     } // new run
   }
 
-  //bool evtid = (met < 0.5 * metsumet || met < 100.);
-  bool evtid = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
 
   double dphi = (njt>=2 ? delta_phi(jtphi[0], jtphi[1]) : 0.);
   double pt3 = (njt>=3 ? jtpt[2] : 0.);
@@ -2517,7 +2389,7 @@ void fillHistos::fillRunHistos(string name)
     double y = jty[i];
 
     if (h->ymin <= fabs(y) && fabs(y) < h->ymax && _pass && _jetids[i]
-        && evtid) {
+        && _evtid) {
 
       for (set<string>::const_iterator it = _trigs.begin(); it != _trigs.end(); ++it) {
         string const& t = *it;
@@ -2715,13 +2587,15 @@ void fillHistos::loadLumi(const char* filename)
   assert(getline(f, s, '\n'));
   //assert(f >> s);
   cout << endl << "string: " << s << " !" << endl << flush;
+
+  // HOX: the lumi file format has been changing:
   //bool v1 = (s==string("run,ls,delivered,recorded"));
   //bool v2 = (s==string("Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
   //bool v3 = (s==string("Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
   //assert(v1 || v2 || v3);
   //assert (s=="#Data tag : online , Norm tag: None");
   assert (s=="#Data tag : v1 , Norm tag: None");
-  //
+
   //assert(getline(f, s, '\r'));
   assert(getline(f, s, '\n'));
   //assert(f>>s);
@@ -2733,20 +2607,7 @@ void fillHistos::loadLumi(const char* filename)
   double lumsum_good(0);
   double lumsum_json(0);
   bool skip(false);
-  /*
-  while ((v1 && f >> s &&
-    sscanf(s.c_str(),"%d,%d,%f,%f",&rn,&ls,&del,&rec)==4) ||
-   (v2 && getline(f, s, '\r') &&
-    (sscanf(s.c_str(),"%d,%d:%d,%d/%d/%d %d:%d:%d,STABLE BEAMS,"
-      "%f,%f,%f", &rn,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
-      &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec)==12 ||
-     (skip=true))) ||
-   (v3 && getline(f, s, '\r') &&
-    (sscanf(s.c_str(),"%d:%d,%d:%d,%d/%d/%d %d:%d:%d,STABLE BEAMS,"
-      "%f,%f,%f", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
-      &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec)==13 ||
-     (skip=true)))) {
-  */
+  // REMOVED: "while ((v1 && f >> s &&" etc.
   while (//getline(f, s, '\r') &&
         getline(f, s, '\n') &&
         //f >> s &&
@@ -2846,7 +2707,6 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
   TFile *fpumc = new TFile(mcfile,"READ");
   assert(fpumc && !fpumc->IsZombie());
 
-  //pumc = (TH1D*)fpumc->Get("hpu370"); assert(pumc);
   pumc = (TH1F*)fpumc->Get("pileupmc"); assert(pumc);
 
   // Normalize
@@ -2858,9 +2718,7 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
     pudist[t] = (TH1D*)fpudist->Get(Form("%s",t)); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
-  // data with only one histo:
-  //pudt = (TH1F*)fpudist->Get("pileupdt"); assert(pudt);
-  //pudt->Scale(1./pudt->Integral());
+  // REMOVED: "data with only one histo:"
 
   curdir->cd();
 } // loadPUProfiles
@@ -2898,7 +2756,6 @@ void fillHistos::loadPrescales(const char *prescalefile)
     for (unsigned int itrg = 0; ss >> pre; ++itrg) {
       //cout << "trg" << trgs[itrg] << " run " << run << " ls " << ls;
       assert(itrg!=trgs.size());
-      //_premap[trgs[itrg]][run] = pre;
       _premap[trgs[itrg]][run][ls] = pre;
       if (_debug) cout << pre << "/" << trgs[itrg] << " ";
     }
