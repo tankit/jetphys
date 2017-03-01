@@ -15,7 +15,7 @@ using namespace std;
 basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 			 double ymin, double ymax,
 			 double pttrg, double ptmin, double ptmax,
-			 bool ismc, bool dofriends)
+			 bool ismc)
   : lumsum(0), lumsum2(0) {
 
   TDirectory *curdir = gDirectory;
@@ -30,7 +30,6 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
   this->pttrg = pttrg;
   this->ptmin = ptmin;
   this->ptmax = ptmax;
-  this->dofriends = dofriends;
 
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
@@ -76,6 +75,9 @@ double vx[neta][nbins] =
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_3.0-3.5
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_3.5-4.0
 
+  const double etarange[] =
+  {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+  const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
 
   int ieta = int(0.5*(ymin+ymax)/0.5); assert(ieta<neta);
   vector<double> x;
@@ -386,6 +388,38 @@ double vx[neta][nbins] =
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpftp = new TH3D("hdjmpftp",";p_{T,tag};p_{T,3rd}/p_{T,tag};MPF",
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
+  hdjasymm_a01 = new TH3D("hdjasymm_a01",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a01 = new TH3D("hdjmpf_a01",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a01 = new TH3D("hdjasymmtp_a01",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a01 = new TH3D("hdjmpftp_a01",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a015 = new TH3D("hdjasymm_a015",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a015 = new TH3D("hdjmpf_a015",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a015 = new TH3D("hdjasymmtp_a015",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a015 = new TH3D("hdjmpftp_a015",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a02 = new TH3D("hdjasymm_a02",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a02 = new TH3D("hdjmpf_a02",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a02 = new TH3D("hdjasymmtp_a02",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a02 = new TH3D("hdjmpftp_a02",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a03 = new TH3D("hdjasymm_a03",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a03 = new TH3D("hdjmpf_a03",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a03 = new TH3D("hdjasymmtp_a03",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a03 = new TH3D("hdjmpftp_a03",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
 
   hr21 = new TH1D("hr21",";pt2/pt1",50,0.,1.);
   hr31 = new TH1D("hr31",";pt3/pt1",50,0.,1.);
@@ -415,6 +449,22 @@ double vx[neta][nbins] =
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
   hdjmpftp->Sumw2();
+  hdjasymm_a01->Sumw2();
+  hdjmpf_a01->Sumw2();
+  hdjasymmtp_a01->Sumw2();
+  hdjmpftp_a01->Sumw2();
+  hdjasymm_a015->Sumw2();
+  hdjmpf_a015->Sumw2();
+  hdjasymmtp_a015->Sumw2();
+  hdjmpftp_a015->Sumw2();
+  hdjasymm_a02->Sumw2();
+  hdjmpf_a02->Sumw2();
+  hdjasymmtp_a02->Sumw2();
+  hdjmpftp_a02->Sumw2();
+  hdjasymm_a03->Sumw2();
+  hdjmpf_a03->Sumw2();
+  hdjasymmtp_a03->Sumw2();
+  hdjmpftp_a03->Sumw2();
 
 
   // MC checks

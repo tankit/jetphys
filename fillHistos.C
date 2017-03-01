@@ -17,12 +17,6 @@ void fillHistos::Loop()
   nentries = (_jp_nentries==-1 ? ntot-nskip : min(ntot-nskip, _jp_nentries));
   assert(nskip+nentries);
 
-  //nentries = 10; // debug
-  //nentries = 1000;//very short test runs
-  //nentries = 100000;//short test runs
-  //nentries = 1000000;//medium test runs
-  //nentries = 5000000; // lunch-break run for MC (with trigsim off)
-
   map<string, int> cnt; // efficiency counters
 
   ferr = new ofstream("fillHistos.log",ios::out);
@@ -596,23 +590,23 @@ void fillHistos::Loop()
         }
       }
     } // for itrg
-    cout << endl << "Scenario: " << _trigs.size() << " triggers found." << endl;
-    cout << "Triggers available: " << _availTrigs.size() << " " << " decisions: " << TriggerDecision_.size() << endl;
-    
-    for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
-      cout << "|" << _availTrigs[itrg];
-    }
-    cout << "|" << endl;
-    for (auto &trg : _trigs)
-      cout << " " << trg << endl;
-    cout << " Trigger pattern:" << endl;
-    for (unsigned trg = 0; trg < TriggerDecision_.size(); ++trg) {
-      if (TriggerDecision_[trg]==1)
-        cout << "|" << _availTrigs[trg] << "|" << L1Prescale_[trg] << "|" << HLTPrescale_[trg] << "|";
-      else
-        cout << "0";
-    }
-    cout << endl;
+    //cout << endl << "Scenario: " << _trigs.size() << " triggers found." << endl;
+    //cout << "Triggers available: " << _availTrigs.size() << " " << " decisions: " << TriggerDecision_.size() << endl;
+    //
+    //for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
+    //  cout << "|" << _availTrigs[itrg];
+    //}
+    //cout << "|" << endl;
+    //for (auto &trg : _trigs)
+    //  cout << " " << trg << endl;
+    //cout << " Trigger pattern:" << endl;
+    //for (unsigned trg = 0; trg < TriggerDecision_.size(); ++trg) {
+    //  if (TriggerDecision_[trg]==1)
+    //    cout << "|" << _availTrigs[trg] << "|" << L1Prescale_[trg] << "|" << HLTPrescale_[trg] << "|";
+    //  else
+    //    cout << "0";
+    //}
+    //cout << endl;
 
     ++_totcounter;
     if (_pass) ++_evtcounter;
@@ -1003,7 +997,7 @@ void fillHistos::initBasics(string name)
         assert(dir);
         basicHistos *h = new basicHistos(dir, trg, "", y[i], y[i+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second,
-                                         triggers[j]=="mc", dofriends);
+                                         triggers[j]=="mc");
         _histos[name].push_back(h);
       } // for j
     } // real bin
@@ -1134,7 +1128,7 @@ void fillHistos::fillBasic(basicHistos *h)
   if (_debug) cout << "Calculate and fill dijet balance" << endl << flush;
 
   // Calculate and fill dijet balance histograms
-  if (njt>=2 && jtpt[0]>0 && jtpt[1]>0 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
+  if (njt>=2 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
       && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
     int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
     int iprobe = (iref==0 ? 1 : 0);
@@ -1152,25 +1146,93 @@ void fillHistos::fillBasic(basicHistos *h)
     assert(h->hdjmpf);
     assert(h->hdjmpftp);
     // Look for both combinations (first combo follows t&p terminology, second is inverted) 
-    if (etaref < 1.3 && etaprobe >= h->ymin && etaprobe < h->ymax) {
+    if (etaref < 1.3) {
       double asymmtp = (ptprobe - ptref)/(2*ptref);
       double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
       double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
       double alphatp = pt3/ptref;
-      h->hdjasymm->Fill(ptave, alpha, asymm, _w);
-      h->hdjmpf->Fill(ptave, alpha, mpf, _w);
-      h->hdjasymmtp->Fill(ptref, alphatp, asymmtp, _w);
-      h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
+      if (etaprobe >= h->ymin && etaprobe < h->ymax) {
+        h->hdjasymm->Fill(ptave, alpha, asymm, _w);
+        h->hdjmpf->Fill(ptave, alpha, mpf, _w);
+        h->hdjasymmtp->Fill(ptref, alphatp, asymmtp, _w);
+        h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
+      }
+      if (alpha<0.1) {
+        h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.1) {
+        h->hdjasymmtp_a01->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a01->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.15) {
+        h->hdjasymm_a015->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a015->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.15) {
+        h->hdjasymmtp_a015->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a015->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.2) {
+        h->hdjasymm_a02->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a02->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.2) {
+        h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.3) {
+        h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.3) {
+        h->hdjasymmtp_a03->Fill(ptref, alphatp, asymmtp, _w);
+        h->hdjmpftp_a03->Fill(ptref, alphatp, mpftp, _w);
+      }
     } // first combo
-    if (etaprobe < 1.3 && etaref >= h->ymin && etaref < h->ymax) {
+    if (etaprobe < 1.3) {
       double asymmtp = (ptref - ptprobe)/(2*ptprobe);
       double mpf = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptave;
       double mpftp = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptprobe;
       double alphatp = pt3/ptprobe;
-      h->hdjasymm->Fill(ptave, alpha, -asymm, _w);
-      h->hdjmpf->Fill(ptave, alpha, mpf, _w);
-      h->hdjasymmtp->Fill(ptprobe, alphatp, asymmtp, _w);
-      h->hdjmpftp->Fill(ptprobe, alphatp, mpftp, _w);
+      if (etaref >= h->ymin && etaref < h->ymax) {
+        h->hdjasymm->Fill(ptave, alpha, -asymm, _w);
+        h->hdjmpf->Fill(ptave, alpha, mpf, _w);
+        h->hdjasymmtp->Fill(ptprobe, alphatp, asymmtp, _w);
+        h->hdjmpftp->Fill(ptprobe, alphatp, mpftp, _w);
+      }
+      if (alpha<0.1) {
+        h->hdjasymm_a01->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a01->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.1) {
+        h->hdjasymmtp_a01->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a01->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.15) {
+        h->hdjasymm_a015->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a015->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.15) {
+        h->hdjasymmtp_a015->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a015->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.2) {
+        h->hdjasymm_a02->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a02->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.2) {
+        h->hdjasymmtp_a02->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a02->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.3) {
+        h->hdjasymm_a03->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a03->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.3) {
+        h->hdjasymmtp_a03->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a03->Fill(ptprobe, etaref, mpftp, _w);
+      }
     } // second combo
   }
 
@@ -1219,7 +1281,7 @@ void fillHistos::fillBasic(basicHistos *h)
     // tag in barrel and fires trigger, probe in eta bin unbiased
     // only two leading jets back-to-back, third has less than 0.3*tag pT
     if (i<2 && njt>=2 && pt>_jp_recopt &&
-        fabs(y) >= h->ymin && fabs(y) < h->ymax){
+        fabs(eta) >= h->ymin && fabs(eta) < h->ymax){
 
       int iref = (i==0 ? 1 : 0);
       double yref = jty[iref];
@@ -1328,8 +1390,7 @@ void fillHistos::fillBasic(basicHistos *h)
     } // tag-and-probe
 
     // Check effect of ID cuts
-    //if (pt>_jp_recopt && fabs(y) >= h->ymin && fabs(y) < h->ymax) {
-    if (fabs(y) >= h->ymin && fabs(y) < h->ymax) {
+    if (fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
 
       if (_debug) {
         cout << "..." << h->trigname << " | " << " index " << i << "/" << njt
@@ -1373,7 +1434,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
     // calculate efficiencies and fill histograms
     if (_evtid && id && pt>_jp_recopt &&
-        fabs(y) >= h->ymin && fabs(y) < h->ymax) {
+        fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
 
       if (_debug) cout << "..jec uncertainty" << endl << flush;
 
@@ -1748,9 +1809,7 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hpt_g0_tmp->Fill(gen_jtpt[i]);
       }
     } // for i
-
   } // gen spectrum
-
 } // fillBasic
 
 
@@ -1901,8 +1960,9 @@ void fillHistos::fillRunHistos(string name)
 
     double pt = jtpt[i];
     double y = jty[i];
+    double eta = jteta[i];
 
-    if (h->ymin <= fabs(y) && fabs(y) < h->ymax && _pass && _jetids[i]
+    if (h->ymin <= fabs(eta) && fabs(eta) < h->ymax && _pass && _jetids[i]
         && _evtid) {
 
       for (set<string>::const_iterator it = _trigs.begin(); it != _trigs.end(); ++it) {

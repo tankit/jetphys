@@ -664,8 +664,6 @@ public :
   Float_t         jtjes_res[_njt];   //[njt]
   Bool_t          *jtidloose;//[_njt];   //[njt]
   Bool_t          *jtidtight;//[_njt];   //[njt]
-  //
-  static const bool dofriends = false;//true;
 
   //Short_t         jtgenid[_njt];   //[njt]
   //Short_t         jtgenflv[_njt];   //[njt]
@@ -688,19 +686,6 @@ public :
   Float_t         *jtnef;//[_njt];   //[njt]
   Float_t         *jtcef;//[_njt];   //[njt]
   Float_t         *jtmuf;//[_njt];   //[njt]
-
-  // Composition corrected for PU
-  Int_t           jtn2[_njt];   //[njt]
-  Int_t           jtnch2[_njt];   //[njt]
-  Int_t           jtnnh2[_njt];   //[njt]
-  Int_t           jtnne2[_njt];   //[njt]
-  Int_t           jtnce2[_njt];   //[njt]
-  Int_t           jtnmu2[_njt];   //[njt]
-  Float_t         jtchf2[_njt];   //[njt]
-  Float_t         jtnhf2[_njt];   //[njt]
-  Float_t         jtnef2[_njt];   //[njt]
-  Float_t         jtcef2[_njt];   //[njt]
-  Float_t         jtmuf2[_njt];   //[njt]
 
   Int_t           gen_njt;
   Double_t        *gen_jtp4x;//[_njt];   //[njt]

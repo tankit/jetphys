@@ -30,7 +30,6 @@ class basicHistos {
   double ptmin;
   double ptmax;
   bool ismc;
-  bool dofriends;
 
   // raw spectrum
   TH1D *hpt;
@@ -265,6 +264,23 @@ class basicHistos {
   TH3D *hdjmpf;
   TH3D *hdjasymmtp;
   TH3D *hdjmpftp;
+  // Same in the pt-eta plane
+  TH3D *hdjasymm_a01;
+  TH3D *hdjmpf_a01;
+  TH3D *hdjasymmtp_a01;
+  TH3D *hdjmpftp_a01;
+  TH3D *hdjasymm_a015;
+  TH3D *hdjmpf_a015;
+  TH3D *hdjasymmtp_a015;
+  TH3D *hdjmpftp_a015;
+  TH3D *hdjasymm_a02;
+  TH3D *hdjmpf_a02;
+  TH3D *hdjasymmtp_a02;
+  TH3D *hdjmpftp_a02;
+  TH3D *hdjasymm_a03;
+  TH3D *hdjmpf_a03;
+  TH3D *hdjasymmtp_a03;
+  TH3D *hdjmpftp_a03;
 
   TH1D *hr21;
   TH1D *hr31;
@@ -357,7 +373,7 @@ class basicHistos {
   basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="",
 	      double ymin = 0., double ymax = 2.0,
 	      double pttrg = 10., double ptmin = 10., double ptmax = 50.,
-	      bool ismc = false, bool dofriends = false);
+	      bool ismc = false);
   ~basicHistos();
 
  private:
