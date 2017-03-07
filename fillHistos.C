@@ -45,15 +45,9 @@ void fillHistos::Loop()
   // Set cross section weights for pThat bins
   hmcweight = 0;
   if (_jp_pthatbins) {
-    double bins[]={5,15,30,50,80,120,170,300,470,600,800,1000,1400,1800,3500};
-    const int nbins = sizeof(bins)/sizeof(bins[0])-1;
-    double lums[] = {4.49e-5,1.32e-2,1.22e-1,1.04,8.40,5.32e+1,2.57e+2,5.51e+3,
-                     5.68e+4,2.73e+5,2.20e+6,6.30e+6,2.02e+8,8.20e+8};
-    const int nlums = sizeof(lums)/sizeof(lums[0]);
-    assert(nbins==nlums);
-    hmcweight = new TH1D("hmcweight",";#hat{p}_{T} (GeV)",nbins,bins);
-    for (int i = 0; i != nbins; ++i) {
-      hmcweight->SetBinContent(i+1, 1./lums[i]);
+    hmcweight = new TH1D("hmcweight",";#hat{p}_{T} (GeV)",_jp_npthatbins,_jp_pthatranges);
+    for (int i = 0; i != _jp_npthatbins; ++i) {
+      hmcweight->SetBinContent(i+1, _jp_pthatinvlums[i]);
     } // for i
   }
 
@@ -351,7 +345,7 @@ void fillHistos::Loop()
     assert(!_jp_pthatbins || hmcweight);
     pthat = EvtHdr__mPthat;
     weight = (_jp_pthatbins ?
-              hmcweight->GetBinContent(hmcweight->FindBin(pthat)) :
+              (hmcweight->GetBinContent(hmcweight->FindBin(pthat)))*EvtHdr__mWeight :
               EvtHdr__mWeight);
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;

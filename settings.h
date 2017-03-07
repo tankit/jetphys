@@ -178,6 +178,16 @@ const bool _jp_doBasicHistos = true;
 
 // Process pThatbins instead of flat sample
 const bool _jp_pthatbins = false;
+// Number of pthat bins
+const unsigned int _jp_npthatbins = 14;
+// The corresponding ranges
+double _jp_pthatranges[_jp_npthatbins+1] = // The last number is ~inf
+{30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000}}
+// The corresponding lumi
+double _jp_pthatinvlums[_jp_npthatbins] = // Arbitrary scale
+{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445}
+//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445}
+
 // Correct for trigger efficiency based on MC
 const bool _jp_dotrigeff = false;//true;
  // Correct pT<114 GeV only, if above _jp_dotrigeff=true
@@ -202,7 +212,7 @@ const bool _jp_centerOnTheory = false;
 // Plot Pythia for final PRL results
 const bool _plotPythia = false;
 // Minimum and maximum pT range to be plotted and fitted
-const double _jp_recopt = 24;//21.;
+const double _jp_recopt = 15;
 const double _jp_fitptmin = 43;
 // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
 const double _jp_xmin57 = 56;
