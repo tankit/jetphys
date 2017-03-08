@@ -47,7 +47,7 @@ void fillHistos::Loop()
   if (_jp_pthatbins) {
     hmcweight = new TH1D("hmcweight",";#hat{p}_{T} (GeV)",_jp_npthatbins,_jp_pthatranges);
     for (int i = 0; i != _jp_npthatbins; ++i) {
-      hmcweight->SetBinContent(i+1, _jp_pthatinvlums[i]);
+      hmcweight->SetBinContent(i+1, _jp_pthatsigmas[i]/_jp_pthatnevts[i]);
     } // for i
   }
 
@@ -181,8 +181,6 @@ void fillHistos::Loop()
   cout << Form("Running over %sPF",a) << endl;
   if(_mc) cout << "Running over MC" << endl;
   if(_dt) cout << "Running over data" << endl;
-  cout << (_jp_redoJEC ? "Re-calculating JEC on the fly" :
-           "Using stored JEC in the root tuple") << endl;
   cout << (_jp_useIOV ? "Applying" : "Not applying")
        << " time-dependent JEC (IOV)" << endl;
   cout << (_jp_doECALveto ? "Vetoing" : "Not vetoing")
@@ -205,32 +203,31 @@ void fillHistos::Loop()
   }
   cout << endl;
 
-  // Time dependent JEC
-  if (_jp_useIOV) {
-    bool isdata = _dt;
-    iov = new jec::IOV(Form("%sPF",a));
-    iov->add("RunA",160431,163869,isdata);
-    iov->add("RunB",165088,167913,isdata);
-  }
-
-  // Full redoing of JEC
-  const char *s;
-  const char *p = "CondFormats/JetMETObjects/data/";
-  //const char *t = "GR_R_42_V23_";
-  string jecgt = (_dt ? _jp_jecgt_dt : _jp_jecgt_mc) + "_" + (_dt ? "DATA" : "MC") + "_";
-  const char *t = jecgt.c_str();
-
   _JEC = 0;
   _L1RC = 0;
-  {
+  _jecUnc = 0;
+
+  // Time dependent JEC (only for dt)
+  if (_dt && _jp_useIOV) {
+    iov = new jec::IOV(_jp_algo);
+    for (unsigned i=0; i<_jp_nIOV; ++i) {
+      iov->add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
+    }
+  } else {
+    // At least a singular recalculation of JEC is always performed
+    const char *s;
+    const char *p = "CondFormats/JetMETObjects/data/";
+    string jecgt = _jp_jecgt + _jp_jecvers + "_" + (_dt ? "DATA" : "MC") + "_";
+    const char *t = jecgt.c_str();
+
     cout << "Loading "<<a<<"PF JEC" << endl;
-    s = Form("%s%sL1FastJet_%sPF.txt",p,t,a); cout<<s<<endl<<flush;
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l1 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2Relative_%sPF.txt",p,t,a); cout<<s<<endl<<flush;
+    s = Form("%s%sL2Relative_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
-    s = Form("%s%sL3Absolute_%sPF.txt",p,t,a); cout<<s<<endl<<flush;
+    s = Form("%s%sL3Absolute_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2L3Residual_%sPF.txt",p,t,a); cout<<s<<endl<<flush;
+    s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> vpar;
@@ -238,31 +235,26 @@ void fillHistos::Loop()
     vpar.push_back(*par_l2);
     vpar.push_back(*par_l3);
     if (_dt) vpar.push_back(*par_l2l3res);
-    for(unsigned i=0;i<vpar.size();i++)
-    {
-      std::string ss = vpar[i].definitions().level();
-      cout << i << " " << ss << endl;
-    }
     _JEC = new FactorizedJetCorrector(vpar);
+  
+    if (_dt) {
+      s = Form("%s%sUncertainty_%s.txt",p,t,a);
+      cout<<"**"<<s<<endl<<flush;
+      _jecUnc = new JetCorrectionUncertainty(s);
+    }
 
-    // For type-I MET
-    s = Form("%s%sL1FastJet_%sPF.txt",p,t,a); cout<<s<<endl<<flush;
+    // For type-I and type-II MET
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l1rc = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> vrc;
     vrc.push_back(*par_l1rc);
     _L1RC = new FactorizedJetCorrector(vrc);
 
+    assert(_JEC);
+    assert(_L1RC);
   } // JEC redone
-  assert(_JEC);
-  assert(_L1RC);
 
-  _jecUnc = 0;
-  if (_dt) {
-    s = Form("%s%sUncertainty_%sPFchs.txt",p,t,a);
-    cout<<"**"<<s<<endl<<flush;
-    _jecUnc = new JetCorrectionUncertainty(s);
-  }
 
   // Set list of triggers
   for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
@@ -637,7 +629,10 @@ void fillHistos::Loop()
 
     // load correct IOV for JEC
     if (_dt && _jp_useIOV) {
-      _JEC = iov->get(run); assert(_JEC);
+      assert(iov->setCorr(run,&_JEC,&_L1RC,&_jecUnc));
+      assert(_JEC);
+      assert(_L1RC);
+      assert(_jecUnc);
     }
 
     // Calculate pT, eta, phi, y, E and uncorrected pT
@@ -1489,8 +1484,7 @@ void fillHistos::fillBasic(basicHistos *h)
       h->pmass->Fill(pt, mass/energy, _w); assert(h->pmass);
       h->pjec->Fill(pt, jec, _w); assert(h->pjec);
       h->pjec2->Fill(pt, jec2, _w); assert(h->pjec2);
-      h->punc->Fill(pt, unc, _w); assert(h->punc);
-
+      h->punc->Fill(pt, unc, _w); assert(h->punc); 
       // JEC monitoring
       h->pjec_l1->Fill(pt, jtjes_l1[i], _w); assert(h->pjec_l1);
       h->pjec_l2l3->Fill(pt, jtjes_l2l3[i], _w); assert(h->pjec_l2l3);
