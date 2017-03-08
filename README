@@ -1,39 +1,70 @@
-To start using this package, first clone it from git
-   git clone https://github.com/miquork/jetphys.git
-   cd jetphys
+A jet physics analysis package, originally developed by Mikko Voutilainen
+at the CMS experiment at CERN: https://github.com/miquork/jetphys
+Additions and further development performed by his student Hannu Siikonen.
+Contact: mikko.voutilainen@cern.ch
+         hannu.siikonen@cern.ch
 
-Then we need to check out some additional packages:
+The code is made to be run over CMS SMPJ jet tuples, described by
+https://github.com/cms-smpj/SMPJ
+https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
 
-* jet energy corrections (JEC) software from jecsys package in git:
-  cd ..
-  git clone https://github.com/miquork/jecsys.git
-  ln -s jecsys/CondFormats jetphys/
-  cd jetphys
+In order to get this package working, read this README carefully and at
+least skim through mk_runFullAnalysis.C. This file is a remnant of the
+highly modular days of this analysis package. At the present it is typically
+sufficient to run the steps only up to the output-2b phase. It is best
+to run each run in data separately due to the possible differences between
+datasets. The output-1 phase is the most time-consuming (hours), as
+the 2a and 2b steps are finished in a couple of minutes. Thus, it is
+recommended that at least the output-1 step is performed separately -
+not by using runFullAnalysis. 
 
-* JEC text files from JECDatabase in github:
-  https://github.com/cms-jet/JECDatabase/tree/master/tarballs/Summer15_50nsV5.tar.gz
-  [save this to CondFormats/JetMETObjects/data]
-  cd CondFormats/JetMETObjects/data
-  tar -xzf Summer15_50nsV5.tar.gz
-  cd ../..
-
-* RooUnfold:
-  svn co https://svnsrv.desy.de/public/unfolding/RooUnfold/trunk RooUnfold
-  cd RooUnfold; make; cd ..
-(see also: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html )
-
-Copy data files, and add a symlink
-
-Then, gen.
-
-Nowadays it is best to run one step at a time. At least 1, 2a and 2b tend to be useful.
 For plotting purposes there is the script drawFracs.C. This is operated by
 mk_mcPlots.C and mk_generalPlots.C. These are designed for streamlining the process
 of generating various plots with the same script. That is, different parameter
-valuues, which have an effect on the mode of operation.
+valuues, which have an effect on the mode of operation. All the plots require
+only ouput-1 and output-2b files.
+
+The recommended way is to run the program at the CERN lxplus machines. The
+procedure is described in the separate file LXPLUS.
+
+Step-by-step installation {
+
+  To start using this package, first clone it from git
+     git clone https://github.com/miquork/jetphys.git
+     cd jetphys
+  
+  Then we need to check out some additional packages:
+  
+  * jet energy corrections (JEC) software from jecsys package in git:
+    cd ..
+    git clone https://github.com/miquork/jecsys.git
+    ln -s jecsys/CondFormats jetphys/
+    cd jetphys
+  
+  * JEC text files from JECDatabase in github:
+    https://github.com/cms-jet/JECDatabase/tree/master/tarballs/Summer15_50nsV5.tar.gz
+    [save this to CondFormats/JetMETObjects/data]
+    cd CondFormats/JetMETObjects/data
+    tar -xzf Summer15_50nsV5.tar.gz
+    cd ../..
+  
+  
+  * RooUnfold: (not indispensable currently)
+    svn co https://svnsrv.desy.de/public/unfolding/RooUnfold/trunk RooUnfold
+    cd RooUnfold; make; cd ..
+  (see also: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html )
+  
+  Copy data files, and add a symlink
+  
+  Then, gen.
+}
 
 IF ODD PROBLEMS ARE OCCURRING, CHECK THE PIECES OF CODE WITH A "HOX" MENTION.
 THERE MIGHT BE SOMETHING THAT NEEDS TO BE UPDATED FROM TIME TO TIME.
 
 TO FIND SOME OLD PIECES OF CODE NO LONGER IN USE, REFER TO THE GITHUB VERSION FROM
 JAN 31 2017 OR BEFORE. A FORMAT OF '// REMOVED: "X"' IS IN USE FOR NOTABLE REMOVALS.
+
+DO NOT RUN CMSSW TOGETHER WITH THIS SOFTWARE PACKAGE. THERE IS A STANDALONE VERSION
+OF JET CORRECTIONS THAT IS USED BY THIS CODE. IT WILL THROW VERY ODD ERRORS IF THE
+COMMAND 'cmsenv' HAS BEEN RUN, AS THE JET CORRECTIONS ARE TAKEN FROM CMSSW CODE.
