@@ -21,23 +21,37 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PF";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "DATA";
+string _jp_type = "MC";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 
 // Number of events to process (-1 for all)
-//Long64_t _jp_nentries = -1; // all
+Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
-Long64_t _jp_nentries = 100000; // short test run
+//Long64_t _jp_nentries = 100000; // short test run
 //Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
 
-// PU profiles for data and MC
+//// MC: PU profiles for data and MC
 bool _jp_reweighPU = true;
 string _jp_pudata = "pileup/pileup_DT.root";
-string _jp_pumc   = "pileup/pileup_PY_80X.root";
+string _jp_pumc   = "pileup/pu.root";
 string _jp_prescalefile = "";//pileup/prescales74x.txt";
+
+//// MC: Process pThatbins instead of flat sample
+const bool _jp_pthatbins = true;
+// Number of pthat bins
+const unsigned int _jp_npthatbins = 14;
+// The corresponding ranges
+double _jp_pthatranges[_jp_npthatbins+1] = // The last number is ~inf, the first has -1 to allow underflow
+{30-1,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
+// The corresponding lumi
+double _jp_pthatsigmas[_jp_npthatbins] = // Arbitrary scale
+{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+unsigned int _jp_pthatnevts[_jp_npthatbins] = 
+{9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;
@@ -102,26 +116,12 @@ const bool _jp_doRunHistos = false; // Set to false to save time
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
 
-// Process pThatbins instead of flat sample
-const bool _jp_pthatbins = false;
-// Number of pthat bins
-const unsigned int _jp_npthatbins = 14;
-// The corresponding ranges
-double _jp_pthatranges[_jp_npthatbins+1] = // The last number is ~inf
-{30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
-// The corresponding lumi
-double _jp_pthatsigmas[_jp_npthatbins] = // Arbitrary scale
-{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-unsigned int _jp_pthatnevts[_jp_npthatbins] = 
-{9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
-
 // Correct for trigger efficiency based on MC
-const bool _jp_dotrigeff = false;//true;
+const bool _jp_dotrigeff = false;
  // Correct pT<114 GeV only, if above _jp_dotrigeff=true
-const bool _jp_dotrigefflowptonly = false;//true;
+const bool _jp_dotrigefflowptonly = false;
 // Correct for time-dependence (prescales) in data
-const bool _jp_dotimedep = false;//true;
+const bool _jp_dotimedep = false;
 // For creating smearing matrix
 const bool _jp_doMatrix = false;
 
@@ -150,10 +150,6 @@ const double _jp_xmax = 1999.;
 
 const double _jp_xsecMinBias = 7.126E+10;
 
-//// Write histograms to PAS file
-//const bool _jp_pas = true;
-// Draw b-jets against MC@NLO instead of reco MC
-//const bool _mcnlo = true;
 //// Draw againts HERAPDF1.7 instead of PDF4LHC
 const bool _jp_herapdf = false;
 

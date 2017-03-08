@@ -45,7 +45,7 @@ void normalizeHistos(string type) {
     cout << "Attention! : Scaling luminosity to the new estimate"
          << " by multiplying with " << _lumiscale << endl;
 
-  if (_jp_usetriglumi) {
+  if (_nh_dt && _jp_usetriglumi) {
     cout << "Reading trigger luminosity from settings.h" << endl;
     for (int i = 0; i != _jp_ntrigger; ++i) {
       double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
@@ -172,7 +172,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           string(obj2->GetName())=="hdjmass0" ||
           string(obj2->GetName())=="hdjmass0_hgg") {
 
-          cout << "." << flush;
+        cout << "." << flush;
 
         TH1D *hpt = (TH1D*)obj2;
         bool isgen = TString(obj2->GetName()).Contains("pt_g");
@@ -190,8 +190,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
         TProfile *peff = (TProfile*)dir->Get("peff"); assert(peff);
 
         TH1D *hlumi = (TH1D*)dir->Get("hlumi"); assert(hlumi);
-        TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi"); assert(hlumi0);
-        if (_jp_usetriglumi) {
+        TH1D *hlumi0 = (TH1D*)dir->Get((_nh_dt ? "../jt450/hlumi" : "hlumi")); assert(hlumi0);
+        if (_nh_dt && _jp_usetriglumi) {
 
           TH1D *hlumi_orig = (TH1D*)outdir->FindObject("hlumi_orig");
           if (!hlumi_orig) hlumi_orig = (TH1D*)hlumi->Clone("hlumi_orig");

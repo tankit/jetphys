@@ -82,40 +82,6 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "hpt_evt");
   recurseFile(fin, fout, "hpt_jet");
 
-  if (_jp_ak4ak8) {
-
-    recurseFile(fin, fout, "hpt_ak5pf");
-    recurseFile(fin, fout, "hpt_evtcount_ak5pf");
-    recurseFile(fin, fout, "hpt_evt_ak5pf");
-    recurseFile(fin, fout, "hpt_jet_ak5pf");
-    //
-    recurseFile(fin, fout, "hpt_ak4ak8");
-    recurseFile(fin, fout, "hpt_ak4ak8m1");
-    recurseFile(fin, fout, "hpt_ak4ak8m2");
-    recurseFile(fin, fout, "hpt_ak4ak8p1");
-    //
-    recurseFile(fin, fout, "hpt_ak5ak5");
-    recurseFile(fin, fout, "hpt_ak5ak5m1");
-    recurseFile(fin, fout, "hpt_ak5ak5m2");
-    recurseFile(fin, fout, "hpt_ak5ak5p1");
-    //
-    recurseFile(fin, fout, "hpt_ak7ak7");
-    recurseFile(fin, fout, "hpt_ak7ak7m1");
-    recurseFile(fin, fout, "hpt_ak7ak7m2");
-    recurseFile(fin, fout, "hpt_ak7ak7p1");
-    //
-    recurseFile(fin, fout, "hpt_jk1");
-    recurseFile(fin, fout, "hpt_jk2");
-    recurseFile(fin, fout, "hpt_jk3");
-    recurseFile(fin, fout, "hpt_jk4");
-    recurseFile(fin, fout, "hpt_jk5");
-    recurseFile(fin, fout, "hpt_jk6");
-    recurseFile(fin, fout, "hpt_jk7");
-    recurseFile(fin, fout, "hpt_jk8");
-    recurseFile(fin, fout, "hpt_jk9");
-    recurseFile(fin, fout, "hpt_jk10");
-  }
-
   if (_ch_mc) recurseFile(fin, fout, "hpt_g0tw");
 
   recurseFile(fin, fout, "hpt0");

@@ -74,34 +74,34 @@ void fillHistos::Loop()
     fChain->SetBranchStatus("EvtHdr_.mPFRho",1); // rho
 
     // Jet properties (jtpt, jte, jteta, jty, jtphi etc.)
-    fChain->SetBranchStatus("PFJets_",1); // njt
-    fChain->SetBranchStatus("PFJets_.P4_*",1); // jtp4*
-    fChain->SetBranchStatus("PFJets_.cor_",1); // jtjes
-    fChain->SetBranchStatus("PFJets_.area_",1); // jta
+    fChain->SetBranchStatus("PFJetsCHS_",1); // njt
+    fChain->SetBranchStatus("PFJetsCHS_.P4_*",1); // jtp4*
+    fChain->SetBranchStatus("PFJetsCHS_.cor_",1); // jtjes
+    fChain->SetBranchStatus("PFJetsCHS_.area_",1); // jta
 
     if (_mc) {
-      fChain->SetBranchStatus("PFJets_.genP4_*",1); // jtgenp4*
-      fChain->SetBranchStatus("PFJets_.genR_",1); // jtgenr
+      fChain->SetBranchStatus("PFJetsCHS_.genP4_*",1); // jtgenp4*
+      fChain->SetBranchStatus("PFJetsCHS_.genR_",1); // jtgenr
     }
 
     // Component fractions
-    fChain->SetBranchStatus("PFJets_.chf_",1); // jtchf
-    //fChain->SetBranchStatus("PFJets_.phf_",1); // jtnef
-    fChain->SetBranchStatus("PFJets_.nemf_",1); // jtnef
-    fChain->SetBranchStatus("PFJets_.nhf_",1); // jtnhf
-    //fChain->SetBranchStatus("PFJets_.elf_",1); // jtcef !!
-    fChain->SetBranchStatus("PFJets_.cemf_",1); // jtcef !!
-    fChain->SetBranchStatus("PFJets_.muf_",1); // jtmuf !!
-    fChain->SetBranchStatus("PFJets_.ncand_",1); // jtn
-    fChain->SetBranchStatus("PFJets_.beta_",1); // jtbeta
-    fChain->SetBranchStatus("PFJets_.betaStar_",1); // jtbetastar
-    fChain->SetBranchStatus("PFJets_.chm_",1); // jtnch
-    fChain->SetBranchStatus("PFJets_.phm_",1); // jtnne
-    fChain->SetBranchStatus("PFJets_.nhm_",1); // jtnnh
-    fChain->SetBranchStatus("PFJets_.elm_",1); // jtnce !!
-    fChain->SetBranchStatus("PFJets_.mum_",1); // jtnmu !!
-    fChain->SetBranchStatus("PFJets_.tightID_",1); // jtidtight
-    fChain->SetBranchStatus("PFJets_.looseID_",1); // jtidloose
+    fChain->SetBranchStatus("PFJetsCHS_.chf_",1); // jtchf
+    //fChain->SetBranchStatus("PFJetsCHS_.phf_",1); // jtnef
+    fChain->SetBranchStatus("PFJetsCHS_.nemf_",1); // jtnef
+    fChain->SetBranchStatus("PFJetsCHS_.nhf_",1); // jtnhf
+    //fChain->SetBranchStatus("PFJetsCHS_.elf_",1); // jtcef !!
+    fChain->SetBranchStatus("PFJetsCHS_.cemf_",1); // jtcef !!
+    fChain->SetBranchStatus("PFJetsCHS_.muf_",1); // jtmuf !!
+    fChain->SetBranchStatus("PFJetsCHS_.ncand_",1); // jtn
+    fChain->SetBranchStatus("PFJetsCHS_.beta_",1); // jtbeta
+    fChain->SetBranchStatus("PFJetsCHS_.betaStar_",1); // jtbetastar
+    fChain->SetBranchStatus("PFJetsCHS_.chm_",1); // jtnch
+    fChain->SetBranchStatus("PFJetsCHS_.phm_",1); // jtnne
+    fChain->SetBranchStatus("PFJetsCHS_.nhm_",1); // jtnnh
+    fChain->SetBranchStatus("PFJetsCHS_.elm_",1); // jtnce !!
+    fChain->SetBranchStatus("PFJetsCHS_.mum_",1); // jtnmu !!
+    fChain->SetBranchStatus("PFJetsCHS_.tightID_",1); // jtidtight
+    fChain->SetBranchStatus("PFJetsCHS_.looseID_",1); // jtidloose
 
     //fChain->SetBranchStatus("rho",1);
     fChain->SetBranchStatus("PFMet_.et_",1); // met
@@ -138,36 +138,36 @@ void fillHistos::Loop()
   } // quick/slow
 
   // Set pointers to branches
-  jtp4x = &PFJets__P4__fCoordinates_fX[0];
-  jtp4y = &PFJets__P4__fCoordinates_fY[0];
-  jtp4z = &PFJets__P4__fCoordinates_fZ[0];
-  jtp4t = &PFJets__P4__fCoordinates_fT[0];
-  jta = &PFJets__area_[0];
-  jtjes = &PFJets__cor_[0];
-  jtbeta = &PFJets__beta_[0];
-  jtbetastar = &PFJets__betaStar_[0];
-  jtidloose = &PFJets__looseID_[0];
-  jtidtight = &PFJets__tightID_[0];
+  jtp4x = &PFJetsCHS__P4__fCoordinates_fX[0];
+  jtp4y = &PFJetsCHS__P4__fCoordinates_fY[0];
+  jtp4z = &PFJetsCHS__P4__fCoordinates_fZ[0];
+  jtp4t = &PFJetsCHS__P4__fCoordinates_fT[0];
+  jta = &PFJetsCHS__area_[0];
+  jtjes = &PFJetsCHS__cor_[0];
+  jtbeta = &PFJetsCHS__beta_[0];
+  jtbetastar = &PFJetsCHS__betaStar_[0];
+  jtidloose = &PFJetsCHS__looseID_[0];
+  jtidtight = &PFJetsCHS__tightID_[0];
   //
-  jtgenr = &PFJets__genR_[0];
-  jtgenp4x = &PFJets__genP4__fCoordinates_fX[0];
-  jtgenp4y = &PFJets__genP4__fCoordinates_fY[0];
-  jtgenp4z = &PFJets__genP4__fCoordinates_fZ[0];
-  jtgenp4t = &PFJets__genP4__fCoordinates_fT[0];
+  jtgenr = &PFJetsCHS__genR_[0];
+  jtgenp4x = &PFJetsCHS__genP4__fCoordinates_fX[0];
+  jtgenp4y = &PFJetsCHS__genP4__fCoordinates_fY[0];
+  jtgenp4z = &PFJetsCHS__genP4__fCoordinates_fZ[0];
+  jtgenp4t = &PFJetsCHS__genP4__fCoordinates_fT[0];
   //
-  jtn = &PFJets__ncand_[0];
-  jtnch = &PFJets__chm_[0];
-  jtnnh = &PFJets__nhm_[0];
-  jtnne = &PFJets__phm_[0];
-  jtnce = &PFJets__elm_[0];
-  jtnmu = &PFJets__mum_[0];
-  jtchf = &PFJets__chf_[0];
-  jtnhf = &PFJets__nhf_[0];
-  //jtnef = &PFJets__phf_[0];
-  jtnef = &PFJets__nemf_[0];
-  //jtcef = &PFJets__elf_[0];
-  jtcef = &PFJets__cemf_[0];
-  jtmuf = &PFJets__muf_[0];
+  jtn = &PFJetsCHS__ncand_[0];
+  jtnch = &PFJetsCHS__chm_[0];
+  jtnnh = &PFJetsCHS__nhm_[0];
+  jtnne = &PFJetsCHS__phm_[0];
+  jtnce = &PFJetsCHS__elm_[0];
+  jtnmu = &PFJetsCHS__mum_[0];
+  jtchf = &PFJetsCHS__chf_[0];
+  jtnhf = &PFJetsCHS__nhf_[0];
+  //jtnef = &PFJetsCHS__phf_[0];
+  jtnef = &PFJetsCHS__nemf_[0];
+  //jtcef = &PFJetsCHS__elf_[0];
+  jtcef = &PFJetsCHS__cemf_[0];
+  jtmuf = &PFJetsCHS__muf_[0];
   //
   gen_jtp4x = &GenJets__fCoordinates_fX[0];
   gen_jtp4y = &GenJets__fCoordinates_fY[0];
@@ -339,6 +339,8 @@ void fillHistos::Loop()
     weight = (_jp_pthatbins ?
               (hmcweight->GetBinContent(hmcweight->FindBin(pthat)))*EvtHdr__mWeight :
               EvtHdr__mWeight);
+    if (weight==0)
+      cout << "Kackea: " << jentry << " " << pthat << endl;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
     evt = EvtHdr__mEvent;
@@ -372,7 +374,7 @@ void fillHistos::Loop()
     metphi = PFMet__phi_;
     metsumet = PFMet__sumEt_;
 
-    njt = PFJets__;       //assert(njt < kMaxPFJets_);
+    njt = PFJetsCHS__;       //assert(njt < kMaxPFJetsCHS_);
     gen_njt = GenJets__;
     gen_njt = GenJets__;
 
@@ -600,7 +602,8 @@ void fillHistos::Loop()
     if (_trigs.size()!=0 && _pass && _dt) ++cnt["07trg"];
 
     // Retrieve event weight
-    _w0 = (_mc ? weight : 1); assert(_w0);
+    _w0 = (_mc ? weight : 1);
+    assert(_w0);
     _w = _w0;
 
     // Calculate trigger PU weight
@@ -1023,7 +1026,8 @@ void fillHistos::fillBasic(basicHistos *h)
     h->hpt_g0_tmp->Reset();
   }
 
-  _w = _w0 * _wt[h->trigname]; assert(_w);
+  _w = _w0 * _wt[h->trigname];
+  assert(_w);
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 

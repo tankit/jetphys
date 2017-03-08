@@ -42,50 +42,44 @@
     cout << "Load trees..." << endl;
 
     // Run2 2016 Newest (updated March 7th, 2017)
-    switch (_jp_run) {
-    case "RunB":
+    //switch (_jp_run) {
+    if (_jp_run=="RunB") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart2.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart3.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart4.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart5.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunB-ReReco-80Xpart6.root",p));
-      break;
-    case "RunC": 
+    } else if (_jp_run=="RunC") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunC-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunC-ReReco-80Xpart2.root",p));
-      break;
-    case "RunD":
+    } else if (_jp_run=="RunD") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p));
-      break;
-    case "RunE":
+    } else if(_jp_run=="RunE") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p));
-      break;
-    case "RunFearly":
+    } else if(_jp_run=="RunFearly") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart2.root",p));
-      break;
-    case "RunFlate":
+    } else if(_jp_run=="RunFlate") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p));
-      break;
-    case "RunG":
+    } else if(_jp_run=="RunG") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
-      break;
-    case "RunH":
+    } else if(_jp_run=="RunH") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart3.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart4.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart5.root",p));
-      break;
+    } else {
+      cout << "Enter a proper value for _jp_run!" << endl;
     }
 
   } else if (_jp_type=="MC") {
