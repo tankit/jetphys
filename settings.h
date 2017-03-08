@@ -18,53 +18,26 @@ const bool _debug = false;
 // Necessary analysis settings/inputs //
 ////////////////////////////////////////
 
-// Algorithm to use ("AK4" or "AK8")
-std::string _jp_algo = "AK4";
+// Algorithm to use ("AK4PF" or "AK8PF")
+string _jp_algo = "AK4PF";
 // Data type ("DATA", "MC", or "HW")
-std::string _jp_type = "DATA";
+string _jp_type = "DATA";
+// In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
+string _jp_run = "RunG";
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries = -1; // all
+//Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
-//Long64_t _jp_nentries = 100000; // short test run
+Long64_t _jp_nentries = 100000; // short test run
 //Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
 
 // PU profiles for data and MC
 bool _jp_reweighPU = true;
-std::string _jp_pudata = "pileup/pileup_DT.root";
-std::string _jp_pumc   = "pileup/pileup_PY_80X.root";
-//std::string _jp_pumc   = "pileup/pileup_PY_74X.root";
-//std::string _jp_prescalefile = "pileup/prescales74x_run.txt";
-std::string _jp_prescalefile = "";//pileup/prescales74x.txt";
-
-//// JEC text files in CondFormats/JetMETObjects/data/
-bool _jp_redoJEC = true;
-//// Due to the HIP problem and other intricacies in Run2-16, the datasets are handled separately.
-//// Note: different corrections for PromptReco and ReReco {
-
-/// PromptReco
-std::string _jp_jecgt_dt = "Spring16_25nsV10BCD"; // IOV [1,276811] B,C,D
-//std::string _jp_jecgt_dt = "Spring16_25nsV10E";   // IOV [276831,277420] E
-//std::string _jp_jecgt_dt = "Spring16_25nsV10F";   // IOV [277772,278801] Fearly
-//std::string _jp_jecgt_dt = "Spring16_25nsV10p2";  // IOV [278802,Infinity] Flate,G,H
-std::string _jp_jecgt_mc = "Spring16_25nsV10";
-/// ReReco
-//std::string _jp_jecgt_dt = "Spring16_23Sep2016BCDV2"; // IOV [1,276811] B,C,D
-//std::string _jp_jecgt_dt = "Spring16_23Sep2016EFV2";  // IOV [276831,278801] E,Fearly
-//std::string _jp_jecgt_dt = "Spring16_23Sep2016GV2";   // IOV [278802,280385] Flate,G
-//std::string _jp_jecgt_dt = "Spring16_23Sep2016HV2";   // IOV [280919,Infinity] H
-//std::string _jp_jecgt_mc = "Spring16_23Sep2016V2";
-
-/// Old format: no distinct dt filenames
-//std::string _jp_jecgt = "Spring16_25nsV6";
-//std::string _jp_jecgt = "Fall15_25nsV2"; // 76X
-//std::string _jp_jecgt = "Summer15_25nsV7"; // 74X
-//std::string _jp_jecgt = "Summer15_25nsV6";
-//std::string _jp_jecgt = "Summer15_50nsV5";
-
-// }
+string _jp_pudata = "pileup/pileup_DT.root";
+string _jp_pumc   = "pileup/pileup_PY_80X.root";
+string _jp_prescalefile = "";//pileup/prescales74x.txt";
 
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;
@@ -83,13 +56,13 @@ string _jp_lumifile = "lumicalc/brilcalc_lumibyls.csv"; // Run II
 // This is the 13 TeV 25 ns list (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
 const int _jp_ntrigger = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
-std::string _jp_triggers[_jp_ntrigger] =
+string _jp_triggers[_jp_ntrigger] =
   {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"};
 double _jp_trigthr[_jp_ntrigger] =
-  {40,       60,        80,       140,       200,       260,       320,       400,      450};
+  {40,        60,        80,       140,       200,       260,       320,       400,      450};
 double _jp_trigranges[_jp_ntrigger][2] =
-  //{ {0,74}, {74,114}, {114,174}, {174,245}, {245,300}, {300,395}, {395,468}, {468,507}, {507,6500} }; // V[3,4], AK4
-  { {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
+  { {0,84}, {84,114}, {114,196}, {196,272}, {272,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[5,6], AK4
+  //{ {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
@@ -101,7 +74,7 @@ double _jp_triglumi[_jp_ntrigger] = // in /ub
 bool _jp_domctrigsim = false;
 // Use "mc" trigger for whole pT range instead of stiching triggers together
 bool _jp_usemctrig = true;
-std::string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
+string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
 // Unprescaled luminosity for plots
 const double _jp_lumi = 36.810440678; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
@@ -111,8 +84,19 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 // Additional analysis switches //
 //////////////////////////////////
 
+//string _jp_jecgt = "Spring16_23Sep2016";
+string _jp_jecgt = "Summer16_23Sep2016";
+string _jp_jecvers = "V4"; // Summer16 // "V2" ; // Spring16
+
 // Use Intervals-Of-Validity for JEC
-const bool _jp_useIOV = false;
+const bool _jp_useIOV = true;
+const unsigned int _jp_nIOV = 4;
+string _jp_IOVnames[_jp_nIOV]
+  {"BCD",    "EF",    "G",   "H"};
+// Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
+double _jp_IOVranges[_jp_nIOV][2] =
+  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
+
 // Produce run-level histograms
 const bool _jp_doRunHistos = false; // Set to false to save time
 // Produce basic set of histograms
@@ -124,11 +108,13 @@ const bool _jp_pthatbins = false;
 const unsigned int _jp_npthatbins = 14;
 // The corresponding ranges
 double _jp_pthatranges[_jp_npthatbins+1] = // The last number is ~inf
-{30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000}}
+{30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
 // The corresponding lumi
-double _jp_pthatinvlums[_jp_npthatbins] = // Arbitrary scale
-{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445}
-//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445}
+double _jp_pthatsigmas[_jp_npthatbins] = // Arbitrary scale
+{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+unsigned int _jp_pthatnevts[_jp_npthatbins] = 
+{9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 
 // Correct for trigger efficiency based on MC
 const bool _jp_dotrigeff = false;//true;

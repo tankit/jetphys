@@ -373,8 +373,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
         TH1D *hdt3 = (_vspu ? pdt3->ProjectionX() : tools::Rebin(pdt3, href));
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)
-                             * (1 - (dobeta ? hdt2->GetBinContent(i) : 0)
-                                - hdt3->GetBinContent(i)));
+                             * (1 - (dobeta ? hdt2->GetBinContent(i) : 0) - hdt3->GetBinContent(i)));
         }
         delete hdt2;
         delete hdt3;
