@@ -323,7 +323,7 @@ void fillHistos::Loop()
 
     if (jentry%50000==0) cout << "." << flush;
 
-    if (jentry==10000 || jentry==100000 || jentry==1000000 || jentry==5000000){
+    if (jentry==10000 || jentry==100000 || jentry==1000000 || jentry==5000000 || jentry==20000000 || jentry==40000000 || jentry==80000000){
       cout << endl
            << Form("Processed %ld events (%1.1f%%) in %1.0f sec. ETA:",
                    (long int)jentry, 100.*jentry/ntot,
@@ -339,8 +339,6 @@ void fillHistos::Loop()
     weight = (_jp_pthatbins ?
               (hmcweight->GetBinContent(hmcweight->FindBin(pthat)))*EvtHdr__mWeight :
               EvtHdr__mWeight);
-    if (weight==0)
-      cout << "Kackea: " << jentry << " " << pthat << endl;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
     evt = EvtHdr__mEvent;

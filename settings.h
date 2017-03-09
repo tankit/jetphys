@@ -21,14 +21,14 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PF";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "MC";
+string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries = -1; // all
+//Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
-//Long64_t _jp_nentries = 100000; // short test run
+Long64_t _jp_nentries = 100000; // short test run
 //Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
@@ -82,7 +82,7 @@ bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
 //// 2016: ////
   // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lemibyls.csv --byls --minBiasXsec 69000
-  {271792.436,738011.349,2806215.978,24609118.02,105577219.6,603409186.2,1800913935,5277989761,36810440678};
+  {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002};
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = false;
