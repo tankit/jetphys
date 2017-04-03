@@ -1148,6 +1148,14 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hdjasymmtp->Fill(ptref, alphatp, asymmtp, _w);
         h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
       }
+      if (alpha<0.05) {
+        h->hdjasymm_a005->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a005->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.05) {
+        h->hdjasymmtp_a005->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a005->Fill(ptref, etaprobe, mpftp, _w);
+      }
       if (alpha<0.1) {
         h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
         h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
@@ -1172,6 +1180,14 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
         h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
       }
+      if (alpha<0.25) {
+        h->hdjasymm_a025->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a025->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.25) {
+        h->hdjasymmtp_a025->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a025->Fill(ptref, etaprobe, mpftp, _w);
+      }
       if (alpha<0.3) {
         h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
         h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
@@ -1191,6 +1207,14 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hdjmpf->Fill(ptave, alpha, mpf, _w);
         h->hdjasymmtp->Fill(ptprobe, alphatp, asymmtp, _w);
         h->hdjmpftp->Fill(ptprobe, alphatp, mpftp, _w);
+      }
+      if (alpha<0.05) {
+        h->hdjasymm_a005->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a005->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.05) {
+        h->hdjasymmtp_a005->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a005->Fill(ptprobe, etaref, mpftp, _w);
       }
       if (alpha<0.1) {
         h->hdjasymm_a01->Fill(ptave, etaref, -asymm, _w);
@@ -1215,6 +1239,14 @@ void fillHistos::fillBasic(basicHistos *h)
       if (alphatp<0.2) {
         h->hdjasymmtp_a02->Fill(ptprobe, etaref, asymmtp, _w);
         h->hdjmpftp_a02->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.25) {
+        h->hdjasymm_a025->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a025->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.25) {
+        h->hdjasymmtp_a025->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a025->Fill(ptprobe, etaref, mpftp, _w);
       }
       if (alpha<0.3) {
         h->hdjasymm_a03->Fill(ptave, etaref, -asymm, _w);

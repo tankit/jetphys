@@ -388,6 +388,14 @@ double vx[neta][nbins] =
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpftp = new TH3D("hdjmpftp",";p_{T,tag};p_{T,3rd}/p_{T,tag};MPF",
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
+  hdjasymm_a005 = new TH3D("hdjasymm_a005",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a005 = new TH3D("hdjmpf_a005",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a005 = new TH3D("hdjasymmtp_a005",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a005 = new TH3D("hdjmpftp_a005",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
   hdjasymm_a01 = new TH3D("hdjasymm_a01",";p_{T,ave};#eta;Asymmetry",
 		      nx,&x[0],netas,&etarange[0],na,&va[0]);
   hdjmpf_a01 = new TH3D("hdjmpf_a01",";p_{T,ave};#eta;MPF",
@@ -411,6 +419,14 @@ double vx[neta][nbins] =
   hdjasymmtp_a02 = new TH3D("hdjasymmtp_a02",";p_{T,tag};#eta;Asymmetry",
 		      nx,&x[0],netas,&etarange[0],na,&va[0]);
   hdjmpftp_a02 = new TH3D("hdjmpftp_a02",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a025 = new TH3D("hdjasymm_a025",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a025 = new TH3D("hdjmpf_a025",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a025 = new TH3D("hdjasymmtp_a025",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a025 = new TH3D("hdjmpftp_a025",";p_{T,tag};#eta;MPF",
 		      nx,&x[0],netas,&etarange[0],na,&va[0]);
   hdjasymm_a03 = new TH3D("hdjasymm_a03",";p_{T,ave};#eta;Asymmetry",
 		      nx,&x[0],netas,&etarange[0],na,&va[0]);
@@ -449,6 +465,10 @@ double vx[neta][nbins] =
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
   hdjmpftp->Sumw2();
+  hdjasymm_a005->Sumw2();
+  hdjmpf_a005->Sumw2();
+  hdjasymmtp_a005->Sumw2();
+  hdjmpftp_a005->Sumw2();
   hdjasymm_a01->Sumw2();
   hdjmpf_a01->Sumw2();
   hdjasymmtp_a01->Sumw2();
@@ -461,6 +481,10 @@ double vx[neta][nbins] =
   hdjmpf_a02->Sumw2();
   hdjasymmtp_a02->Sumw2();
   hdjmpftp_a02->Sumw2();
+  hdjasymm_a025->Sumw2();
+  hdjmpf_a025->Sumw2();
+  hdjasymmtp_a025->Sumw2();
+  hdjmpftp_a025->Sumw2();
   hdjasymm_a03->Sumw2();
   hdjmpf_a03->Sumw2();
   hdjasymmtp_a03->Sumw2();

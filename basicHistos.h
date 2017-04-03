@@ -265,6 +265,10 @@ class basicHistos {
   TH3D *hdjasymmtp;
   TH3D *hdjmpftp;
   // Same in the pt-eta plane
+  TH3D *hdjasymm_a005;
+  TH3D *hdjmpf_a005;
+  TH3D *hdjasymmtp_a005;
+  TH3D *hdjmpftp_a005;
   TH3D *hdjasymm_a01;
   TH3D *hdjmpf_a01;
   TH3D *hdjasymmtp_a01;
@@ -277,6 +281,10 @@ class basicHistos {
   TH3D *hdjmpf_a02;
   TH3D *hdjasymmtp_a02;
   TH3D *hdjmpftp_a02;
+  TH3D *hdjasymm_a025;
+  TH3D *hdjmpf_a025;
+  TH3D *hdjasymmtp_a025;
+  TH3D *hdjmpftp_a025;
   TH3D *hdjasymm_a03;
   TH3D *hdjmpf_a03;
   TH3D *hdjasymmtp_a03;
