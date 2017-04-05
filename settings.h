@@ -21,15 +21,17 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "DATA";
+string _jp_type = "MC";
+// Simple helper
+bool _jp_ismc = !(_jp_type=="DATA");
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries = -1; // all
+//Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
 //Long64_t _jp_nentries = 100000; // short test run
-//Long64_t _jp_nentries = 1000000; // for MC
+Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
 
@@ -100,7 +102,7 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 
 //string _jp_jecgt = "Spring16_23Sep2016";
 string _jp_jecgt = "Summer16_23Sep2016";
-string _jp_jecvers = "V5"; // Summer16 // "V2" ; // Spring16
+string _jp_jecvers = "V6"; // Summer16 // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = true;
@@ -115,6 +117,8 @@ double _jp_IOVranges[_jp_nIOV][2] =
 const bool _jp_doRunHistos = false; // Set to false to save time
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
+// Produce full-eta TH3 histograms
+const bool _jp_doEtaHistos = true;
 
 // Correct for trigger efficiency based on MC
 const bool _jp_dotrigeff = false;

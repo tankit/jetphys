@@ -194,6 +194,8 @@ void fillHistos::Loop()
          << " additional run-level histograms" << endl;
     cout << (_jp_doBasicHistos ? "Storing" : "Not storing")
          << " basic set of histograms" << endl;
+    cout << (_jp_doEtaHistos ? "Storing" : "Not storing")
+         << " histograms with a full eta-range" << endl;
   }
   if (_mc) {
     cout << (_jp_reweighPU ? "Reweighing" : "Not reweighing")
@@ -289,6 +291,10 @@ void fillHistos::Loop()
   // Initialize histograms for different epochs and DQM selections
   if (_jp_doBasicHistos) {
     initBasics("Standard");
+  }
+
+  if (_jp_doEtaHistos) {
+    initEtas("FullEta");
   }
 
   if (_dt && _jp_doRunHistos) {
@@ -778,6 +784,10 @@ void fillHistos::Loop()
       fillBasics("Standard");
     }
 
+    if (_jp_doEtaHistos) {
+      fillEtas("FullEta");
+    }
+
     // Run quality checks
     if (_dt && _jp_doRunHistos) {
       fillRunHistos("Runs");
@@ -812,8 +822,9 @@ void fillHistos::Loop()
                info.fMemTotal, info.fMemUsed, info.fMemFree,
                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
 
-  if (_jp_doRunHistos)   writeRunHistos(); // before writeBasics!
-  if (_jp_doBasicHistos) writeBasics();
+  if (_jp_doRunHistos)   writeRunHistos();
+  if (_jp_doEtaHistos)   writeEtas();
+  if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
 
   // List bad runs
   cout << "Processed " << _totcounter << " events in total" << endl;
@@ -1148,54 +1159,6 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hdjasymmtp->Fill(ptref, alphatp, asymmtp, _w);
         h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
       }
-      if (alpha<0.05) {
-        h->hdjasymm_a005->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a005->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.05) {
-        h->hdjasymmtp_a005->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a005->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.1) {
-        h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.1) {
-        h->hdjasymmtp_a01->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a01->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.15) {
-        h->hdjasymm_a015->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a015->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.15) {
-        h->hdjasymmtp_a015->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a015->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.2) {
-        h->hdjasymm_a02->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a02->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.2) {
-        h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.25) {
-        h->hdjasymm_a025->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a025->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.25) {
-        h->hdjasymmtp_a025->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a025->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.3) {
-        h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.3) {
-        h->hdjasymmtp_a03->Fill(ptref, alphatp, asymmtp, _w);
-        h->hdjmpftp_a03->Fill(ptref, alphatp, mpftp, _w);
-      }
     } // first combo
     if (etaprobe < 1.3) {
       double asymmtp = (ptref - ptprobe)/(2*ptprobe);
@@ -1207,54 +1170,6 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hdjmpf->Fill(ptave, alpha, mpf, _w);
         h->hdjasymmtp->Fill(ptprobe, alphatp, asymmtp, _w);
         h->hdjmpftp->Fill(ptprobe, alphatp, mpftp, _w);
-      }
-      if (alpha<0.05) {
-        h->hdjasymm_a005->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a005->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.05) {
-        h->hdjasymmtp_a005->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a005->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.1) {
-        h->hdjasymm_a01->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a01->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.1) {
-        h->hdjasymmtp_a01->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a01->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.15) {
-        h->hdjasymm_a015->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a015->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.15) {
-        h->hdjasymmtp_a015->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a015->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.2) {
-        h->hdjasymm_a02->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a02->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.2) {
-        h->hdjasymmtp_a02->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a02->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.25) {
-        h->hdjasymm_a025->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a025->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.25) {
-        h->hdjasymmtp_a025->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a025->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.3) {
-        h->hdjasymm_a03->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a03->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.3) {
-        h->hdjasymmtp_a03->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a03->Fill(ptprobe, etaref, mpftp, _w);
       }
     } // second combo
   }
@@ -1863,7 +1778,6 @@ void fillHistos::writeBasics()
 
   cout << "\nOutput stored in " << _outfile->GetName() << endl;
   _outfile->Close();
-  _outfile->Delete();
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeBasic() finished:" << endl << flush;
@@ -1874,16 +1788,274 @@ void fillHistos::writeBasics()
 } // writeBasic
 
 
+// Initialize eta histograms for trigger bins
+void fillHistos::initEtas(string name)
+{
+  // Report memory usage to avoid malloc problems when writing file
+  *ferr << "initEtas("<<name<<"):" << endl << flush;
+  MemInfo_t info;
+  gSystem->GetMemInfo(&info);
+  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+                info.fMemTotal, info.fMemUsed, info.fMemFree,
+                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+
+  TDirectory *curdir = gDirectory;
+
+  // open file for output
+  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
+  assert(f && !f->IsZombie());
+  f->mkdir(name.c_str());
+  assert(f->cd(name.c_str()));
+  TDirectory *topdir = f->GetDirectory(name.c_str()); assert(topdir);
+  topdir->cd();
+
+  // define triggers
+  vector<string> triggers;
+  // define efficient pT ranges for triggers for control plots
+  map<string, pair<double, double> > pt;
+  // define pT values for triggers
+  map<string, double> pttrg;
+  if (_mc) {
+    triggers.push_back("mc");
+    pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
+    pttrg["mc"] = _jp_recopt;
+  } else {
+    for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
+      string trg = _jp_triggers[itrg];
+      triggers.push_back(trg);
+      double pt1 = _jp_trigranges[itrg][0];
+      double pt2 = _jp_trigranges[itrg][1];
+      pt[trg] = pair<double, double>(pt1, pt2);
+      double pt0 = _jp_trigthr[itrg];
+      pttrg[trg] = pt0;
+    }
+  }
+
+  assert(topdir);
+
+  for (unsigned int j = 0; j != triggers.size(); ++j) {
+    // subdirectory for trigger
+    const char *trg = triggers[j].c_str();
+    topdir->mkdir(trg);
+    assert(topdir->cd(trg));
+    TDirectory *dir = topdir->GetDirectory(trg);
+    assert(dir);
+    dir->cd();
+
+    // Initialize and store
+    assert(dir);
+    etaHistos *h = new etaHistos(dir, trg);
+    _etahistos[name].push_back(h);
+  } // for i
+
+  _outfile = f;
+  curdir->cd();
+
+  // Report memory usage to avoid malloc problems when writing file
+  *ferr << "initEtas("<<name<<") finished:" << endl << flush;
+  gSystem->GetMemInfo(&info);
+  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+               info.fMemTotal, info.fMemUsed, info.fMemFree,
+               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+} // initEtas
+
+
+// Loop over basic histogram containers to fill all
+void fillHistos::fillEtas(string name)
+{
+  for (unsigned int i = 0; i != _etahistos[name].size(); ++i)
+    fillEta(_etahistos[name][i]);
+}
+
+
+// Fill basic histograms after applying pt, y cuts
+void fillHistos::fillEta(etaHistos *h)
+{
+  assert(h);
+
+  _w = _w0 * _wt[h->trigname];
+  assert(_w);
+
+  bool fired = (_trigs.find(h->trigname)!=_trigs.end());
+
+  if (_debug) {
+    if (h == _etahistos.begin()->second[0]) {
+      cout << "Triggers size: " << _trigs.size() << endl;
+      for (set<string>::iterator it = _trigs.begin();
+          it != _trigs.end(); ++it) {
+        cout << *it << ", ";
+      }
+      cout << "(" << h->trigname << ")" << endl;
+    }
+  }
+
+  // check if required trigger fired
+  if (!fired) return;
+
+  // Calculate and fill dijet balance histograms
+  if (njt>=2 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
+      && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
+    int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
+    int iprobe = (iref==0 ? 1 : 0);
+    double etaref = fabs(jteta[iref]);
+    double etaprobe = fabs(jteta[iprobe]);
+    double ptref = jtpt[iref];
+    double ptprobe = jtpt[iprobe];
+    double pt3 = (njt>2 ? jtpt[2] : 0.);
+    double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
+    double alpha = pt3/ptave;
+    double asymm = (ptprobe - ptref)/(2*ptave);
+
+    // Look for both combinations (first combo follows t&p terminology, second is inverted) 
+    if (etaref < 1.3) {
+      double asymmtp = (ptprobe - ptref)/(2*ptref);
+      double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
+      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
+      double alphatp = pt3/ptref;
+      if (alpha<0.05) {
+        h->hdjasymm_a005->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a005->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.05) {
+        h->hdjasymmtp_a005->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a005->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.1) {
+        h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.1) {
+        h->hdjasymmtp_a01->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a01->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.15) {
+        h->hdjasymm_a015->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a015->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.15) {
+        h->hdjasymmtp_a015->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a015->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.2) {
+        h->hdjasymm_a02->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a02->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.2) {
+        h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.25) {
+        h->hdjasymm_a025->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a025->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.25) {
+        h->hdjasymmtp_a025->Fill(ptref, etaprobe, asymmtp, _w);
+        h->hdjmpftp_a025->Fill(ptref, etaprobe, mpftp, _w);
+      }
+      if (alpha<0.3) {
+        h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
+        h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
+      }
+      if (alphatp<0.3) {
+        h->hdjasymmtp_a03->Fill(ptref, alphatp, asymmtp, _w);
+        h->hdjmpftp_a03->Fill(ptref, alphatp, mpftp, _w);
+      }
+    } // first combo
+    if (etaprobe < 1.3) {
+      double asymmtp = (ptref - ptprobe)/(2*ptprobe);
+      double mpf = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptave;
+      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptprobe;
+      double alphatp = pt3/ptprobe;
+      if (alpha<0.05) {
+        h->hdjasymm_a005->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a005->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.05) {
+        h->hdjasymmtp_a005->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a005->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.1) {
+        h->hdjasymm_a01->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a01->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.1) {
+        h->hdjasymmtp_a01->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a01->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.15) {
+        h->hdjasymm_a015->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a015->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.15) {
+        h->hdjasymmtp_a015->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a015->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.2) {
+        h->hdjasymm_a02->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a02->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.2) {
+        h->hdjasymmtp_a02->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a02->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.25) {
+        h->hdjasymm_a025->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a025->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.25) {
+        h->hdjasymmtp_a025->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a025->Fill(ptprobe, etaref, mpftp, _w);
+      }
+      if (alpha<0.3) {
+        h->hdjasymm_a03->Fill(ptave, etaref, -asymm, _w);
+        h->hdjmpf_a03->Fill(ptave, etaref, mpf, _w);
+      }
+      if (alphatp<0.3) {
+        h->hdjasymmtp_a03->Fill(ptprobe, etaref, asymmtp, _w);
+        h->hdjmpftp_a03->Fill(ptprobe, etaref, mpftp, _w);
+      }
+    } // second combo
+  }
+} // fillEta
+
+
+// Write and delete histograms
+void fillHistos::writeEtas()
+{
+  // Report memory usage to avoid malloc problems when writing file
+  *ferr << "writeEtas():" << endl << flush;
+  MemInfo_t info;
+  gSystem->GetMemInfo(&info);
+  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+               info.fMemTotal, info.fMemUsed, info.fMemFree,
+               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+
+  for (auto it : _etahistos) {
+    for (unsigned int i = 0; i != it.second.size(); ++i) {
+      etaHistos *h = it.second[i];
+      delete h;
+    } // for i
+  } // for it
+
+  // Report memory usage to avoid malloc problems when writing file
+  *ferr << "writeEtas() finished:" << endl << flush;
+  gSystem->GetMemInfo(&info);
+  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+               info.fMemTotal, info.fMemUsed, info.fMemFree,
+               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+} // writeEtas
+
+
 // Initialize basic histograms for trigger and eta bins
- void fillHistos::initRunHistos(string name, double ymin, double ymax) {
+void fillHistos::initRunHistos(string name, double ymin, double ymax) {
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "initRunHistos("<<name<<"):" << endl << flush;
   MemInfo_t info;
   gSystem->GetMemInfo(&info);
   *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+                info.fMemTotal, info.fMemUsed, info.fMemFree,
+                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
 
   TDirectory *curdir = gDirectory;
 

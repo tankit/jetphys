@@ -212,5 +212,5 @@ runHistos::~runHistos() {
   } // for j
 
   dir->Write();
-  delete dir;
+  //delete dir;
 };

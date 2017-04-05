@@ -9,5 +9,5 @@
 
   #include "settings.h"
 
-  normalizeHistos(_jp_type);
+  normalizeHistos();
 }

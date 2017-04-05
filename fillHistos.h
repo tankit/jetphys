@@ -51,6 +51,7 @@ using std::endl;
 
 #include "settings.h"
 #include "basicHistos.h"
+#include "etaHistos.h"
 #include "runHistos.h"
 #include "tools.h"
 
@@ -140,15 +141,15 @@ public :
   Bool_t          PFJetsCHS__tightID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__CSVpfPositive_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__CSVpfNegative_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__boosted_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  //Float_t         PFJetsCHS__boosted_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__QGtagger_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__recommend1_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__recommend2_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__recommend3_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__pfCombinedCvsL_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__pfCombinedCvsB_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  //Float_t         PFJetsCHS__pfCombinedCvsL_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  //Float_t         PFJetsCHS__pfCombinedCvsB_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__chf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nhf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nemf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -164,7 +165,7 @@ public :
   Int_t           PFJetsCHS__elm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mum_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__ncand_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Int_t           PFJetsCHS__cm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  //Int_t           PFJetsCHS__cm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__beta_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__betaStar_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mpuTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -244,15 +245,15 @@ public :
   TBranch        *b_PFJetsCHS__tightID_;   //!
   TBranch        *b_PFJetsCHS__CSVpfPositive_;   //!
   TBranch        *b_PFJetsCHS__CSVpfNegative_;   //!
-  TBranch        *b_PFJetsCHS__boosted_;   //!
+  //TBranch        *b_PFJetsCHS__boosted_;   //!
   TBranch        *b_PFJetsCHS__QGtagger_;   //!
   TBranch        *b_PFJetsCHS__partonFlavour_;   //!
   TBranch        *b_PFJetsCHS__hadronFlavour_;   //!
   TBranch        *b_PFJetsCHS__recommend1_;   //!
   TBranch        *b_PFJetsCHS__recommend2_;   //!
   TBranch        *b_PFJetsCHS__recommend3_;   //!
-  TBranch        *b_PFJetsCHS__pfCombinedCvsL_;   //!
-  TBranch        *b_PFJetsCHS__pfCombinedCvsB_;   //!
+  //TBranch        *b_PFJetsCHS__pfCombinedCvsL_;   //!
+  //TBranch        *b_PFJetsCHS__pfCombinedCvsB_;   //!
   TBranch        *b_PFJetsCHS__chf_;   //!
   TBranch        *b_PFJetsCHS__nhf_;   //!
   TBranch        *b_PFJetsCHS__nemf_;   //!
@@ -268,7 +269,7 @@ public :
   TBranch        *b_PFJetsCHS__elm_;   //!
   TBranch        *b_PFJetsCHS__mum_;   //!
   TBranch        *b_PFJetsCHS__ncand_;   //!
-  TBranch        *b_PFJetsCHS__cm_;   //!
+  //TBranch        *b_PFJetsCHS__cm_;   //!
   TBranch        *b_PFJetsCHS__beta_;   //!
   TBranch        *b_PFJetsCHS__betaStar_;   //!
   TBranch        *b_PFJetsCHS__mpuTrk_;   //!
@@ -425,6 +426,7 @@ public :
   set<string> _trigs;
   vector<bool> _jetids;
   map<string, vector<basicHistos*> > _histos;
+  map<string, vector<etaHistos*> > _etahistos;
   map<string, runHistos*> _runhistos;
   TH1D *hmcweight;
 
@@ -441,6 +443,11 @@ public :
   void fillBasics(string name);
   void fillBasic(basicHistos *h);
   void writeBasics();
+
+  void initEtas(string name);
+  void fillEtas(string name);
+  void fillEta(etaHistos *h);
+  void writeEtas();
 
   void initRunHistos(string name, double ymin, double ymax);
   void fillRunHistos(string name);
@@ -650,15 +657,15 @@ void fillHistos::Init(TTree *tree)
   fChain->SetBranchAddress("PFJetsCHS_.tightID_", PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
   fChain->SetBranchAddress("PFJetsCHS_.CSVpfPositive_", PFJetsCHS__CSVpfPositive_, &b_PFJetsCHS__CSVpfPositive_);
   fChain->SetBranchAddress("PFJetsCHS_.CSVpfNegative_", PFJetsCHS__CSVpfNegative_, &b_PFJetsCHS__CSVpfNegative_);
-  fChain->SetBranchAddress("PFJetsCHS_.boosted_", PFJetsCHS__boosted_, &b_PFJetsCHS__boosted_);
+  //fChain->SetBranchAddress("PFJetsCHS_.boosted_", PFJetsCHS__boosted_, &b_PFJetsCHS__boosted_);
   fChain->SetBranchAddress("PFJetsCHS_.QGtagger_", PFJetsCHS__QGtagger_, &b_PFJetsCHS__QGtagger_);
   fChain->SetBranchAddress("PFJetsCHS_.partonFlavour_", PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
   fChain->SetBranchAddress("PFJetsCHS_.hadronFlavour_", PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
   fChain->SetBranchAddress("PFJetsCHS_.recommend1_", PFJetsCHS__recommend1_, &b_PFJetsCHS__recommend1_);
   fChain->SetBranchAddress("PFJetsCHS_.recommend2_", PFJetsCHS__recommend2_, &b_PFJetsCHS__recommend2_);
   fChain->SetBranchAddress("PFJetsCHS_.recommend3_", PFJetsCHS__recommend3_, &b_PFJetsCHS__recommend3_);
-  fChain->SetBranchAddress("PFJetsCHS_.pfCombinedCvsL_", PFJetsCHS__pfCombinedCvsL_, &b_PFJetsCHS__pfCombinedCvsL_);
-  fChain->SetBranchAddress("PFJetsCHS_.pfCombinedCvsB_", PFJetsCHS__pfCombinedCvsB_, &b_PFJetsCHS__pfCombinedCvsB_);
+  //fChain->SetBranchAddress("PFJetsCHS_.pfCombinedCvsL_", PFJetsCHS__pfCombinedCvsL_, &b_PFJetsCHS__pfCombinedCvsL_);
+  //fChain->SetBranchAddress("PFJetsCHS_.pfCombinedCvsB_", PFJetsCHS__pfCombinedCvsB_, &b_PFJetsCHS__pfCombinedCvsB_);
   fChain->SetBranchAddress("PFJetsCHS_.chf_", PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
   fChain->SetBranchAddress("PFJetsCHS_.nhf_", PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
   fChain->SetBranchAddress("PFJetsCHS_.nemf_", PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
@@ -674,7 +681,7 @@ void fillHistos::Init(TTree *tree)
   fChain->SetBranchAddress("PFJetsCHS_.elm_", PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
   fChain->SetBranchAddress("PFJetsCHS_.mum_", PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
   fChain->SetBranchAddress("PFJetsCHS_.ncand_", PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
-  fChain->SetBranchAddress("PFJetsCHS_.cm_", PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
+  //fChain->SetBranchAddress("PFJetsCHS_.cm_", PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
   fChain->SetBranchAddress("PFJetsCHS_.beta_", PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
   fChain->SetBranchAddress("PFJetsCHS_.betaStar_", PFJetsCHS__betaStar_, &b_PFJetsCHS__betaStar_);
   fChain->SetBranchAddress("PFJetsCHS_.mpuTrk_", PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);

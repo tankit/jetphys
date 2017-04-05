@@ -193,8 +193,8 @@ TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
   h3->Divide(h1, h2, c1, c2, opt);
 
   // delete temporary copies
-  if (h1r) h1r->Delete();
-  if (h2r) h2r->Delete();
+  //if (h1r) h1r->Delete();
+  //if (h2r) h2r->Delete();
   
   return h3;
 } // Divide
