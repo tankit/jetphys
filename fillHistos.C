@@ -229,21 +229,20 @@ void fillHistos::Loop()
     JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
     s = Form("%s%sL3Absolute_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
 
     vector<JetCorrectorParameters> vpar;
     vpar.push_back(*par_l1);
     vpar.push_back(*par_l2);
     vpar.push_back(*par_l3);
-    if (_dt) vpar.push_back(*par_l2l3res);
-    _JEC = new FactorizedJetCorrector(vpar);
-  
     if (_dt) {
+      s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
+      JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
+      vpar.push_back(*par_l2l3res);
       s = Form("%s%sUncertainty_%s.txt",p,t,a);
       cout<<"**"<<s<<endl<<flush;
       _jecUnc = new JetCorrectionUncertainty(s);
     }
+    _JEC = new FactorizedJetCorrector(vpar);
 
     // For type-I and type-II MET
     s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
@@ -1132,47 +1131,35 @@ void fillHistos::fillBasic(basicHistos *h)
   // Calculate and fill dijet balance histograms
   if (njt>=2 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
       && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
-    int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
-    int iprobe = (iref==0 ? 1 : 0);
-    double etaref = fabs(jteta[iref]);
-    double etaprobe = fabs(jteta[iprobe]);
-    double ptref = jtpt[iref];
-    double ptprobe = jtpt[iprobe];
-    double pt3 = (njt>2 ? jtpt[2] : 0.);
-    double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
-    double alpha = pt3/ptave;
-    double asymm = (ptprobe - ptref)/(2*ptave);
+    // Two leading jets
+    for (unsigned iref = 0; iref<2; ++iref) {
+      int iprobe = (iref==0 ? 1 : 0);
+      double etaref = jteta[iref];
+      double etaprobe = jteta[iprobe];
 
-    assert(h->hdjasymm);
-    assert(h->hdjasymmtp);
-    assert(h->hdjmpf);
-    assert(h->hdjmpftp);
-    // Look for both combinations (first combo follows t&p terminology, second is inverted) 
-    if (etaref < 1.3) {
-      double asymmtp = (ptprobe - ptref)/(2*ptref);
-      double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
-      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
-      double alphatp = pt3/ptref;
-      if (etaprobe >= h->ymin && etaprobe < h->ymax) {
+      // Look for both combinations (first combo follows t&p terminology, second is inverted) 
+      if (fabs(etaref) < 1.3 && etaprobe >= h->ymin && etaprobe < h->ymax) {
+        double ptref = jtpt[iref];
+        double ptprobe = jtpt[iprobe];
+        double pt3 = (njt>2 ? jtpt[2] : 0.);
+        double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
+        double alpha = pt3/ptave;
+        double asymm = (ptprobe - ptref)/(2*ptave);
+        double asymmtp = (ptprobe - ptref)/(2*ptref);
+        double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
+        double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
+        double alphatp = pt3/ptref;
+        assert(h->hdjasymm);
+        assert(h->hdjasymmtp);
+        assert(h->hdjmpf);
+        assert(h->hdjmpftp);
         h->hdjasymm->Fill(ptave, alpha, asymm, _w);
         h->hdjmpf->Fill(ptave, alpha, mpf, _w);
         h->hdjasymmtp->Fill(ptref, alphatp, asymmtp, _w);
         h->hdjmpftp->Fill(ptref, alphatp, mpftp, _w);
-      }
-    } // first combo
-    if (etaprobe < 1.3) {
-      double asymmtp = (ptref - ptprobe)/(2*ptprobe);
-      double mpf = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptave;
-      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptprobe;
-      double alphatp = pt3/ptprobe;
-      if (etaref >= h->ymin && etaref < h->ymax) {
-        h->hdjasymm->Fill(ptave, alpha, -asymm, _w);
-        h->hdjmpf->Fill(ptave, alpha, mpf, _w);
-        h->hdjasymmtp->Fill(ptprobe, alphatp, asymmtp, _w);
-        h->hdjmpftp->Fill(ptprobe, alphatp, mpftp, _w);
-      }
-    } // second combo
-  }
+      } // etatag < 1.3
+    } // for iref (two leading jets)
+  } // Two or more jets in a nice phase-space region
 
   // Fill jet pT ratios vs nvtxgood (pile-up)
   bool has2 = (njt>=2 && jtpt[1] > _jp_recopt &&
@@ -1371,9 +1358,8 @@ void fillHistos::fillBasic(basicHistos *h)
     // REMOVED: "Debugging JEC"
 
     // calculate efficiencies and fill histograms
-    if (_evtid && id && pt>_jp_recopt &&
-        fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
-
+    if (_evtid && id && pt>_jp_recopt && fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
+      
       if (_debug) cout << "..jec uncertainty" << endl << flush;
 
       // Get JEC uncertainty
@@ -1420,11 +1406,14 @@ void fillHistos::fillBasic(basicHistos *h)
 
       // leading and non-leading jets
       assert(h->hpt1);
-      if (i==0) { h->hpt1->Fill(pt, _w); }
       assert(h->hpt2);
-      if (i==1) { h->hpt2->Fill(pt, _w); }
       assert(h->hpt3);
-      if (i==2) { h->hpt3->Fill(pt, _w); }
+      if (i==0)
+        h->hpt1->Fill(pt, _w);
+      if (i==1)
+        h->hpt2->Fill(pt, _w);
+      if (i==2)
+        h->hpt3->Fill(pt, _w);
 
       if (_debug) cout << "..basic properties" << endl << flush;
 
@@ -1607,11 +1596,8 @@ void fillHistos::fillBasic(basicHistos *h)
                << " yr="<< y << endl;
         }
       }
-      //
       if (h->ismc) {
-
         if (jtgenr[i]<0.25) {
-
           //int flv = abs(jtgenflv[i]);
           double ptgen = jtgenpt[i];
           //double r = (jtgenpt[i] ? pt/jtgenpt[i] : 0);
@@ -1895,127 +1881,66 @@ void fillHistos::fillEta(etaHistos *h)
   // Calculate and fill dijet balance histograms
   if (njt>=2 && _evtid && delta_phi(jtphi[0],jtphi[1])>2.8
       && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
-    int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
-    int iprobe = (iref==0 ? 1 : 0);
-    double etaref = fabs(jteta[iref]);
-    double etaprobe = fabs(jteta[iprobe]);
-    double ptref = jtpt[iref];
-    double ptprobe = jtpt[iprobe];
-    double pt3 = (njt>2 ? jtpt[2] : 0.);
-    double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
-    double alpha = pt3/ptave;
-    double asymm = (ptprobe - ptref)/(2*ptave);
+    // Two leading jets
+    for (int iref = 0; iref<2; ++iref) {
+      int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
+      int iprobe = (iref==0 ? 1 : 0);
+      double etaref = jteta[iref];
+      double etaprobe = jteta[iprobe];
+      double ptref = jtpt[iref];
+      double ptprobe = jtpt[iprobe];
+      double pt3 = (njt>2 ? jtpt[2] : 0.);
+      double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
+      double alpha = pt3/ptave;
+      double asymm = (ptprobe - ptref)/(2*ptave);
 
-    // Look for both combinations (first combo follows t&p terminology, second is inverted) 
-    if (etaref < 1.3) {
-      double asymmtp = (ptprobe - ptref)/(2*ptref);
-      double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
-      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
-      double alphatp = pt3/ptref;
-      if (alpha<0.05) {
-        h->hdjasymm_a005->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a005->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.05) {
-        h->hdjasymmtp_a005->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a005->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.1) {
-        h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.1) {
-        h->hdjasymmtp_a01->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a01->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.15) {
-        h->hdjasymm_a015->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a015->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.15) {
-        h->hdjasymmtp_a015->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a015->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.2) {
-        h->hdjasymm_a02->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a02->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.2) {
-        h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.25) {
-        h->hdjasymm_a025->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a025->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.25) {
-        h->hdjasymmtp_a025->Fill(ptref, etaprobe, asymmtp, _w);
-        h->hdjmpftp_a025->Fill(ptref, etaprobe, mpftp, _w);
-      }
-      if (alpha<0.3) {
-        h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
-        h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
-      }
-      if (alphatp<0.3) {
-        h->hdjasymmtp_a03->Fill(ptref, alphatp, asymmtp, _w);
-        h->hdjmpftp_a03->Fill(ptref, alphatp, mpftp, _w);
-      }
-    } // first combo
-    if (etaprobe < 1.3) {
-      double asymmtp = (ptref - ptprobe)/(2*ptprobe);
-      double mpf = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptave;
-      double mpftp = met2*cos(delta_phi(metphi2,jtphi[iprobe]))/ptprobe;
-      double alphatp = pt3/ptprobe;
-      if (alpha<0.05) {
-        h->hdjasymm_a005->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a005->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.05) {
-        h->hdjasymmtp_a005->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a005->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.1) {
-        h->hdjasymm_a01->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a01->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.1) {
-        h->hdjasymmtp_a01->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a01->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.15) {
-        h->hdjasymm_a015->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a015->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.15) {
-        h->hdjasymmtp_a015->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a015->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.2) {
-        h->hdjasymm_a02->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a02->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.2) {
-        h->hdjasymmtp_a02->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a02->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.25) {
-        h->hdjasymm_a025->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a025->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.25) {
-        h->hdjasymmtp_a025->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a025->Fill(ptprobe, etaref, mpftp, _w);
-      }
-      if (alpha<0.3) {
-        h->hdjasymm_a03->Fill(ptave, etaref, -asymm, _w);
-        h->hdjmpf_a03->Fill(ptave, etaref, mpf, _w);
-      }
-      if (alphatp<0.3) {
-        h->hdjasymmtp_a03->Fill(ptprobe, etaref, asymmtp, _w);
-        h->hdjmpftp_a03->Fill(ptprobe, etaref, mpftp, _w);
-      }
-    } // second combo
-  }
+      // Look for both combinations (first combo follows t&p terminology, second is inverted) 
+      if (fabs(etaref) < 1.3) {
+        double asymmtp = (ptprobe - ptref)/(2*ptref);
+        double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
+        double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
+        double alphatp = pt3/ptref;
+        if (alphatp<0.3) {
+          h->hdjasymmtp_a03->Fill(ptref, alphatp, asymmtp, _w);
+          h->hdjmpftp_a03->Fill(ptref, alphatp, mpftp, _w);
+          if (alphatp<0.25) {
+            h->hdjasymmtp_a025->Fill(ptref, etaprobe, asymmtp, _w);
+            h->hdjmpftp_a025->Fill(ptref, etaprobe, mpftp, _w);
+            if (alphatp<0.2) {
+              h->hdjasymmtp_a02->Fill(ptref, etaprobe, asymmtp, _w);
+              h->hdjmpftp_a02->Fill(ptref, etaprobe, mpftp, _w);
+              if (alphatp<0.15) {
+                h->hdjasymmtp_a015->Fill(ptref, etaprobe, asymmtp, _w);
+                h->hdjmpftp_a015->Fill(ptref, etaprobe, mpftp, _w);
+                if (alphatp<0.1) {
+                  h->hdjasymmtp_a01->Fill(ptref, etaprobe, asymmtp, _w);
+                  h->hdjmpftp_a01->Fill(ptref, etaprobe, mpftp, _w);
+                  if (alphatp<0.05) {
+                    h->hdjasymmtp_a005->Fill(ptref, etaprobe, asymmtp, _w);
+                    h->hdjmpftp_a005->Fill(ptref, etaprobe, mpftp, _w);
+        } } } } } }
+        if (alpha<0.3) {
+          h->hdjasymm_a03->Fill(ptave, etaprobe, asymm, _w);
+          h->hdjmpf_a03->Fill(ptave, etaprobe, mpf, _w);
+          if (alpha<0.25) {
+            h->hdjasymm_a025->Fill(ptave, etaprobe, asymm, _w);
+            h->hdjmpf_a025->Fill(ptave, etaprobe, mpf, _w);
+            if (alpha<0.2) {
+              h->hdjasymm_a02->Fill(ptave, etaprobe, asymm, _w);
+              h->hdjmpf_a02->Fill(ptave, etaprobe, mpf, _w);
+              if (alpha<0.15) {
+                h->hdjasymm_a015->Fill(ptave, etaprobe, asymm, _w);
+                h->hdjmpf_a015->Fill(ptave, etaprobe, mpf, _w);
+                if (alpha<0.1) {
+                  h->hdjasymm_a01->Fill(ptave, etaprobe, asymm, _w);
+                  h->hdjmpf_a01->Fill(ptave, etaprobe, mpf, _w);
+                  if (alpha<0.05) {
+                    h->hdjasymm_a005->Fill(ptave, etaprobe, asymm, _w);
+                    h->hdjmpf_a005->Fill(ptave, etaprobe, mpf, _w);
+        } } } } } }
+      } // etatag < 1.3
+    } // for iref (two leading jets)
+  } // two or more jets, phase space
 } // fillEta
 
 

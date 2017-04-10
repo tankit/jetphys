@@ -28,10 +28,10 @@ bool _jp_ismc = !(_jp_type=="DATA");
 string _jp_run = "RunG";
 
 // Number of events to process (-1 for all)
-//Long64_t _jp_nentries = -1; // all
+Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
 //Long64_t _jp_nentries = 100000; // short test run
-Long64_t _jp_nentries = 1000000; // for MC
+//Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
 
