@@ -477,7 +477,7 @@ private:
   map<Int_t, Int_t> _outlist;
 
   TLorentzVector p4, gp4, genp4, cp4, pp4;
-  jec::IOV *iov;
+  jec::IOV iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
   JetCorrectionUncertainty *_jecUnc;
   //L3Corr *_jecUnc2;

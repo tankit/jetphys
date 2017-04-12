@@ -174,7 +174,6 @@ void fillHistos::Loop()
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
 
-  //assert(_jp_algo=="AK4" || _jp_algo=="AK8");
   const char *a = _jp_algo.c_str();
   cout << "\nCONFIGURATION DUMP:" << endl;
   cout << "-------------------" << endl;
@@ -211,9 +210,8 @@ void fillHistos::Loop()
 
   // Time dependent JEC (only for dt)
   if (_dt && _jp_useIOV) {
-    iov = new jec::IOV();
     for (unsigned i=0; i<_jp_nIOV; ++i) {
-      iov->add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
+      iov.add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
     }
   } else {
     // At least a singular recalculation of JEC is always performed
@@ -638,7 +636,7 @@ void fillHistos::Loop()
 
     // load correct IOV for JEC
     if (_dt && _jp_useIOV) {
-      assert(iov->setCorr(run,&_JEC,&_L1RC,&_jecUnc));
+      assert(iov.setCorr(run,&_JEC,&_L1RC,&_jecUnc));
       assert(_JEC);
       assert(_L1RC);
       assert(_jecUnc);
@@ -919,6 +917,11 @@ void fillHistos::Loop()
   cout << endl << endl;
 
   delete ferr;
+  if (!_dt || !_jp_useIOV) {
+    delete _JEC;
+    delete _L1RC;
+    delete _jecUnc;
+  }
 }
 
 
