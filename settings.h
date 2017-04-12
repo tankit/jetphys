@@ -21,16 +21,21 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "MC";
+string _jp_type = "DATA";
 // Simple helper
 bool _jp_ismc = !(_jp_type=="DATA");
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
+// Kostas stored UNCORRECTED four-vector, current status: CORRECTED
+// HOX: this is a source of constant anxiety, should be rechecked from time to time
+bool _jp_undojes = true;
+// For debugging
+bool _jp_skipl2l3res = false;
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries = -1; // all
+//Long64_t _jp_nentries = -1; // all
 //Long64_t _jp_nentries = 10; // debug
-//Long64_t _jp_nentries = 100000; // short test run
+Long64_t _jp_nentries = 100000; // short test run
 //Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;

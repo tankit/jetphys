@@ -10,11 +10,14 @@
 #include <iostream>
 #include <utility>
 
+#include "settings.h"
+
 using namespace std;
 
 namespace jec {
   
   struct IOVdata {
+    vector<string> names;
     unsigned int low;
     unsigned int up;
     FactorizedJetCorrector* corr;
@@ -26,16 +29,24 @@ namespace jec {
   class IOV {
 
   public:
-    IOV(string algo = "AK4PF") : _algo(algo) {
-    };
-    ~IOV() {}; // leaks memory, fix later
+    IOV();
+    ~IOV();
     void add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax);
-    bool setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc);
+    bool setCorr(unsigned int,FactorizedJetCorrector**,FactorizedJetCorrector**,JetCorrectionUncertainty**);
 
   private:
-    string _algo;
-    vector<IOVdata> jecs;
+    vector<IOVdata> _jecs;
+    int _current;
   }; // class IOV
+
+  IOV::IOV() : _current(-1) {}
+  IOV::~IOV() {
+    for (auto &jec: _jecs) {
+      delete jec.corr;
+      delete jec.l1rc;
+      delete jec.unc;
+    }
+  }
 
   // body part (separate later to another file)
   void IOV::add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax) {
@@ -45,7 +56,7 @@ namespace jec {
 
     // sanity checks to avoid IOV overlaps
     assert(runmax>=runmin);
-    for (auto it = jecs.begin(); it != jecs.end(); ++it) {
+    for (auto it = _jecs.begin(); it != _jecs.end(); ++it) {
       assert( runmax<it->low || runmin>it->up );
     }
    
@@ -53,46 +64,58 @@ namespace jec {
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
     const char *t = jecgt.c_str();;
-    const char *a = _algo.c_str();
-
-    // L1FastJet for AK*PF, L1Offset for others
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l1 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2Relative_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
-    s = Form("%s%sL3Absolute_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
+    const char *a = _jp_algo.c_str();
 
     vector<JetCorrectorParameters> vpar;
-    vpar.push_back(*par_l1);
-    vpar.push_back(*par_l2);
-    vpar.push_back(*par_l3);
-    vpar.push_back(*par_l2l3res);
+
+    // L1FastJet for AK*PF, L1Offset for others
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    dat.names.push_back(string(s));
+    vpar.push_back(JetCorrectorParameters(s));
+
+    s = Form("%s%sL2Relative_%s.txt",p,t,a);
+    dat.names.push_back(string(s));
+    vpar.push_back(JetCorrectorParameters(s));
+
+    s = Form("%s%sL3Absolute_%s.txt",p,t,a);
+    dat.names.push_back(string(s));
+    vpar.push_back(JetCorrectorParameters(s));
+
+    if (!_jp_skipl2l3res) {
+      s = Form("%s%sL2L3Residual_%s.txt",p,t,a);
+      dat.names.push_back(string(s));
+      vpar.push_back(JetCorrectorParameters(s));
+    }
+
     dat.corr = new FactorizedJetCorrector(vpar);
 
     // For type-I and type-II MET
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
-    JetCorrectorParameters *par_l1rc = new JetCorrectorParameters(s);
-
     vector<JetCorrectorParameters> vrc;
-    vrc.push_back(*par_l1rc);
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    vrc.push_back(JetCorrectorParameters(s));
     dat.l1rc = new FactorizedJetCorrector(vrc);
 
     s = Form("%s%sUncertainty_%s.txt",p,t,a);
     dat.unc = new JetCorrectionUncertainty(s);
 
-    jecs.push_back(dat);
+    _jecs.push_back(dat);
   } // add
   
   bool IOV::setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc) {
-    assert(jecs.size()!=0);
-    for (auto it = jecs.begin(); it != jecs.end(); ++it) {
+    assert(_jecs.size()!=0);
+    for (unsigned i = 0; i<_jecs.size(); ++i) {
+      auto it = &_jecs[i];
       if (it->low <= run && it->up >= run) {
-        *corr = it->corr;
-        *l1rc = it->l1rc;
-        *unc = it->unc;
+        if (i!=_current) {
+          _current = i;
+          *corr = it->corr;
+          *l1rc = it->l1rc;
+          *unc = it->unc;
+          cout << endl << "IOV handling in use." << endl;
+          for (auto &name: it->names) {
+            cout << "Loading ... " << name << endl;
+          }
+        }
         return true;
       }
     }

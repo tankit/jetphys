@@ -211,7 +211,7 @@ void fillHistos::Loop()
 
   // Time dependent JEC (only for dt)
   if (_dt && _jp_useIOV) {
-    iov = new jec::IOV(_jp_algo);
+    iov = new jec::IOV();
     for (unsigned i=0; i<_jp_nIOV; ++i) {
       iov->add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
     }
@@ -223,21 +223,25 @@ void fillHistos::Loop()
     const char *t = jecgt.c_str();
 
     cout << "Loading "<<a<<"PF JEC" << endl;
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l1 = new JetCorrectorParameters(s);
-    s = Form("%s%sL2Relative_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
-    s = Form("%s%sL3Absolute_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-
     vector<JetCorrectorParameters> vpar;
-    vpar.push_back(*par_l1);
-    vpar.push_back(*par_l2);
-    vpar.push_back(*par_l3);
+
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    cout<<s<<endl<<flush;
+    vpar.push_back(JetCorrectorParameters(s));
+
+    s = Form("%s%sL2Relative_%s.txt",p,t,a);
+    cout<<s<<endl<<flush;
+    vpar.push_back(JetCorrectorParameters(s));
+
+    s = Form("%s%sL3Absolute_%s.txt",p,t,a);
+    cout<<s<<endl<<flush;
+    vpar.push_back(JetCorrectorParameters(s));
+
     if (_dt) {
-      s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
-      JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
-      vpar.push_back(*par_l2l3res);
+      s = Form("%s%sL2L3Residual_%s.txt",p,t,a);
+      cout<<s<<endl<<flush;
+      vpar.push_back(JetCorrectorParameters(s));
+
       s = Form("%s%sUncertainty_%s.txt",p,t,a);
       cout<<"**"<<s<<endl<<flush;
       _jecUnc = new JetCorrectionUncertainty(s);
@@ -245,11 +249,10 @@ void fillHistos::Loop()
     _JEC = new FactorizedJetCorrector(vpar);
 
     // For type-I and type-II MET
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    JetCorrectorParameters *par_l1rc = new JetCorrectorParameters(s);
-
     vector<JetCorrectorParameters> vrc;
-    vrc.push_back(*par_l1rc);
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    cout<<s<<endl<<flush;
+    vrc.push_back(JetCorrectorParameters(s));
     _L1RC = new FactorizedJetCorrector(vrc);
 
     assert(_JEC);
@@ -647,9 +650,11 @@ void fillHistos::Loop()
     double mey = met * sin(metphi);
     for (int i = 0; i != njt; ++i) {
 
-      // Kostas stores UNCORRECTED four-vector
-      // HOX: this is a source of constant anxiety, should be rechecked from time to time
       p4.SetPxPyPzE(jtp4x[i],jtp4y[i],jtp4z[i],jtp4t[i]);
+      // Divide by the original JES
+      if (_jp_undojes)
+        p4 *= 1/jtjes[i];
+
       jtptu[i] = p4.Pt();
       jteu[i] = p4.E();
 
@@ -1883,7 +1888,6 @@ void fillHistos::fillEta(etaHistos *h)
       && _jetids[0] && _jetids[1] && jtpt[0]>_jp_recopt && jtpt[1]>_jp_recopt) {
     // Two leading jets
     for (int iref = 0; iref<2; ++iref) {
-      int iref = (fabs(jteta[0]) < fabs(jteta[1]) ? 0 : 1);
       int iprobe = (iref==0 ? 1 : 0);
       double etaref = jteta[iref];
       double etaprobe = jteta[iprobe];
