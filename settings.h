@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "DATA";
+string _jp_type = "MC";
 // Simple helper
 bool _jp_ismc = !(_jp_type=="DATA");
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
@@ -51,14 +51,31 @@ const bool _jp_pthatbins = true;
 // Number of pthat bins
 const unsigned int _jp_npthatbins = 14;
 // The corresponding ranges
-double _jp_pthatranges[_jp_npthatbins+1] = // The last number is ~inf, the first has -1 to allow underflow
-{30-1,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
+vector<double> _jp_pthatranges = // The last number is ~inf, the first has -1 to allow underflow
+  {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
 // The corresponding lumi
-double _jp_pthatsigmas[_jp_npthatbins] = // Arbitrary scale
-{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-//{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-unsigned int _jp_pthatnevts[_jp_npthatbins] = 
-{9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
+vector<double> _jp_pthatsigmas = // Arbitrary scale
+  {140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+  //{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+vector<unsigned int> _jp_pthatnevts = 
+  {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
+// The filenames need to be given here and in mk_fillHistos, since ROOT is exceedingly stupid
+vector<string> _jp_pthatfiles = {
+  "MC/P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
+  "MC/P825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
+};
 
 // Veto jets near ECAL boundaries in JetID
 const bool _jp_doECALveto = false;

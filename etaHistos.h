@@ -57,7 +57,7 @@ class etaHistos {
   etaHistos(TDirectory *dir, string trigname);
   ~etaHistos();
 
-// private:
+ private:
   TDirectory *dir;
 };
 

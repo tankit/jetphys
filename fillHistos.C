@@ -43,13 +43,8 @@ void fillHistos::Loop()
   ecalveto = 0;
 
   // Set cross section weights for pThat bins
-  hmcweight = 0;
-  if (_jp_pthatbins) {
-    hmcweight = new TH1D("hmcweight",";#hat{p}_{T} (GeV)",_jp_npthatbins,_jp_pthatranges);
-    for (int i = 0; i != _jp_npthatbins; ++i) {
-      hmcweight->SetBinContent(i+1, _jp_pthatsigmas[i]/_jp_pthatnevts[i]);
-    } // for i
-  }
+  if (_jp_pthatbins)
+    _pthatweight = 0;
 
   // Map of mu per (run,lumi)
   TFile *fmu = new TFile("pileup/MUperLSvsRUN_MB.root","READ");
@@ -211,7 +206,7 @@ void fillHistos::Loop()
   // Time dependent JEC (only for dt)
   if (_dt && _jp_useIOV) {
     for (unsigned i=0; i<_jp_nIOV; ++i) {
-      iov.add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
+      _iov.add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
     }
   } else {
     // At least a singular recalculation of JEC is always performed
@@ -340,11 +335,11 @@ void fillHistos::Loop()
     }
 
     // Set auxiliary event variables (jets, triggers later)
-    assert(!_jp_pthatbins || hmcweight);
+    assert(!_jp_pthatbins || _pthatweight);
     pthat = EvtHdr__mPthat;
-    weight = (_jp_pthatbins ?
-              (hmcweight->GetBinContent(hmcweight->FindBin(pthat)))*EvtHdr__mWeight :
-              EvtHdr__mWeight);
+    weight = EvtHdr__mWeight;
+    if (_jp_pthatbins)
+      weight *= _pthatweight;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
     evt = EvtHdr__mEvent;
@@ -636,7 +631,7 @@ void fillHistos::Loop()
 
     // load correct IOV for JEC
     if (_dt && _jp_useIOV) {
-      assert(iov.setCorr(run,&_JEC,&_L1RC,&_jecUnc));
+      assert(_iov.setCorr(run,&_JEC,&_L1RC,&_jecUnc));
       assert(_JEC);
       assert(_L1RC);
       assert(_jecUnc);

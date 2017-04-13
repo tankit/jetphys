@@ -42,6 +42,7 @@
 #include <iostream>
 #include <fstream>
 #include <regex>
+#include <algorithm>
 
 using std::map;
 using std::vector;
@@ -477,10 +478,11 @@ private:
   map<Int_t, Int_t> _outlist;
 
   TLorentzVector p4, gp4, genp4, cp4, pp4;
-  jec::IOV iov;
+  jec::IOV _iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
   JetCorrectionUncertainty *_jecUnc;
   //L3Corr *_jecUnc2;
+  double _pthatweight;
 
   bool   _pass;
   bool   _evtid;
@@ -565,18 +567,33 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
   if (centry < 0)
     return centry;
 
-  // If a new tree is opened, reload the triggers and print them
-  if (_dt && fChain->GetTreeNumber() != fCurrent) {
+  // A new tree is opened
+  if (fChain->GetTreeNumber() != fCurrent) {
+    // Reload the triggers and print them 
     fCurrent = fChain->GetTreeNumber();
-    getTriggers();
-    *ferr << "Tree " << fCurrent << " triggers:" << endl;
-    for (auto str : _availTrigs) {
-      if (str.length()==0)
-        *ferr << "x ";
-      else
-        *ferr << str << " ";
+    if (_dt) { 
+      *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
+      getTriggers();
+      *ferr << "Tree " << fCurrent << " triggers:" << endl;
+      for (auto str : _availTrigs) {
+        if (str.length()==0)
+          *ferr << "x ";
+        else
+          *ferr << str << " ";
+      }
+      *ferr << endl << flush;
+    } else {
+      TString filename = fChain->GetCurrentFile()->GetName();
+      // Check the position of the current file in the list of file names
+      unsigned currFile = std::find_if(_jp_pthatfiles.begin(),_jp_pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-_jp_pthatfiles.begin();
+      _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
+      _pthatweight /= _jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]; // Normalize
+      *ferr << "Pthat bin changing." << endl << "File " << currFile << " " << fChain->GetCurrentFile()->GetName();
+      *ferr << " should correspond to the range [" << _jp_pthatranges[currFile] << "," << _jp_pthatranges[currFile+1] << "]";
+      *ferr << endl << "Weight: " << _pthatweight << endl;
     }
-    *ferr << endl << flush;
+    // slices with pthat bins
+    // sus:q
   }
   return centry;
 }

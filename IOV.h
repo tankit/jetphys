@@ -103,7 +103,7 @@ namespace jec {
   
   bool IOV::setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc) {
     assert(_jecs.size()!=0);
-    for (unsigned i = 0; i<_jecs.size(); ++i) {
+    for (int i = 0, N = int(_jecs.size()); i<N; ++i) {
       auto it = &_jecs[i];
       if (it->low <= run && it->up >= run) {
         if (i!=_current) {
