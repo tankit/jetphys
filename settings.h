@@ -21,22 +21,23 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "MC";
-// Simple helper
-bool _jp_ismc = !(_jp_type=="DATA");
+string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
 // HOX: this is a source of constant anxiety, should be rechecked from time to time
 bool _jp_undojes = true;
+// We can choose also not to apply the new jes onto a four-vector
+bool _jp_redojes = true;
 // For debugging
 bool _jp_skipl2l3res = false;
 
 // Number of events to process (-1 for all)
-//Long64_t _jp_nentries = -1; // all
-//Long64_t _jp_nentries = 10; // debug
-Long64_t _jp_nentries = 100000; // short test run
-//Long64_t _jp_nentries = 1000000; // for MC
+Long64_t _jp_nentries = 
+-1; // all
+//10; // debug
+//100000; // short test run
+//1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
 
@@ -122,7 +123,6 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 // Additional analysis switches //
 //////////////////////////////////
 
-//string _jp_jecgt = "Spring16_23Sep2016";
 string _jp_jecgt = "Summer16_23Sep2016";
 string _jp_jecvers = "V6"; // Summer16 // "V2" ; // Spring16
 
@@ -181,5 +181,9 @@ const bool _jp_herapdf = false;
 
 // Produce plots
 const bool _jp_pdf = true;
+
+// Simple helper
+bool _jp_isdt = _jp_type=="DATA";
+bool _jp_ismc = !_jp_isdt;
 
 #endif // __settings_h__

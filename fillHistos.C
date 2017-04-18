@@ -33,7 +33,7 @@ void fillHistos::Loop()
                info.fMemTotal, info.fMemUsed, info.fMemFree,
                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
 
-  _entries = ntot;//(_mc ? fChain->GetEntries() : ntot);
+  _entries = ntot;//(_jp_ismc ? fChain->GetEntries() : ntot);
   _nbadevts_dup = _nbadevts_run = _nbadevts_ls = _nbadevts_lum = 0;
   _nbadevts_veto = _nbadevts_stream = 0;
   _bscounter_bad = _bscounter_good = _halocounter_bad = _halocounter_good = 0;
@@ -57,11 +57,11 @@ void fillHistos::Loop()
     fChain->SetBranchStatus("*",0);
 
     // Luminosity calculation
-    if (_mc) fChain->SetBranchStatus("EvtHdr_.mPthat",1); // pthat
-    if (_mc) fChain->SetBranchStatus("EvtHdr_.mWeight",1); // weight
-    if (_dt) fChain->SetBranchStatus("EvtHdr_.mRun",1); // run
-    if (_dt) fChain->SetBranchStatus("EvtHdr_.mEvent",1); // evt
-    if (_dt) fChain->SetBranchStatus("EvtHdr_.mLumi",1); // lbn
+    if (_jp_ismc) fChain->SetBranchStatus("EvtHdr_.mPthat",1); // pthat
+    if (_jp_ismc) fChain->SetBranchStatus("EvtHdr_.mWeight",1); // weight
+    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mRun",1); // run
+    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mEvent",1); // evt
+    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mLumi",1); // lbn
 
     // Event properties
     fChain->SetBranchStatus("EvtHdr_.mNVtx",1); // npv
@@ -74,7 +74,7 @@ void fillHistos::Loop()
     fChain->SetBranchStatus("PFJetsCHS_.cor_",1); // jtjes
     fChain->SetBranchStatus("PFJetsCHS_.area_",1); // jta
 
-    if (_mc) {
+    if (_jp_ismc) {
       fChain->SetBranchStatus("PFJetsCHS_.genP4_*",1); // jtgenp4*
       fChain->SetBranchStatus("PFJetsCHS_.genR_",1); // jtgenr
     }
@@ -117,7 +117,7 @@ void fillHistos::Loop()
     fChain->SetBranchStatus("EvtHdr_.mBSy",1); // bsy
     //
 
-    if (_mc) {
+    if (_jp_ismc) {
       fChain->SetBranchStatus("EvtHdr_.mTrPu",1); // trpu
       fChain->SetBranchStatus("EvtHdr_.mINTPU",1); // itpu
       fChain->SetBranchStatus("EvtHdr_.mOOTPULate",1); // ootpulate
@@ -173,15 +173,15 @@ void fillHistos::Loop()
   cout << "\nCONFIGURATION DUMP:" << endl;
   cout << "-------------------" << endl;
   cout << Form("Running over %sPF",a) << endl;
-  if(_mc) cout << "Running over MC" << endl;
-  if(_dt) cout << "Running over data" << endl;
+  if(_jp_ismc) cout << "Running over MC" << endl;
+  if(_jp_isdt) cout << "Running over data" << endl;
   cout << (_jp_useIOV ? "Applying" : "Not applying")
        << " time-dependent JEC (IOV)" << endl;
   cout << (_jp_doECALveto ? "Vetoing" : "Not vetoing")
        << " jets in bad ECAL towers" << endl;
   cout << endl;
 
-  if (_dt) {
+  if (_jp_isdt) {
     cout << (_jp_dojson ? "Applying" : "Not applying")
          << " additional JSON selection" << endl;
     cout << (_jp_doRunHistos ? "Storing" : "Not storing")
@@ -191,7 +191,7 @@ void fillHistos::Loop()
     cout << (_jp_doEtaHistos ? "Storing" : "Not storing")
          << " histograms with a full eta-range" << endl;
   }
-  if (_mc) {
+  if (_jp_ismc) {
     cout << (_jp_reweighPU ? "Reweighing" : "Not reweighing")
          << " pileup profile in MC to data" << endl;
     cout << (_jp_pthatbins ? "Processing pThat binned samples"
@@ -204,7 +204,7 @@ void fillHistos::Loop()
   _jecUnc = 0;
 
   // Time dependent JEC (only for dt)
-  if (_dt && _jp_useIOV) {
+  if (_jp_isdt && _jp_useIOV) {
     for (unsigned i=0; i<_jp_nIOV; ++i) {
       _iov.add(_jp_IOVnames[i],_jp_jecgt,_jp_jecvers,_jp_IOVranges[i][0],_jp_IOVranges[i][1]);
     }
@@ -212,7 +212,7 @@ void fillHistos::Loop()
     // At least a singular recalculation of JEC is always performed
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
-    string jecgt = _jp_jecgt + _jp_jecvers + "_" + (_dt ? "DATA" : "MC") + "_";
+    string jecgt = _jp_jecgt + _jp_jecvers + "_" + (_jp_isdt ? "DATA" : "MC") + "_";
     const char *t = jecgt.c_str();
 
     cout << "Loading "<<a<<"PF JEC" << endl;
@@ -230,10 +230,12 @@ void fillHistos::Loop()
     cout<<s<<endl<<flush;
     vpar.push_back(JetCorrectorParameters(s));
 
-    if (_dt) {
-      s = Form("%s%sL2L3Residual_%s.txt",p,t,a);
-      cout<<s<<endl<<flush;
-      vpar.push_back(JetCorrectorParameters(s));
+    if (_jp_isdt) {
+      if (!_jp_skipl2l3res) {
+        s = Form("%s%sL2L3Residual_%s.txt",p,t,a);
+        cout<<s<<endl<<flush;
+        vpar.push_back(JetCorrectorParameters(s));
+      }
 
       s = Form("%s%sUncertainty_%s.txt",p,t,a);
       cout<<"**"<<s<<endl<<flush;
@@ -259,10 +261,10 @@ void fillHistos::Loop()
   }
 
   // Load latest JSON selection
-  if (_dt && _jp_dojson) loadJSON(_jp_json.c_str());
+  if (_jp_isdt && _jp_dojson) loadJSON(_jp_json.c_str());
 
   // Load PU profiles for MC reweighing
-  if (_mc && _jp_reweighPU)
+  if (_jp_ismc && _jp_reweighPU)
     loadPUProfiles(_jp_pudata.c_str(), _jp_pumc.c_str());
 
   // Load prescale information to patch 76X
@@ -275,12 +277,12 @@ void fillHistos::Loop()
   // REMOVED: "manual veto list"
 
   // load luminosity tables (prescales now stored in event)
-  if (_dt && _jp_dolumi) loadLumi(_jp_lumifile.c_str());
+  if (_jp_isdt && _jp_dolumi) loadLumi(_jp_lumifile.c_str());
 
-  if (_mc) cout << Form("Running on MC produced with %1.3g nb-1 (%ld evts)",
+  if (_jp_ismc) cout << Form("Running on MC produced with %1.3g nb-1 (%ld evts)",
                         1000. * _entries / _jp_xsecMinBias,
                         (long int)_entries) << endl;
-  if (_dt) cout << Form("Running on %ld events of data",
+  if (_jp_isdt) cout << Form("Running on %ld events of data",
                         (long int)_entries) << endl;
 
   // Initialize histograms for different epochs and DQM selections
@@ -292,7 +294,7 @@ void fillHistos::Loop()
     initEtas("FullEta");
   }
 
-  if (_dt && _jp_doRunHistos) {
+  if (_jp_isdt && _jp_doRunHistos) {
     initRunHistos("Runs",0.,3.);
     initRunHistos("RunsBarrel",0.,1.);
     initRunHistos("RunsTransition",1.,2.);
@@ -335,10 +337,10 @@ void fillHistos::Loop()
     }
 
     // Set auxiliary event variables (jets, triggers later)
-    assert(!_jp_pthatbins || _pthatweight);
+    assert(_jp_isdt || (_jp_pthatbins && _pthatweight));
     pthat = EvtHdr__mPthat;
     weight = EvtHdr__mWeight;
-    if (_jp_pthatbins)
+    if (_jp_ismc && _jp_pthatbins)
       weight *= _pthatweight;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
@@ -350,7 +352,7 @@ void fillHistos::Loop()
     ootpulate = EvtHdr__mOOTPULate;
     ootpuearly = EvtHdr__mOOTPUEarly;
 
-    if (_dt) {
+    if (_jp_isdt) {
       trpu = _avgpu[run][lbn];
       if (trpu==0) {
         int irun = h2mu->GetXaxis()->FindBin(run);
@@ -387,8 +389,8 @@ void fillHistos::Loop()
       assert(njt<_njt);
     }
 
-     //assert(!_mc || gen_njt<_njt);
-    if (_mc && !(gen_njt < _njt)) {
+     //assert(_jp_isdt || gen_njt<_njt);
+    if (_jp_ismc && !(gen_njt < _njt)) {
       *ferr << "Array overflow: gen_njt = " << gen_njt
            << " > njtmax=" << _njt << endl;
       cout << "Array overflow: gen_njt = "<< njt
@@ -403,7 +405,7 @@ void fillHistos::Loop()
       cout << endl << endl << flush;
 
       cout << "***Checking basic event variables are read out:" << endl;
-      cout << "isdata = " << _dt << " / ismc = " << _mc << endl;
+      cout << "isdata = " << _jp_isdt << " / ismc = " << _jp_ismc << endl;
       cout << "trpu = " << trpu << endl;
       cout << "pthat = " << pthat << endl;
       cout << "weight = " << weight << endl;
@@ -415,7 +417,7 @@ void fillHistos::Loop()
     }
 
     // Check if duplicate
-    if (_dt && _jp_checkduplicates) {
+    if (_jp_isdt && _jp_checkduplicates) {
       set<int>& events = _duplicates[run][lbn];
       if (events.find(evt)!=events.end()) {
         ++_nbadevts_dup;
@@ -427,7 +429,7 @@ void fillHistos::Loop()
     ++cnt["01all"];
 
     // Check if good run/LS, including JSON selection
-    if (_dt && _jp_dojson) {
+    if (_jp_isdt && _jp_dojson) {
 
       // Does the run/LS pass the latest JSON selection?
       if (_json[run][lbn]==0) {
@@ -435,9 +437,9 @@ void fillHistos::Loop()
         ++_nbadevts_json;
         continue;
       }
-    } // _dt && _jp_dojson
+    } // _jp_isdt && _jp_dojson
 
-    if (_dt && _jp_dolumi) {
+    if (_jp_isdt && _jp_dolumi) {
       // Do we have the run listed in the .csv file?
       map<int, map<int, float> >::const_iterator irun = _lums.find(run);
       if (irun==_lums.end()) {
@@ -458,7 +460,7 @@ void fillHistos::Loop()
         ++_nbadevts_lum;
         //continue; // Could be Poisson fluctuation to zero
       }
-    } // _dt && _jp_dolumi
+    } // _jp_isdt && _jp_dolumi
 
     // Do we exercise run veto based on cross section stability?
     if (_runveto.find(run)!=_runveto.end()) {
@@ -523,10 +525,10 @@ void fillHistos::Loop()
     _trigs.clear();
 
     // Add special "mc" trigger
-    if (_mc) _trigs.insert("mc");
+    if (_jp_ismc) _trigs.insert("mc");
     // Simulate other triggers for MC, if so wished
     // (this is slow, though)
-    if (_mc && _jp_domctrigsim) {
+    if (_jp_ismc && _jp_domctrigsim) {
       for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
         if (njt>0 && jtpt[0]>_jp_trigthr[itrg]) {
           _trigs.insert(_jp_triggers[itrg]);
@@ -577,31 +579,14 @@ void fillHistos::Loop()
         }
       }
     } // for itrg
-    //cout << endl << "Scenario: " << _trigs.size() << " triggers found." << endl;
-    //cout << "Triggers available: " << _availTrigs.size() << " " << " decisions: " << TriggerDecision_.size() << endl;
-    //
-    //for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
-    //  cout << "|" << _availTrigs[itrg];
-    //}
-    //cout << "|" << endl;
-    //for (auto &trg : _trigs)
-    //  cout << " " << trg << endl;
-    //cout << " Trigger pattern:" << endl;
-    //for (unsigned trg = 0; trg < TriggerDecision_.size(); ++trg) {
-    //  if (TriggerDecision_[trg]==1)
-    //    cout << "|" << _availTrigs[trg] << "|" << L1Prescale_[trg] << "|" << HLTPrescale_[trg] << "|";
-    //  else
-    //    cout << "0";
-    //}
-    //cout << endl;
 
     ++_totcounter;
     if (_pass) ++_evtcounter;
     if (_trigs.size()!=0 && _pass) ++_trgcounter;
-    if (_trigs.size()!=0 && _pass && _dt) ++cnt["07trg"];
+    if (_trigs.size()!=0 && _pass && _jp_isdt) ++cnt["07trg"];
 
     // Retrieve event weight
-    _w0 = (_mc ? weight : 1);
+    _w0 = (_jp_ismc ? weight : 1);
     assert(_w0);
     _w = _w0;
 
@@ -612,7 +597,7 @@ void fillHistos::Loop()
       _wt[trg_name] = 1.;
 
       // Reweigh in-time pile-up
-      if (_mc && _jp_reweighPU) {
+      if (_jp_ismc && _jp_reweighPU) {
         int k = pudist[trg_name]->FindBin(trpu);
         double w1 = pudist[trg_name]->GetBinContent(k);
         double w2 = pumc->GetBinContent(k);
@@ -625,12 +610,12 @@ void fillHistos::Loop()
       }
     } // for itrg
     _wt["mc"] = _wt[_jp_mctrig];
-    if (_trigs.size()!=0 && _pass && _mc) ++cnt["07puw"];
+    if (_trigs.size()!=0 && _pass && _jp_ismc) ++cnt["07puw"];
 
     // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 
     // load correct IOV for JEC
-    if (_dt && _jp_useIOV) {
+    if (_jp_isdt && _jp_useIOV) {
       assert(_iov.setCorr(run,&_JEC,&_L1RC,&_jecUnc));
       assert(_JEC);
       assert(_L1RC);
@@ -669,17 +654,23 @@ void fillHistos::Loop()
       _JEC->setJetEta(p4.Eta());
       //
       vector<float> v = _JEC->getSubCorrections();
-      assert((_dt && v.size()==4) || (_mc && v.size()==3));
+      double jec_res = 1;
+      if (_jp_ismc || _jp_skipl2l3res) {
+        assert(v.size()==3);
+      } else {
+        assert(v.size()==4);
+        jec_res = v[3]/v[2];
+      }
       double jec_l1 = v[0];
       double jec_l2l3 = v[2]/v[0];
-      double jec_res = (_dt ? v[3]/v[2] : 1.);
       jtjes_l1[i] = jec_l1;
       jtjes_l2l3[i] = jec_l2l3;
       jtjes_res[i] = jec_res;
-      assert(jtjesnew[i] = v[v.size()-1]);
+      assert(jtjesnew[i] == v[v.size()-1]);
 
       // Correct jets
-      p4 *= jtjesnew[i];
+      if (_jp_redojes)
+        p4 *= jtjesnew[i];
       jte[i] = p4.E();
       jtpt[i] = p4.Pt();
       jteta[i] = p4.Eta();
@@ -687,7 +678,7 @@ void fillHistos::Loop()
       jty[i] = p4.Rapidity();
 
       // Calculate gen level info
-      if (_mc) {
+      if (_jp_ismc) {
         gp4.SetPxPyPzE(jtgenp4x[i],jtgenp4y[i],jtgenp4z[i],jtgenp4t[i]);
         jtgenpt[i] = gp4.Pt();
         jtgeny[i] = gp4.Rapidity();
@@ -699,7 +690,7 @@ void fillHistos::Loop()
       metphi = atan2(mey, mex);
     } // for i
 
-    if (_mc) {
+    if (_jp_ismc) {
       for (int i = 0; i != gen_njt; ++i) {
 
         genp4.SetPxPyPzE(gen_jtp4x[i],gen_jtp4y[i],gen_jtp4z[i],gen_jtp4t[i]);
@@ -766,10 +757,10 @@ void fillHistos::Loop()
     if (njt!=0 && _jetids[0] && _pass) ++cnt["09jtid"];
 
     // Check if overweight PU event
-    if (_mc && njt!=0 && _jetids[0] && _pass) {
+    if (_jp_ismc && njt!=0 && _jetids[0] && _pass) {
       _pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
     }
-    if (njt!=0 && _jetids[0] && _pass && _mc) ++cnt["10pthat"];
+    if (njt!=0 && _jetids[0] && _pass && _jp_ismc) ++cnt["10pthat"];
   
     // Equipped in fillBasics and fillRunHistos
     _evtid = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
@@ -786,7 +777,7 @@ void fillHistos::Loop()
     }
 
     // Run quality checks
-    if (_dt && _jp_doRunHistos) {
+    if (_jp_isdt && _jp_doRunHistos) {
       fillRunHistos("Runs");
       fillRunHistos("RunsBarrel");
       fillRunHistos("RunsTransition");
@@ -912,7 +903,7 @@ void fillHistos::Loop()
   cout << endl << endl;
 
   delete ferr;
-  if (!_dt || !_jp_useIOV) {
+  if (_jp_ismc || !_jp_useIOV) {
     delete _JEC;
     delete _L1RC;
     delete _jecUnc;
@@ -953,7 +944,7 @@ void fillHistos::initBasics(string name)
   map<string, pair<double, double> > pt;
   // define pT values for triggers
   map<string, double> pttrg;
-  if (_mc) {
+  if (_jp_ismc) {
     triggers.push_back("mc");
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
@@ -1043,7 +1034,7 @@ void fillHistos::fillBasic(basicHistos *h)
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
   // Luminosity information
-  if (_dt && h->lums[run][lbn]==0) {
+  if (_jp_isdt && h->lums[run][lbn]==0) {
     double lum = _lums[run][lbn];
     double lum2 = _lums2[run][lbn];
     double prescale(0);
@@ -1072,7 +1063,7 @@ void fillHistos::fillBasic(basicHistos *h)
     h->hlumi_vstrpu->Fill(trpu, prescale ? lum / prescale : 0.);
   }
   // For MC vs truePU
-  if (_mc)
+  if (_jp_ismc)
     h->hlumi_vstrpu->Fill(trpu, _w);
 
   if (_debug) {
@@ -1397,8 +1388,8 @@ void fillHistos::fillBasic(basicHistos *h)
       h->hpt->Fill(pt, _w);
       h->hpt_tmp->Fill(pt); // Event statistics
       assert(h->hpt_pre);
-      if (_dt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run]);
-      if (_mc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
+      if (_jp_isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run]);
+      if (_jp_ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
       assert(h->hpt0);
       h->hpt0->Fill(pt, _w);
       // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
@@ -1591,7 +1582,7 @@ void fillHistos::fillBasic(basicHistos *h)
       }
 
       // MC extras
-      if (_mc && jtgenr[i]<0.25) {
+      if (_jp_ismc && jtgenr[i]<0.25) {
         h->hpt_gtw->Fill(jtgenpt[i], _w);
         if (_debug) {
           cout << "genmatch " << i
@@ -1664,7 +1655,7 @@ void fillHistos::fillBasic(basicHistos *h)
   } // for i
 
   // Unbiased generator spectrum (for each trigger)
-  if (_mc) {
+  if (_jp_ismc) {
     if (_debug) cout << "Truth loop:" << endl;
     for (int i = 0; i != gen_njt; ++i) {
       double geny = gen_jty[i];
@@ -1757,8 +1748,8 @@ void fillHistos::writeBasics()
       // Luminosity information
       basicHistos *h = it->second[i];
       for (int j = 0; j != h->hlumi->GetNbinsX()+1; ++j) {
-        h->hlumi->SetBinContent(j, _dt ? h->lumsum : 1. );
-        h->hlumi2->SetBinContent(j, _dt ? h->lumsum2 : 1. );
+        h->hlumi->SetBinContent(j, _jp_isdt ? h->lumsum : 1. );
+        h->hlumi2->SetBinContent(j, _jp_isdt ? h->lumsum2 : 1. );
       }
 
       delete h;//it->second[i];
@@ -1804,7 +1795,7 @@ void fillHistos::initEtas(string name)
   map<string, pair<double, double> > pt;
   // define pT values for triggers
   map<string, double> pttrg;
-  if (_mc) {
+  if (_jp_ismc) {
     triggers.push_back("mc");
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
@@ -2019,7 +2010,7 @@ void fillHistos::fillRunHistos(string name)
   assert(h);
 
   // Luminosity information
-  if (_dt && h->lums[run][lbn]==0) {
+  if (_jp_isdt && h->lums[run][lbn]==0) {
 
     double lum = _lums[run][lbn];
     double lum2 = _lums2[run][lbn];
@@ -2160,8 +2151,8 @@ void fillHistos::fillJetID(vector<bool> &id)
   for (int i = 0; i != njt; ++i) {
 
     id[i] = ((fabs(jty[i])<2.5 ? jtidtight[i] : jtidloose[i]));
-             //&& (_mc || jtbeta[i]!=0));
-             //&& (_mc || (1-jtbetastar[i])>0.5));
+             //&& (_jp_ismc || jtbeta[i]!=0));
+             //&& (_jp_ismc || (1-jtbetastar[i])>0.5));
 
     if (_jp_doECALveto) {
       assert(ecalveto);

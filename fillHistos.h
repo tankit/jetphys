@@ -466,8 +466,6 @@ public :
   }
 
 private:
-  bool _mc;
-  bool _dt;
   Long64_t _entries;
   Long64_t _entry;
   double _xsecMinBias;
@@ -571,7 +569,7 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
   if (fChain->GetTreeNumber() != fCurrent) {
     // Reload the triggers and print them 
     fCurrent = fChain->GetTreeNumber();
-    if (_dt) { 
+    if (_jp_isdt) { 
       *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
       getTriggers();
       *ferr << "Tree " << fCurrent << " triggers:" << endl;
@@ -604,9 +602,6 @@ void fillHistos::Init(TTree *tree)
   fChain = tree;
   fCurrent = -1;
   fChain->SetMakeClass(1);
-
-  _dt = (_type=="DATA");
-  _mc = !_dt;
 
   fChain->SetBranchAddress("filterIdList_", &filterIdList_, &b_events_filterIdList_);
   fChain->SetBranchAddress("EvtHdr_.mIsPVgood", &EvtHdr__mIsPVgood, &b_events_EvtHdr__mIsPVgood);
