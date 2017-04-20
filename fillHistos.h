@@ -53,6 +53,7 @@ using std::endl;
 #include "settings.h"
 #include "basicHistos.h"
 #include "etaHistos.h"
+#include "mcHistos.h"
 #include "runHistos.h"
 #include "tools.h"
 
@@ -360,6 +361,8 @@ public :
   Double_t        *jtgenp4t;//[_njt];   //[njt]
   Float_t         jtgenpt[_njt];   //[njt]
   Float_t         jtgeny[_njt];   //EXTRA
+  Float_t         jtgeneta[_njt];   //[njt]
+  Float_t         jtgenphi[_njt];   //[njt]
 
   Int_t           *jtn;//[_njt];   //[njt]
   Int_t           *jtnch;//[_njt];   //[njt]
@@ -428,6 +431,7 @@ public :
   vector<bool> _jetids;
   map<string, vector<basicHistos*> > _histos;
   map<string, vector<etaHistos*> > _etahistos;
+  map<string, vector<mcHistos*> > _mchistos;
   map<string, runHistos*> _runhistos;
   TH1D *hmcweight;
 
@@ -446,9 +450,14 @@ public :
   void writeBasics();
 
   void initEtas(string name);
-  void fillEtas(string name);
-  void fillEta(etaHistos *h);
+  void fillEtas(string name, Float_t *pt, Float_t *eta, Float_t *phi);
+  void fillEta(etaHistos *h, Float_t *pt, Float_t *eta, Float_t *phi);
   void writeEtas();
+
+  void initMcHistos(string name);
+  void fillMcHistos(string name, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
+  void fillMcHisto(mcHistos *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
+  void writeMcHistos();
 
   void initRunHistos(string name, double ymin, double ymax);
   void fillRunHistos(string name);

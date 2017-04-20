@@ -2,8 +2,8 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#ifndef __etaHistos_h__
-#define __etaHistos_h__
+#ifndef __mcHistos_h__
+#define __mcHistos_h__
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -24,7 +24,7 @@
 using std::string;
 using std::vector;
 
-class etaHistos {
+class mcHistos {
  public:
   // phase space
   string trigname;
@@ -32,17 +32,19 @@ class etaHistos {
   // Control plots of resolutions in the pt-eta plane
   vector<TH3D *> hdjasymm;
   vector<TH3D *> hdjasymmtp;
-  vector<TH3D *> hdjmpf;
-  vector<TH3D *> hdjmpftp;
+  vector<TH3D *> hdjresp_tag; 
+  vector<TH3D *> hdjresptp_tag; 
+  vector<TH3D *> hdjresp_probe;
+  vector<TH3D *> hdjresptp_probe;
 
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 
-  etaHistos() {}
-  etaHistos(TDirectory *dir, string trigname);
-  ~etaHistos();
+  mcHistos() {}
+  mcHistos(TDirectory *dir, string trigname);
+  ~mcHistos();
 
  private:
   TDirectory *dir;
 };
 
-#endif // __etaHistos_h__
+#endif // __mcHistos_h__

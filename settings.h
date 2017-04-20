@@ -141,6 +141,8 @@ const bool _jp_doRunHistos = false; // Set to false to save time
 const bool _jp_doBasicHistos = true;
 // Produce full-eta TH3 histograms
 const bool _jp_doEtaHistos = true;
+// Special reco/gen histos in mc
+const bool _jp_doEtaHistosMcResponse = true;
 
 // Correct for trigger efficiency based on MC
 const bool _jp_dotrigeff = false;

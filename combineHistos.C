@@ -283,7 +283,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
           _hpt->Write();
           _hpt = 0;
         }
-      } else if (indir2->GetName()==string("FullEta")) {
+      } else if (indir2->GetName().Contains("FullEta")) {
         _hpt = recurseFile(indir2, outdir2, hname, ptSelect, true, _hpt, etamid);
         if (_hpt) {
           outdir2->cd();

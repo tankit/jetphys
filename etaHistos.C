@@ -32,68 +32,46 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
   const double etarange[] =
   {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
   const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
-  
+
   const int na = 200;
   vector<double> va(na+1);
   for (unsigned int i = 0; i != na+1; ++i)
     va[i] = -1. + 2.*i/na;
 
-  hdjasymm_a005 = new TH3D("hdjasymm_a005",";p_{T,ave};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a01 =  new TH3D("hdjasymm_a01",";p_{T,ave};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a015 = new TH3D("hdjasymm_a015",";p_{T,ave};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a02 =  new TH3D("hdjasymm_a02",";p_{T,ave};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a025 = new TH3D("hdjasymm_a025",";p_{T,ave};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a03 =  new TH3D("hdjasymm_a03",";p_{T,ave};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
+  // Loop over alpha entries of interest
+  for (auto alpha : alpharange) {
+    int major_alpha = 100*alpha;
+    // Start by coming up with a nice number identifier
+    int padding = TMath::Log10(major_alpha);
+    padding = 2-padding;
+    while (major_alpha%10==0)
+      major_alpha /= 10;
+    string number = std::to_string(major_alpha);
+    for (int i = 0; i < padding; ++i)
+      number = string("0")+number;
 
-  hdjasymmtp_a005 = new TH3D("hdjasymmtp_a005",";p_{T,tag};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a01 =  new TH3D("hdjasymmtp_a01",";p_{T,tag};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a015 = new TH3D("hdjasymmtp_a015",";p_{T,tag};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a02 =  new TH3D("hdjasymmtp_a02",";p_{T,tag};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a025 = new TH3D("hdjasymmtp_a025",";p_{T,tag};#eta;Asymmetry",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a03 =  new TH3D("hdjasymmtp_a03",";p_{T,tag};#eta;Asymmetry", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-
-  hdjmpf_a005 = new TH3D("hdjmpf_a005",";p_{T,ave};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a01 =  new TH3D("hdjmpf_a01",";p_{T,ave};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a015 = new TH3D("hdjmpf_a015",";p_{T,ave};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a02 =  new TH3D("hdjmpf_a02",";p_{T,ave};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a025 = new TH3D("hdjmpf_a025",";p_{T,ave};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a03 =  new TH3D("hdjmpf_a03",";p_{T,ave};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-
-  hdjmpftp_a005 = new TH3D("hdjmpftp_a005",";p_{T,tag};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a01 =  new TH3D("hdjmpftp_a01",";p_{T,tag};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a015 = new TH3D("hdjmpftp_a015",";p_{T,tag};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a02 =  new TH3D("hdjmpftp_a02",";p_{T,tag};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a025 = new TH3D("hdjmpftp_a025",";p_{T,tag};#eta;MPF",npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a03 =  new TH3D("hdjmpftp_a03",";p_{T,tag};#eta;MPF", npts,&ptrange[0],netas,&etarange[0],na,&va[0]);
+    // Fill all histo types with a corresponding histogram
+    hdjasymm.push_back(  new TH3D((string("hdjasymm_a")+number).c_str(),
+                              ";p_{T,ave};#eta;Asymmetry",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+    hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),
+                              ";p_{T,tag};#eta;Asymmetry",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+    hdjmpf.push_back(    new TH3D((string("hdjmpf_a")+number).c_str(),
+                              ";p_{T,ave};#eta;MPF",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+    hdjmpftp.push_back(  new TH3D((string("hdjmpftp_a")+number).c_str(),
+                              ";p_{T,tag};#eta;MPF",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+  }
   
   // Weights:
-  hdjasymm_a005->Sumw2();
-  hdjasymm_a01->Sumw2();
-  hdjasymm_a015->Sumw2();
-  hdjasymm_a02->Sumw2();
-  hdjasymm_a025->Sumw2();
-  hdjasymm_a03->Sumw2();
-  
-  hdjasymmtp_a005->Sumw2();
-  hdjasymmtp_a01->Sumw2();
-  hdjasymmtp_a015->Sumw2();
-  hdjasymmtp_a02->Sumw2();
-  hdjasymmtp_a025->Sumw2();
-  hdjasymmtp_a03->Sumw2();
-  
-  hdjmpf_a005->Sumw2();
-  hdjmpf_a01->Sumw2();
-  hdjmpf_a015->Sumw2();
-  hdjmpf_a02->Sumw2();
-  hdjmpf_a025->Sumw2();
-  hdjmpf_a03->Sumw2();
-  
-  hdjmpftp_a005->Sumw2();
-  hdjmpftp_a01->Sumw2();
-  hdjmpftp_a015->Sumw2();
-  hdjmpftp_a02->Sumw2();
-  hdjmpftp_a025->Sumw2();
-  hdjmpftp_a03->Sumw2();
+  for (unsigned i = 0; i < alpharange.size(); ++i) {
+    hdjasymm[i]->Sumw2();
+    hdjasymmtp[i]->Sumw2();
+    hdjmpf[i]->Sumw2();
+    hdjmpftp[i]->Sumw2();
+  }
   
   curdir->cd();
 }
@@ -101,29 +79,11 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
 etaHistos::~etaHistos() {
   dir->cd();
   dir->Write();
-  delete hdjasymm_a005;
-  delete hdjmpf_a005;
-  delete hdjasymmtp_a005;
-  delete hdjmpftp_a005;
-  delete hdjasymm_a01;
-  delete hdjmpf_a01;
-  delete hdjasymmtp_a01;
-  delete hdjmpftp_a01;
-  delete hdjasymm_a015;
-  delete hdjmpf_a015;
-  delete hdjasymmtp_a015;
-  delete hdjmpftp_a015;
-  delete hdjasymm_a02;
-  delete hdjmpf_a02;
-  delete hdjasymmtp_a02;
-  delete hdjmpftp_a02;
-  delete hdjasymm_a025;
-  delete hdjmpf_a025;
-  delete hdjasymmtp_a025;
-  delete hdjmpftp_a025;
-  delete hdjasymm_a03;
-  delete hdjmpf_a03;
-  delete hdjasymmtp_a03;
-  delete hdjmpftp_a03;
+  for (unsigned i = 0; i < alpharange.size(); ++i) {
+    delete hdjasymm[i];
+    delete hdjasymmtp[i];
+    delete hdjmpf[i];
+    delete hdjmpftp[i];
+  }
   delete dir;
 };
