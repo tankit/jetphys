@@ -178,6 +178,32 @@ void combineHistos() {
   recurseFile(fin, fout, "hdjmpf_a03");
   recurseFile(fin, fout, "hdjmpftp_a03");
 
+  recurseFile(fin, fout, "hdjresp_tag_a005");
+  recurseFile(fin, fout, "hdjresptp_tag_a005");
+  recurseFile(fin, fout, "hdjresp_tag_a01");
+  recurseFile(fin, fout, "hdjresptp_tag_a01");
+  recurseFile(fin, fout, "hdjresp_tag_a015");
+  recurseFile(fin, fout, "hdjresptp_tag_a015");
+  recurseFile(fin, fout, "hdjresp_tag_a02");
+  recurseFile(fin, fout, "hdjresptp_tag_a02");
+  recurseFile(fin, fout, "hdjresp_tag_a025");
+  recurseFile(fin, fout, "hdjresptp_tag_a025");
+  recurseFile(fin, fout, "hdjresp_tag_a03");
+  recurseFile(fin, fout, "hdjresptp_tag_a03");
+  
+  recurseFile(fin, fout, "hdjresp_probe_a005");
+  recurseFile(fin, fout, "hdjresptp_probe_a005");
+  recurseFile(fin, fout, "hdjresp_probe_a01");
+  recurseFile(fin, fout, "hdjresptp_probe_a01");
+  recurseFile(fin, fout, "hdjresp_probe_a015");
+  recurseFile(fin, fout, "hdjresptp_probe_a015");
+  recurseFile(fin, fout, "hdjresp_probe_a02");
+  recurseFile(fin, fout, "hdjresptp_probe_a02");
+  recurseFile(fin, fout, "hdjresp_probe_a025");
+  recurseFile(fin, fout, "hdjresptp_probe_a025");
+  recurseFile(fin, fout, "hdjresp_probe_a03");
+  recurseFile(fin, fout, "hdjresptp_tag_a03");
+
   recurseFile(fin, fout, "hdjmass0");
   recurseFile(fin, fout, "hdjmass0_hgg");
 
@@ -283,7 +309,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
           _hpt->Write();
           _hpt = 0;
         }
-      } else if (indir2->GetName().Contains("FullEta")) {
+      } else if (TString(indir2->GetName()).Contains("FullEta")) {
         _hpt = recurseFile(indir2, outdir2, hname, ptSelect, true, _hpt, etamid);
         if (_hpt) {
           outdir2->cd();

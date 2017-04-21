@@ -123,8 +123,8 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 // Additional analysis switches //
 //////////////////////////////////
 
-string _jp_jecgt = "Summer16_23Sep2016";
-string _jp_jecvers = "V6"; // Summer16 // "V2" ; // Spring16
+string _jp_jecgt = "Summer16_03Feb2017";// "Summer16_23Sep2016";
+string _jp_jecvers = V0; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = true;
