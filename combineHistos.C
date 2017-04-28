@@ -51,6 +51,7 @@ void combineHistos() {
     _ptranges[_jp_triggers[itrg]] =
       pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
 
+    // 
     if (_jp_ismc && _jp_usemctrig) {
       _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
       _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);

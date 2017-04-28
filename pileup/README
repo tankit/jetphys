@@ -44,3 +44,5 @@ ProcessedTree->Draw("EvtHdr_.mTrPu>>pileupmc(600,0,60)")
 TH1D* th = gROOT->FindObject("pileupmc")
 
 from within the SMP jet tuples.
+
+For the pthat sliced tuples one can utilize the code pufromslices.C

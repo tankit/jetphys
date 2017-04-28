@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "DATA";
+string _jp_type = "MC";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
@@ -40,6 +40,13 @@ Long64_t _jp_nentries =
 //1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
+
+// Decide whether or not to simulate triggers from MC (this is slow)
+bool _jp_domctrigsim = true;
+// Use "mc" trigger for whole pT range instead of stiching triggers together (requires trigsim)
+bool _jp_usemctrig = true;
+// reference trigger (for PU profile) in the mc folder
+string _jp_mctrig = "jt450"; 
 
 //// MC: PU profiles for data and MC
 bool _jp_reweighPU = true;
@@ -109,11 +116,6 @@ double _jp_triglumi[_jp_ntrigger] = // in /ub
   // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lemibyls.csv --byls --minBiasXsec 69000
   {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002};
 
-// Decide whether or not to simulate triggers from MC (this is slow)
-bool _jp_domctrigsim = false;
-// Use "mc" trigger for whole pT range instead of stiching triggers together
-bool _jp_usemctrig = true;
-string _jp_mctrig = "jt450"; // reference trigger (for PU profile)
 // Unprescaled luminosity for plots
 const double _jp_lumi = 36.810440678; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
@@ -124,7 +126,7 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 //////////////////////////////////
 
 string _jp_jecgt = "Summer16_03Feb2017";// "Summer16_23Sep2016";
-string _jp_jecvers = V0; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+string _jp_jecvers = "_V0"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = true;

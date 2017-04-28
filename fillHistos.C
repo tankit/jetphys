@@ -529,61 +529,67 @@ void fillHistos::Loop()
     // Fill trigger information
     _trigs.clear();
 
-    // Add special "mc" trigger
-    if (_jp_ismc) _trigs.insert("mc");
     // Simulate other triggers for MC, if so wished
     // (this is slow, though)
-    if (_jp_ismc && _jp_domctrigsim) {
-      for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
-        if (njt>0 && jtpt[0]>_jp_trigthr[itrg]) {
-          _trigs.insert(_jp_triggers[itrg]);
+    if (_jp_ismc) {
+      // Always insert the generic mc trigger
+      _trigs.insert("mc");
+      if (_jp_domctrigsim && njt>0) {
+        // Only add the greatest trigger present
+        for (int itrg = _jp_ntrigger; itrg > 0; --itrg) {
+          if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
+            _trigs.insert(_jp_triggers[itrg-1]);
+            break; // Don't add lesser triggers
+          }
         }
       }
     } // _jp_domctrigsim
 
-    // For data, check trigger bits
-    if (_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-    if (_debug) cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
-    assert(TriggerDecision_.size() == _availTrigs.size());
+    if (_jp_isdt) {
+      // For data, check trigger bits
+      if (_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
+      if (_debug) cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
+      assert(TriggerDecision_.size() == _availTrigs.size());
 
-    for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
+      for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
 
-      string strg = _availTrigs[itrg];
-      bool pass = TriggerDecision_[itrg]==1 && strg.length()!=0; // -1, 0, 1
+        string strg = _availTrigs[itrg];
+        bool pass = TriggerDecision_[itrg]==1 && strg.length()!=0; // -1, 0, 1
 
-      if (pass) {
-        // Set prescale from event for now
-        if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
-          _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
-        } else {
-          cout << "Error for trigger " << strg << " prescales: "
-               << "L1  =" << L1Prescale_[itrg]
-               << "HLT =" << HLTPrescale_[itrg] << endl;
-          _prescales[strg][run] = 0;
-        }
-
-        // check prescale
-        if (_debug) {
-          double prescale = _prescales[strg][run];
-          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-            cout << "Trigger " << strg << ", "
-                 << "Prescale(txt file) = " << prescale << endl;
-            cout << "L1 = " << L1Prescale_[itrg] << ", "
-                 << "HLT = " << HLTPrescale_[itrg] << endl;
-            assert(false);
+        if (pass) {
+          // Set prescale from event for now
+          if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
+            _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+          } else {
+            cout << "Error for trigger " << strg << " prescales: "
+                 << "L1  =" << L1Prescale_[itrg]
+                 << "HLT =" << HLTPrescale_[itrg] << endl;
+            _prescales[strg][run] = 0;
           }
-        } // debug
 
-        if (_prescales[strg][run]!=0) {
-          // Set trigger only if prescale information is known
-          _trigs.insert(strg);
-        } else {
-          // Make sure all info is good! This is crucial if there is something odd with the tuples
-          *ferr << "Missing prescale for " << strg
-                << " in run " << run << endl << flush;
+          // check prescale
+          if (_debug) {
+            double prescale = _prescales[strg][run];
+            if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
+              cout << "Trigger " << strg << ", "
+                   << "Prescale(txt file) = " << prescale << endl;
+              cout << "L1 = " << L1Prescale_[itrg] << ", "
+                   << "HLT = " << HLTPrescale_[itrg] << endl;
+              assert(false);
+            }
+          } // debug
+
+          if (_prescales[strg][run]!=0) {
+            // Set trigger only if prescale information is known
+            _trigs.insert(strg);
+          } else {
+            // Make sure all info is good! This is crucial if there is something odd with the tuples
+            *ferr << "Missing prescale for " << strg
+                  << " in run " << run << endl << flush;
+          }
         }
-      }
-    } // for itrg
+      } // for itrg
+    }
 
     ++_totcounter;
     if (_pass) ++_evtcounter;
@@ -614,7 +620,7 @@ void fillHistos::Loop()
           _pass = (pudist[trg_name]->GetBinContent(pudist[trg_name]->FindBin(trpu))!=0);
       }
     } // for itrg
-    _wt["mc"] = _wt[_jp_mctrig]; // Deprecated: this basically sets _wt["mc"] = 1.
+    _wt["mc"] = _wt[_jp_mctrig];
     if (_trigs.size()!=0 && _pass && _jp_ismc) ++cnt["07puw"];
 
     // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
@@ -961,7 +967,9 @@ void fillHistos::initBasics(string name)
     triggers.push_back("mc");
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
-  } else {
+  }
+  if (_jp_isdt || _jp_domctrigsim) {
+    // This is done both for data and MC, because why not?
     for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
@@ -1812,7 +1820,9 @@ void fillHistos::initEtas(string name)
     triggers.push_back("mc");
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
-  } else {
+  }
+  if (_jp_isdt || _jp_domctrigsim) {
+    // This is done both for data and MC, because why not?
     for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
@@ -1980,7 +1990,9 @@ void fillHistos::initMcHistos(string name)
     triggers.push_back("mc");
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
-  } else {
+  }
+  if (_jp_isdt || _jp_domctrigsim) {
+    // This is done both for data and MC, because why not?
     for (int itrg = 0; itrg != _jp_ntrigger; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
