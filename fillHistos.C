@@ -245,7 +245,7 @@ void fillHistos::Loop()
 
     // For type-I and type-II MET
     vector<JetCorrectorParameters> vrc;
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    s = Form("%s%sL1RC_%s.txt",p,t,a);
     cout<<s<<endl<<flush;
     vrc.push_back(JetCorrectorParameters(s));
     _L1RC = new FactorizedJetCorrector(vrc);

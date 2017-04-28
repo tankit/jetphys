@@ -91,7 +91,7 @@ namespace jec {
 
     // For type-I and type-II MET
     vector<JetCorrectorParameters> vrc;
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    s = Form("%s%sL1RC_%s.txt",p,t,a);
     vrc.push_back(JetCorrectorParameters(s));
     dat.l1rc = new FactorizedJetCorrector(vrc);
 
