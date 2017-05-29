@@ -1,8 +1,9 @@
-// JEC intervals of validity
+// JEC intervals of validity, used for DT
 #ifndef JEC_IOV
 #define JEC_IOV
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include <map>
 #include <string>
@@ -13,74 +14,91 @@ using namespace std;
 
 namespace jec {
   
+  struct IOVdata {
+    unsigned int low;
+    unsigned int up;
+    FactorizedJetCorrector* corr;
+    FactorizedJetCorrector* l1rc;
+    JetCorrectionUncertainty* unc;
+  };
+
   // header part
   class IOV {
 
   public:
-     IOV(string algo = "AK5PF") : _algo(algo) {};
+    IOV(string algo = "AK4PF") : _algo(algo) {
+    };
     ~IOV() {}; // leaks memory, fix later
-    void add(string name, int runmin, int runmax, bool isdata = true);
-    FactorizedJetCorrector *get(int run);
+    void add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax);
+    bool setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc);
 
   private:
-    typedef map<int, pair<int, FactorizedJetCorrector*> > IOVmap;
     string _algo;
-    IOVmap jecs;
-    
+    vector<IOVdata> jecs;
   }; // class IOV
 
   // body part (separate later to another file)
-  void IOV::add(string id, int runmin, int runmax, bool isdata) {
+  void IOV::add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax) {
+    IOVdata dat;
+    dat.low = runmin;
+    dat.up = runmax;
 
     // sanity checks to avoid IOV overlaps
     assert(runmax>=runmin);
-    assert(jecs.find(runmin)==jecs.end());
-    for (IOVmap::const_iterator it = jecs.begin(); it != jecs.end(); ++it) {
-      if (it->first < runmin) assert(it->second.first < runmin);
-      if (it->first > runmin) assert(it->first > runmax);
+    for (auto it = jecs.begin(); it != jecs.end(); ++it) {
+      assert( runmax<it->low || runmin>it->up );
     }
-    
+   
+    jecgt = jecgt + id + jecvers + "_DATA_"; 
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
-    const char *t = "GR_R_42_V23_";
+    const char *t = jecgt.c_str();;
     const char *a = _algo.c_str();
 
     // L1FastJet for AK*PF, L1Offset for others
     s = Form("%s%sL1FastJet_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l1 = new JetCorrectorParameters(s);
-      //(_algo=="AK5PF" || _algo=="AK7PF" ?
-      //new JetCorrectorParameters(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_L1FastJet_%s.txt",a)) :
-      //new JetCorrectorParameters(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_L1Offset_%s.txt",a)));
-      //
     s = Form("%s%sL2Relative_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l2 = new JetCorrectorParameters(s);
     s = Form("%s%sL3Absolute_%s.txt",p,t,a); cout<<s<<endl<<flush;
     JetCorrectorParameters *par_l3 = new JetCorrectorParameters(s);
-    //JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_L2L3Residual_%s.txt",a));
     s = Form("%s%sL2L3Residual_%s.txt",p,t,a); cout<<s<<endl<<flush;
-    // Switched off IOV handling for now
-      //Form("CondFormats/JetMETObjects/data/Jec_V14_%s_L2L3Residual_%s.txt",id.c_str(),a));
     JetCorrectorParameters *par_l2l3res = new JetCorrectorParameters(s);
+
     vector<JetCorrectorParameters> vpar;
     vpar.push_back(*par_l1);
     vpar.push_back(*par_l2);
     vpar.push_back(*par_l3);
-    if (isdata) vpar.push_back(*par_l2l3res);
-    FactorizedJetCorrector *jec = new FactorizedJetCorrector(vpar);
-    
-    jecs[runmin] = pair<int, FactorizedJetCorrector*>(runmax, jec);
+    vpar.push_back(*par_l2l3res);
+    dat.corr = new FactorizedJetCorrector(vpar);
+
+    // For type-I and type-II MET
+    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    JetCorrectorParameters *par_l1rc = new JetCorrectorParameters(s);
+
+    vector<JetCorrectorParameters> vrc;
+    vrc.push_back(*par_l1rc);
+    dat.l1rc = new FactorizedJetCorrector(vrc);
+
+    s = Form("%s%sUncertainty_%s.txt",p,t,a);
+    dat.unc = new JetCorrectionUncertainty(s);
+
+    jecs.push_back(dat);
   } // add
   
-  FactorizedJetCorrector *IOV::get(int run) {
+  bool IOV::setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc) {
     assert(jecs.size()!=0);
-    for (IOVmap::const_iterator it = jecs.begin(); it != jecs.end(); ++it) {
-      if (it->first <= run && run <= it->second.first)
-	return it->second.second;
+    for (auto it = jecs.begin(); it != jecs.end(); ++it) {
+      if (it->low <= run && it->up >= run) {
+        *corr = it->corr;
+        *l1rc = it->l1rc;
+        *unc = it->unc;
+        return true;
+      }
     }
     cout << "IOV for run " << run << " not found!!" << endl << flush;
-    assert(false);
-    return 0;
-  } // get
+    return false;
+  } // getCorr
 
 
 } // namescape jec

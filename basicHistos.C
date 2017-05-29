@@ -15,7 +15,7 @@ using namespace std;
 basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 			 double ymin, double ymax,
 			 double pttrg, double ptmin, double ptmax,
-			 bool ismc, bool dofriends, bool ak4ak8)
+			 bool ismc)
   : lumsum(0), lumsum2(0) {
 
   TDirectory *curdir = gDirectory;
@@ -30,8 +30,6 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
   this->pttrg = pttrg;
   this->ptmin = ptmin;
   this->ptmax = ptmax;
-  this->dofriends = dofriends;
-  this->ak4ak8 = ak4ak8;
 
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
@@ -65,7 +63,7 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 
 // Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
 // Using NLOxNP theory fit as input when available
-  const int neta = 9;
+  const int neta = 8;
   const int nbins = 65;
 double vx[neta][nbins] =
   {{10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3832, 6076, 6389}, // Eta_0.0-0.5
@@ -74,9 +72,12 @@ double vx[neta][nbins] =
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2500, 2640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_1.5-2.0
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.0-2.5
    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_2.5-3.0
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_3.0-3.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_3.5-4.0
 
+  const double etarange[] =
+  {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
+  const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
 
   int ieta = int(0.5*(ymin+ymax)/0.5); assert(ieta<neta);
   vector<double> x;
@@ -140,29 +141,8 @@ double vx[neta][nbins] =
   hpt_evt = new TH1D("hpt_evt","",nx,&x[0]);
   hpt_jet = new TH1D("hpt_jet","",nx,&x[0]);
   //
-  hpt_ak4pf = (ak4ak8 ? new TH1D("hpt_ak4pf","",nx,&x[0]) : 0);
-  hpt_tmp_ak4pf = (ak4ak8 ? new TH1D("hpt_tmp_ak4pf","",nx,&x[0]) : 0);
-  hpt_evtcount_ak4pf = (ak4ak8 ? new TH1D("hpt_evtcount_ak4pf","",nx,&x[0]) : 0);
-  hpt_evt_ak4pf = (ak4ak8 ? new TH1D("hpt_evt_ak4pf","",nx,&x[0]) : 0);
-  hpt_jet_ak4pf = (ak4ak8 ? new TH1D("hpt_jet_ak4pf","",nx,&x[0]) : 0);
-  //
   const double nj = 3;
   vector<double> vnj(nj+1); vnj[0]=0; vnj[1]=1; vnj[2]=2; vnj[3]=3;
-  hpt_ak4ak8 = (ak4ak8 ? new TH3D("hpt_ak4ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8m1 = (ak4ak8 ? new TH3D("hpt_ak4ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8m2 = (ak4ak8 ? new TH3D("hpt_ak4ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak8p1 = (ak4ak8 ? new TH3D("hpt_ak4ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  //
-  hpt_ak4ak4 = (ak4ak8 ? new TH3D("hpt_ak4ak4","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4m1 = (ak4ak8 ? new TH3D("hpt_ak4ak4m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4m2 = (ak4ak8 ? new TH3D("hpt_ak4ak4m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak4ak4p1 = (ak4ak8 ? new TH3D("hpt_ak4ak4p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  //
-  hpt_ak8ak8 = (ak4ak8 ? new TH3D("hpt_ak8ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8m1 = (ak4ak8 ? new TH3D("hpt_ak8ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8m2 = (ak4ak8 ? new TH3D("hpt_ak8ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-  hpt_ak8ak8p1 = (ak4ak8 ? new TH3D("hpt_ak8ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-
 
   // 1 GeV bins for localizing leading jets
   //hpt0 = new TH1D("hpt0","",int(_jp_emax),0.,_jp_emax);
@@ -186,11 +166,6 @@ double vx[neta][nbins] =
   //hdjmass0->Sumw2();
   //pdjmass_ptratio->Sumw2();
   //pdjmass0_ptratio->Sumw2();
-  hdjmass_ak8 = new TH1D("hdjmass_ak8","",nx,&x[0]);
-  hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",int(_jp_sqrts),0.,_jp_sqrts);
-  //hdjmass0_ak8 = new TH1D("hdjmass0_ak8","",13000,0.,13000.);
-  //hdjmass_ak8->Sumw2();
-  //hdjmass0_ak8->Sumw2();
 
   // basic properties
   ppt = new TProfile("ppt","",nx,&x[0]);
@@ -264,8 +239,6 @@ double vx[neta][nbins] =
   pmuf = new TProfile("pmuf","",nx0,&x0[0]);
   pbeta = new TProfile("pbeta","",nx0,&x0[0]);
   pbetastar = new TProfile("pbetastar","",nx0,&x0[0]);
-  pak4ak8_50 = (ak4ak8 ? new TProfile("pak4ak8_50","",nx0,&x0[0]) : 0);
-  pak4ak8_25 = (ak4ak8 ? new TProfile("pak4ak8_25","",nx0,&x0[0]) : 0);
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
   hnne = new TH1D("hnne","",300,-0.5,299.5);
@@ -279,8 +252,6 @@ double vx[neta][nbins] =
   hmuf = new TH1D("hmuf","",110,0.,1.1);
   hbeta = new TH1D("hbeta","",110,0.,1.1);
   hbetastar = new TH1D("hbetastar","",110,0.,1.1);
-  hak4ak8 = (ak4ak8 ? new TH1D("hak4ak8","",200,0,2) : 0);
-  hak4ak8g0 = (ak4ak8 ? new TH1D("hak4ak8g0","",200,0,2) : 0);
   // control plots of components (JEC tag-and-probe)
   pncandtp = new TProfile("pncandtp","",nx0,&x0[0]);
   pnchtp = new TProfile("pnchtp","",nx0,&x0[0]);
@@ -302,8 +273,6 @@ double vx[neta][nbins] =
   pceftp2 = new TProfile("pceftp2","",nx0,&x0[0]);
   pmuftp2 = new TProfile("pmuftp2","",nx0,&x0[0]);
   //
-  pak4ak8tp_50 = (ak4ak8 ? new TProfile("pak4ak8tp_50","",nx0,&x0[0]) : 0);
-  pak4ak8tp_25 = (ak4ak8 ? new TProfile("pak4ak8tp_25","",nx0,&x0[0]) : 0);
   hncandtp = new TH1D("hncandtp","",300,-0.5,299.5);
   hnchtp = new TH1D("hnchtp","",300,-0.5,299.5);
   hnnetp = new TH1D("hnnetp","",300,-0.5,299.5);
@@ -317,7 +286,6 @@ double vx[neta][nbins] =
   hmuftp = new TH1D("hmuftp","",110,0.,1.1);
   hbetatp = new TH1D("hbetatp","",110,0.,1.1);
   hbetastartp = new TH1D("hbetastartp","",110,0.,1.1);
-  hak4ak8tp = (ak4ak8 ? new TH1D("hak4ak8tp","",200,0,2) : 0);
   // control plots vs NPV
   pncandtp_vsnpv = new TProfile("pncandtp_vsnpv","",50,-0.5,49.5);
   pnchtp_vsnpv = new TProfile("pnchtp_vsnpv","",50,-0.5,49.5);
@@ -342,35 +310,35 @@ double vx[neta][nbins] =
   pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",50,-0.5,49.5);
   this->ismc = ismc;
 
-//   pncand->Sumw2();
-//   pnch->Sumw2();
-//   pnne->Sumw2();
-//   pnnh->Sumw2();
-//   pchf->Sumw2();
-//   pnef->Sumw2();
-//   pnhf->Sumw2();
-//   hncand->Sumw2();
-//   hnch->Sumw2();
-//   hnne->Sumw2();
-//   hnnh->Sumw2();
-//   hchf->Sumw2();
-//   hnef->Sumw2();
-//   hnhf->Sumw2();
-//   //
-//   pncandtp->Sumw2();
-//   pnchtp->Sumw2();
-//   pnnetp->Sumw2();
-//   pnnhtp->Sumw2();
-//   pchftp->Sumw2();
-//   pneftp->Sumw2();
-//   pnhftp->Sumw2();
-//   hncandtp->Sumw2();
-//   hnchtp->Sumw2();
-//   hnnetp->Sumw2();
-//   hnnhtp->Sumw2();
-//   hchftp->Sumw2();
-//   hneftp->Sumw2();
-//   hnhftp->Sumw2();
+  //pncand->Sumw2();
+  //pnch->Sumw2();
+  //pnne->Sumw2();
+  //pnnh->Sumw2();
+  //pchf->Sumw2();
+  //pnef->Sumw2();
+  //pnhf->Sumw2();
+  //hncand->Sumw2();
+  //hnch->Sumw2();
+  //hnne->Sumw2();
+  //hnnh->Sumw2();
+  //hchf->Sumw2();
+  //hnef->Sumw2();
+  //hnhf->Sumw2();
+  ////
+  //pncandtp->Sumw2();
+  //pnchtp->Sumw2();
+  //pnnetp->Sumw2();
+  //pnnhtp->Sumw2();
+  //pchftp->Sumw2();
+  //pneftp->Sumw2();
+  //pnhftp->Sumw2();
+  //hncandtp->Sumw2();
+  //hnchtp->Sumw2();
+  //hnnetp->Sumw2();
+  //hnnhtp->Sumw2();
+  //hchftp->Sumw2();
+  //hneftp->Sumw2();
+  //hnhftp->Sumw2();
 
   // control plots for topology (JEC)
   hselpt = new TH1D("hselpt","",nx,&x[0]);
@@ -420,6 +388,38 @@ double vx[neta][nbins] =
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpftp = new TH3D("hdjmpftp",";p_{T,tag};p_{T,3rd}/p_{T,tag};MPF",
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
+  hdjasymm_a01 = new TH3D("hdjasymm_a01",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a01 = new TH3D("hdjmpf_a01",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a01 = new TH3D("hdjasymmtp_a01",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a01 = new TH3D("hdjmpftp_a01",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a015 = new TH3D("hdjasymm_a015",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a015 = new TH3D("hdjmpf_a015",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a015 = new TH3D("hdjasymmtp_a015",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a015 = new TH3D("hdjmpftp_a015",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a02 = new TH3D("hdjasymm_a02",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a02 = new TH3D("hdjmpf_a02",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a02 = new TH3D("hdjasymmtp_a02",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a02 = new TH3D("hdjmpftp_a02",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymm_a03 = new TH3D("hdjasymm_a03",";p_{T,ave};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpf_a03 = new TH3D("hdjmpf_a03",";p_{T,ave};#eta;MPF",
+		    nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjasymmtp_a03 = new TH3D("hdjasymmtp_a03",";p_{T,tag};#eta;Asymmetry",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
+  hdjmpftp_a03 = new TH3D("hdjmpftp_a03",";p_{T,tag};#eta;MPF",
+		      nx,&x[0],netas,&etarange[0],na,&va[0]);
 
   hr21 = new TH1D("hr21",";pt2/pt1",50,0.,1.);
   hr31 = new TH1D("hr31",";pt3/pt1",50,0.,1.);
@@ -449,34 +449,50 @@ double vx[neta][nbins] =
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
   hdjmpftp->Sumw2();
+  hdjasymm_a01->Sumw2();
+  hdjmpf_a01->Sumw2();
+  hdjasymmtp_a01->Sumw2();
+  hdjmpftp_a01->Sumw2();
+  hdjasymm_a015->Sumw2();
+  hdjmpf_a015->Sumw2();
+  hdjasymmtp_a015->Sumw2();
+  hdjmpftp_a015->Sumw2();
+  hdjasymm_a02->Sumw2();
+  hdjmpf_a02->Sumw2();
+  hdjasymmtp_a02->Sumw2();
+  hdjmpftp_a02->Sumw2();
+  hdjasymm_a03->Sumw2();
+  hdjmpf_a03->Sumw2();
+  hdjasymmtp_a03->Sumw2();
+  hdjmpftp_a03->Sumw2();
 
 
   // MC checks
   //htrpu = new TH1D("htrpu","",100,-0.5,99.5);
   htrpu = new TH1D("htrpu","",120,0.,60.); // for PU reweighing
   if (this->ismc) {
-    hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
-    hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
-    hpt_jt110 = new TH1D("hpt_jt110","",nx,&x[0]);
-    hpt_jt190 = new TH1D("hpt_jt190","",nx,&x[0]);
-    hpt_jt240 = new TH1D("hpt_jt240","",nx,&x[0]);
-    hpt_jt300 = new TH1D("hpt_jt300","",nx,&x[0]);
-    hpt_jt370 = new TH1D("hpt_jt370","",nx,&x[0]);
-    //
-    hpt0_jt30 = new TH1D("hpt0_jt30","",3450,0.,3450.);
-    hpt0_jt60 = new TH1D("hpt0_jt60","",3450,0.,3450.);
-    hpt0_jt110 = new TH1D("hpt0_jt110","",3450,0.,3450.);
-    hpt0_jt190 = new TH1D("hpt0_jt190","",3450,0.,3450.);
-    hpt0_jt240 = new TH1D("hpt0_jt240","",3450,0.,3450.);
-    hpt0_jt300 = new TH1D("hpt0_jt300","",3450,0.,3450.);
-    hpt0_jt370 = new TH1D("hpt0_jt370","",3450,0.,3450.);
+    //hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
+    //hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
+    //hpt_jt110 = new TH1D("hpt_jt110","",nx,&x[0]);
+    //hpt_jt190 = new TH1D("hpt_jt190","",nx,&x[0]);
+    //hpt_jt240 = new TH1D("hpt_jt240","",nx,&x[0]);
+    //hpt_jt300 = new TH1D("hpt_jt300","",nx,&x[0]);
+    //hpt_jt370 = new TH1D("hpt_jt370","",nx,&x[0]);
+    ////
+    //hpt0_jt30 = new TH1D("hpt0_jt30","",3450,0.,3450.);
+    //hpt0_jt60 = new TH1D("hpt0_jt60","",3450,0.,3450.);
+    //hpt0_jt110 = new TH1D("hpt0_jt110","",3450,0.,3450.);
+    //hpt0_jt190 = new TH1D("hpt0_jt190","",3450,0.,3450.);
+    //hpt0_jt240 = new TH1D("hpt0_jt240","",3450,0.,3450.);
+    //hpt0_jt300 = new TH1D("hpt0_jt300","",3450,0.,3450.);
+    //hpt0_jt370 = new TH1D("hpt0_jt370","",3450,0.,3450.);
 
 
     hpthat = new TH1D("hpthat","",nx,&x[0]);
     hpthatnlo = new TH1D("hpthatnlo","",nx,&x[0]);
     
-    // unfolding studies (Mikael)
-    // mT: (pTgen,ygen); (pTreco,yreco)
+    //unfolding studies (Mikael)
+    //mT: (pTgen,ygen); (pTreco,yreco)
     mT = new TH2D("mT","mT(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
     mTuw = new TH2D("mTuw","mTuw(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
     mTf = new TH2D("mTf","mT(yjet);p_{T,gen};p_{T,reco}",
@@ -497,10 +513,10 @@ double vx[neta][nbins] =
     hootpuearly = new TH1D("hootpuearly","",100,-0.5,99.5);
     hootpulate = new TH1D("hootpulate","",100,-0.5,99.5);
     h2itvsoot = new TH2D("h2itvsoot","",25,-0.5,24.5,50,-0.5,49.5);
-//     hitpu->Sumw2();
-//     hootpuearly->Sumw2();
-//     hootpulate->Sumw2();
-//     h2itvsoot->Sumw2();
+    //hitpu->Sumw2();
+    //hootpuearly->Sumw2();
+    //hootpulate->Sumw2();
+    //h2itvsoot->Sumw2();
 
     hpt_noid_g = new TH1D("hpt_noid_g","",nx,&x[0]);
     hpt_nojetid_g = new TH1D("hpt_nojetid_g","",nx,&x[0]);
@@ -512,17 +528,11 @@ double vx[neta][nbins] =
     hpt_gg0 = new TH1D("hpt_gg0","",nx,&x[0]);
     hpt_g0 = new TH1D("hpt_g0","",nx,&x[0]);
     hpt_g0_tmp = new TH1D("hpt_g0_tmp","",nx,&x[0]);
-    hpt_g0_ak4pf = (ak4ak8 ? new TH1D("hpt_g0_ak4pf","",nx,&x[0]) : 0);
-    hpt_g0_tmp_ak4pf = (ak4ak8 ? new TH1D("hpt_g0_tmp_ak4pf","",nx,&x[0]) : 0);
     ppt_r = new TProfile("ppt_r","",nx,&x[0]);
     ppt_g = new TProfile("ppt_g","",nx,&x[0]);
 
     const double nj = 3;
     vector<double> vnj(nj+1); vnj[0]=0; vnj[1]=1; vnj[2]=2; vnj[3]=3;
-    hpt_g0_ak4ak8 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8m1 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8m1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8m2 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8m2","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
-    hpt_g0_ak4ak8p1 = (ak4ak8 ? new TH3D("hpt_g0_ak4ak8p1","", nx,&x[0], nj,&vnj[0], nj,&vnj[0]) : 0);
 
     // Response closure
     p3rvsnpv = new TProfile3D("p3rvsnpv","",nx,&x[0],ny,&y[0],npv,&pv[0]);
@@ -544,30 +554,30 @@ double vx[neta][nbins] =
     p2dy_guw = new TProfile("p2dy_guw","",nx,&x[0]);
     pdy_r = new TProfile2D("pdy_r","",nx,&x[0],144,0.,TMath::Pi());
     pdy_g = new TProfile2D("pdy_g","",nx,&x[0],144,0.,TMath::Pi());
-//     hpthat->Sumw2();
-
-//     hpt_noid_g->Sumw2();
-//     hpt_nojetid_g->Sumw2();
-//     hpt_noevtid_g->Sumw2();
-
-//     hpt_r->Sumw2();
-//     hpt_g->Sumw2();
-//     hpt_gg->Sumw2();
-//     hpt_g0->Sumw2();
-//     //
-//     p3rvsnpv->Sumw2();
-//     p2rvsnpv->Sumw2();
-//     h2r_r->Sumw2();
-//     h2r_g->Sumw2();
-//     p2r_r->Sumw2();
-//     p2r_g->Sumw2();
-//     // was missing from dec3 first attempt
-//     h2dy_r->Sumw2();
-//     h2dy_g->Sumw2();
-//     p2dy_r->Sumw2();
-//     p2dy_g->Sumw2();
-//     pdy_r->Sumw2();
-//     pdy_g->Sumw2();
+    //hpthat->Sumw2();
+    
+    //hpt_noid_g->Sumw2();
+    //hpt_nojetid_g->Sumw2();
+    //hpt_noevtid_g->Sumw2();
+    
+    //hpt_r->Sumw2();
+    //hpt_g->Sumw2();
+    //hpt_gg->Sumw2();
+    //hpt_g0->Sumw2();
+    ////
+    //p3rvsnpv->Sumw2();
+    //p2rvsnpv->Sumw2();
+    //h2r_r->Sumw2();
+    //h2r_g->Sumw2();
+    //p2r_r->Sumw2();
+    //p2r_g->Sumw2();
+    //// was missing from dec3 first attempt
+    //h2dy_r->Sumw2();
+    //h2dy_g->Sumw2();
+    //p2dy_r->Sumw2();
+    //p2dy_g->Sumw2();
+    //pdy_r->Sumw2();
+    //pdy_g->Sumw2();
 
   } // ismc
 
