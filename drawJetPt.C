@@ -1,0 +1,551 @@
+#include "tdrstyle_mod15.C"
+#include "TFile.h"
+#include "TF1.h"
+#include "TLatex.h"
+#include "TH1F.h"
+
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
+const double ptmin = 114;//64;
+void drawJetPt(string sy = "0.0-0.5") {
+
+  // string to char* for easier use with TForm later
+  const char *cy = sy.c_str();
+
+  // pdflatex cannot handle periods inside file name so remove them
+  string sy2 = string(TString(cy).ReplaceAll(".",""));
+  const char *cy2 = sy2.c_str();
+
+  setTDRStyle();
+  
+  TDirectory *curdir = gDirectory;
+
+  // Common format ROOT tuple from Engin Eren
+  // https://gitlab.cern.ch/CMS-SMP-J/InclusiveJetsLegacy/blob/master/
+  // common2016.root
+  //TFile *fin = new TFile("rootfiles/common2016-20170204.root","READ");
+  //TFile *fin = new TFile("rootfiles/common2016-03FebV3.root","READ");
+  TFile *fin = new TFile("rootfiles/common2016-03FebV3-2.root","READ");
+  assert(fin && !fin->IsZombie());
+
+  const char *p = "CondFormats/JetMETObjects/data/";
+  // 2016 uncertainty (25 ns)
+  //const char *t = "Spring16_23Sep2016GHV1_DATA";
+  //const char *t = "Summer16_23Sep2016GV3_DATA";
+  //const char *t = "Summer16_03Feb2017G_V2_DATA";
+  const char *t = "Summer16_03Feb2017_V3_DATA";
+  const char *a = "AK4";
+  const char *s = Form("%s%s_Uncertainty_%sPFchs.txt",p,t,a);
+  cout<<"**"<<s<<endl<<flush;
+  JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(s);
+
+  // 2015 uncertainty (50 ns)
+  const char *t0 = "Summer15_50nsV5_DATA";
+  const char *a0 = "AK4";
+  const char *s0 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t0,a0);
+  cout<<"**"<<s0<<endl<<flush;
+  JetCorrectionUncertainty *unc0 = new JetCorrectionUncertainty(s0);
+
+  // 2012 uncertainty (8 TeV)
+  const char *t1 = "Winter14_V8_DATA";
+  const char *a1 = "AK5";
+  const char *s1 = Form("%s%s_Uncertainty_%sPFchs.txt",p,t1,a1);
+  cout<<"**"<<s1<<endl<<flush;
+  JetCorrectionUncertainty *unc1 = new JetCorrectionUncertainty(s1);
+
+  // 5 eras: BCDEFGH, BCD, EF, G and H
+  const int nera = 4;//5;
+  //TFile *fins[nera] = {fin, fin, fin, fin, fin};
+  //const char *eras[nera] = {"BCDEFGH","BCD","EFearly","FlateG","H"};
+  TFile *fins[nera] = {fin, fin, fin, fin};
+  const char *eras[nera] = {"CD","EF","G","H"};
+  // luminosity re-normalization
+  //double lumi[nera] = {1, 1, 1, 1, 1};
+  double lumi[nera] = {1, 1, 1, 1};
+
+  // Mithat's settings
+  /*
+  int color[nera] = {kBlack, kRed+2, kOrange+2, kGreen+2, kBlue+1};
+  int marker[nera] = {kFullSquare, kFullCircle, kFullDiamond,
+		      kFullStar, kOpenStar};
+  const char* label[nera] = {"BCDEFGH",
+			     "BCD",
+			     "EF^{1}",
+			     "F^{2}G",
+			     "H"};
+  */
+  int color[nera] = {kRed+2, kOrange+2, kGreen+2, kBlue+1};
+  int marker[nera] = {kFullCircle, kFullDiamond,
+		      kFullStar, kOpenStar};
+  const char* label[nera] = {"CD",
+			     "EF^{1}",
+			     "F^{2}G",
+			     "H"};
+
+
+  // Reference data from the 50 ns analysis in 2015
+  TFile *fin50ns = new TFile("rootfiles/CommonPlots-74X-50ns.root","READ");
+  assert(fin50ns && !fin50ns->IsZombie());
+  curdir->cd();
+
+  // Unfolded reference data from SMP-15-007 stored in HEPDATA
+  TFile *fhepd = new TFile("rootfiles/HEPData-ins1459051-v1-root.root","READ");
+  assert(fhepd && !fhepd->IsZombie());
+  curdir->cd();
+
+  // Unfolded reference data from SMP-15-007 directly from Paolo
+  // InclusiveJetMeasurement_AK4_CrystalBall_JECSummer15_V5_Run2015BC_LowScale
+  // InclusiveJetMeasurement_AK4_GaussianCore_JECSummer15_V5_Run2015BC_LowScale
+  // InclusiveJetMeasurement_AK7_CrystalBall_JECSummer15_V5_Run2015BC_LowScale
+  // InclusiveJetMeasurement_AK7_GaussianCore_JECSummer15_V5_Run2015BC_LowScale
+  TFile *f15007 = new TFile("rootfiles/InclusiveJetMeasurement_AK7_GaussianCore"
+			    "_JECSummer15_V5_Run2015BC_LowScale.root","READ");
+  assert(f15007 && !f15007->IsZombie());
+  curdir->cd();
+  
+  TH1F *h50ns(0);
+  if (sy=="0.0-0.5") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_1bin");
+  if (sy=="0.5-1.0") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_2bin");
+  if (sy=="1.0-1.5") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_3bin");
+  if (sy=="1.5-2.0") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_4bin");
+  if (sy=="2.0-2.5") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_5bin");
+  if (sy=="2.5-3.0") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_6bin");
+  if (sy=="3.2-4.7") h50ns = (TH1F*)fin50ns->Get("pt_DETInclJet_7bin");
+
+  // HEPData (1-7 AK7, 8-14 AK4; both unfolded)
+  map<string, string> mhep;
+  mhep["0.0-0.5"] = "Table 1";
+  mhep["0.5-1.0"] = "Table 2";
+  mhep["1.0-1.5"] = "Table 3";
+  mhep["1.5-2.0"] = "Table 4";
+  mhep["2.0-2.5"] = "Table 5";
+  mhep["2.5-3.0"] = "Table 6";
+  mhep["3.2-4.7"] = "Table 7";
+  const char *ct = mhep[sy].c_str();
+  TH1F *hhepdy = (TH1F*)fhepd->Get(Form("%s/Hist1D_y1",ct)); assert(hhepdy);
+  TH1F *hhepde = (TH1F*)fhepd->Get(Form("%s/Hist1D_y1_e1",ct)); assert(hhepde);
+  for (int i = 1; i != hhepdy->GetNbinsX()+1; ++i) {
+    hhepdy->SetBinError(i, hhepde->GetBinContent(i));
+  }
+  h50ns = hhepdy;
+
+  // SMP-15-007 unfolded from Paolo
+  // These contain both 'Detector' and 'Unfolded' spectra
+  // but are not normalized by bin width
+  // For some reason this des not seem to work properly
+  map<string, string> mpg;
+  mpg["0.0-0.5"] = "y0";
+  mpg["0.5-1.0"] = "y1";
+  mpg["1.0-1.5"] = "y2";
+  mpg["1.5-2.0"] = "y3";
+  mpg["2.0-2.5"] = "y4";
+  mpg["2.5-3.0"] = "y5";
+  mpg["3.2-4.7"] = "y6";
+  const char *cr = mpg[sy].c_str();
+  //TH1F *h15007 = (TH1F*)f15007->Get(Form("Detector_Spectra_%s",cr));
+  TH1F *h15007 = (TH1F*)f15007->Get(Form("Unfolded_Spectra_%s",cr));
+  assert(h15007);
+  for (int i = 1; i != h15007->GetNbinsX()+1; ++i) {
+    double Ldptdy = 100.*h15007->GetBinWidth(i);
+    h15007->SetBinContent(i, h15007->GetBinContent(i) / Ldptdy);
+    h15007->SetBinError(i, h15007->GetBinError(i) / Ldptdy);
+  }
+  // patch different pT range
+  if (h15007->GetNbinsX() != h50ns->GetNbinsX()) {
+    TH1F *htmp = h15007;
+    h15007 = (TH1F*)h50ns->Clone(Form("hpt0_%s",cr));
+    for (int i = 1; i != h15007->GetNbinsX()+1; ++i) {
+      int j = htmp->FindBin(h15007->GetBinCenter(i));
+      h15007->SetBinContent(i, htmp->GetBinContent(j));
+      h15007->SetBinError(i, htmp->GetBinError(j));
+    }
+    delete htmp;
+  }
+  //h50ns = h15007;
+
+  // Settings for the spectrum fit and JEC-equivalent plot y-axis range
+  double eta(0.), ymin(-4), ymax(+6); double emax(6000.); double ptmax(2600.);
+  if (sy=="0.0-0.5") { eta = 0; ymin = -4; ymax = +6; }
+  if (sy=="0.5-1.0") { eta = 0.5; ymin = -4; ymax = +6; }
+  if (sy=="1.0-1.5") { eta = 1.0; ymin = -4; ymax = +6; }
+  if (sy=="1.5-2.0") { eta = 1.5; ymin = -6; ymax = +9; }
+  if (sy=="2.0-2.5") { eta = 2.0; ymin = -6; ymax = +9; }
+  if (sy=="2.5-3.0") { eta = 2.5; ymin = -12; ymax = +18; }
+  if (sy=="3.2-4.7") { eta = 3.2; ymin = -12; ymax = +18; }
+  assert(h50ns);
+
+  // patch trigger biased 300 GeV point
+  //int ipatch = h50ns->FindBin(320.);
+  //h50ns->SetBinContent(ipatch, 0.);
+  //h50ns->SetBinError(ipatch, 0.);
+
+  // Replace 50 ns DET with HEPDATA unfolded
+  if (false) {
+    double p9161_d8x1y1_xval[] = { 123.5, 143.0, 163.5, 185.0, 208.0, 232.5, 258.5, 286.0, 315.0, 346.0, 378.5, 412.5, 449.0, 487.5, 527.5, 570.0, 615.0, 662.0, 711.5, 763.5, 818.0, 875.5, 936.0, 999.5, 1066.5, 1136.5, 1210.0, 1287.5, 1368.5, 1453.5, 1542.5, 1636.0, 1734.0, 1837.0, 1945.0 };
+    double p9161_d8x1y1_yval[] = { 5349.33, 3064.67, 1777.82, 851.947, 426.18, 253.548, 148.523, 81.1185, 45.7049, 28.643, 17.0765, 9.79779, 6.29211, 4.13279, 2.59375, 1.59837, 1.04159, 0.657478, 0.412662, 0.264576, 0.169119, 0.109256, 0.0699437, 0.0439286, 0.0280389, 0.0196009, 0.0135767, 0.00681612, 0.00341421, 
+    0.00225516, 0.00207889, 0.00176915, 0.00111131, 4.20276E-4, 1.88882E-4 };
+    double p9161_d8x1y1_ystatminus[] = { 667.011, 211.904, 159.866, 97.3924, 55.0472, 15.8243, 10.3151, 5.76438, 1.50443, 0.996153, 0.631592, 0.403098, 0.179287, 0.130679, 0.0743668, 0.0486397, 0.0358208, 0.0173034, 0.0124171, 0.00809688, 0.0062119, 0.00484187, 0.00379823, 0.00291624, 0.00229541, 0.00183255, 0.0015417, 0.0010303, 7.29814E-4, 5.59543E-4, 5.53858E-4, 4.72921E-4, 3.88821E-4, 2.14123E-4, 1.49492E-4 };
+    const int npoints = 35;
+    
+    h50ns->Clear();
+    for (int i = 0; i != npoints; ++i) {
+      int j = h50ns->FindBin(p9161_d8x1y1_xval[i]);
+      h50ns->SetBinContent(j, p9161_d8x1y1_yval[i]);
+      h50ns->SetBinError(j, p9161_d8x1y1_ystatminus[i]);
+    }
+  } // if true
+
+
+  // Load 2016 results
+  TH1F *h1s[nera];
+  for (int iera = 0; iera != nera; ++iera) {
+
+    const char *cera = eras[iera]; 
+    //string hname = Form("ak4/y_%s/hpt_Run%s_rereco",cy,cera);
+    //string hname = Form("ak7/y_%s/hptRun%s_Febr2017V3",cy,cera);
+    string hname = Form("ak7/y_%s/hptRun%s_Febr2017V3_unfolded",cy,cera);
+    // PATCH start
+    //if (string(cera)=="FlateG") hname = Form("ak7/y_%s/hptRunG_Febr2017V3",cy);
+    // PATCH end
+    TH1F *hera = (TH1F*)fins[iera]->Get(hname.c_str());
+    cout << hname << endl << flush;
+    assert(hera);
+    //hera->Scale(1.033); // for luminosity patch for 2016
+
+    // patch different pT binning
+    if (hera->GetNbinsX() != h50ns->GetNbinsX()) {
+      TH1F *htmp = hera;
+      hera = (TH1F*)h50ns->Clone(Form("hpt0_%d",iera));
+      for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
+	int j = htmp->FindBin(hera->GetBinCenter(i));
+	hera->SetBinContent(i, htmp->GetBinContent(j));
+	hera->SetBinError(i, htmp->GetBinError(j));
+      }
+    }
+    hera->Scale(1./lumi[iera]);
+    h1s[iera] = hera;
+    
+  } // for iera
+
+  TF1 *f1s[nera];
+  for (int iera = 0; iera != nera; ++iera) {
+    TF1 *f1 = new TF1(Form("f1_%d",iera),
+		      Form("[0]*pow(x,[1]+[2]*log(x))"
+			   "*pow(1-2.*x*cosh(%1.2f)/13000.,[3])",eta),
+		      ptmin,emax/cosh(eta));
+    f1->SetParameters(1e12,-5,0.001,10);
+    f1->SetNpx(2640.*2); // this limits precision of DeltaJEC
+    h1s[iera]->Fit(f1,"RNI");
+    f1->SetLineColor(color[iera]);
+    f1s[iera] = f1;
+  } // for iera
+
+  TF1 *f50ns = new TF1("f50ns",
+		       Form("[0]*pow(x,[1]+[2]*log(x))"
+			    "*pow(1-2.*x*cosh(%1.2f)/13000.,[3])",eta),
+		       ptmin,emax/cosh(eta));
+  f50ns->SetParameters(1e12,-5,0.001,10);
+  f50ns->SetNpx(2640.*2); // this limits precision of DeltaJEC
+  h50ns->Fit(f50ns,"RNI");
+  f50ns->SetLineColor(kGreen+2);
+
+  TF1 *fref = f50ns; // compare to 50 ns data
+
+  // Calculate ratio of fits
+  TF1 *f1rs[nera];
+  for (int iera = 0; iera != nera; ++iera) {
+
+    TF1 *f1 = f1s[iera];
+    TF1 *f1r = new TF1(Form("f1r_%d",iera),
+		       Form("[0]*pow(x,[1]+[2]*log(x))"
+			    "*pow(1-2.*x*cosh(%1.2f)/13000.,[3]) / "
+			    "([4]*pow(x,[5]+[6]*log(x))"
+			    "*pow(1-2.*x*cosh(%1.2f)/13000.,[7]))",
+			    eta,eta),
+		       ptmin,emax/cosh(eta));
+    f1r->SetParameters(f1->GetParameter(0),f1->GetParameter(1),
+		       f1->GetParameter(2),f1->GetParameter(3),
+		       fref->GetParameter(0),fref->GetParameter(1),
+		       fref->GetParameter(2),fref->GetParameter(3));
+    f1r->SetLineColor(color[iera]);
+    f1rs[iera] = f1r;
+  } // for iera
+
+  // Calculate ratio of fit (nominally should be 1 when 50 ns is fref)
+  TF1 *f50nsr = new TF1("f50nsr",
+			Form("[0]*pow(x,[1]+[2]*log(x))"
+		       "*pow(1-2.*x*cosh(%1.2f)/13000.,[3]) / "
+			     "([4]*pow(x,[5]+[6]*log(x))"
+			     "*pow(1-2.*x*cosh(%1.2f)/13000.,[7]))",
+			     eta,eta),
+			ptmin,emax/cosh(eta));
+  f50nsr->SetParameters(f50ns->GetParameter(0),f50ns->GetParameter(1),
+			f50ns->GetParameter(2),f50ns->GetParameter(3),
+			fref->GetParameter(0),fref->GetParameter(1),
+			fref->GetParameter(2),fref->GetParameter(3));
+  f50nsr->SetLineColor(kGreen+2);
+
+  // Divide 2016 data by reference fit
+  TH1F *hrs[nera];
+  for (int iera = 0; iera != nera; ++iera) {
+    TH1F *hr = (TH1F*)h1s[iera]->Clone(Form("hr_%d",iera));
+    hr->Divide(fref);
+    hrs[iera] = hr;
+  } // for iera
+
+  // Divide 2016 data by BCDEFGH for direct time stability
+  TH1F *h1rs[nera];
+  for (int iera = 1; iera != nera; ++iera) {
+    TH1F *h1r = (TH1F*)h1s[iera]->Clone(Form("h1r_%d",iera));
+    h1r->Divide(h1s[0]);
+    h1rs[iera] = h1r;
+  } // for iera
+
+  // Ratio of 50 ns data to reference (50 ns) fit
+  TH1F *hr50ns = (TH1F*)h50ns->Clone("hr50ns");
+  hr50ns->Divide(fref);
+
+
+  TH1D *h = new TH1D("h",";Jet p_{T} (GeV);"
+		     "d#sigma^{2} / dy dp_{T} (pb / GeV)",3445,55,3500);
+  h->SetMinimum(1e-6 *1.0001);
+  h->SetMaximum(1e+8 *0.9999);
+
+  TH1D *h2 = new TH1D("h",";Jet p_{T} (GeV);"
+		     "Ratio to 50 ns",3445,55,3500);
+  h2->SetMinimum(0.8);
+  h2->SetMaximum(1.2);
+  h2->GetXaxis()->SetNoExponent();
+  h2->GetXaxis()->SetMoreLogLabels();
+
+  lumi_13TeV = "Run2016, 35 fb^{-1}";
+  TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,11);
+
+  c1->cd(1);
+  tdrDraw(h50ns,"Pz",kOpenSquare,kGreen+2,kSolid,kGreen+2);
+  for (int iera = 0; iera != nera; ++iera) {
+    tdrDraw(h1s[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
+  }
+  gPad->SetLogx();
+  gPad->SetLogy();
+  
+  TLegend *leg = tdrLeg(0.50,0.90-0.06*nera,0.80,0.90);
+  for (int iera = 0; iera != nera; ++iera) {
+    leg->AddEntry(h1s[iera],label[iera],"PL");
+  }
+  leg->AddEntry(h50ns,"74X 50 ns","PL");
+
+  c1->cd(2);
+  tdrDraw(hr50ns,"Pz",kOpenSquare,kGreen+2,kSolid,kGreen+2);
+  for (int iera = 0; iera != nera; ++iera) {
+    tdrDraw(hrs[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
+  }
+  gPad->SetLogx();
+
+  c1->cd(1);
+  //f50ns->SetRange(60,3500);
+  f50ns->SetRange(ptmin,3500);
+  f50ns->Draw("SAME");
+  // Draw 2016 fits as well (or don't)
+  for (int iera = 0; iera != nera; ++iera) {
+    //f1s[iera]->Draw("SAME");
+  }
+
+  TLatex *tex = new TLatex();
+  tex->SetNDC(); tex->SetTextSize(0.045);
+  tex->SetTextColor(kGreen+2);
+  tex->DrawLatex(0.20,0.10,Form("fit(50ns): #chi^{2}/NDF = %1.1f/%d",
+				f50ns->GetChisquare(),f50ns->GetNDF()));
+
+  c1->cd(2);
+  f50nsr->Draw("SAME");
+  // Draw ratio of fits as well (or don't)
+  for (int iera = 0; iera != nera; ++iera) {
+    //f1rs[iera]->Draw("SAME");
+  }
+
+  c1->SaveAs(Form("pdf/drawJetPt_%s.pdf",cy2));
+
+
+  TH1D *h3 = new TH1D("h3",";Jet p_{T} (GeV);#DeltaJEC-equivalent (%)",
+		      3445,55,3500);
+  h3->SetMinimum(ymin);
+  h3->SetMaximum(ymax);
+  h3->GetXaxis()->SetMoreLogLabels();
+  h3->GetXaxis()->SetNoExponent();
+  
+  // Calculate reference uncertainty
+  TH1F *hunc = (TH1F*)h50ns->Clone("hunc");
+  TH1F *hunc0 = (TH1F*)h50ns->Clone("hunc0");
+  TH1F *hunc1 = (TH1F*)h50ns->Clone("hunc1");
+  for (int i = 1; i != hunc->GetNbinsX()+1; ++i) {
+    
+    double pt = hunc->GetBinCenter(i);
+
+    unc->setJetEta(eta+0.25);
+    unc->setJetPt(pt);
+    hunc->SetBinContent(i, 0);//-1.5);
+    hunc->SetBinError(i, 100.*unc->getUncertainty(true));
+
+    unc0->setJetEta(eta+0.25);
+    unc0->setJetPt(pt);
+    hunc0->SetBinContent(i, 0.0);
+    hunc0->SetBinError(i, 100.*unc0->getUncertainty(true));
+
+    unc1->setJetEta(eta+0.25);
+    unc1->setJetPt(pt);
+    hunc1->SetBinContent(i, 0.0);
+    hunc1->SetBinError(i, 100.*unc1->getUncertainty(true));
+  }
+
+  TH1F *hds[nera];
+  TH1F *huncl = (TH1F*)h50ns->Clone("huncl");
+  for (int iera = 0; iera != nera; ++iera) {
+
+    TH1F *hr = hrs[iera];
+    TH1F *hd = (TH1F*)hr->Clone(Form("hd_%d",iera));
+    for (int i = 1; i != hr->GetNbinsX()+1; ++i) {
+
+      if (hr->GetBinContent(i)==0) continue;
+      double x = hr->GetBinCenter(i);
+      double y = fref->Eval(x);
+      double y2 = y * hr->GetBinContent(i);
+      double x2 = fref->GetX(y2,0.85*x,1.15*x,1e-3);
+      hd->SetBinContent(i, 100.*(x/x2-1));
+
+      // Luminosity uncertainty from BCDEFGH
+      if (iera==0) {
+	double y3 = y / 1.027; // lumi uncertainty for 2016, after 3.3% patch
+	double x3 = fref->GetX(y3,0.85*x,1.15*x,1e-3);
+	int j = huncl->FindBin(hd->GetBinCenter(i));
+	huncl->SetBinContent(j, 0);
+	huncl->SetBinError(j, 100.*fabs(x/x3-1));
+      }
+
+      // 2016 uncertainty around first entry (BCDEFGH)
+      //if (iera==0) hunc->SetBinContent(hunc->FindBin(hd->GetBinCenter(i)),
+      //			       hd->GetBinContent(i));
+
+      double y2_up = y * (hr->GetBinContent(i) + hr->GetBinError(i));
+      double x2_dw = fref->GetX(y2_up,0.85*x,1.15*x);
+      double y2_dw = y * (hr->GetBinContent(i) - hr->GetBinError(i));
+      double x2_up = fref->GetX(y2_dw,0.85*x,1.15*x);
+      hd->SetBinError(i, 100.*sqrt(pow((x2_up-x2_dw)/x2,2) + pow(0.001,2)));
+    } // for i
+    hds[iera] = hd;
+
+  } // for iera
+
+
+  TCanvas *c2 = tdrCanvas("c2",h3,4,11,kSquare);
+
+  tdrDraw(hunc0,"E3", kNone, kBlack,kSolid,-1,1001,kOrange-9);
+  tdrDraw(hunc1,"E3", kNone, kBlack,kSolid,-1,1001,kRed-9);
+  tdrDraw(huncl,"E3", kNone, kBlack,kSolid,-1,1001,kBlue-9);
+  tdrDraw(hunc,"E3", kSolid, kBlack,kSolid,-1,3001,kYellow+1);
+  
+  for  (int iera = 0; iera != nera; ++iera) {
+    tdrDraw(hds[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
+  }
+  gPad->SetLogx();
+
+  //TLegend *legd = tdrLeg(0.50,0.90-0.06*nera,0.80,0.90);
+  TLegend *legd = tdrLeg(0.50,0.90-0.04*(nera+3),0.80,0.90);
+  for  (int iera = 0; iera != nera; ++iera) {
+    legd->AddEntry(hrs[iera],label[iera],"PL");
+  }
+
+  TLegend *legu = tdrLeg(0.50,0.15,0.80,0.23);
+  //legd->AddEntry(hunc0,"2015 (50 ns) unc.","F");
+  //legd->AddEntry(hunc,"2016 (25 ns) unc.","F");
+  legd->AddEntry(hunc1,"2012 unc.","F");
+  legd->AddEntry(hunc0,"2015 unc.","F");
+  legd->AddEntry(hunc,"2016 unc.","F");
+  legd->AddEntry(huncl,"2.6% lum.","F");
+  
+  tex->SetTextColor(kBlack); tex->SetTextSize(0.040);
+  //tex->DrawLatex(0.19,0.74,Form("Anti-k_{T} R=0.4"));
+  tex->DrawLatex(0.19,0.74,Form("Anti-k_{T} R=0.7"));
+  //tex->DrawLatex(0.19,0.69,Form("PF+CHS"));
+  tex->DrawLatex(0.19,0.69,Form("PF+CHS unf."));
+  tex->DrawLatex(0.19,0.64,Form("|y|#in %s",cy));
+  tex->SetTextSize(0.030);
+  tex->DrawLatex(0.19,0.58,Form("vs HEPData-ins1459051-v1"));
+  tex->SetTextSize(0.040);
+  TLine *l = new TLine();
+  l->SetLineStyle(kDashed);
+  l->DrawLine(60,0,3500,0);
+  l->SetLineStyle(kDotted);
+  l->DrawLine(60,+1.5,3500,+1.5);
+  l->DrawLine(60,-1.5,3500,-1.5);
+
+  c2->RedrawAxis();
+  c2->SaveAs(Form("pdf/drawJetPt_DeltaJEC_%s.pdf",cy2));
+
+  TH1F *he = hds[0]; // BCDEFGH
+  TF1 *fg = new TF1("fg","[0]+[1]*log(x)+"
+		    "[2]*TMath::Gaus(x,[3],[4]*sqrt(x))",
+		    60,2500);
+  fg->SetParameters(-1.5,+0.2, -1.5, 400, 15.);
+  he->Fit(fg, "RN");
+  fg->DrawClone("SAME");
+  fg->SetLineStyle(kDashed);
+  double p0 = fg->GetParameter(0);
+  double p1 = fg->GetParameter(1);
+  double ecal = fg->GetParameter(2);
+  fg->SetParameter(2,0);
+  fg->DrawClone("SAME");
+  fg->SetParameters(0,0,ecal,fg->GetParameter(3),fg->GetParameter(4));
+  fg->SetLineStyle(kDotted);
+  fg->DrawClone("SAME");
+  
+  tex->SetTextColor(kRed);
+  tex->DrawLatex(0.20,0.17,Form("#chi^{2} / NDF = %1.1f / %d",
+				fg->GetChisquare(),fg->GetNDF()));
+  tex->SetTextSize(0.035);
+  tex->DrawLatex(0.20,0.260,Form("p_{0} = %1.2f#pm%1.2f%%", p0,
+				 fg->GetParError(0)));
+  tex->DrawLatex(0.20,0.225,Form("p_{1} = %1.2f#pm%1.2f%%", p1,
+				 fg->GetParError(1)));
+
+  tex->DrawLatex(0.60,0.225,Form("#Delta = %1.2f#pm%1.2f%%",
+				fg->GetParameter(2),
+				fg->GetParError(2)));
+  tex->DrawLatex(0.60,0.190,Form("#mu = %1.0f#pm%1.0f GeV",
+				fg->GetParameter(3),
+				fg->GetParError(3)));
+  tex->DrawLatex(0.60,0.155,Form("#sigma = %1.1f#pm%1.1f"
+				 "#sqrt{GeV}",
+				fg->GetParameter(4),
+				fg->GetParError(4)));
+
+  c2->SaveAs(Form("pdf/drawJetPt_DeltaJEC2_%s.pdf",cy2));
+
+
+  TH1D *h4 = new TH1D("h4",";Jet p_{T} (GeV);RunX / RunBCDEFGH",3445,55,3500);
+  bool isec2 = (fabs(eta)>2.2);
+  h4->SetMinimum(isec2 ? 0.60 : 0.90);//0.80);
+  h4->SetMaximum(isec2 ? 1.80 : 1.20);//1.40);
+  h4->GetXaxis()->SetNoExponent();
+  h4->GetXaxis()->SetMoreLogLabels();
+
+  TCanvas *c3 = tdrCanvas("c3",h4,4,11,kSquare);
+  gPad->SetLogx();
+  for (int iera = 1; iera != nera; ++iera) {
+    tdrDraw(h1rs[iera],"Pz",marker[iera],color[iera],kSolid,color[iera]);
+  }
+
+  TLegend *leg3 = tdrLeg(0.50,0.90-0.06*nera,0.70,0.90);
+  for  (int iera = 1; iera != nera; ++iera) {
+    leg3->AddEntry(h1rs[iera],label[iera],"PL");
+  }
+
+  tex->SetTextColor(kBlack); tex->SetTextSize(0.040);
+  tex->DrawLatex(0.19,0.74,Form("Anti-k_{T} R=0.4"));
+  tex->DrawLatex(0.19,0.69,Form("PF+CHS"));
+  tex->DrawLatex(0.19,0.64,Form("|y| #in %s",cy));
+
+  
+  c3->SaveAs(Form("pdf/drawJetPt_XsecoverBCDEFGH_%s.pdf",cy2));
+
+}
