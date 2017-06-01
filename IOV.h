@@ -68,8 +68,13 @@ namespace jec {
 
     vector<JetCorrectorParameters> vpar;
 
+    cout << "Fuuga!" << endl;
     // L1FastJet for AK*PF, L1Offset for others
     s = Form("%s%sL1FastJet_%s.txt",p,t,a);
+    if (access(s, F_OK)==-1) {
+      cout << "The IOV files of " << s << " etc. were not found" << endl;
+      return;
+    }
     dat.names.push_back(string(s));
     vpar.push_back(JetCorrectorParameters(s));
 

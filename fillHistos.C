@@ -715,14 +715,15 @@ void fillHistos::Loop()
       } // for i
     } // _mc
 
-    // Propagate jec to MET
     double ucx = -mex;
     double ucy = -mey;
+    // Propagate jec to MET 1 and MET 2
     for (int i = 0; i != njt; ++i) {
 
       // Only use jets with corr. pT>25 GeV to equalize data and MC thresholds
       if (jtpt[i] > _jp_recopt && fabs(jteta[i])<4.7) {
 
+        // MET 1 stuff
         // Subtract uncorrected jet pT from met, put back corrected
         // Also add RC offset to keep PU isotropic
         // Remember that MET is negative vector sum
@@ -732,10 +733,12 @@ void fillHistos::Loop()
         _L1RC->setJetE(jteu[i]);
         _L1RC->setJetEta(jteta[i]);
         double l1corr = _L1RC->getCorrection();
-        double dpt = jtpt[i] - l1corr*jtptu[i];
-        mex -= dpt * cos(jtphi[i]);
-        mey -= dpt * sin(jtphi[i]);
+        double dpt = - jtpt[i] + l1corr*jtptu[i];
+        //double dpt = - jtpt[i] + (l1chs - l1pf + l1corr)*jtptu[i];
+        mex += dpt * cos(jtphi[i]);
+        mey += dpt * sin(jtphi[i]);
 
+        // MET 2 stuff
         // Keep track of remaining pT in unclustered energy, i.e.
         // subtract jets from -MET to have the non-jet component
         // treat UE and PU underneath jets as unclustered in order

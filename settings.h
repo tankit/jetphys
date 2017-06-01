@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "MC";
+string _jp_type = "DATA"
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
@@ -92,8 +92,8 @@ string _jp_ecalveto = "lumicalc/ecalveto.root";
 // Reapply json selection based on the latest one (check lumicalc if false!)
 const bool _jp_dojson = true;
 // Here: there are slight differences between PromptReco and ReReco in the 2016 run
-//string _jp_json = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
-string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
+string _jp_json = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
+//string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file
 const bool _jp_dolumi = true;
@@ -126,7 +126,7 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 //////////////////////////////////
 
 string _jp_jecgt = "Summer16_03Feb2017";// "Summer16_23Sep2016";
-string _jp_jecvers = "_V0"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+string _jp_jecvers = "_V3"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 const bool _jp_useIOV = true;
