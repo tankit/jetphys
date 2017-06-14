@@ -57,11 +57,17 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
     hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),
                               ";p_{T,tag};#eta;Asymmetry",
                               npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+    hdjasymmpt.push_back(new TH3D((string("hdjasymmpt_a")+number).c_str(),
+                              ";p_{T,probe};#eta;Asymmetry",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
     hdjmpf.push_back(    new TH3D((string("hdjmpf_a")+number).c_str(),
                               ";p_{T,ave};#eta;MPF",
                               npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
     hdjmpftp.push_back(  new TH3D((string("hdjmpftp_a")+number).c_str(),
                               ";p_{T,tag};#eta;MPF",
+                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+    hdjmpfpt.push_back(  new TH3D((string("hdjmpfpt_a")+number).c_str(),
+                              ";p_{T,probe};#eta;MPF",
                               npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
   }
   
@@ -69,8 +75,10 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
   for (unsigned i = 0; i < alpharange.size(); ++i) {
     hdjasymm[i]->Sumw2();
     hdjasymmtp[i]->Sumw2();
+    hdjasymmpt[i]->Sumw2();
     hdjmpf[i]->Sumw2();
     hdjmpftp[i]->Sumw2();
+    hdjmpfpt[i]->Sumw2();
   }
   
   curdir->cd();
@@ -82,8 +90,10 @@ etaHistos::~etaHistos() {
   for (unsigned i = 0; i < alpharange.size(); ++i) {
     delete hdjasymm[i];
     delete hdjasymmtp[i];
+    delete hdjasymmpt[i];
     delete hdjmpf[i];
     delete hdjmpftp[i];
+    delete hdjmpfpt[i];
   }
   delete dir;
 };

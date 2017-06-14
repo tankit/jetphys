@@ -434,6 +434,8 @@ public :
   map<string, vector<mcHistos*> > _mchistos;
   map<string, runHistos*> _runhistos;
   TH1D *hmcweight;
+  TH2D *h2etaphiexcl;
+  TFile *fetaphiexcl;
 
   vector<string> _availTrigs;
 

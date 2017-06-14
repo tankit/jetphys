@@ -68,7 +68,6 @@ namespace jec {
 
     vector<JetCorrectorParameters> vpar;
 
-    cout << "Fuuga!" << endl;
     // L1FastJet for AK*PF, L1Offset for others
     s = Form("%s%sL1FastJet_%s.txt",p,t,a);
     if (access(s, F_OK)==-1) {

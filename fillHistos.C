@@ -292,10 +292,12 @@ void fillHistos::Loop()
 
   if (_jp_doEtaHistos) {
     initEtas("FullEta_Reco");
-    if (_jp_ismc && _jp_doEtaHistosMcResponse) {
+    if (_jp_ismc) {
       initEtas("FullEta_Gen");
-      initMcHistos("FullEta_RecoPerGen_vReco");
-      initMcHistos("FullEta_RecoPerGen_vGen");
+      if (_jp_doEtaHistosMcResponse) {
+        initMcHistos("FullEta_RecoPerGen_vReco");
+        initMcHistos("FullEta_RecoPerGen_vGen");
+      }
     }
   }
 
@@ -304,6 +306,13 @@ void fillHistos::Loop()
     initRunHistos("RunsBarrel",0.,1.);
     initRunHistos("RunsTransition",1.,2.);
     initRunHistos("RunsEndcap",2.,3.);
+  }
+
+  if (_jp_etaphiexcl) {
+    fetaphiexcl = new TFile("hotjets.root","READ");
+    assert(fetaphiexcl && !fetaphiexcl->IsZombie() && "file hotjets.root missing");
+    h2etaphiexcl = (TH2D*)fetaphiexcl->Get(_jp_etaphitype.c_str());
+    assert(h2etaphiexcl && "erroneous eta-phi exclusion type"); 
   }
 
   // Report memory usage to avoid malloc problems when writing file
@@ -1569,7 +1578,15 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
         h->hyeta2->Fill(y-eta, _w);
         h->hbetabetastar->Fill(jtbeta[i], jtbetastar[i], _w);
-        h->hetaphi->Fill(eta, phi, _w);
+        if (_jp_etaphiexcl) {
+          // Val 10 = excluded, -10 = ok
+          if (h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(eta,phi)) < 0)
+            h->hetaphi->Fill(eta, phi, _w);
+          else if (_debug)
+            cout << "Excluded " << eta << " " << phi << endl;
+        } else {
+          h->hetaphi->Fill(eta, phi, _w);
+        }
       } // within trigger pT range
 
       int iprobe = i;
@@ -1901,32 +1918,42 @@ void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
   // Calculate and fill dijet balance histograms
   if (njt>=2 && _evtid && delta_phi(_phi[0],_phi[1])>2.8
       && _jetids[0] && _jetids[1] && _pt[0]>_jp_recopt && _pt[1]>_jp_recopt) {
+    if (_jp_etaphiexcl) {
+      // Abort if one of the leading jets is in a difficult zone
+      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[0],_phi[0])) < 0;
+      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[1],_phi[1])) < 0;
+      if (!good0 or !good1)
+        return;
+    }
     // Two leading jets
-    for (int iref = 0; iref<2; ++iref) {
-      int iprobe = (iref==0 ? 1 : 0);
-      double etaref = _eta[iref];
+    for (int itag = 0; itag<2; ++itag) {
+      int iprobe = (itag==0 ? 1 : 0);
+      double etatag = _eta[itag];
       double etaprobe = _eta[iprobe];
 
-      if (fabs(etaref) < 1.3) {
-        double ptref = _pt[iref];
+      if (fabs(etatag) < 1.3) {
+        double pttag = _pt[itag];
         double ptprobe = _pt[iprobe];
         double pt3 = (njt>2 ? _pt[2] : 0.);
-        double ptave = 0.5 * (ptref + ptprobe); assert(ptave);
+        double ptave = 0.5 * (pttag + ptprobe); assert(ptave);
         double alpha = pt3/ptave;
-        double alphatp = pt3/ptref;
-        double asymm = (ptprobe - ptref)/(2*ptave);
-        double asymmtp = (ptprobe - ptref)/(2*ptref);
-        double mpf = met2*cos(delta_phi(metphi2,_phi[iref]))/ptave;
-        double mpftp = met2*cos(delta_phi(metphi2,_phi[iref]))/ptref;
+        //double alphatp = pt3/pttag;
+        double asymm = (ptprobe - pttag)/(2*ptave);
+        //double asymmtp = (ptprobe - pttag)/(2*pttag);
+        double mpf = met2*cos(delta_phi(metphi2,_phi[itag]))/ptave;
+        //double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/pttag;
         for (unsigned i = 0; i < h->alpharange.size(); ++i) {
           float alphasel = h->alpharange[i];
-          if (alphatp<alphasel) {
-            h->hdjasymmtp[i]->Fill(ptref, etaprobe, asymmtp, _w);
-            h->hdjmpftp[i]  ->Fill(ptref, etaprobe, mpftp  , _w);
-          }
+          //if (alphatp<alphasel) {
+          //}
           if (alpha<alphasel) {
+          // Val 10 = excluded, -10 = ok
             h->hdjasymm[i]->Fill(ptave, etaprobe, asymm, _w);
             h->hdjmpf[i]  ->Fill(ptave, etaprobe, mpf  , _w);
+            h->hdjasymmtp[i]->Fill(pttag, etaprobe, asymm, _w);
+            h->hdjmpftp[i]  ->Fill(pttag, etaprobe, mpf  , _w);
+            h->hdjasymmpt[i]->Fill(ptprobe, etaprobe, asymm, _w);
+            h->hdjmpfpt[i]  ->Fill(ptprobe, etaprobe, mpf  , _w);
           }
         }
       } // etatag < 1.3

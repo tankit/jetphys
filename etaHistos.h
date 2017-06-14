@@ -30,10 +30,13 @@ class etaHistos {
   string trigname;
   
   // Control plots of resolutions in the pt-eta plane
+  // tp: tag-probe (tag), pt: probe-tag (probe)
   vector<TH3D *> hdjasymm;
   vector<TH3D *> hdjasymmtp;
+  vector<TH3D *> hdjasymmpt;
   vector<TH3D *> hdjmpf;
   vector<TH3D *> hdjmpftp;
+  vector<TH3D *> hdjmpfpt;
 
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 

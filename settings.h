@@ -21,7 +21,7 @@ const bool _debug = false;
 // Algorithm to use ("AK4PF" or "AK8PF")
 string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-string _jp_type = "DATA"
+string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 string _jp_run = "RunG";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
@@ -40,6 +40,10 @@ Long64_t _jp_nentries =
 //1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
+
+// Eta phi exclusion due to ecal problems
+bool _jp_etaphiexcl = true;
+string _jp_etaphitype = "h2hotr"; // h2hotr (Robert) or h2hotm (Mikko)
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 bool _jp_domctrigsim = true;
