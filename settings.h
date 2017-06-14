@@ -42,7 +42,7 @@ Long64_t _jp_nentries =
 Long64_t _jp_nskip = 0;
 
 // Eta phi exclusion due to ecal problems
-bool _jp_etaphiexcl = true;
+bool _jp_etaphiexcl = false;
 string _jp_etaphitype = "h2hotr"; // h2hotr (Robert) or h2hotm (Mikko)
 
 // Decide whether or not to simulate triggers from MC (this is slow)

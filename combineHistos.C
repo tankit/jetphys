@@ -151,33 +151,47 @@ void combineHistos() {
 
   recurseFile(fin, fout, "hdjasymm");
   recurseFile(fin, fout, "hdjasymmtp");
+  recurseFile(fin, fout, "hdjasymmpt");
   recurseFile(fin, fout, "hdjmpf");
   recurseFile(fin, fout, "hdjmpftp");
+  recurseFile(fin, fout, "hdjmpfpt");
 
   recurseFile(fin, fout, "hdjasymm_a005");
   recurseFile(fin, fout, "hdjasymmtp_a005");
+  recurseFile(fin, fout, "hdjasymmpt_a005");
   recurseFile(fin, fout, "hdjmpf_a005");
   recurseFile(fin, fout, "hdjmpftp_a005");
+  recurseFile(fin, fout, "hdjmpfpt_a005");
   recurseFile(fin, fout, "hdjasymm_a01");
   recurseFile(fin, fout, "hdjasymmtp_a01");
+  recurseFile(fin, fout, "hdjasymmpt_a01");
   recurseFile(fin, fout, "hdjmpf_a01");
   recurseFile(fin, fout, "hdjmpftp_a01");
+  recurseFile(fin, fout, "hdjmpfpt_a01");
   recurseFile(fin, fout, "hdjasymm_a015");
   recurseFile(fin, fout, "hdjasymmtp_a015");
+  recurseFile(fin, fout, "hdjasymmpt_a015");
   recurseFile(fin, fout, "hdjmpf_a015");
   recurseFile(fin, fout, "hdjmpftp_a015");
+  recurseFile(fin, fout, "hdjmpfpt_a015");
   recurseFile(fin, fout, "hdjasymm_a02");
   recurseFile(fin, fout, "hdjasymmtp_a02");
+  recurseFile(fin, fout, "hdjasymmpt_a02");
   recurseFile(fin, fout, "hdjmpf_a02");
   recurseFile(fin, fout, "hdjmpftp_a02");
+  recurseFile(fin, fout, "hdjmpfpt_a02");
   recurseFile(fin, fout, "hdjasymm_a025");
   recurseFile(fin, fout, "hdjasymmtp_a025");
+  recurseFile(fin, fout, "hdjasymmpt_a025");
   recurseFile(fin, fout, "hdjmpf_a025");
   recurseFile(fin, fout, "hdjmpftp_a025");
+  recurseFile(fin, fout, "hdjmpfpt_a025");
   recurseFile(fin, fout, "hdjasymm_a03");
   recurseFile(fin, fout, "hdjasymmtp_a03");
+  recurseFile(fin, fout, "hdjasymmpt_a03");
   recurseFile(fin, fout, "hdjmpf_a03");
   recurseFile(fin, fout, "hdjmpftp_a03");
+  recurseFile(fin, fout, "hdjmpfpt_a03");
 
   recurseFile(fin, fout, "hdjresp_tag_a005");
   recurseFile(fin, fout, "hdjresptp_tag_a005");
