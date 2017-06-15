@@ -18,6 +18,11 @@ the tuple sizes have been exploding, and it does not make sense to store them lo
 export SCRAM_ARCH=slc6_amd64_gcc493
 source /afs/cern.ch/sw/lcg/contrib/gcc/4.9.3/x86_64-slc6/setup.sh
 source /afs/cern.ch/sw/lcg/app/releases/ROOT/6.06.04/x86_64-slc6-gcc49-opt/root/bin/thisroot.sh
+# A newer alternative:
+source /afs/cern.ch/sw/lcg/external/gcc/4.9.3/x86_64-slc6-gcc49-opt/setup.sh
+export SCRAM_ARCH=slc6_amd64_gcc493
+source /afs/cern.ch/sw/lcg/releases/ROOT/6.08.02-99084/x86_64-slc6-gcc49-opt/bin/thisroot.sh
+
 
 # Preliminary steps for data:
 
