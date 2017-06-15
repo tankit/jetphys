@@ -405,7 +405,8 @@ public :
   // end manually added code
   /////////////////////////////////////////////////////////////////////////////
 
-  fillHistos(TTree *tree=0); // custom
+  fillHistos();
+  fillHistos(TChain *tree); // custom
   virtual ~fillHistos();
   virtual Int_t    Cut(Long64_t entry);
   virtual Int_t    GetEntry(Long64_t entry);
@@ -421,7 +422,6 @@ public :
 
   // Additional code for processing
   ofstream *ferr;
-  string _type;
   TFile *_outfile;
   map<string, TH1D*> pudist;
   vector<string> _triggers;
@@ -541,18 +541,18 @@ private:
 #endif
 
 #ifdef fillHistos_cxx
-fillHistos::fillHistos(TTree *tree) : fChain(0)
+fillHistos::fillHistos()
 {
-  _type = _jp_type;
+  cout << "This is not supposed to happen! Provide a tree" << endl;
+}
 
+fillHistos::fillHistos(TChain *tree) : fChain(0)
+{
   assert(tree);
   Init(tree); // custom
 
   // Reset some pointers
   _outfile = 0;
-
-  // ROOT 6 requires this
-  Loop();
 }
 
 fillHistos::~fillHistos()

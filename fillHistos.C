@@ -957,7 +957,7 @@ void fillHistos::initBasics(string name)
 
   // open file for output
   TFile *f = (_outfile ? _outfile :
-              new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
+              new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
@@ -1823,7 +1823,7 @@ void fillHistos::initEtas(string name)
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
+  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
@@ -2003,7 +2003,7 @@ void fillHistos::initMcHistos(string name)
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
+  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
@@ -2179,7 +2179,7 @@ void fillHistos::initRunHistos(string name, double ymin, double ymax) {
 
   // open file for output
   TFile *f = (_outfile ? _outfile :
-              new TFile(Form("output-%s-1.root",_type.c_str()), "RECREATE"));
+              new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
   assert(f && !f->IsZombie());
   //assert(f->mkdir(name.c_str()));
   f->mkdir(name.c_str());

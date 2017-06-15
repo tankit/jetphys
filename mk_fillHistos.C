@@ -1,43 +1,50 @@
 // Purpose: Fill jet physics analysis histograms
 // Author:  mikko.voutilainen@cern.ch
 // Created: March 20, 2010
-// Updated: June 1, 2015
+// Updated: June 15, 2017
 
-{
-  //gROOT->ProcessLine(".exception");
+#include "settings.h"
 
-  // Jet energy corrections and uncertainties
-  // Localized version available in github.com/miquork/jecsys/
-  // Copied from there
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+");
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+");
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+");
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+");
+#include "CondFormats/JetMETObjects/src/Utilities.cc"
 
-  // For JEC uncertainty
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+");
-  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+");
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
+#include "CondFormats/JetMETObjects/interface/SimpleJetCorrector.h"
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
+// For JEC uncertainty
+#include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 
-  // compile code
-  gROOT->ProcessLine(".L tools.C+");
-  gROOT->ProcessLine(".L runHistos.C+");
-  gROOT->ProcessLine(".L etaHistos.C+");
-  gROOT->ProcessLine(".L mcHistos.C+");
-  gROOT->ProcessLine(".L basicHistos.C+");
+R__LOAD_LIBRARY(tools.C+)
+#include "runHistos.h"
+R__LOAD_LIBRARY(runHistos.C+)
+#include "basicHistos.h"
+R__LOAD_LIBRARY(basicHistos.C+)
+#include "etaHistos.h"
+R__LOAD_LIBRARY(etaHistos.C+)
+#include "mcHistos.h"
+R__LOAD_LIBRARY(mcHistos.C+)
 
-  gROOT->ProcessLine(".L fillHistos.C+g"); // +g for assert to work
+#include "fillHistos.h"
+R__LOAD_LIBRARY(fillHistos.C+g) // g for assert to work
 
-  // This is already included in the .C files above
-  // Including it again breaks CLING in ROOT 6.04.10
-  //#include "settings.h"
+void mk_fillHistos() {
 
   string algo = "ak4";
   if (_jp_algo=="AK8") algo = "ak8";
   if (_jp_algo=="AK4") algo = "ak4";
 
+  // This is already included in the .C files above
+  // Including it again breaks CLING in ROOT 6.04.10
+
   // connect trees
   TChain *c = new TChain(Form("%s/ProcessedTree",algo.c_str()));
-  const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
+  const char* p = "/work/jet_tuples/";
+  //const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
   if (_jp_type=="DATA") {
     cout << "Running over DT" << endl;
@@ -70,10 +77,10 @@
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p));
     } else if(_jp_run=="RunG") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart1.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
+      //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart2.root",p));
+      //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart3.root",p));
+      //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart4.root",p));
+      //c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunG-ReReco-80Xpart5.root",p));
     } else if(_jp_run=="RunH") {
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p));
       c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p));
@@ -130,9 +137,8 @@
   cout << "Got " << centries << " entries" << endl;
 
   if (centries > 0) {
-    // ROOT 6 does not load the libraries before it thinks it has to.
-    // Thus everything needs to be done in the initializer
-    fillHistos(c);
+    fillHistos filler(c);
+	filler.Loop();
   } else {
     cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;
   }
