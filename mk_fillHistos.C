@@ -43,8 +43,8 @@ void mk_fillHistos() {
 
   // connect trees
   TChain *c = new TChain(Form("%s/ProcessedTree",algo.c_str()));
-  //const char* p = "/work/jet_tuples/";
-  const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
+  const char* p = "/work/jet_tuples/";
+  //const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
   if (_jp_type=="DATA") {
     cout << "Running over DT" << endl;

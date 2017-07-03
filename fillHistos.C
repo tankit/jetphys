@@ -789,6 +789,13 @@ void fillHistos::Loop()
   
     // Equipped in fillBasics and fillRunHistos
     _evtid = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
+    
+    if (_jp_etaphiexcl) {
+      // Abort if one of the leading jets is in a difficult zone
+      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[0],_phi[0])) < 0;
+      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[1],_phi[1])) < 0;
+      _pass = good0 and good1;
+    }
 
     // Here can categorize events into different triggers, epochs,
     // topologies etc.
@@ -797,7 +804,7 @@ void fillHistos::Loop()
       fillBasics("Standard");
     }
 
-    if (_jp_doEtaHistos) {
+    if (_jp_doEtaHistos && _pass) {
       fillEtas("FullEta_Reco", jtpt, jteta, jtphi);
       if (_jp_ismc && _jp_doEtaHistosMcResponse) {
         fillEtas("FullEta_Gen", jtgenpt, jtgeneta, jtgenphi);
@@ -1111,7 +1118,7 @@ void fillHistos::fillBasic(basicHistos *h)
   }
 
   // check if required trigger fired
-  if (!fired) return;
+  if (!fired || !_pass) return;
 
   if (_debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",
       h->ymin,h->ymax,h->trigname.c_str()) << endl;
@@ -1173,8 +1180,8 @@ void fillHistos::fillBasic(basicHistos *h)
         double alpha = pt3/ptave;
         double asymm = (ptprobe - ptref)/(2*ptave);
         double asymmtp = (ptprobe - ptref)/(2*ptref);
-        double mpf = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptave;
-        double mpftp = met2*cos(delta_phi(metphi2,jtphi[iref]))/ptref;
+        double mpf = met*cos(delta_phi(metphi2,jtphi[iref]))/(2*ptave);
+        double mpftp = met*cos(delta_phi(metphi2,jtphi[iref]))/(2*ptref);
         double alphatp = pt3/ptref;
         assert(h->hdjasymm);
         assert(h->hdjasymmtp);
@@ -1578,15 +1585,8 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
         h->hyeta2->Fill(y-eta, _w);
         h->hbetabetastar->Fill(jtbeta[i], jtbetastar[i], _w);
-        if (_jp_etaphiexcl) {
-          // Val 10 = excluded, -10 = ok
-          if (h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(eta,phi)) < 0)
-            h->hetaphi->Fill(eta, phi, _w);
-          else if (_debug)
-            cout << "Excluded " << eta << " " << phi << endl;
-        } else {
-          h->hetaphi->Fill(eta, phi, _w);
-        }
+        h->hetaphi->Fill(eta, phi, _w);
+        
       } // within trigger pT range
 
       int iprobe = i;
@@ -1918,13 +1918,6 @@ void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
   // Calculate and fill dijet balance histograms
   if (njt>=2 && _evtid && delta_phi(_phi[0],_phi[1])>2.8
       && _jetids[0] && _jetids[1] && _pt[0]>_jp_recopt && _pt[1]>_jp_recopt) {
-    if (_jp_etaphiexcl) {
-      // Abort if one of the leading jets is in a difficult zone
-      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[0],_phi[0])) < 0;
-      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[1],_phi[1])) < 0;
-      if (!good0 or !good1)
-        return;
-    }
     // Two leading jets
     for (int itag = 0; itag<2; ++itag) {
       int iprobe = (itag==0 ? 1 : 0);
@@ -1940,8 +1933,8 @@ void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
         //double alphatp = pt3/pttag;
         double asymm = (ptprobe - pttag)/(2*ptave);
         //double asymmtp = (ptprobe - pttag)/(2*pttag);
-        double mpf = met2*cos(delta_phi(metphi2,_phi[itag]))/ptave;
-        //double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/pttag;
+        double mpf = met*cos(delta_phi(metphi2,_phi[itag]))/(2*ptave);
+        //double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/(2*pttag);
         for (unsigned i = 0; i < h->alpharange.size(); ++i) {
           float alphasel = h->alpharange[i];
           //if (alphatp<alphasel) {

@@ -174,7 +174,7 @@ const bool _jp_centerOnTheory = false;
 // Plot Pythia for final PRL results
 const bool _plotPythia = false;
 // Minimum and maximum pT range to be plotted and fitted
-const double _jp_recopt = 15;
+const double _jp_recopt = 5;
 const double _jp_fitptmin = 43;
 // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
 const double _jp_xmin57 = 56;
