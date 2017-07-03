@@ -792,8 +792,8 @@ void fillHistos::Loop()
     
     if (_jp_etaphiexcl) {
       // Abort if one of the leading jets is in a difficult zone
-      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[0],_phi[0])) < 0;
-      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(_eta[1],_phi[1])) < 0;
+      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(jteta[0],jtphi[0])) < 0;
+      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(jteta[1],jtphi[1])) < 0;
       _pass = good0 and good1;
     }
 

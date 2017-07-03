@@ -327,7 +327,7 @@ public :
   Float_t         bsy;
   //
   Int_t           njt;
-  static const Int_t _njt = 100;//90;//kMaxPFJets_;
+  static const Int_t _njt = 250;//100;//90;//kMaxPFJets_;
   Double_t        *jtp4x;//[_njt];   //[njt]
   Double_t        *jtp4y;//[_njt];   //[njt]
   Double_t        *jtp4z;//[_njt];   //[njt]
