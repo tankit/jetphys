@@ -10,6 +10,9 @@
 #include <vector>
 
 namespace tools {
+//class tools {
+
+  // public:
 
   int addFiles(TChain *c, std::string filelistname);
   double delta_phi(double a, double b);
@@ -39,6 +42,7 @@ namespace tools {
 
   void Hadd(TH1 *h1, TH1 *h2, double ptmax=0, bool syserr = false);
 } // namespace tools
+//}; // classtools
 
 #endif
 // __tools_h__

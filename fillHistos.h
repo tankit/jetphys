@@ -41,6 +41,7 @@
 #include <set>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <regex>
 #include <algorithm>
 
@@ -364,6 +365,9 @@ public :
   Float_t         jtgeneta[_njt];   //[njt]
   Float_t         jtgenphi[_njt];   //[njt]
 
+  Float_t         *qgl;
+  Float_t         *partonflavor;
+
   Int_t           *jtn;//[_njt];   //[njt]
   Int_t           *jtnch;//[_njt];   //[njt]
   Int_t           *jtnnh;//[_njt];   //[njt]
@@ -386,6 +390,7 @@ public :
   Float_t         gen_jteta[_njt];   //[njt]
   Float_t         gen_jtphi[_njt];   //[njt]
   Float_t         gen_jty[_njt];   //[njt]
+  Int_t           gen_partonflavor[_njt];
 
   Float_t         rho;
   Float_t         met;
@@ -436,6 +441,7 @@ public :
   TH1D *hmcweight;
   TH2D *h2etaphiexcl;
   TFile *fetaphiexcl;
+  TH3D *h3probg;
 
   vector<string> _availTrigs;
 

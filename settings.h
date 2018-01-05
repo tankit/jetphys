@@ -23,7 +23,7 @@ string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
 string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
-string _jp_run = "RunG";
+string _jp_run = "RunB";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
 // HOX: this is a source of constant anxiety, should be rechecked from time to time
 bool _jp_undojes = true;
@@ -33,13 +33,14 @@ bool _jp_redojes = true;
 bool _jp_skipl2l3res = false;
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries = 
--1; // all
+Long64_t _jp_nentries =  -1; // all
 //10; // debug
 //100000; // short test run
-//1000000; // for MC
+//Long64_t _jp_nentries = 100000; // for MC
+//Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
 Long64_t _jp_nskip = 0;
+Long64_t _js_skim = 0; // "prescale", off if zero
 
 // Eta phi exclusion due to ecal problems
 bool _jp_etaphiexcl = false;
@@ -53,13 +54,13 @@ bool _jp_usemctrig = true;
 string _jp_mctrig = "jt450"; 
 
 //// MC: PU profiles for data and MC
-bool _jp_reweighPU = true;
+bool _jp_reweighPU = false;//true
 string _jp_pudata = "pileup/pileup_DT.root";
 string _jp_pumc   = "pileup/pu.root";
 string _jp_prescalefile = "";//pileup/prescales74x.txt";
 
 //// MC: Process pThatbins instead of flat sample
-const bool _jp_pthatbins = true;
+const bool _jp_pthatbins = true;//false;
 // Number of pthat bins
 const unsigned int _jp_npthatbins = 14;
 // The corresponding ranges
@@ -73,34 +74,37 @@ vector<unsigned int> _jp_pthatnevts =
   {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 // The filenames need to be given here and in mk_fillHistos, since ROOT is exceedingly stupid
 vector<string> _jp_pthatfiles = {
-  "MC/P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
-  "MC/P825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
+  //"%sP825ns80X/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8.root"
+    "P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
+   "P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
+    
 };
 
 // Veto jets near ECAL boundaries in JetID
-const bool _jp_doECALveto = false;
+const bool _jp_doECALveto = false;//true;
 string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
-const bool _jp_dojson = true;
+const bool _jp_dojson = false; //true; 
 // Here: there are slight differences between PromptReco and ReReco in the 2016 run
+//string _jp_json = "PromptReco/Cert_299614-299617_13TeV_PromptReco_Collisions17_50ns_JSON.txt";
 string _jp_json = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
 //string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file
-const bool _jp_dolumi = true;
+const bool _jp_dolumi = false; //true;
 string _jp_lumifile = "lumicalc/brilcalc_lumibyls.csv"; // Run II
 
 // This is the 13 TeV 25 ns list (Run2016BCDEFG)
@@ -116,12 +120,12 @@ double _jp_trigranges[_jp_ntrigger][2] =
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 double _jp_triglumi[_jp_ntrigger] = // in /ub
-//// 2016: ////
-  // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lemibyls.csv --byls --minBiasXsec 69000
-  {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002};
-
+//// 2016: ///
+  // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lumibyls.csv --byls --minBiasXsec 69000
+  // {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002}; // Ozlem, add new numbers here for RunG-part1_JSON.txt
+  {264314.035000,718756.543000,2727540.789000,23949603.660000,102671554.653000,587533626.778000,1753875820.267000,5139583558.868000,35918235379.677002};//Ozlem added new numbers here for RunG-part1_JSON.txt
 // Unprescaled luminosity for plots
-const double _jp_lumi = 36.810440678; // /fb from brilcalc for jt450
+const double _jp_lumi = 35.918235; // 36.810440678; // /fb from brilcalc for jt450
 const double _jp_sqrts = 13000.; // GeV
 const double _jp_emax = _jp_sqrts/2.; // GeV
 
@@ -129,11 +133,13 @@ const double _jp_emax = _jp_sqrts/2.; // GeV
 // Additional analysis switches //
 //////////////////////////////////
 
-string _jp_jecgt = "Summer16_03Feb2017";// "Summer16_23Sep2016";
-string _jp_jecvers = "_V3"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+// https://github.com/cms-jet/JECDatabase/tree/master/tarballs
+// Summer16_03Feb2017G_V7_DATA.tar.gz [BCD, EF, G, H]
+string _jp_jecgt = "Summer16_03Feb2017";//BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
+string _jp_jecvers = "_V7";//"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
-const bool _jp_useIOV = true;
+const bool _jp_useIOV = true ;//false 
 const unsigned int _jp_nIOV = 4;
 string _jp_IOVnames[_jp_nIOV]
   {"BCD",    "EF",    "G",   "H"};
@@ -142,11 +148,11 @@ double _jp_IOVranges[_jp_nIOV][2] =
   { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
 
 // Produce run-level histograms
-const bool _jp_doRunHistos = false; // Set to false to save time
+const bool _jp_doRunHistos = false; //true; Set to false to save time
 // Produce basic set of histograms
 const bool _jp_doBasicHistos = true;
 // Produce full-eta TH3 histograms
-const bool _jp_doEtaHistos = true;
+const bool _jp_doEtaHistos = false;//true;
 // Special reco/gen histos in mc
 const bool _jp_doEtaHistosMcResponse = true;
 
@@ -174,13 +180,13 @@ const bool _jp_centerOnTheory = false;
 // Plot Pythia for final PRL results
 const bool _plotPythia = false;
 // Minimum and maximum pT range to be plotted and fitted
-const double _jp_recopt = 5;
-const double _jp_fitptmin = 43;
+const double _jp_recopt = 15;//used in fillHistos.C also 114.;//5;
+const double _jp_fitptmin = 114;//43;
 // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
-const double _jp_xmin57 = 56;
-const double _jp_xminpas = 56;
-const double _jp_xmin = 24.;//20.;
-const double _jp_xmax = 1999.;
+const double _jp_xmin57 = 114;//56;
+const double _jp_xminpas = 114;//56;
+const double _jp_xmin = 114;//24.;//20.;
+const double _jp_xmax = 1497;//TEMP PATCH for partial data //1999.;
 
 const double _jp_xsecMinBias = 7.126E+10;
 

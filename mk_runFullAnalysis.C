@@ -59,7 +59,7 @@
 //         (- for MC include generator truth information for analysis closure)
   cout << "\nStep 1: Histogram measured jet pt and correction factors"
        << "\n========================================================\n";
-  //gROOT->ProcessLine(".x mk_fillHistos.C");
+  gROOT->ProcessLine(".x mk_fillHistos.C");
   //cout << "NB: this step is now performed in JetAnalyzer" << endl;
   //cout << "use the output of 'analyzeJets Jets_FWL_cfg.py'" << endl;
   cout << "NB: this step is very slow (~4h) and is switched off" << endl;
@@ -81,6 +81,7 @@
   //cout << "\nStep 3a: Unfold spectrum using Ansatz method"
   //   << "\n============================================\n";
   //gROOT->ProcessLine(".x mk_unfold.C");
+  gROOT->ProcessLine(".x mk_dagostini.C");
 
 // Step 2c:  - reformat theory curves
   cout << "\nStep 2c: Reformat theory predictions"
@@ -108,12 +109,12 @@
 //            for all of these, use parameterized sources
   cout << "\nStep 4: Calculate systematics"
        << "\n============================================\n";
-  //gROOT->ProcessLine(".x mk_systematics.C+g");
+  gROOT->ProcessLine(".x mk_systematics.C+g");
 
 // Step 4b: - calculate and plot rapidity bias (+reco efficiency)
   cout << "\nStep 4b: Calculate (and plot) rapidity bias"
        << "\n============================================\n";
-  //gROOT->ProcessLine(".x mk_rapiditybias.C+g");
+  gROOT->ProcessLine(".x mk_rapiditybias.C+g");
 
 // Sted 4c: - apply ad-hoc corrections for various biases
 //            (i) rapidity bias
@@ -121,37 +122,37 @@
 //            (iii) JER residual (not yet implemented)
   cout << "\nStep 4c: Apply ad-hoc bias correctios (rapidity, JEC)"
        << "\n=====================================================\n";
-  //gROOT->ProcessLine(".x mk_correctHistos.C+g");
+  gROOT->ProcessLine(".x mk_correctHistos.C+g");
 
 // Step 6:  - produce pretty plots of analysis steps
   cout << "\nStep 6: Draw plots (raw spectra, triggers, unfolding)"
        << "\n=====================================================\n";
-  ///gROOT->ProcessLine(".x mk_drawPlots.C");
+  gROOT->ProcessLine(".x mk_drawPlots.C");
 
 // Step 7: - plot systematics
   cout << "\nStep 7: Draw plots (systematics)"
        << "\n================================\n";
-  //gROOT->ProcessLine(".x mk_drawSystematics.C+g");
+  gROOT->ProcessLine(".x mk_drawSystematics.C+g");
 
 // Step 8: - plot summary
   cout << "\nStep 8: Draw plots (summary)"
        << "\n================================\n";
-  //gROOT->ProcessLine(".x mk_drawSummary.C+g");
+  gROOT->ProcessLine(".x mk_drawSummary.C+g");
 
 // Step 9: - plot summary
   cout << "\nStep 9a: Draw plots (comparison)"
        << "\n================================\n";
-  //gROOT->ProcessLine(".x mk_drawComparison.C");
+  gROOT->ProcessLine(".x mk_drawComparison.C");
   cout << "...skip obsolete code, is now run in drawSummary.C" << endl;
 
   if (_jp_type=="DATA") {
     cout << "\nStep 9b: Draw run quality checks"
 	 << "\n================================\n";
-    //gROOT->ProcessLine(".x mk_drawRunHistos.C");  
+    gROOT->ProcessLine(".x mk_drawRunHistos.C");  
     cout << "\nStep 9c: Draw JEC checks"
 	 << "\n================================\n";
     gROOT->ProcessLine(".x mk_jecChecks.C+g");  
-    //gROOT->ProcessLine(".x mk_drawJEC.C");  
+    gROOT->ProcessLine(".x mk_drawJEC.C");  
   }
 
 
@@ -163,7 +164,7 @@
 
   // Getting the list of runs in the root file
   // ------------------------------------------
-  // - open the file and the ProcessedTree tree interactively
+  // - Open the file and the ProcessedTree tree interactively
   // - command:
   //   ProcessedTree->Draw("EvtHdr_.mRun>>h(20000,160000,180000)")
   //   for (int i = 1; i != h->GetNbinsX()+1; ++i) { if(h->GetBinContent(i)!=0)

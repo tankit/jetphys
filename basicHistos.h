@@ -31,6 +31,17 @@ class basicHistos {
   double ptmax;
   bool ismc;
 
+  // new histograms for quark/gluon study (Ozlem)
+  TH1D *hgpt;
+  TH1D *hgpt0;
+
+  TH1D *hqgl;
+  TH1D *hqgl_q;
+  TH1D *hqgl_g;
+  TH1D *hqgl_dq;
+  TH1D *hqgl_dg;
+  //TH3D *h3probg;
+
   // raw spectrum
   TH1D *hpt;
   TH1D *hpt_pre;
@@ -115,6 +126,16 @@ class basicHistos {
   TProfile *pideff;
   TProfile *pvtxeff;
   TProfile *pdqmeff;
+
+  // control plots vs eta (Ozlem)
+  TProfile *pchftp_vseta;
+  TProfile *pneftp_vseta;
+  TProfile *pnhftp_vseta;
+  TProfile *pceftp_vseta;
+  TProfile *pmuftp_vseta;
+  TProfile *pbetatp_vseta;
+  TProfile *pbetastartp_vseta;
+  // plus all the others
 
   // control plots of components (JEC)
   TProfile *pncand;
@@ -263,7 +284,7 @@ class basicHistos {
   TH3D *hdjasymm;
   TH3D *hdjmpf;
   TH3D *hdjasymmtp;
-  TH3D *hdjmpftp;
+  TH3D *hdjmpftp; 
 
   TH1D *hr21;
   TH1D *hr31;
@@ -328,6 +349,15 @@ class basicHistos {
   TH1D *hpt_g0;
   TH1D *hpt_g0tw;
   TH1D *hpt_g0_tmp;
+  //
+  //Ozlem
+  TH1D *hgpt_g0tw;
+  TH1D *hqpt_g0tw;
+  TH1D *hgpt_g0;
+  TH1D *hqpt_g0;
+  TH1D *hgpt_g;
+  TH1D *hqpt_g;
+
   //
 
   TProfile *ppt_r;
