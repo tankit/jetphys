@@ -19,7 +19,8 @@ R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 
-R__LOAD_LIBRARY(tools.C++)
+#include "tools.h"
+R__LOAD_LIBRARY(tools.C+)
 #include "runHistos.h"
 R__LOAD_LIBRARY(runHistos.C+)
 #include "basicHistos.h"
@@ -43,54 +44,62 @@ void mk_fillHistos() {
 
   // connect trees
   TChain *c = new TChain(Form("%s/ProcessedTree",algo.c_str()));
-  const char* p = "/Volumes/LaCie/data_2017/SMPJ/data/";
+  const char* p = "/work/jet_tuples/";
+  //const char* p = "/Volumes/LaCie/data_2017/SMPJ/data/";
   //const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
   if (_jp_type=="DATA") {
     cout << "Running over DT" << endl;
     cout << "Load trees..." << endl;
 
-    // Run2 2016 Newest (updated March 7th, 2017)
-    //switch (_jp_run) {
-    if (_jp_run=="RunB") {
-      c->AddFile(Form("%sRunB-2017-part1.root",p));
-      c->AddFile(Form("%sRunB-2017-part2.root",p));
-      c->AddFile(Form("%sRunB-2017-part3.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart1.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart2.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart3.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart4.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart5.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunB-ReReco-80Xpart6.root",p));
-    } else if (_jp_run=="RunC") {
-      c->AddFile(Form("%sNtuples-Data-2016RunC-ReReco-80Xpart1.root",p));
-      c->AddFile(Form("%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p));
-    } else if (_jp_run=="RunD") {
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p));
-    } else if(_jp_run=="RunE") {
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p));
-    } else if(_jp_run=="RunFearly") {
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart1.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart2.root",p));
-    } else if(_jp_run=="RunFlate") {
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p));
-    } else if(_jp_run=="RunG") {
-      c->AddFile(Form("%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunG-ReReco-80Xpart2.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunG-ReReco-80Xpart3.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunG-ReReco-80Xpart4.root",p));
-      // c->AddFile(Form("%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p));
-     
-    } else if(_jp_run=="RunH") {
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart3.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart4.root",p));
-      c->AddFile(Form("%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart5.root",p));
+    if (_jp_run=="RunB17") {
+      const char* ps = "Data/2017/";
+      c->AddFile(Form("%s%sRunB-2017-part1.root",p,ps));
+      c->AddFile(Form("%s%sRunB-2017-part2.root",p,ps));
+      c->AddFile(Form("%s%sRunB-2017-part3.root",p,ps));
+    } else if (_jp_run=="RunB16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart4.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart5.root",p,ps));
+      //c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart6.root",p,ps));
+    } else if (_jp_run=="RunC16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p,ps));
+    } else if (_jp_run=="RunD16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
+    } else if(_jp_run=="RunE16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
+    } else if(_jp_run=="RunFearly16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
+    } else if(_jp_run=="RunFlate16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
+    } else if(_jp_run=="RunG16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart4.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p,ps));
+    } else if(_jp_run=="RunH16") {
+      const char* ps = "Data/2016/";
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart4.root",p,ps));
+      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart5.root",p,ps));
     } else {
       cout << "Enter a proper value for _jp_run!" << endl;
     }

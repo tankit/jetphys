@@ -45,12 +45,6 @@
 #include <regex>
 #include <algorithm>
 
-using std::map;
-using std::vector;
-using std::string;
-using std::cout;
-using std::endl;
-
 #include "settings.h"
 #include "basicHistos.h"
 #include "etaHistos.h"
@@ -62,6 +56,12 @@ using std::endl;
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
+using std::map;
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
 
 // Header file for the classes stored in the TTree if any.
 //#include "Math/GenVector/PxPyPzE4D.h"
@@ -477,7 +477,7 @@ public :
 
   // Move to simpleMath.h later
   inline double delta_phi(double phi1, double phi2) {
-    
+
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
   }
@@ -584,9 +584,9 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
 
   // A new tree is opened
   if (fChain->GetTreeNumber() != fCurrent) {
-    // Reload the triggers and print them 
+    // Reload the triggers and print them
     fCurrent = fChain->GetTreeNumber();
-    if (_jp_isdt) { 
+    if (_jp_isdt) {
       *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
       getTriggers();
       *ferr << "Tree " << fCurrent << " triggers:" << endl;

@@ -49,68 +49,57 @@ void fillHistos::Loop()
   // Map of mu per (run,lumi)
   TFile *fmu = new TFile("pileup/MUperLSvsRUN_MB.root","READ");
   assert(fmu && !fmu->IsZombie());
-  TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU"); assert(h2mu);
+  TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU");
+  assert(h2mu && !h2mu->IsZombie());
   //TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRuNxMU_cleaned"); assert(h2mu);
-  
-  // Add output-DATA-1.root, output-MC-1.root here for QGL (Ozlem)
-  //TFile *findt = new TFile("output-DATA-1.root","READ"); 
-  //assert(findt && !findt->IsZombie());
-  //TFile *foutdt = new TFile(Form("output-DATA-2.root",_jp_type.c_str()),"RECREATE")
-    // assert(foutdt && !foutdt->IsZombie());
- 
-    TFile *finmc = new TFile("output-DATA_RunG_part1_16oct-1.root","READ");
-   assert(finmc && !finmc->IsZombie());
-  //TFile *foutmc = new TFile(Form("output-%s-2oz.root",_jp_type.c_str()), "RECREATE");
-  // TFile *foutmc = new TFile(Form("output-MC-2.root",_jp_type.c_str()),"RECREATE");
-  //assert(foutmc && !foutmc->IsZombie());
- 
 
-  double veta[] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7};
-  const int neta = sizeof(veta)/sizeof(veta[0])-1;
-  // same or vpt, vtrigpt, npt
-  const int npt = _jp_ntrigger;
-  const double *vtrigpt = &_jp_trigthr[0];
-  double vpt[npt+1]; vpt[0] = 0;
-  for (int i = 0; i != npt; ++i) vpt[i+1] = _jp_trigranges[i][1];
-  const int nqgl = 101; double vqgl[nqgl+1];
-  for (int i = 0; i != nqgl+1; ++i) vqgl[i] = 0. + 0.01*i;
+  if (_jp_doqgl) {
+    // Add output-MC-1.root here for QGL (Ozlem)
+    TFile *finmc = new TFile(_jp_qglfile.c_str(),"READ");
+    assert(finmc && !finmc->IsZombie());
 
-  h3probg = new TH3D("h3probg","Gluon prob.;#eta_{jet};p_{T,jet};QGL",
-		     //6,0,3.0, 10,0,1000, 101,0,1.01);
-		     neta,veta, npt,vpt, nqgl,vqgl); //101,0,1.01);
+    double veta[] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7};
+    const int neta = sizeof(veta)/sizeof(veta[0])-1;
+    // same or vpt, vtrigpt, npt
+    const int npt = _jp_ntrigger;
+    const double *vtrigpt = &_jp_trigthr[0];
+    double vpt[npt+1]; vpt[0] = 0;
+    for (int i = 0; i != npt; ++i) vpt[i+1] = _jp_trigranges[i][1];
+    const int nqgl = 101; double vqgl[nqgl+1];
+    for (int i = 0; i != nqgl+1; ++i) vqgl[i] = 0. + 0.01*i;
 
-  for (int ieta = 1; ieta != h3probg->GetNbinsX()+1; ++ieta) {
-    for (int ipt = 1; ipt != h3probg->GetNbinsY()+1; ++ipt) {
-      
-      string sg = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g",
-		      veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
-      cout << sg << endl << flush;
- 
-       TH1D *hqgl_g = (TH1D*)finmc->Get(sg.c_str());
-					//"Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g");
-				       // veta[ieta-1], veta[ieta], vtrigpt[ipt]);
-       assert(hqgl_g);
-       hqgl_g->Scale(1./hqgl_g->Integral());
+    h3probg = new TH3D("h3probg","Gluon prob.;#eta_{jet};p_{T,jet};QGL",
+      //6,0,3.0, 10,0,1000, 101,0,1.01);
+      neta,veta, npt,vpt, nqgl,vqgl); //101,0,1.01);
 
-      string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q",
-		       veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
-     
+    // Loop over pt and eta bins in the gql histos
+    for (int ieta = 1; ieta != h3probg->GetNbinsX()+1; ++ieta) {
+      for (int ipt = 1; ipt != h3probg->GetNbinsY()+1; ++ipt) {
+        // Gluons in the given eta/pt slice
+        string sg = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g",
+                         veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
+        cout << sg << endl << flush;
+        TH1D *hqgl_g = (TH1D*)finmc->Get(sg.c_str());
+        assert(hqgl_g);
+        hqgl_g->Scale(1./hqgl_g->Integral());
+
+        // Quarks in the given eta/pt slice
+        string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q",
+                         veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
         TH1D *hqgl_q = (TH1D*)finmc->Get(sq.c_str());
-					//"Standard/Eta_1.1f-%1.1f/jt%1.0f/hqgl_q");
-					//  veta[ieta-1], veta[ieta], vtrigpt[ipt]);
-       assert(hqgl_q);
-       hqgl_q->Scale(1./hqgl_q->Integral());
-      
-      for (int iqgl = 1; iqgl != h3probg->GetNbinsZ()+1; ++iqgl) {
+        assert(hqgl_q);
+        hqgl_q->Scale(1./hqgl_q->Integral());
 
-	double probg = hqgl_g->GetBinContent(iqgl) / 
-        (hqgl_g->GetBinContent(iqgl) + hqgl_q->GetBinContent(iqgl));
-
-	       h3probg->SetBinContent(ieta, ipt, iqgl, probg);
-      } // for iqgl
-    } // for ipt
-  } // for ieta
-  
+        // Loop over qgl indices
+        for (int iqgl = 1; iqgl != h3probg->GetNbinsZ()+1; ++iqgl) {
+          // Fetch gluon probability
+          double probg = hqgl_g->GetBinContent(iqgl) /
+                        (hqgl_g->GetBinContent(iqgl) + hqgl_q->GetBinContent(iqgl));
+          h3probg->SetBinContent(ieta, ipt, iqgl, probg);
+        } // for iqgl
+      } // for ipt
+    } // for ieta
+  }
 
   if (_jp_quick) {
 
@@ -138,11 +127,11 @@ void fillHistos::Loop()
       fChain->SetBranchStatus("PFJetsCHS_.genP4_*",1); // jtgenp4*
       fChain->SetBranchStatus("PFJetsCHS_.genR_",1); // jtgenr
     }
-    
+
     // for quark/gluon study (Ozlem)
     fChain->SetBranchStatus("PFJetsCHS_.QGtagger_",1); // qgl
     if (_jp_ismc) fChain->SetBranchStatus("PFJetsCHS_.partonFlavour_",1);
-    
+
     // Component fractions
     fChain->SetBranchStatus("PFJetsCHS_.chf_",1); // jtchf
     //fChain->SetBranchStatus("PFJetsCHS_.phf_",1); // jtnef
@@ -214,11 +203,11 @@ void fillHistos::Loop()
   jtgenp4z = &PFJetsCHS__genP4__fCoordinates_fZ[0];
   jtgenp4t = &PFJetsCHS__genP4__fCoordinates_fT[0];
   //
-  
+
   // for quark/gluon study (Ozlem)
   qgl = &PFJetsCHS__QGtagger_[0];
   partonflavor = &PFJetsCHS__partonFlavour_[0];
-  
+
  //
   jtn = &PFJetsCHS__ncand_[0];
   jtnch = &PFJetsCHS__chm_[0];
@@ -283,7 +272,6 @@ void fillHistos::Loop()
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
     string jecgt = _jp_jecgt + _jp_jecvers + "_" + (_jp_isdt ? "DATA" : "MC") + "_";
-    // string jecgt = _jp_jecgt + _jp_jecvers + "_" + "DATA" + "_"; // TEMP
     const char *t = jecgt.c_str();
 
     cout << "Loading "<<a<<"PF JEC" << endl;
@@ -383,7 +371,7 @@ void fillHistos::Loop()
     fetaphiexcl = new TFile("hotjets.root","READ");
     assert(fetaphiexcl && !fetaphiexcl->IsZombie() && "file hotjets.root missing");
     h2etaphiexcl = (TH2D*)fetaphiexcl->Get(_jp_etaphitype.c_str());
-    assert(h2etaphiexcl && "erroneous eta-phi exclusion type"); 
+    assert(h2etaphiexcl && "erroneous eta-phi exclusion type");
   }
 
   // Report memory usage to avoid malloc problems when writing file
@@ -571,7 +559,7 @@ void fillHistos::Loop()
     if (_pass) ++cnt["03vtx"];
 
     // Event cuts against beam backgrounds
-    if (_pass && (tools::oplus(pvx-bsx, pvy-bsy)>0.15 || pvndof<=4 || fabs(pvz) >= 24.)) 
+    if (_pass && (tools::oplus(pvx-bsx, pvy-bsy)>0.15 || pvndof<=4 || fabs(pvz) >= 24.))
     {
       ++_bscounter_bad;
       _pass = false;
@@ -788,29 +776,27 @@ void fillHistos::Loop()
 
     if (_jp_ismc) {
       for (int i = 0; i != gen_njt; ++i) {
-
         genp4.SetPxPyPzE(gen_jtp4x[i],gen_jtp4y[i],gen_jtp4z[i],gen_jtp4t[i]);
         gen_jtpt[i] = genp4.Pt();
         gen_jteta[i] = genp4.Eta(); // for matching
         gen_jtphi[i] = genp4.Phi(); // for matching
         gen_jty[i] = genp4.Rapidity();
-	
-	// Ozlem: loop for finding partonflavor 
-        // for matching
-	// Ozlem: write loop over reco jets, find matching jet j in deltaR, 
-	// then get partonflavour
-	int ireco = -1;
-	for (int j = 0; j != njt && ireco == -1; ++j) {
 
-	  p4.SetPxPyPzE(jtp4x[j],jtp4y[j],jtp4z[j],jtp4t[j]);
-	  if (genp4.DeltaR(p4) < 0.4) ireco = j;
-	} // for j
-	if (ireco!=-1) gen_partonflavor[i] = Int_t(partonflavor[ireco]+0.25);
-	else gen_partonflavor[i] = -1;
+        // Ozlem: loop for finding partonflavor by matching genjets and jets
+        int ireco = -1;
+        for (int j = 0; j != njt && ireco == -1; ++j) {
+          p4.SetPxPyPzE(jtp4x[j],jtp4y[j],jtp4z[j],jtp4t[j]);
+          if (genp4.DeltaR(p4) < 0.4)
+            ireco = j;
+        } // for j
+        if (ireco!=-1)
+          gen_partonflavor[i] = Int_t(partonflavor[ireco]+0.25);
+        else
+          gen_partonflavor[i] = -1;
 
       } // for i
     } // _mc
-	
+
     double ucx = -mex;
     double ucy = -mey;
     // Propagate jec to MET 1 and MET 2
@@ -873,10 +859,10 @@ void fillHistos::Loop()
       _pass = (jtpt[0] < 1.5*jtgenpt[0] || jtpt[0] < 1.5*pthat);
     }
     if (njt!=0 && _jetids[0] && _pass && _jp_ismc) ++cnt["10pthat"];
-  
+
     // Equipped in fillBasics and fillRunHistos
     _evtid = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
-    
+
     if (_jp_etaphiexcl) {
       // Abort if one of the leading jets is in a difficult zone
       bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(jteta[0],jtphi[0])) < 0;
@@ -1051,7 +1037,7 @@ void fillHistos::initBasics(string name)
 
   // open file for output
   TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
-   assert(f && !f->IsZombie());
+  assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
   //TDirectory *topdir = gDirectory;
@@ -1214,7 +1200,6 @@ void fillHistos::fillBasic(basicHistos *h)
   if (h->ismc) h->hpthatnlo->Fill(pthat);
 
   if (njt>=2) { // Calculate and fill dijet mass
-
     // Find leading jets (residual JEC may change ordering)
     map<double, int> ptorder;
     for (int i = 0; i != njt; ++i) {
@@ -1257,7 +1242,7 @@ void fillHistos::fillBasic(basicHistos *h)
       double etaref = jteta[iref];
       double etaprobe = jteta[iprobe];
 
-      // Look for both combinations (first combo follows t&p terminology, second is inverted) 
+      // Look for both combinations (first combo follows t&p terminology, second is inverted)
       if (fabs(etaref) < 1.3 && etaprobe >= h->ymin && etaprobe < h->ymax) {
         double ptref = jtpt[iref];
         double ptprobe = jtpt[iprobe];
@@ -1305,7 +1290,6 @@ void fillHistos::fillBasic(basicHistos *h)
 
   if (_debug) cout << "Entering jet loop" << endl << flush;
 
-
   for (int i = 0; i != njt && _pass; ++i) {
 
     if (_debug) cout << "Loop over jet " << i << "/" << njt << endl << flush;
@@ -1321,10 +1305,9 @@ void fillHistos::fillBasic(basicHistos *h)
     bool id = _jetids[i];
 
     double jec2 = jtjesnew[i]/jtjes[i];
-    
+
     // Tag-and-probe for composition vs eta (Ozlem)
     if (i<2 && njt>=2 && pt>_jp_recopt) {
-      
       int iref = (i==0 ? 1 : 0);
       //double yref = jty[iref];
       double etaref = jteta[iref];
@@ -1332,35 +1315,33 @@ void fillHistos::fillBasic(basicHistos *h)
       //double ptave = (jtpt[0]+jtpt[1])/2.0;
       double dphi = delta_phi(phi, jtphi[iref]);
       double pt3 = (njt>=3 ? jtpt[2] : 0.);
-      
+
       // Select appropriage tag pT bin and dijet topology
       if (_evtid && id && _jetids[iref] &&
           fabs(etaref) < 1.3 && dphi > 2.7 && pt3 < 0.3*ptref &&
-	  ptref > h->ptmin && ptref < h->ptmax) {
-	
-	assert(h->pchftp_vseta);
-	h->pchftp_vseta->Fill(jteta[i], jtchf[i], _w);
+          ptref > h->ptmin && ptref < h->ptmax) {
 
-	// repeat for all other fractions as well
-	//assert(h->pnhftp_vseta);
-	//h->pnhftp_vseta->Fill(jteta[i], jtnhf[i], _w);
-	assert(h->pneftp_vseta);
-	h->pneftp_vseta->Fill(jteta[i], jtnef[i], _w);
-	assert(h->pnhftp_vseta);
-	h->pnhftp_vseta->Fill(jteta[i], jtnhf[i], _w); 
+        assert(h->pchftp_vseta);
+        h->pchftp_vseta->Fill(jteta[i], jtchf[i], _w);
+        //assert(h->pnhftp_vseta);
+        //h->pnhftp_vseta->Fill(jteta[i], jtnhf[i], _w);
+        assert(h->pneftp_vseta);
+        h->pneftp_vseta->Fill(jteta[i], jtnef[i], _w);
+        assert(h->pnhftp_vseta);
+        h->pnhftp_vseta->Fill(jteta[i], jtnhf[i], _w);
         assert(h->pceftp_vseta);
-	h->pceftp_vseta->Fill(jteta[i], jtcef[i], _w);
-	assert(h->pmuftp_vseta);
-	h->pmuftp_vseta->Fill(jteta[i], jtmuf[i], _w);
-	assert(h->pbetatp_vseta);
-	h->pbetatp_vseta->Fill(jteta[i], jtbeta[i], _w);
-	assert(h->pbetastartp_vseta);
-	h->pbetastartp_vseta->Fill(jteta[i], jtbetastar[i], _w);
+        h->pceftp_vseta->Fill(jteta[i], jtcef[i], _w);
+        assert(h->pmuftp_vseta);
+        h->pmuftp_vseta->Fill(jteta[i], jtmuf[i], _w);
+        assert(h->pbetatp_vseta);
+        h->pbetatp_vseta->Fill(jteta[i], jtbeta[i], _w);
+        assert(h->pbetastartp_vseta);
+        h->pbetastartp_vseta->Fill(jteta[i], jtbetastar[i], _w);
       } // select pt bin for profiles vseta
     } // tag-and-probe vs eta
 
 
-    // Tag-and-probe for composition:
+    // Tag-and-probe for composition vs pt:
     // tag in barrel and fires trigger, probe in eta bin unbiased
     // only two leading jets back-to-back, third has less than 0.3*tag pT
     if (i<2 && njt>=2 && pt>_jp_recopt &&
@@ -1512,12 +1493,12 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hpt_gg0->Fill(jtgenpt[i], _w);
       }
     }
-  
+
     // REMOVED: "Debugging JEC"
 
     // calculate efficiencies and fill histograms
     if (_evtid && id && pt>_jp_recopt && fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
-      
+
       if (_debug) cout << "..jec uncertainty" << endl << flush;
 
       // Get JEC uncertainty
@@ -1544,45 +1525,45 @@ void fillHistos::fillBasic(basicHistos *h)
       double eff = ideff * vtxeff * dqmeff * trigeff;
 
       if (_debug) cout << "..raw spectrum" << endl << flush;
-      
+
       // REMOVED: "For trigger efficiency"
 
-      // new histograms for quark/gluon study (Ozlem)
-      // 1. open the previous output-MC-1_iteration1.root in the beginning
-      // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
-      // 
-      // 3. find correct hqgl_q and hqgl_g from array (normalized)
-      // 3. calculate probg = g / (q+g)
-      //double probg = 1.-qgl[i]; // Later, map QGL to probability using hqgl_x
-      assert(h3probg);
-      double probg = h3probg->GetBinContent(h3probg->FindBin(jty[i],jtpt[i],qgl[i]));
-      if (probg>=0 && probg<=1) {
-	
-	assert(h->hgpt);
-	h->hgpt->Fill(pt,_w*probg);
-	assert(h->hgpt0);
-	h->hgpt0->Fill(pt, _w*probg);
-	
-	assert(h->hqgl);
-	h->hqgl->Fill(qgl[i], _w);
-	if (_jp_ismc) {
-	  assert(h->hqgl_g);
-	  assert(h->hqgl_q);
-	  bool isgluon = (fabs(partonflavor[i]-21)<0.5);
-	  bool isquark = (fabs(partonflavor[i])<7);
-	  assert(isgluon || isquark);
-	  if (isgluon) h->hqgl_g->Fill(qgl[i], _w);
-	  if (isquark) h->hqgl_q->Fill(qgl[i], _w);
+      if (_jp_doqgl) {
+        // new histograms for quark/gluon study (Ozlem)
+        // 1. open the previous output-MC-1_iteration1.root in the beginning
+        // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
+        // 3. find correct hqgl_q and hqgl_g from array (normalized)
+        // 4. calculate probg = g / (q+g)
+        //double probg = 1.-qgl[i]; // Later, map QGL to probability using hqgl_x
+        assert(h3probg);
+        double probg = h3probg->GetBinContent(h3probg->FindBin(jty[i],jtpt[i],qgl[i]));
+        if (probg>=0 && probg<=1) {
+          assert(h->hgpt);
+          h->hgpt->Fill(pt,_w*probg);
+          assert(h->hgpt0);
+          h->hgpt0->Fill(pt, _w*probg);
 
-	  // For data templates from scaling Pythia, see instructions at
-	  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
-	  double x = qgl[i];
-	  double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
-	  double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
-	  if (isgluon) h->hqgl_dg->Fill(qgl[i], _w*wg);
-	  if (isquark) h->hqgl_dq->Fill(qgl[i], _w*wq);
-	}
-      } // probg quark/gluon
+          assert(h->hqgl);
+          h->hqgl->Fill(qgl[i], _w);
+          if (_jp_ismc) {
+            assert(h->hqgl_g);
+            assert(h->hqgl_q);
+            bool isgluon = (fabs(partonflavor[i]-21)<0.5);
+            bool isquark = (fabs(partonflavor[i])<7);
+            assert(isgluon || isquark);
+            if (isgluon) h->hqgl_g->Fill(qgl[i], _w);
+            if (isquark) h->hqgl_q->Fill(qgl[i], _w);
+
+            // For data templates from scaling Pythia, see instructions at
+            // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
+            double x = qgl[i];
+            double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+            double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+            if (isgluon) h->hqgl_dg->Fill(qgl[i], _w*wg);
+            if (isquark) h->hqgl_dq->Fill(qgl[i], _w*wq);
+          }
+        } // probg quark/gluon
+      }
 
       // raw spectrum
       assert(h->hpt);
@@ -1617,7 +1598,7 @@ void fillHistos::fillBasic(basicHistos *h)
       h->pmass->Fill(pt, mass/energy, _w); assert(h->pmass);
       h->pjec->Fill(pt, jec, _w); assert(h->pjec);
       h->pjec2->Fill(pt, jec2, _w); assert(h->pjec2);
-      h->punc->Fill(pt, unc, _w); assert(h->punc); 
+      h->punc->Fill(pt, unc, _w); assert(h->punc);
       // JEC monitoring
       h->pjec_l1->Fill(pt, jtjes_l1[i], _w); assert(h->pjec_l1);
       h->pjec_l2l3->Fill(pt, jtjes_l2l3[i], _w); assert(h->pjec_l2l3);
@@ -1747,7 +1728,7 @@ void fillHistos::fillBasic(basicHistos *h)
         h->hyeta2->Fill(y-eta, _w);
         h->hbetabetastar->Fill(jtbeta[i], jtbetastar[i], _w);
         h->hetaphi->Fill(eta, phi, _w);
-        
+
       } // within trigger pT range
 
       int iprobe = i;
@@ -1803,8 +1784,10 @@ void fillHistos::fillBasic(basicHistos *h)
           h->hpt_r->Fill(pt, _w);
           h->hpt_g->Fill(ptgen, _w);
 
-	  if (partonflavor[i]==21) h-> hgpt_g->Fill(ptgen); // Ozlem
-	  if (partonflavor[i]!=21) h-> hqpt_g->Fill(ptgen, _w); // Ozlem
+          if (partonflavor[i]==21)
+            h->hgpt_g->Fill(ptgen); // Ozlem
+          else
+            h->hqpt_g->Fill(ptgen, _w); // Ozlem
           h->ppt_r->Fill(pt, pt, _w);
           h->ppt_g->Fill(ptgen, ptgen, _w);
 
@@ -1871,8 +1854,10 @@ void fillHistos::fillBasic(basicHistos *h)
                << " ptg="<<gen_jtpt[i] << " yg="<<gen_jty[i] << endl;
         }
 
-	if (gen_partonflavor[i]==21) h->hgpt_g0tw->Fill(gen_jtpt[i], _w); // Ozlem
-	if (gen_partonflavor[i]!=21) h->hqpt_g0tw->Fill(gen_jtpt[i], _w); // Ozlem
+        if (gen_partonflavor[i]==21)
+          h->hgpt_g0tw->Fill(gen_jtpt[i], _w); // Ozlem
+        else
+          h->hqpt_g0tw->Fill(gen_jtpt[i], _w); // Ozlem
       }
     }
   }
@@ -1930,9 +1915,10 @@ void fillHistos::fillBasic(basicHistos *h)
       double ygen = gen_jty[i];
       if (fabs(ygen) >= h->ymin && fabs(ygen) < h->ymax) {
         h->hpt_g0->Fill(gen_jtpt[i], _w);
-	// ozlem: repeat for hgpt_g0 and hqpt_g0
-	if (gen_partonflavor[i]==21) h->hgpt_g0->Fill(gen_jtpt[i], _w); // Ozlem
-	if (gen_partonflavor[i]!=21) h->hqpt_g0->Fill(gen_jtpt[i], _w); // Ozlem
+        if (gen_partonflavor[i]==21)
+          h->hgpt_g0->Fill(gen_jtpt[i], _w); // Ozlem
+        else
+          h->hqpt_g0->Fill(gen_jtpt[i], _w); // Ozlem
 
         assert(h->hpt_g0_tmp);
         h->hpt_g0_tmp->Fill(gen_jtpt[i]);
@@ -2228,7 +2214,7 @@ void fillHistos::initMcHistos(string name)
 
 
 // Loop over basic histogram containers to fill all
-void fillHistos::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt, 
+void fillHistos::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
                               Float_t* _pt, Float_t* _eta,    Float_t* _phi)
 {
   for (unsigned int i = 0; i != _mchistos[name].size(); ++i)
@@ -2647,12 +2633,12 @@ void fillHistos::loadLumi(const char* filename)
         "%f,%f,%f,%f,%s", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
         &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec,&avgpu,sfoo)==15 ||
         (skip=true))) {
-    
+
     if (_debug) {
       if (skip) cout << "Skipping line:\n" << s << endl;
       cout << "Run " << run << " ls " << ls
            << " lumi " << rec*1e-6 << "/pb" << endl;
-    }      
+    }
 
     // LS is not STABLE BEAMS but something else:
     // ADJUST, BEAM DUMP, FLAT TOP, INJECTION PHYSICS BEAM, N/A, RAMP DOWN,

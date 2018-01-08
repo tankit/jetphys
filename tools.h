@@ -5,14 +5,13 @@
 #include "TGraphErrors.h"
 #include "TH1.h"
 #include "TF1.h"
+#include "TMath.h"
 
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace tools {
-//class tools {
-
-  // public:
 
   int addFiles(TChain *c, std::string filelistname);
   double delta_phi(double a, double b);
@@ -23,7 +22,7 @@ namespace tools {
   // vector manipulation
   std::vector<double> make_vector(double *a, int na);
   double interpolate(double x, std::vector<double> const& vx,
-		     std::vector<double> const& vy); 
+		     std::vector<double> const& vy);
 
   // Graph manipulation
   void GetPoint(TGraphErrors *g, int n, double &x, double &y,
@@ -42,7 +41,5 @@ namespace tools {
 
   void Hadd(TH1 *h1, TH1 *h2, double ptmax=0, bool syserr = false);
 } // namespace tools
-//}; // classtools
 
-#endif
-// __tools_h__
+#endif // __tools_h__

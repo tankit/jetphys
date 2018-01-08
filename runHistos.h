@@ -12,9 +12,12 @@
 #include "TH2D.h"
 #include "TProfile.h"
 #include "TDirectory.h"
+#include "TMath.h"
 
 #include <string>
 #include <map>
+
+#include "settings.h"
 
 class runHistos {
 

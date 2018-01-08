@@ -4,8 +4,22 @@
 // Created: June 1, 2015
 #ifndef __settings_h__
 #define __settings_h__
+#include <map>
+#include <vector>
 #include <string>
+#include <set>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <regex>
+#include <algorithm>
+
+using std::map;
+using std::vector;
 using std::string;
+using std::cout;
+using std::endl;
+
 
 // All the settings variables are in global name space
 // To avoid conflicts, and to make them easier to find
@@ -23,7 +37,7 @@ string _jp_algo = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
 string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
-string _jp_run = "RunB";
+string _jp_run = "RunG16";
 // Kostas stored UNCORRECTED four-vector, current status: CORRECTED
 // HOX: this is a source of constant anxiety, should be rechecked from time to time
 bool _jp_undojes = true;
@@ -31,11 +45,17 @@ bool _jp_undojes = true;
 bool _jp_redojes = true;
 // For debugging
 bool _jp_skipl2l3res = false;
+// QGL studies by Ozlem
+bool _jp_doqgl = false;
+string _jp_qglfile = "output-DATA_RunG_part1_16oct-1.root";
+// Eta compositions
+bool _jp_doetacompos = true;
 
 // Number of events to process (-1 for all)
-Long64_t _jp_nentries =  -1; // all
+Long64_t _jp_nentries =
+//-1; // all
 //10; // debug
-//100000; // short test run
+100000; // short test run
 //Long64_t _jp_nentries = 100000; // for MC
 //Long64_t _jp_nentries = 1000000; // for MC
 // Number of events to skip from the beginning (for debugging)
@@ -51,7 +71,7 @@ bool _jp_domctrigsim = true;
 // Use "mc" trigger for whole pT range instead of stiching triggers together (requires trigsim)
 bool _jp_usemctrig = true;
 // reference trigger (for PU profile) in the mc folder
-string _jp_mctrig = "jt450"; 
+string _jp_mctrig = "jt450";
 
 //// MC: PU profiles for data and MC
 bool _jp_reweighPU = false;//true
@@ -70,13 +90,13 @@ vector<double> _jp_pthatranges = // The last number is ~inf, the first has -1 to
 vector<double> _jp_pthatsigmas = // Arbitrary scale
   {140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
   //{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-vector<unsigned int> _jp_pthatnevts = 
+vector<unsigned int> _jp_pthatnevts =
   {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 // The filenames need to be given here and in mk_fillHistos, since ROOT is exceedingly stupid
 vector<string> _jp_pthatfiles = {
   //"%sP825ns80X/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8.root"
     "P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
-   "P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
+    "P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
@@ -89,7 +109,6 @@ vector<string> _jp_pthatfiles = {
     "P825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
-    
 };
 
 // Veto jets near ECAL boundaries in JetID
@@ -97,7 +116,7 @@ const bool _jp_doECALveto = false;//true;
 string _jp_ecalveto = "lumicalc/ecalveto.root";
 
 // Reapply json selection based on the latest one (check lumicalc if false!)
-const bool _jp_dojson = false; //true; 
+const bool _jp_dojson = false; //true;
 // Here: there are slight differences between PromptReco and ReReco in the 2016 run
 //string _jp_json = "PromptReco/Cert_299614-299617_13TeV_PromptReco_Collisions17_50ns_JSON.txt";
 string _jp_json = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
@@ -139,7 +158,7 @@ string _jp_jecgt = "Summer16_03Feb2017";//BCD_";//"Summer15_50ns";// "Summer16_2
 string _jp_jecvers = "_V7";//"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
-const bool _jp_useIOV = true ;//false 
+const bool _jp_useIOV = true ;//false
 const unsigned int _jp_nIOV = 4;
 string _jp_IOVnames[_jp_nIOV]
   {"BCD",    "EF",    "G",   "H"};

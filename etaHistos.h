@@ -25,10 +25,10 @@ using std::string;
 using std::vector;
 
 class etaHistos {
- public:
+  public:
   // phase space
   string trigname;
-  
+
   // Control plots of resolutions in the pt-eta plane
   // tp: tag-probe (tag), pt: probe-tag (probe)
   vector<TH3D *> hdjasymm;
