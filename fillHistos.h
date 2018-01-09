@@ -18,10 +18,9 @@
 #ifndef fillHistos_h
 #define fillHistos_h
 
-#include <TROOT.h>
-#include <TChain.h>
-#include <TFile.h>
-
+#include "TROOT.h"
+#include "TChain.h"
+#include "TFile.h"
 #include "TMath.h"
 #include "TStyle.h"
 #include "TF1.h"
@@ -35,36 +34,17 @@
 #include "TLorentzVector.h"
 #include "TRandom3.h"
 
-#include <map>
-#include <vector>
-#include <string>
-#include <set>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <regex>
-#include <algorithm>
-
 #include "settings.h"
 #include "basicHistos.h"
 #include "etaHistos.h"
 #include "mcHistos.h"
 #include "runHistos.h"
 #include "tools.h"
-
 #include "IOV.h"
+
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-
-using std::map;
-using std::vector;
-using std::string;
-using std::cout;
-using std::endl;
-
-// Header file for the classes stored in the TTree if any.
-//#include "Math/GenVector/PxPyPzE4D.h"
 
 class fillHistos {
 public :
@@ -510,7 +490,7 @@ private:
   //map<string, map<int, int> > _premap;
   map<string, map<int, map<int, int> > > _premap;
   map<string, map<int, int> > _prescales;
-  TH2F *ecalveto;
+  TH2F *_ecalveto;
 
   map<int, map<int, set<int> > > _duplicates;
   set<int> _badruns;

@@ -13,6 +13,7 @@
 #include <sstream>
 #include <regex>
 #include <algorithm>
+#include <cassert>
 
 using std::map;
 using std::vector;
