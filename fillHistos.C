@@ -1296,36 +1296,31 @@ void fillHistos::fillBasic(basicHistos *h)
     double jec2 = jtjesnew[jetidx]/jtjes[jetidx];
 
     // Tag-and-probe for composition vs eta (Ozlem) || jetidx is the probe
-    if (jetidx<2 && njt>=2 && pt>_jp_recopt) {
-      int iref = (jetidx==0 ? 1 : 0);
-      //double yref = jty[iref];
-      double etaref = jteta[iref];
-      double ptref = jtpt[iref];
-      //double ptave = (jtpt[0]+jtpt[1])/2.0;
-      double dphi = delta_phi(phi, jtphi[iref]);
+    if (jetidx<2 && njt>=2 and pt>_jp_recopt) {
+      int itag = (jetidx==0 ? 1 : 0);
+      double etatag = jteta[itag];
+      double pttag = jtpt[itag];
+      double dphi = delta_phi(phi, jtphi[itag]);
       double pt3 = (njt>=3 ? jtpt[2] : 0.);
 
       // Select appropriage tag pT bin and dijet topology
-      if (_evtid && id && _jetids[iref] &&
-          fabs(etaref) < 1.3 && dphi > 2.7 && pt3 < 0.3*ptref &&
-          ptref > h->ptmin && ptref < h->ptmax) {
+      if (_evtid and id and _jetids[itag] and fabs(etatag) < 1.3 and 
+          dphi > 2.7 and pt3 < 0.3*pttag and pttag > h->ptmin and pttag < h->ptmax) {
 
         assert(h->pchftp_vseta);
-        h->pchftp_vseta->Fill(jteta[jetidx], jtchf[jetidx], _w);
-        //assert(h->pnhftp_vseta);
-        //h->pnhftp_vseta->Fill(jteta[jetidx], jtnhf[jetidx], _w);
+        h->pchftp_vseta->Fill(eta, jtchf[jetidx], _w);
         assert(h->pneftp_vseta);
-        h->pneftp_vseta->Fill(jteta[jetidx], jtnef[jetidx], _w);
+        h->pneftp_vseta->Fill(eta, jtnef[jetidx], _w);
         assert(h->pnhftp_vseta);
-        h->pnhftp_vseta->Fill(jteta[jetidx], jtnhf[jetidx], _w);
+        h->pnhftp_vseta->Fill(eta, jtnhf[jetidx], _w);
         assert(h->pceftp_vseta);
-        h->pceftp_vseta->Fill(jteta[jetidx], jtcef[jetidx], _w);
+        h->pceftp_vseta->Fill(eta, jtcef[jetidx], _w);
         assert(h->pmuftp_vseta);
-        h->pmuftp_vseta->Fill(jteta[jetidx], jtmuf[jetidx], _w);
+        h->pmuftp_vseta->Fill(eta, jtmuf[jetidx], _w);
         assert(h->pbetatp_vseta);
-        h->pbetatp_vseta->Fill(jteta[jetidx], jtbeta[jetidx], _w);
+        h->pbetatp_vseta->Fill(eta, jtbeta[jetidx], _w);
         assert(h->pbetastartp_vseta);
-        h->pbetastartp_vseta->Fill(jteta[jetidx], jtbetastar[jetidx], _w);
+        h->pbetastartp_vseta->Fill(eta, jtbetastar[jetidx], _w);
       } // select pt bin for profiles vseta
     } // tag-and-probe vs eta
 
@@ -1333,69 +1328,73 @@ void fillHistos::fillBasic(basicHistos *h)
     // Tag-and-probe for composition vs pt:
     // tag in barrel and fires trigger, probe in eta bin unbiased
     // only two leading jets back-to-back, third has less than 0.3*tag pT
-    if (jetidx<2 && njt>=2 && pt>_jp_recopt &&
-        fabs(eta) >= h->ymin && fabs(eta) < h->ymax){
+    if (jetidx<2 and njt>=2 and pt>_jp_recopt and fabs(eta) >= h->ymin and fabs(eta) < h->ymax){
 
-      int iref = (jetidx==0 ? 1 : 0);
-      double yref = jty[iref];
-      double etaref = jteta[iref];
-      double ptref = jtpt[iref];
-      double ptave = (jtpt[0]+jtpt[1])/2.0;
-      double dphi = delta_phi(phi, jtphi[iref]);
+      int itag = (jetidx==0 ? 1 : 0);
+      double etatag = jteta[itag];
+      double pttag = jtpt[itag];
+      double dphi = delta_phi(phi, jtphi[itag]);
       double pt3 = (njt>=3 ? jtpt[2] : 0.);
 
-      int ipf4(-1);
-      double dr4min(999.);
-      double ptprobepf4(0.);
-
       // This used previously yref and ptref
-      if (_evtid && id && _jetids[iref] &&
-          fabs(etaref) < 1.3 && dphi > 2.7 && pt3 < 0.3*ptref) {
+      if (_evtid and id and _jetids[itag] and fabs(etatag) < 1.3 and dphi > 2.7 and pt3 < 0.3*pttag) {
 
         assert(h->pncandtp);
-        h->pncandtp->Fill(ptref, jtn[jetidx], _w);
+        h->pncandtp->Fill(pttag, jtn[jetidx], _w);
         assert(h->pnchtp);
-        h->pnchtp->Fill(ptref, jtnch[jetidx], _w);
+        h->pnchtp->Fill(pttag, jtnch[jetidx], _w);
         assert(h->pnnetp);
-        h->pnnetp->Fill(ptref, jtnne[jetidx], _w);
+        h->pnnetp->Fill(pttag, jtnne[jetidx], _w);
         assert(h->pnnhtp);
-        h->pnnhtp->Fill(ptref, jtnnh[jetidx], _w);
+        h->pnnhtp->Fill(pttag, jtnnh[jetidx], _w);
         assert(h->pncetp);
-        h->pncetp->Fill(ptref, jtnce[jetidx], _w);
+        h->pncetp->Fill(pttag, jtnce[jetidx], _w);
         assert(h->pnmutp);
-        h->pnmutp->Fill(ptref, jtnmu[jetidx], _w);
-        //
+        h->pnmutp->Fill(pttag, jtnmu[jetidx], _w);
         assert(h->pchftp);
-        h->pchftp->Fill(ptref, jtchf[jetidx], _w);
+        h->pchftp->Fill(pttag, jtchf[jetidx], _w);
         assert(h->pneftp);
-        h->pneftp->Fill(ptref, jtnef[jetidx], _w);
+        h->pneftp->Fill(pttag, jtnef[jetidx], _w);
         assert(h->pnhftp);
-        h->pnhftp->Fill(ptref, jtnhf[jetidx], _w);
+        h->pnhftp->Fill(pttag, jtnhf[jetidx], _w);
         assert(h->pceftp);
-        h->pceftp->Fill(ptref, jtcef[jetidx], _w);
+        h->pceftp->Fill(pttag, jtcef[jetidx], _w);
         assert(h->pmuftp);
-        h->pmuftp->Fill(ptref, jtmuf[jetidx], _w);
+        h->pmuftp->Fill(pttag, jtmuf[jetidx], _w);
         assert(h->pbetatp);
-        h->pbetatp->Fill(ptref, jtbeta[jetidx], _w);
+        h->pbetatp->Fill(pttag, jtbeta[jetidx], _w);
         assert(h->pbetastartp);
-        h->pbetastartp->Fill(ptref, jtbetastar[jetidx], _w);
-        //
-        if (ptref > h->ptmin && ptref < h->ptmax) {
+        h->pbetastartp->Fill(pttag, jtbetastar[jetidx], _w);
 
+        if (pttag > h->ptmin and pttag < h->ptmax) {
+
+          assert(h->hncandtp);
           h->hncandtp->Fill(jtn[jetidx], _w);
+          assert(h->hnchtp);
           h->hnchtp->Fill(jtnch[jetidx], _w);
+          assert(h->hnnetp);
           h->hnnetp->Fill(jtnne[jetidx], _w);
+          assert(h->hnnhtp);
           h->hnnhtp->Fill(jtnnh[jetidx], _w);
+          assert(h->hncetp);
           h->hncetp->Fill(jtnce[jetidx], _w);
+          assert(h->hnmutp);
           h->hnmutp->Fill(jtnmu[jetidx], _w);
+          assert(h->hchftp);
           h->hchftp->Fill(jtchf[jetidx], _w);
+          assert(h->hneftp);
           h->hneftp->Fill(jtnef[jetidx], _w);
+          assert(h->hnhftp);
           h->hnhftp->Fill(jtnhf[jetidx], _w);
+          assert(h->hceftp);
           h->hceftp->Fill(jtcef[jetidx], _w);
+          assert(h->hmuftp);
           h->hmuftp->Fill(jtmuf[jetidx], _w);
+          assert(h->hbetatp);
           h->hbetatp->Fill(jtbeta[jetidx], _w);
+          assert(h->hbetastartp);
           h->hbetastartp->Fill(jtbetastar[jetidx], _w);
-          //
+
           assert(h->pncandtp_vsnpv);
           h->pncandtp_vsnpv->Fill(npvgood, jtn[jetidx], _w);
           assert(h->pnchtp_vsnpv);
@@ -1408,7 +1407,6 @@ void fillHistos::fillBasic(basicHistos *h)
           h->pncetp_vsnpv->Fill(npvgood, jtnce[jetidx], _w);
           assert(h->pnmutp_vsnpv);
           h->pnmutp_vsnpv->Fill(npvgood, jtnmu[jetidx], _w);
-          //
           assert(h->pchftp_vsnpv);
           h->pchftp_vsnpv->Fill(npvgood, jtchf[jetidx], _w);
           assert(h->pneftp_vsnpv);
@@ -1422,8 +1420,8 @@ void fillHistos::fillBasic(basicHistos *h)
           assert(h->pbetatp_vsnpv);
           h->pbetatp_vsnpv->Fill(npvgood, jtbeta[jetidx], _w);
           assert(h->pbetastartp_vsnpv);
+
           h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[jetidx], _w);
-          //
           assert(h->pchftp_vstrpu);
           h->pchftp_vstrpu->Fill(trpu, jtchf[jetidx], _w);
           assert(h->pneftp_vstrpu);
@@ -1443,7 +1441,7 @@ void fillHistos::fillBasic(basicHistos *h)
     } // tag-and-probe
 
     // Check effect of ID cuts
-    if (fabs(eta) >= h->ymin && fabs(eta) < h->ymax) {
+    if (fabs(eta) >= h->ymin and fabs(eta) < h->ymax) {
 
       if (_debug) {
         cout << "..." << h->trigname << " | " << " index " << jetidx << "/" << njt
@@ -1756,68 +1754,69 @@ h3probg->GetBinContent(h3probg->FindBin(jty[jetidx],jtpt[jetidx],qgl[jetidx]));
       }
 
       // MC extras
-      if (_jp_ismc && jtgenr[jetidx]<0.25) {
+      if (_jp_ismc and jtgenr[jetidx]<0.25) {
         h->hpt_gtw->Fill(jtgenpt[jetidx], _w);
         if (_debug) {
           cout << "genmatch " << jetidx
-               << " ptg="<<jtgenpt[jetidx] << " yg="<<jtgeny[jetidx]
-               << " yr="<< y << endl;
+                << " ptg="<<jtgenpt[jetidx] << " yg="<<jtgeny[jetidx]
+                << " yr="<< y << endl;
         }
-      }
-      if (h->ismc) {
-        if (jtgenr[jetidx]<0.25) {
-          //int flv = abs(jtgenflv[jetidx]);
-          double ptgen = jtgenpt[jetidx];
-          //double r = (jtgenpt[jetidx] ? pt/jtgenpt[jetidx] : 0);
-          double r = (ptgen ? pt/ptgen : 0);
-          //double resp = (jtjesnew[jetidx] ? r / jtjesnew[jetidx] : 0);
-          double dy = (r ? TMath::Sign(jty[jetidx]-jtgeny[jetidx], jtgeny[jetidx]) : 0.);
-          h->hpt_r->Fill(pt, _w);
-          h->hpt_g->Fill(ptgen, _w);
 
-          if (partonflavor[jetidx]==21)
-            h->hgpt_g->Fill(ptgen); // Ozlem
-          else
-            h->hqpt_g->Fill(ptgen, _w); // Ozlem
-          h->ppt_r->Fill(pt, pt, _w);
-          h->ppt_g->Fill(ptgen, ptgen, _w);
+        //int flv = abs(jtgenflv[jetidx]);
+        double ptgen = jtgenpt[jetidx];
+        //double r = (jtgenpt[jetidx] ? pt/jtgenpt[jetidx] : 0);
+        double r = (ptgen ? pt/ptgen : 0);
+        //double resp = (jtjesnew[jetidx] ? r / jtjesnew[jetidx] : 0);
+        double dy = (r ? TMath::Sign(jty[jetidx]-jtgeny[jetidx], jtgeny[jetidx]) : 0.);
+        h->hpt_r->Fill(pt, _w);
+        h->hpt_g->Fill(ptgen, _w);
 
+        if (partonflavor[jetidx]==21)
+          h->hgpt_g->Fill(ptgen); // Ozlem
+        else
+          h->hqpt_g->Fill(ptgen, _w); // Ozlem
+
+        h->ppt_r->Fill(pt, pt, _w);
+        h->ppt_g->Fill(ptgen, ptgen, _w);
+
+        if (r) {
           // Response closure vs NPV
-          if (r) h->p2rvsnpv->Fill(ptgen, npvgood, r, _w);
+          h->p2rvsnpv->Fill(ptgen, npvgood, r, _w);
 
           // Response closure
-          if (r) h->h2r_r->Fill(pt, r, _w);
-          if (r) h->h2r_g->Fill(ptgen, r, _w);
-          if (r) h->p2r_r->Fill(pt, r, _w);
-          if (r) h->p2r_g->Fill(ptgen, r, _w);
-          if (r) h->p2r_ruw->Fill(pt, r); // unweighted!
-          if (r) h->p2r_guw->Fill(ptgen, r); // unweighted!
+          h->h2r_r->Fill(pt, r, _w);
+          h->h2r_g->Fill(ptgen, r, _w);
+          h->p2r_r->Fill(pt, r, _w);
+          h->p2r_g->Fill(ptgen, r, _w);
+          h->p2r_ruw->Fill(pt, r); // unweighted!
+          h->p2r_guw->Fill(ptgen, r); // unweighted!
 
           // Rapidity closure
-          if (r) h->h2dy_r->Fill(pt, dy, _w);
-          if (r) h->h2dy_g->Fill(ptgen, dy, _w);
-          if (r) h->p2dy_r->Fill(pt, dy, _w);
-          if (r) h->p2dy_g->Fill(ptgen, dy, _w);
-          if (r) h->p2dy_ruw->Fill(pt, dy); // unweighted
-          if (r) h->p2dy_guw->Fill(ptgen, dy); // unweighted
-          if (r) h->pdy_r->Fill(pt, fabs(y), dy, _w);
-          if (r) h->pdy_g->Fill(ptgen, fabs(y), dy, _w);
+          h->h2dy_r->Fill(pt, dy, _w);
+          h->h2dy_g->Fill(ptgen, dy, _w);
+          h->p2dy_r->Fill(pt, dy, _w);
+          h->p2dy_g->Fill(ptgen, dy, _w);
+          h->p2dy_ruw->Fill(pt, dy); // unweighted
+          h->p2dy_guw->Fill(ptgen, dy); // unweighted
+          h->pdy_r->Fill(pt, fabs(y), dy, _w);
+          h->pdy_g->Fill(ptgen, fabs(y), dy, _w);
         }
       } // is MC
-
     } // if id && etabin
 
     // MC: Filling outside of eta bin
-    if (h->ismc && _evtid && id && pt > _jp_recopt &&
-        jtgenr[jetidx]<0.25 && jtgenpt[jetidx]!=0 && jtjesnew[jetidx]!=0) {
+    if (h->ismc and _evtid and id and pt > _jp_recopt and
+        jtgenr[jetidx]<0.25 and jtgenpt[jetidx]!=0 and jtjesnew[jetidx]!=0) {
 
       double ptgen = jtgenpt[jetidx];
       double r = (ptgen ? pt / ptgen : 0);
       double resp = r / jtjesnew[jetidx];
 
       // Response closure vs NPV
-      if (r) h->p3rvsnpv->Fill(ptgen, jteta[jetidx], npvgood, resp, _w);
-      if (r) h->p3rvsnpvW->Fill(ptgen, fabs(jteta[jetidx]), npvgood, resp, _w);
+      if (r) {
+        h->p3rvsnpv->Fill(ptgen, jteta[jetidx], npvgood, resp, _w);
+        h->p3rvsnpvW->Fill(ptgen, fabs(jteta[jetidx]), npvgood, resp, _w);
+      }
     } // if id && MC
   } // for jetidx
 
@@ -2086,7 +2085,7 @@ void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
           }
         }
       } // etatag < 1.3
-    } // for iref (two leading jets)
+    } // for itag (two leading jets)
   } // two or more jets, phase space
 } // fillEta
 
@@ -2228,38 +2227,38 @@ void fillHistos::fillMcHisto(mcHistos *h,  Float_t* _recopt,  Float_t* _genpt,
   if (njt>=2 && _evtid && delta_phi(_phi[0],_phi[1])>2.8
       && _jetids[0] && _jetids[1] && _pt[0]>_jp_recopt && _pt[1]>_jp_recopt) {
     // Two leading jets
-    for (int iref = 0; iref<2; ++iref) {
-      int iprobe = (iref==0 ? 1 : 0);
-      double etaref = _eta[iref];
-      double etaprobe = _eta[iprobe];
+    for (int itag = 0; itag<2; ++itag) {
+      int iprobe = (itag==0 ? 1 : 0);
+      double etatag = fabs(_eta[itag]); // This is usable without sign
+      double etaprobe = _eta[iprobe];   // Here we need sign
 
-      if (fabs(etaref) < 1.3) {
-        double ptref = _pt[iref];
+      if (etatag < 1.3) {
+        double pttag = _pt[itag];
         double ptprobe = _pt[iprobe];
         double pt3 = (njt>2 ? _pt[2] : 0.);
-        double ptave = 0.5 * (ptref + ptprobe);
+        double ptave = 0.5 * (pttag + ptprobe);
         assert(ptave);
         double alpha = pt3/ptave;
-        double alphatp = pt3/ptref;
-        double asymm = (ptprobe - ptref)/(2*ptave);
-        double asymmtp = (ptprobe - ptref)/(2*ptref);
-        double ptresp_ref = _recopt[iref]/_genpt[iref];
+        double alphatp = pt3/pttag;
+        double asymm = (ptprobe - pttag)/(2*ptave);
+        double asymmtp = (ptprobe - pttag)/(2*ptref);
+        double ptresp_ref = _recopt[itag]/_genpt[itag];
         double ptresp_probe = _recopt[iprobe]/_genpt[iprobe];
         for (unsigned alphaidx = 0; alphaidx < h->alpharange.size(); ++alphaidx) {
           float alphasel = h->alpharange[alphaidx];
           if (alphatp<alphasel) {
-            h->hdjasymmtp[alphaidx]     ->Fill(ptref, etaprobe, asymmtp,      _w);
-            h->hdjresptp_tag[alphaidx]  ->Fill(ptref, etaprobe, ptresp_ref,   _w);
-            h->hdjresptp_probe[alphaidx]->Fill(ptref, etaprobe, ptresp_probe, _w);
+            h->hdjasymmtp     [alphaidx]->Fill(pttag, etaprobe, asymmtp,      _w);
+            h->hdjresptp_tag  [alphaidx]->Fill(pttag, etaprobe, ptresp_ref,   _w);
+            h->hdjresptp_probe[alphaidx]->Fill(pttag, etaprobe, ptresp_probe, _w);
           }
           if (alpha<alphasel) {
-            h->hdjasymm[alphaidx]     ->Fill(ptave, etaprobe, asymm,        _w);
-            h->hdjresp_tag[alphaidx]  ->Fill(ptave, etaprobe, ptresp_ref,   _w);
+            h->hdjasymm     [alphaidx]->Fill(ptave, etaprobe, asymm,        _w);
+            h->hdjresp_tag  [alphaidx]->Fill(ptave, etaprobe, ptresp_ref,   _w);
             h->hdjresp_probe[alphaidx]->Fill(ptave, etaprobe, ptresp_probe, _w);
           }
         }
       } // etatag < 1.3
-    } // for iref (two leading jets)
+    } // for itag (two leading jets)
   } // two or more jets, phase space
 } // fillEta
 
@@ -2400,9 +2399,7 @@ void fillHistos::fillRunHistos(string name)
     double y = jty[jetidx];
     double eta = jteta[jetidx];
 
-    if (h->ymin <= fabs(eta) && fabs(eta) < h->ymax && _pass && _jetids[jetidx]
-        && _evtid) {
-
+    if (h->ymin <= fabs(eta) and fabs(eta) < h->ymax and _pass and _jetids[jetidx] and _evtid) {
       for (auto trgit = _trigs.begin(); trgit != _trigs.end(); ++trgit) {
         string const& t = *trgit;
 
@@ -2418,9 +2415,9 @@ void fillHistos::fillRunHistos(string name)
           h->c_betastar[t][run] += jtbetastar[jetidx];
         }
 
-        int iref = (jetidx==0 ? 1 : 0);
-        if (jetidx<2 && dphi > 2.7 && pt3 < jtpt[iref] && fabs(jty[iref]) < 1.3 &&
-            jtpt[iref] > h->pt[t] && _jetids[iref]) {
+        int itag = (jetidx==0 ? 1 : 0);
+        if (jetidx<2 and dphi > 2.7 and pt3 < jtpt[itag] and fabs(jty[itag]) < 1.3 and
+            jtpt[itag] > h->pt[t] and _jetids[itag]) {
           ++h->t_trgtp[t][run];
           h->c_chftp[t][run] += jtchf[jetidx];
           h->c_neftp[t][run] += jtnef[jetidx];
@@ -2433,9 +2430,8 @@ void fillHistos::fillRunHistos(string name)
           if (t!=t2) ++h->p_trgpair[t+t2][run];
         } // for trgit2
       } // for trgit
-    }
+    } // conditions
   } // for jetidx
-
 } // fillRunHistos
 
 
