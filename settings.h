@@ -33,8 +33,11 @@ const bool _debug = false;
 // Necessary analysis settings/inputs //
 ////////////////////////////////////////
 
-// Algorithm to use ("AK4PF" or "AK8PF")
+// Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
+string _jp_chs = "CHS";
+// Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 string _jp_algo = "AK4PFchs";
+
 // Data type ("DATA", "MC", or "HW")
 string _jp_type = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")

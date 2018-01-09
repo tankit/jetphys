@@ -3,6 +3,7 @@
 // Created: April 19, 2010
 // Updated: June 2, 2015
 // Updated: Aug 31, 2016
+// Further updates: see git log
 
 #define fillHistos_cxx
 #include "fillHistos.h"
@@ -207,7 +208,7 @@ void fillHistos::Loop()
   qgl = &PFJetsCHS__QGtagger_[0];
   partonflavor = &PFJetsCHS__partonFlavour_[0];
 
- //
+  //
   jtn = &PFJetsCHS__ncand_[0];
   jtnch = &PFJetsCHS__chm_[0];
   jtnnh = &PFJetsCHS__nhm_[0];
