@@ -1336,7 +1336,7 @@ void fillHistos::fillBasic(basicHistos *h)
       double dphi = delta_phi(phi, jtphi[itag]);
       double pt3 = (njt>=3 ? jtpt[2] : 0.);
 
-      // This used previously yref and ptref
+      // This used previously ytag and pttag
       if (_evtid and id and _jetids[itag] and fabs(etatag) < 1.3 and dphi > 2.7 and pt3 < 0.3*pttag) {
 
         assert(h->pncandtp);
@@ -2241,19 +2241,19 @@ void fillHistos::fillMcHisto(mcHistos *h,  Float_t* _recopt,  Float_t* _genpt,
         double alpha = pt3/ptave;
         double alphatp = pt3/pttag;
         double asymm = (ptprobe - pttag)/(2*ptave);
-        double asymmtp = (ptprobe - pttag)/(2*ptref);
-        double ptresp_ref = _recopt[itag]/_genpt[itag];
+        double asymmtp = (ptprobe - pttag)/(2*pttag);
+        double ptresp_tag = _recopt[itag]/_genpt[itag];
         double ptresp_probe = _recopt[iprobe]/_genpt[iprobe];
         for (unsigned alphaidx = 0; alphaidx < h->alpharange.size(); ++alphaidx) {
           float alphasel = h->alpharange[alphaidx];
           if (alphatp<alphasel) {
             h->hdjasymmtp     [alphaidx]->Fill(pttag, etaprobe, asymmtp,      _w);
-            h->hdjresptp_tag  [alphaidx]->Fill(pttag, etaprobe, ptresp_ref,   _w);
+            h->hdjresptp_tag  [alphaidx]->Fill(pttag, etaprobe, ptresp_tag,   _w);
             h->hdjresptp_probe[alphaidx]->Fill(pttag, etaprobe, ptresp_probe, _w);
           }
           if (alpha<alphasel) {
             h->hdjasymm     [alphaidx]->Fill(ptave, etaprobe, asymm,        _w);
-            h->hdjresp_tag  [alphaidx]->Fill(ptave, etaprobe, ptresp_ref,   _w);
+            h->hdjresp_tag  [alphaidx]->Fill(ptave, etaprobe, ptresp_tag,   _w);
             h->hdjresp_probe[alphaidx]->Fill(ptave, etaprobe, ptresp_probe, _w);
           }
         }
