@@ -1,51 +1,93 @@
 // Purpose: Normalize inclusive jet analysis histograms
 // Author:  mikko.voutilainen@cern.ch
+// Co-author: hannu.siikonen@cern.ch
 // Created: March 21, 2010
-// Updated: June 2, 2015
+// Updated: April 4, 2017
+// Archaic blocks denoted by wide commenting
+
+
 #include "TFile.h"
 #include "TDirectory.h"
 #include "TList.h"
 #include "TObject.h"
 #include "TKey.h"
 #include "TH1D.h"
+#include "TH2D.h"
+#include "TH3D.h"
 #include "TProfile.h"
 #include "TF1.h"
+#include "TRegexp.h"
 
 #include <iostream>
 #include <string>
 #include <map>
+#include <algorithm>
 
 using namespace std;
 
 #include "settings.h"
+
+vector<string> hptlike = {"hpt",
+                          "hpt_evt",
+                          "hpt_jet",
+                          "hpt_pre",
+                          "hpt0",
+                          "hpt1",
+                          "hpt2",
+                          "hpt3",
+                          "hpt_jk1",
+                          "hpt_jk2",
+                          "hpt_jk3",
+                          "hpt_jk4",
+                          "hpt_jk5",
+                          "hpt_jk6",
+                          "hpt_jk7",
+                          "hpt_jk8",
+                          "hpt_jk9",
+                          "hpt_jk10",
+                          "hpt_l1off",
+                          "hpt_l1fast",
+                          "hpt_plus",
+                          "hpt_minus",
+                          "hpt0_plus",
+                          "hpt0_minus",
+                          "hpt_noid",
+                          "hpt_noevtid",
+                          "hpt_nojetid",
+                          "hpt_ak5calo",
+                          "hpt_ak5pf",
+                          "hpt_evt_ak5pf",
+                          "hpt_jet_ak5pf",
+                          "hselpt",
+                          "hpt_r",
+                          "hpt_g",
+                          "hpt_gg",
+                          "hpt_g0",
+                          "hpt_g0tw",
+                          "hdjmass",
+                          "hdjmass0",
+                          "hdjmass0_hgg"};
 
 void recurseFile(TDirectory *indir, TDirectory *outdir,
                  double etawid = 1., double etamid = 0.);
 
 // Use this to fix luminosity
 double _lumiscale = 1.00;
-bool _nh_mc = false;
-bool _nh_dt = true;
 std::map<std::string, double> triglumi;
 
-void normalizeHistos(string type) {
+void normalizeHistos() {
 
-  assert(type==_jp_type);
-  _nh_mc = (type=="MC" || type=="HW");
-  _nh_dt = (type=="DATA");
-  assert((_nh_mc || _nh_dt) && !(_nh_mc && _nh_dt));
-
-  TFile *fin = new TFile(Form("output-%s-1.root",type.c_str()),"READ");
+  TFile *fin = new TFile(Form("output-%s-1.root",_jp_type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
 
-  TFile *fout = new TFile(Form("output-%s-2a.root",type.c_str()),"RECREATE");
+  TFile *fout = new TFile(Form("output-%s-2a.root",_jp_type.c_str()),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  if (_lumiscale!=1 && !_nh_mc)
+  if (_lumiscale!=1 && !_jp_ismc)
     cout << "Attention! : Scaling luminosity to the new estimate"
          << " by multiplying with " << _lumiscale << endl;
 
-  if (_jp_usetriglumi) {
+  if (!(_jp_ismc) && _jp_usetriglumi) {
     cout << "Reading trigger luminosity from settings.h" << endl;
     for (int i = 0; i != _jp_ntrigger; ++i) {
       double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
@@ -54,7 +96,7 @@ void normalizeHistos(string type) {
     }
   }
 
-  cout << "Calling normalizeHistos("<<type<<");" << endl;
+  cout << "Calling normalizeHistos("<<_jp_type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursive loop. This may take a minute" << endl << flush;
@@ -123,56 +165,63 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
       //outdir2->Write(); // does this speedup or slow down?
     } // inherits from TDirectory
 
-    // Found a plot: normalize if hpt, then copy to output
+    // Normalize all histograms
     if (obj->InheritsFrom("TH1")) {
 
       outdir->cd();
+      string name = obj->GetName();
+      string trgname = dir->GetName();
+
+//////// Special handling for hlumi
+      if (name=="hlumi" && !_jp_ismc && _jp_usetriglumi) {
+        TH1D *hlumi = (TH1D*)dir->Get("hlumi");
+        assert(hlumi);
+
+        TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi");
+        assert(hlumi0);
+
+        TH1D *hlumi_orig = (TH1D*)outdir->FindObject("hlumi_orig");
+        if (!hlumi_orig) hlumi_orig = (TH1D*)hlumi->Clone("hlumi_orig");
+
+        TH1D *hlumi_new = (TH1D*)outdir->FindObject("hlumi");
+        if (hlumi_new) hlumi = hlumi_new;
+
+        double lumi = triglumi[trgname];
+        for (int i = 1; i != hlumi->GetNbinsX()+1; ++i) {
+          hlumi->SetBinContent(i, lumi);
+        }
+
+        double lumi0 = triglumi["jt450"];
+        for (int i = 1; i != hlumi0->GetNbinsX()+1; ++i) {
+          hlumi0->SetBinContent(i, lumi0);
+        }
+
+        continue;
+      }
+//////// hlumi
+
       TObject *obj2 = obj->Clone(obj->GetName());
+      
+      double lumi = 1;
+      double lumiref = 1;
+      if (!_jp_ismc) {
+        if (_jp_usetriglumi) {
+          lumi = triglumi[trgname];
+          lumiref = triglumi["jt450"];
+        } else {
+          TH1D* lumihisto = (TH1D*)dir->Get("hlumi");
+          TH1D* lumihistoref = (TH1D*)dir->Get("../jt450/hlumi");
+          assert(lumihisto);
+          assert(lumihistoref);
+          lumi = lumihisto->GetBinContent(1);
+          lumiref = lumihistoref->GetBinContent(1);
+        }
+      }
 
-      // Normalize hpt and hselpt histograms
-      // Same for hbpt
-      if (string(obj2->GetName())=="hpt" ||
-          string(obj2->GetName())=="hpt_evt" ||
-          string(obj2->GetName())=="hpt_jet" ||
-          string(obj2->GetName())=="hpt_pre" ||
-          string(obj2->GetName())=="hpt0" ||
-          string(obj2->GetName())=="hpt1" ||
-          string(obj2->GetName())=="hpt2" ||
-          string(obj2->GetName())=="hpt3" ||
-          string(obj2->GetName())=="hpt_jk1" ||
-          string(obj2->GetName())=="hpt_jk2" ||
-          string(obj2->GetName())=="hpt_jk3" ||
-          string(obj2->GetName())=="hpt_jk4" ||
-          string(obj2->GetName())=="hpt_jk5" ||
-          string(obj2->GetName())=="hpt_jk6" ||
-          string(obj2->GetName())=="hpt_jk7" ||
-          string(obj2->GetName())=="hpt_jk8" ||
-          string(obj2->GetName())=="hpt_jk9" ||
-          string(obj2->GetName())=="hpt_jk10" ||
-          string(obj2->GetName())=="hpt_l1off" ||
-          string(obj2->GetName())=="hpt_l1fast" ||
-          string(obj2->GetName())=="hpt_plus" ||
-          string(obj2->GetName())=="hpt_minus" ||
-          string(obj2->GetName())=="hpt0_plus" ||
-          string(obj2->GetName())=="hpt0_minus" ||
-          string(obj2->GetName())=="hpt_noid" ||
-          string(obj2->GetName())=="hpt_noevtid" ||
-          string(obj2->GetName())=="hpt_nojetid" ||
-          string(obj2->GetName())=="hpt_ak5calo" ||
-          string(obj2->GetName())=="hpt_ak5pf" ||
-          string(obj2->GetName())=="hpt_evt_ak5pf" ||
-          string(obj2->GetName())=="hpt_jet_ak5pf" ||
-          string(obj2->GetName())=="hselpt" ||
-          string(obj2->GetName())=="hpt_r" ||
-          string(obj2->GetName())=="hpt_g" ||
-          string(obj2->GetName())=="hpt_gg" ||
-          string(obj2->GetName())=="hpt_g0" ||
-          string(obj2->GetName())=="hpt_g0tw" ||
-          string(obj2->GetName())=="hdjmass" ||
-          string(obj2->GetName())=="hdjmass0" ||
-          string(obj2->GetName())=="hdjmass0_hgg") {
+      cout << "." << flush;
 
-          cout << "." << flush;
+//////// A block for hpt objects
+      if (std::find(hptlike.begin(), hptlike.end(), name) != hptlike.end()) {
 
         TH1D *hpt = (TH1D*)obj2;
         bool isgen = TString(obj2->GetName()).Contains("pt_g");
@@ -187,48 +236,24 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
         bool isjk = (TString(obj2->GetName()).Contains("hpt_jk"));
         bool isjet = (TString(obj2->GetName()).Contains("hpt_jet"));
 
-        TProfile *peff = (TProfile*)dir->Get("peff"); assert(peff);
+        TProfile *peff = (TProfile*)dir->Get("peff");
+        assert(peff);
 
-        TH1D *hlumi = (TH1D*)dir->Get("hlumi"); assert(hlumi);
-        TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi"); assert(hlumi0);
-        if (_jp_usetriglumi) {
-
-          TH1D *hlumi_orig = (TH1D*)outdir->FindObject("hlumi_orig");
-          if (!hlumi_orig) hlumi_orig = (TH1D*)hlumi->Clone("hlumi_orig");
-
-          // regular prescaled luminosity
-          TH1D *hlumi_new = (TH1D*)outdir->FindObject("hlumi");
-          if (hlumi_new) hlumi = hlumi_new;
-          string strg = dir->GetName();
-          double lumi = triglumi[strg];
-          for (int i = 1; i != hlumi->GetNbinsX()+1; ++i) {
-            hlumi->SetBinContent(i, lumi);
-          }
-
-          // unprescaled luminosity
-          double lumi0 = triglumi["jt450"];
-          for (int i = 1; i != hlumi0->GetNbinsX()+1; ++i) {
-            hlumi0->SetBinContent(i, lumi0);
-          }
-        } // _jp_usetriglumi
-
-        // Test MC-based normalization for trigger efficiency
+        
+        //// Test MC-based normalization for trigger efficiency
         bool dotrigeff = ((string(obj2->GetName())=="hpt") || isjk || isjet);
         TH1D *htrigeff = (TH1D*)outdir->FindObject("htrigeff");
         TH1D *htrigeffmc = (TH1D*)outdir->FindObject("htrigeffmc");
         TH1D *htrigeffsf = (TH1D*)outdir->FindObject("htrigeffsf");
         TH1D *hpt_notrigeff = 0;
 
-        if (!htrigeff && _jp_dotrigeff) {
+        if (!htrigeff && _jp_dotrigeff && dotrigeff) {
 
           TFile *fmc = new TFile("output-MC-1.root","READ");
           assert(fmc && !fmc->IsZombie());
           assert(fmc->cd("Standard"));
           fmc->cd("Standard");
           TDirectory *dmc0 = fmc->GetDirectory("Standard");
-          //assert(gDirectory->cd(Form("Eta_%1.1f-%1.1f",
-          //                 etamid-0.25*etawid,etamid+0.25*etawid)));
-          //TDirectory *dmc = gDirectory;
           TDirectory *dmc = dmc0->GetDirectory(Form("Eta_%1.1f-%1.1f",
                                                     etamid-0.25*etawid,etamid+0.25*etawid));
           assert(dmc);
@@ -250,7 +275,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           }
 
           // Add data/MC scale factor for trigger efficiency
-          if (_nh_dt && !htrigeffsf) {
+          if (!(_jp_ismc) && !htrigeffsf) {
 
             assert(dmc->cd(dir->GetName()));
             dmc->cd(dir->GetName());
@@ -267,8 +292,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           if (htrigeffmc) { // not available for 'mc' directory
             outdir->cd();
             htrigeff = (TH1D*)htrigeffmc->Clone("htrigeff");
-            assert(!_nh_dt || htrigeffsf);
-            if (_nh_dt) htrigeff->Multiply(htrigeffsf);
+            assert(!!(_jp_ismc) || htrigeffsf);
+            if (!(_jp_ismc)) htrigeff->Multiply(htrigeffsf);
 
             TH1D *h = (TH1D*)dir->Get("hpt");
             assert(outdir->FindObject("hpt_notrigeff")==0);
@@ -277,42 +302,29 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           }
 
           fmc->Close();
-        } // dotrigeff
+        } //// dotrigeff
 
 
-        // Scale data to account for time dependence
+        //// Scale data to account for time dependence
         bool dotimedep = ((string(obj2->GetName())=="hpt") || isjk || isjet);
         TH1D *htimedep = (TH1D*)outdir->FindObject("htimedep");
         TH1D *htimefit = (TH1D*)outdir->FindObject("htimefit");
         TH1D *hpt_notimedep = 0, *hpt_withtimedep = 0;
         double ktime = 1.;
 
-        if (!htimedep) {
+        if (!htimedep && _jp_dotimedep && dotimedep) {
 
           TH1D *h = (TH1D*)dir->Get("hpt");
           TH1D *hsel = (TH1D*)dir->Get("hselpt");
           TH1D *hpre = (TH1D*)dir->Get("hpt_pre");
-          //TH1D *hlumi0 = (TH1D*)dir->Get("../jt450/hlumi");
-
-          // Fix luminosity for unprescaled trigger
-          //string strg = dir->GetName();
-          //double lum0 = triglumi["jt450"];
-          //for (int i = 1; i != hlumi0->GetNbinsX()+1; ++i) {
-          //hlumi0->SetBinContent(i, lum0);
-          //}
 
           outdir->cd();
           if (h) hpt_notimedep = (TH1D*)h->Clone("hpt_notimedep");
           if (hpre && h) htimedep = (TH1D*)hpre->Clone("htimedep");
           if (hpre && h) htimedep->Divide(hpre,h);//,1,1,"B");
 
-          // Figure out trigger luminosities
-          double lumi = 0;
-          if (hlumi) lumi = hlumi->GetBinContent(1);
-          double lumi0 = 0;
-          if (hlumi0) lumi0 = hlumi0->GetBinContent(1);
-          if (htimedep && lumi && lumi0) {
-            htimedep->Scale(lumi / lumi0);
+          if (htimedep && lumi>0 && lumiref>0) {
+            htimedep->Scale(lumi/lumiref); // This sounds incorrect, idea from the old code
           }
 
           // Find proper pT range and fit
@@ -360,14 +372,11 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
         } // dotimedep
 
 
-        if (!(hpt->GetNbinsX()==peff->GetNbinsX() || isoth || isgen) ||
-            !(hpt->GetNbinsX()==hlumi->GetNbinsX() || isoth || isgen)) {
-          cerr << "Hist " << hpt->GetName() << " " << dir->GetName()
-               << " Nbins=" << hpt->GetNbinsX() << endl << flush;
+        if (!(hpt->GetNbinsX()==peff->GetNbinsX() || isoth || isgen) || isoth || isgen) {
           assert(hpt->GetNbinsX()==peff->GetNbinsX() || isoth);
-          assert(hpt->GetNbinsX()==hlumi->GetNbinsX() || isoth);
         }
 
+        // Lumi weighting and unnecessary stuff
         for (int i = 1; i != hpt->GetNbinsX()+1; ++i) {
 
           // Normalization for bin width in y, pT
@@ -387,20 +396,22 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           }
 
           // Normalization for luminosity
-          if (hlumi->GetBinContent(i)!=0 && !isoth && !isgen && !ispre)
-            norm *= hlumi->GetBinContent(i);
-          if (hlumi->GetBinContent(1)!=0 && isoth && !isgen && !ispre)
-            norm *= hlumi->GetBinContent(1);
-          if (hlumi0->GetBinContent(1)!=0 && !isoth && !isgen && ispre)
-            norm *= hlumi0->GetBinContent(1);
+          // Normalization for luminosity
+          if (lumi>0 && lumiref>0 && !isoth && !isgen && !ispre)
+            norm *= lumi/lumiref;
+          if (lumi>0 && isoth && !isgen && !ispre)
+            norm *= lumi;
+          if (lumiref && !isoth && !isgen && ispre)
+            norm *= lumiref;
 
           // Fix luminosity from .csv VTX to lumiCalc vdM
-          if (!_nh_mc) norm *= _lumiscale;
+          if (!_jp_ismc) norm *= _lumiscale;
           // Scale normalization for jackknife
           if (isjk) norm *= 0.9;
 
-          if (_nh_mc && _jp_pthatbins) norm *= 1.;
-          if (_nh_mc && !_jp_pthatbins) {
+          if (_jp_ismc && _jp_pthatbins) norm *= 1.;
+          // Let's divide by a magical number. This is totally OK.
+          if (_jp_ismc && !_jp_pthatbins) {
             norm /= 2500.; //(xsecw / (sumw * adhocw) ); // equals 2551.;
           }
 
@@ -410,49 +421,45 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
             norm *= ktime;
           }
 
-          if (!(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0 || isgen ||
-                iscalo || ispf5 || isoth || hpt->GetBinCenter(i)<_jp_recopt
-                || hpt->GetBinCenter(i)*cosh(etamid)>3500.)) {
-            cerr << "Hist " << hpt->GetName() << " " << dir->GetName()
-                 << " pt=" << hpt->GetBinCenter(i)
-                 << " etamid = " << etamid << endl << flush;
-            assert(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0||isgen||
-                   hpt->GetBinCenter(i)<_jp_recopt);
+          if (!(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0 || isgen || iscalo || ispf5 || isoth || hpt->GetBinCenter(i)<_jp_recopt || hpt->GetBinCenter(i)*cosh(etamid)>3500.)) {
+            cerr << "Hist " << hpt->GetName() << " " << dir->GetName() << " pt=" << hpt->GetBinCenter(i) << " etamid = " << etamid << endl << flush;
+            assert(peff->GetBinContent(i)!=0||hpt->GetBinContent(i)==0||isgen||hpt->GetBinCenter(i)<_jp_recopt);
           }
-          /*
-          if (!(hlumi->GetBinContent(i)!=0 || hpt->GetBinContent(i)==0
-                || isoth || isgen || hpt->GetBinCenter(i)<_jp_recopt)) {
-            cerr << "Hist " << hpt->GetName() << " " << dir->GetName()
-                 << " pt=" << hpt->GetBinCenter(i) << endl << flush;
-            assert(hlumi->GetBinContent(i)!=0 || hpt->GetBinContent(i)==0
-                   || isoth || hpt->GetBinCenter(i)<_jp_recopt);
-          }
-          */
 
           assert(norm!=0);
           hpt->SetBinContent(i, hpt->GetBinContent(i) / norm);
           hpt->SetBinError(i, hpt->GetBinError(i) / norm);
           if (hpt_notrigeff) {
-            hpt_notrigeff->SetBinContent(i, hpt_notrigeff->GetBinContent(i)
-                                         / norm * trigeff);
-            hpt_notrigeff->SetBinError(i, hpt_notrigeff->GetBinError(i)
-                                       / norm * trigeff);
+            hpt_notrigeff->SetBinContent(i, hpt_notrigeff->GetBinContent(i)/ norm * trigeff);
+            hpt_notrigeff->SetBinError(i, hpt_notrigeff->GetBinError(i)/ norm * trigeff);
           }
           if (hpt_notimedep) {
-            hpt_notimedep->SetBinContent(i, hpt_notimedep->GetBinContent(i)
-                                         / norm_notime);
-            hpt_notimedep->SetBinError(i, hpt_notimedep->GetBinError(i)
-                                       / norm_notime);
+            hpt_notimedep->SetBinContent(i, hpt_notimedep->GetBinContent(i)/ norm_notime);
+            hpt_notimedep->SetBinError(i, hpt_notimedep->GetBinError(i)/ norm_notime);
           }
           if (hpt_withtimedep) { // ktime already applied => use norm_notime
-            hpt_withtimedep->SetBinContent(i, hpt_withtimedep->GetBinContent(i)
-                                           / norm_notime);
-            hpt_withtimedep->SetBinError(i, hpt_withtimedep->GetBinError(i)
-                                         / norm_notime);
+            hpt_withtimedep->SetBinContent(i, hpt_withtimedep->GetBinContent(i)/ norm_notime);
+            hpt_withtimedep->SetBinError(i, hpt_withtimedep->GetBinError(i)/ norm_notime);
           }
         } // for i
-
-      } // hpt
+//////// hpt objects
+      } else {
+        // This is enough. For MC, lumi = lumiref = 1.
+        TString namehandle(name);
+        TRegexp re_profile("^p");
+        if (!namehandle.Contains(re_profile) && !namehandle.Contains("hlumi")) {
+          if (obj->InheritsFrom("TH3")) {
+            TH3D *handle = (TH3D*)obj2;
+            handle->Scale(lumiref/lumi);
+          } else if (obj->InheritsFrom("TH2")) {
+            TH2D *handle = (TH2D*)obj2;
+            handle->Scale(lumiref/lumi);
+          } else if (obj->InheritsFrom("TH1")) {
+            TH1D *handle = (TH1D*)obj2;
+            handle->Scale(lumiref/lumi);
+          }
+        }
+      }
 
       dir->cd();
     } // inherits from TH1

@@ -3,4 +3,13 @@ CondFormats
 *.root
 *_C*
 *.log
+*.so
+*.d
+*.txt
+*.pcm
+*.json*
+*.svn
+*.rootmap
+*doc*
+*tmp*
 pileup/Run*

@@ -1,3 +1,4 @@
+
 // Purpose: d'Agostini ("Bayesian" or Richardson-Lucy) unfolding, including
 //          response matrix generation from NLO theory and parameterized JER
 // Author:  mikko.voutilainen@cern.ch
@@ -65,13 +66,14 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   return (f * s);
 }
 
-// Smeared Ansatz
+// Smeared Ansatzz
 double _epsilon = 1e-12;
 TF1 *_kernel = 0; // global variable, not pretty but works
 Double_t smearedAnsatz(Double_t *x, Double_t *p) {
 
   const double pt = x[0];
   const double eta = p[0];
+  //const double eta = 0.0;
 
   if (!_kernel) _kernel = new TF1("_kernel", smearedAnsatzKernel,
 				  1., _jp_emax/cosh(eta), nk+2);
@@ -81,7 +83,10 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   double ptmin = pt / (1. + 4.*sigma); // xmin*(1+4*sigma)=x
   ptmin = max(1.,ptmin); // safety check
   double ptmax = pt / (1. - 3.*sigma); // xmax*(1-3*sigma)=x
+  cout << Form("1pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
   ptmax = min(_jp_emax/cosh(eta), ptmax); // safety check
+  cout << Form("2pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
+
 
   const double par[nk+2] = {pt, eta, p[1], p[2], p[3], p[4]};
   _kernel->SetParameters(&par[0]);
@@ -91,6 +96,7 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   if (p[6]>0 && p[6]<_jp_emax/cosh(eta)) ptmax = p[6];
 
   return ( _kernel->Integral(ptmin, ptmax, _epsilon) );
+  //  return ( 1.0); // integral fails due to nan ptmin ptmax
 }
 
 void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
@@ -104,9 +110,9 @@ void dagostiniUnfold(string type) {
   TFile *fin = new TFile(Form("output-%s-2b.root",type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
 
-  //TFile *fin2 = new TFile(Form("output-%s-2c.root",type.c_str()),"READ");
-  //TFile *fin2 = new TFile(Form("output-%s-2b.root",type.c_str()),"READ");
-  TFile *fin2 = new TFile(Form("output-%s-2c.root","MC"),"READ");
+  // TFile *fin2 = new TFile(Form("output-%s-2c.root",type.c_str()),"READ");
+  //  TFile *fin2 = new TFile(Form("output-%s-2b.root",type.c_str()),"READ");
+   TFile *fin2 = new TFile(Form("output-%s-2c.root","MC"),"READ");
   assert(fin2 && !fin2->IsZombie());
 
   TFile *fout = new TFile(Form("output-%s-3.root",type.c_str()),"RECREATE");
@@ -229,11 +235,14 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
                       "[0]*exp([1]/x)*pow(x,[2])"
                       "*pow(1-x*cosh([4])/[5],[3])", //10., 1000.);
 		      _jp_xmin, min(_jp_xmax, _jp_emax/cosh(y1)));
-  fnlo->SetParameters(2e14,-18,-5.2,8.9,y1,_jp_emax);
+  //fnlo->SetParameters(2e14,-18,-5.2,8.9,y1,_jp_emax);
+  fnlo->SetParameters(2e14*2e-10,-18,-5,10,y1,_jp_emax);
   fnlo->FixParameter(4,y1);
   fnlo->FixParameter(5,_jp_emax);
 
-  hnlo->Fit(fnlo,"QRN");
+  //hnlo->Fit(fnlo,"QRN");
+  hnlo->Scale(2e-10); // TEMP PATCH
+  hnlo->Fit(fnlo,"RN");
 
   // Graph of theory points with centered bins
   const double minerr = 0.02;
@@ -257,7 +266,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   }
 
   // Second fit to properly centered graph
-  gnlo2->Fit(fnlo,"QRN");
+  //gnlo2->Fit(fnlo,"QRN");
+  gnlo2->Fit(fnlo,"RN");
   
   // Bin-centered data points
   TGraphErrors *gpt = new TGraphErrors(0);
@@ -277,10 +287,12 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
   // Create smeared theory curve
   double maxpt = _jp_emax/cosh(y1);
+  cout << "y1 "<< y1 << " c "<< c <<endl<<flush;
   TF1 *fnlos = new TF1(Form("fs%s",c),smearedAnsatz,_jp_xmin,maxpt,nk+3);
   fnlos->SetParameters(y1, fnlo->GetParameter(0), fnlo->GetParameter(1),
                        fnlo->GetParameter(2), fnlo->GetParameter(3), 0, 0);
-
+  cout << "par0 "<< fnlos->GetParameter(0) << "y1 "<< y1<<endl<<flush; //WEIRD: Does not give back y1!!?? FIXME
+  
  if (_debug)
     cout << "Calculate forward smearing and unfold hpt" << endl << flush;
 
@@ -704,10 +716,12 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
     // Inputs and central method results
     hpt->Write("hpt");
-    hcorrpt_dag->Write("hcorrpt");
+    //hcorrpt_dag->Write("hcorrpt");
+    hpt->Write("hcorrpt"); // TEMP PATCH bypass
     hnlo->Write("hnlo");
     gpt->Write("gpt");
-    gcorrpt_dag->Write("gcorrpt");
+    //gcorrpt_dag->Write("gcorrpt");
+    gpt->Write("gcorrpt"); // TEMP PATCH bypass
     gnlo2->Write("gnlo");
     gfold_dag->Write("gfold");
 

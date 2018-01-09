@@ -1,34 +1,27 @@
 // Some helpful tools
 #include "tools.h"
 
-#include "TChain.h"
-#include "TMath.h"
-
-#include <fstream>
-#include <iostream>
-#include <string>
-
 using namespace std;
-using namespace tools;
+//using namespace tools;
 
 // Add a list of files to a TChain
 int tools::addFiles(TChain *c, string filelistname) {
-  
+
   ifstream filelist(filelistname.c_str(), ios::in);
   string filename;
   int igood(0), ibad(0);
-  
+
   while (filelist >> filename) {
-    
+
     if (c->AddFile(filename.c_str())) ++igood;
     else ++ibad;
   }
-  
-  cout << "Loaded " << igood << " files." << endl; 
+
+  cout << "Loaded " << igood << " files." << endl;
   if (ibad!=0)
     cerr << "Warning: failed to load " << ibad << " files  out of "
          << igood << endl;
-  
+
   return igood;
 }
 
@@ -55,7 +48,7 @@ void tools::swap(double &a, double &b) {
 
 // Vector manipulations
 vector<double> tools::make_vector(double *a, int na) {
-  
+
   vector<double> *vx = new vector<double>(na);
   for (int i = 0; i != na; ++i) (*vx)[i] = a[i];
 
@@ -120,7 +113,7 @@ TGraphErrors *tools::ratioGraphs(TGraphErrors *g1, TGraphErrors *g2,
 
   // take ratio only of points that are closer to each other than any others
   for (int i = 0, j = 0; (i != g1->GetN() && j != g2->GetN());) {
-    
+
     double x1m, x1p, x2m, x2p, y, ex, ey;
     GetPoint(g1, max(i-1,0), x1m, y, ex, ey);
     GetPoint(g1, min(i+1,g1->GetN()-1), x1p, y, ex, ey);
@@ -136,7 +129,7 @@ TGraphErrors *tools::ratioGraphs(TGraphErrors *g1, TGraphErrors *g2,
 
       int n = g->GetN();
       SetPoint(g, n, 0.5*(x1+x2), (y2 ? y1/y2 : 0.), 0.5*fabs(x1-x2),
-               oplus(ey1/y1, ey2/y2) * fabs(y2 ? y1/y2 : 0.) * erry); 
+               oplus(ey1/y1, ey2/y2) * fabs(y2 ? y1/y2 : 0.) * erry);
       ++i, ++j;
     }
     else
@@ -166,14 +159,14 @@ int tools::findPoint(TGraph *g, double x) {
   int k = 0;
   double dxmin = -1;
   for (int i = 0; i != g->GetN(); ++i) {
-    
+
     double dx = fabs(g->GetX()[i]-x);
     if (dx<=dxmin || dxmin<0) {
       dxmin = dx;
       k = i;
     }
   } // for i
-  
+
   return k;
 } // findPoint(TGraph*)
 
@@ -188,14 +181,14 @@ TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
   if (h2->GetNbinsX()>h1->GetNbinsX()) {
     h2r = Rebin(h2, h1); h2 = h2r;
   }
-  
+
   TH1D *h3 = (TH1D*)h1->Clone(Form("ratio_%s_%s",h1->GetName(),h2->GetName()));
   h3->Divide(h1, h2, c1, c2, opt);
 
   // delete temporary copies
-  if (h1r) h1r->Delete();
-  if (h2r) h2r->Delete();
-  
+  //if (h1r) h1r->Delete();
+  //if (h2r) h2r->Delete();
+
   return h3;
 } // Divide
 // Rebin first histogram to match the second
@@ -207,7 +200,7 @@ TH1D *tools::Rebin(const TH1D *h, const TH1D* href) {
          << h->GetNbinsX() << " vs " << href->GetNbinsX()
          << " for " << h->GetName() << endl;
   }
-  
+
   // First, we need to rebin inclusive jets to match b-tagged jets
   TH1D *hre = (TH1D*)href->Clone(Form("%s_rebin",h->GetName()));
   hre->Reset();
@@ -261,9 +254,9 @@ void tools::Hadd(TH1 *h1, TH1 *h2, double ptmax, bool syserr) {
 
       double y2 = h2->GetBinContent(j);
       double ey2 = h2->GetBinError(j);
-      
+
       //if (y1!=0 && y2!=0 && ey1!=0 && ey2!=0) {
-      
+
       double n1 = (ey1 ? 1./pow(ey1,2) : 0.);
       double n2 = (ey2 ? 1./pow(ey2,2) : 0.);
       if (y1!=0 && ey1==0) n1 = 1;

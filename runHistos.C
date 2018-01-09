@@ -4,9 +4,6 @@
 // Created:  June 4, 2010
 // Updated:  August 9, 2011
 #include "runHistos.h"
-#include "settings.h"
-
-#include "TMath.h"
 
 runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
   : lumsum(0) {
@@ -45,7 +42,7 @@ runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
 }
 
 runHistos::~runHistos() {
-  
+
   dir->cd();
 
   int nruns = lums.size();
@@ -212,5 +209,5 @@ runHistos::~runHistos() {
   } // for j
 
   dir->Write();
-  delete dir;
+  //delete dir;
 };

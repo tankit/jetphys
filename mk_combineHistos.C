@@ -3,11 +3,8 @@
 // Created: March 22, 2010
 // Updated: June 2, 2015
 {
-
   // compile code
   gROOT->ProcessLine(".L combineHistos.C+g");
 
-  #include "settings.h"
-
-  combineHistos(_jp_type);
+  combineHistos();
 }

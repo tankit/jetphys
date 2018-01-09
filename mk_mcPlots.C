@@ -5,12 +5,12 @@
     gROOT->ProcessLine(".L tools.C");
     gROOT->ProcessLine(".L drawFracs.C");
 
-    string path="RR_FlateG/";
+    string path="./";
     string title="RunFgG";
 
-    drawFracs(0,path,path,title,"hwpdf","HW");
-    drawFracs(1,path,path,title,"hwpdf","HW");
-    drawFracs(2,path,path,title,"hwpdf","HW");
+    //drawFracs(0,path,path,title,"hwpdf","HW");
+    //drawFracs(1,path,path,title,"hwpdf","HW");
+    //drawFracs(2,path,path,title,"hwpdf","HW");
 
     drawFracs(0,path,path,title,"pypdf");
     drawFracs(1,path,path,title,"pypdf");

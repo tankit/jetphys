@@ -22,30 +22,25 @@
 using namespace std;
 
 TH1D *recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt",
-                  bool atBottom = false, TH1D *_hpt = 0, double etamid = 0);
+                  bool ptSelect = true,bool atBottom = false, TH1D *_hpt = 0, double etamid = 0);
 map<string, pair<double, double> > _ptranges;
 map<string, map<int, pair<double, double> > > _massranges;
 
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
-bool _ch_dt = false;
-bool _ch_mc = false;
 
-void combineHistos(string type) {
-
-  _ch_dt = (type=="DATA");
-  _ch_mc = !_ch_dt;
+void combineHistos() {
   
   TDirectory *curdir = gDirectory;
 
-  TFile *fin = new TFile(Form("output-%s-2a.root",type.c_str()),"READ");
+  TFile *fin = new TFile(Form("output-%s-2a.root",_jp_type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
   _top = gDirectory;
 
-  TFile *fout = new TFile(Form("output-%s-2b.root",type.c_str()),"RECREATE");
+  TFile *fout = new TFile(Form("output-%s-2b.root",_jp_type.c_str()),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  cout << "Calling combineHistos("<<type<<");" << endl;
+  cout << "Calling combineHistos("<<_jp_type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
@@ -56,7 +51,8 @@ void combineHistos(string type) {
     _ptranges[_jp_triggers[itrg]] =
       pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
 
-    if (_ch_mc && _jp_usemctrig) {
+    // 
+    if (_jp_ismc && _jp_usemctrig) {
       _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
       _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
     }
@@ -74,49 +70,15 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "hpt_withtimedep");
   recurseFile(fin, fout, "htimedep");
   recurseFile(fin, fout, "htimefit");
-  if (_ch_dt) recurseFile(fin, fout, "hlumi");
-  if (_ch_dt) recurseFile(fin, fout, "hlumi_orig");
+  if (!_jp_ismc) recurseFile(fin, fout, "hlumi");
+  if (!_jp_ismc) recurseFile(fin, fout, "hlumi_orig");
 
   recurseFile(fin, fout, "hpt_evt");
   recurseFile(fin, fout, "hpt_evtcount");
   recurseFile(fin, fout, "hpt_evt");
   recurseFile(fin, fout, "hpt_jet");
 
-  if (_jp_ak4ak8) {
-
-    recurseFile(fin, fout, "hpt_ak5pf");
-    recurseFile(fin, fout, "hpt_evtcount_ak5pf");
-    recurseFile(fin, fout, "hpt_evt_ak5pf");
-    recurseFile(fin, fout, "hpt_jet_ak5pf");
-    //
-    recurseFile(fin, fout, "hpt_ak4ak8");
-    recurseFile(fin, fout, "hpt_ak4ak8m1");
-    recurseFile(fin, fout, "hpt_ak4ak8m2");
-    recurseFile(fin, fout, "hpt_ak4ak8p1");
-    //
-    recurseFile(fin, fout, "hpt_ak5ak5");
-    recurseFile(fin, fout, "hpt_ak5ak5m1");
-    recurseFile(fin, fout, "hpt_ak5ak5m2");
-    recurseFile(fin, fout, "hpt_ak5ak5p1");
-    //
-    recurseFile(fin, fout, "hpt_ak7ak7");
-    recurseFile(fin, fout, "hpt_ak7ak7m1");
-    recurseFile(fin, fout, "hpt_ak7ak7m2");
-    recurseFile(fin, fout, "hpt_ak7ak7p1");
-    //
-    recurseFile(fin, fout, "hpt_jk1");
-    recurseFile(fin, fout, "hpt_jk2");
-    recurseFile(fin, fout, "hpt_jk3");
-    recurseFile(fin, fout, "hpt_jk4");
-    recurseFile(fin, fout, "hpt_jk5");
-    recurseFile(fin, fout, "hpt_jk6");
-    recurseFile(fin, fout, "hpt_jk7");
-    recurseFile(fin, fout, "hpt_jk8");
-    recurseFile(fin, fout, "hpt_jk9");
-    recurseFile(fin, fout, "hpt_jk10");
-  }
-
-  if (_ch_mc) recurseFile(fin, fout, "hpt_g0tw");
+  if (_jp_ismc) recurseFile(fin, fout, "hpt_g0tw");
 
   recurseFile(fin, fout, "hpt0");
   recurseFile(fin, fout, "hpt1");
@@ -189,8 +151,73 @@ void combineHistos(string type) {
 
   recurseFile(fin, fout, "hdjasymm");
   recurseFile(fin, fout, "hdjasymmtp");
+  recurseFile(fin, fout, "hdjasymmpt");
   recurseFile(fin, fout, "hdjmpf");
   recurseFile(fin, fout, "hdjmpftp");
+  recurseFile(fin, fout, "hdjmpfpt");
+
+  recurseFile(fin, fout, "hdjasymm_a005");
+  recurseFile(fin, fout, "hdjasymmtp_a005");
+  recurseFile(fin, fout, "hdjasymmpt_a005");
+  recurseFile(fin, fout, "hdjmpf_a005");
+  recurseFile(fin, fout, "hdjmpftp_a005");
+  recurseFile(fin, fout, "hdjmpfpt_a005");
+  recurseFile(fin, fout, "hdjasymm_a01");
+  recurseFile(fin, fout, "hdjasymmtp_a01");
+  recurseFile(fin, fout, "hdjasymmpt_a01");
+  recurseFile(fin, fout, "hdjmpf_a01");
+  recurseFile(fin, fout, "hdjmpftp_a01");
+  recurseFile(fin, fout, "hdjmpfpt_a01");
+  recurseFile(fin, fout, "hdjasymm_a015");
+  recurseFile(fin, fout, "hdjasymmtp_a015");
+  recurseFile(fin, fout, "hdjasymmpt_a015");
+  recurseFile(fin, fout, "hdjmpf_a015");
+  recurseFile(fin, fout, "hdjmpftp_a015");
+  recurseFile(fin, fout, "hdjmpfpt_a015");
+  recurseFile(fin, fout, "hdjasymm_a02");
+  recurseFile(fin, fout, "hdjasymmtp_a02");
+  recurseFile(fin, fout, "hdjasymmpt_a02");
+  recurseFile(fin, fout, "hdjmpf_a02");
+  recurseFile(fin, fout, "hdjmpftp_a02");
+  recurseFile(fin, fout, "hdjmpfpt_a02");
+  recurseFile(fin, fout, "hdjasymm_a025");
+  recurseFile(fin, fout, "hdjasymmtp_a025");
+  recurseFile(fin, fout, "hdjasymmpt_a025");
+  recurseFile(fin, fout, "hdjmpf_a025");
+  recurseFile(fin, fout, "hdjmpftp_a025");
+  recurseFile(fin, fout, "hdjmpfpt_a025");
+  recurseFile(fin, fout, "hdjasymm_a03");
+  recurseFile(fin, fout, "hdjasymmtp_a03");
+  recurseFile(fin, fout, "hdjasymmpt_a03");
+  recurseFile(fin, fout, "hdjmpf_a03");
+  recurseFile(fin, fout, "hdjmpftp_a03");
+  recurseFile(fin, fout, "hdjmpfpt_a03");
+
+  recurseFile(fin, fout, "hdjresp_tag_a005");
+  recurseFile(fin, fout, "hdjresptp_tag_a005");
+  recurseFile(fin, fout, "hdjresp_tag_a01");
+  recurseFile(fin, fout, "hdjresptp_tag_a01");
+  recurseFile(fin, fout, "hdjresp_tag_a015");
+  recurseFile(fin, fout, "hdjresptp_tag_a015");
+  recurseFile(fin, fout, "hdjresp_tag_a02");
+  recurseFile(fin, fout, "hdjresptp_tag_a02");
+  recurseFile(fin, fout, "hdjresp_tag_a025");
+  recurseFile(fin, fout, "hdjresptp_tag_a025");
+  recurseFile(fin, fout, "hdjresp_tag_a03");
+  recurseFile(fin, fout, "hdjresptp_tag_a03");
+  
+  recurseFile(fin, fout, "hdjresp_probe_a005");
+  recurseFile(fin, fout, "hdjresptp_probe_a005");
+  recurseFile(fin, fout, "hdjresp_probe_a01");
+  recurseFile(fin, fout, "hdjresptp_probe_a01");
+  recurseFile(fin, fout, "hdjresp_probe_a015");
+  recurseFile(fin, fout, "hdjresptp_probe_a015");
+  recurseFile(fin, fout, "hdjresp_probe_a02");
+  recurseFile(fin, fout, "hdjresptp_probe_a02");
+  recurseFile(fin, fout, "hdjresp_probe_a025");
+  recurseFile(fin, fout, "hdjresptp_probe_a025");
+  recurseFile(fin, fout, "hdjresp_probe_a03");
+  recurseFile(fin, fout, "hdjresptp_tag_a03");
 
   recurseFile(fin, fout, "hdjmass0");
   recurseFile(fin, fout, "hdjmass0_hgg");
@@ -203,7 +230,7 @@ void combineHistos(string type) {
   recurseFile(fin, fout, "hpt_l1fast");
   recurseFile(fin, fout, "hpt_l1off");
 
-  if (_ch_dt) recurseFile(fin, fout, "peff_new");
+  if (!_jp_ismc) recurseFile(fin, fout, "peff_new");
 
   recurseFile(fin, fout, "pemf");
   recurseFile(fin, fout, "pemftp");
@@ -241,9 +268,8 @@ void combineHistos(string type) {
 } // normalizeHistos
 
 
-TH1D* recurseFile(TDirectory *indir,
-                  TDirectory *outdir, string hname,
-                  bool atBottom, TH1D *_hpt, double etamid) {
+TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
+                  bool ptSelect, bool atBottom, TH1D *_hpt, double etamid) {
 
   TDirectory *curdir = gDirectory;
 
@@ -259,7 +285,8 @@ TH1D* recurseFile(TDirectory *indir,
     string classname = ((TKey*)key)->GetClassName();
     string kname = key->GetName();
     if (classname=="TDirectoryFile" || kname==hname) {
-      obj = ((TKey*)key)->ReadObj(); assert(obj);
+      obj = ((TKey*)key)->ReadObj();
+      assert(obj);
     }
     else {
       continue;
@@ -290,18 +317,23 @@ TH1D* recurseFile(TDirectory *indir,
       if ( (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2)
          && (etamax>etamin) ) {
 
-        _hpt = recurseFile(indir2, outdir2, hname, true, _hpt,
+        _hpt = recurseFile(indir2, outdir2, hname, ptSelect, true, _hpt,
                0.5*(etamin+etamax));
         if (_hpt) {
           outdir2->cd();
           _hpt->Write();
           _hpt = 0;
         }
+      } else if (TString(indir2->GetName()).Contains("FullEta")) {
+        _hpt = recurseFile(indir2, outdir2, hname, ptSelect, true, _hpt, etamid);
+        if (_hpt) {
+          outdir2->cd();
+          _hpt->Write();
+          _hpt = 0;
+        }
+      } else {
+        _hpt = recurseFile(indir2, outdir2, hname, ptSelect, atBottom, _hpt, etamid);
       }
-      else {
-        _hpt = recurseFile(indir2, outdir2, hname, atBottom, _hpt, etamid);
-      }
-
     } // inherits from TDirectory
 
     // Flatten TProfile to TH1D for later processing
@@ -348,21 +380,24 @@ TH1D* recurseFile(TDirectory *indir,
       double ptmax = _ptranges[indir->GetName()].second;
 
       TH3D *_hpt3 = (TH3D*)_hpt;
-      for (int i = 1; i != _hpt3->GetNbinsX()+1; ++i) {
-        
-        double pt = _hpt3->GetXaxis()->GetBinCenter(i);
-        if (pt > ptmin && pt < ptmax) {
-        
-          for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
-            for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
-        
-              _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
-              _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
-            } // for l
-          } // for j
-        } // in ptrange
-      } // for i
-
+      if (ptSelect) {
+        for (int i = 1; i != _hpt3->GetNbinsX()+1; ++i) {
+          
+          double pt = _hpt3->GetXaxis()->GetBinCenter(i);
+          if (pt > ptmin && pt < ptmax) {
+          
+            for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
+              for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
+          
+                _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
+                _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
+              } // for l
+            } // for j
+          } // in ptrange
+        } // for i
+      } else {
+        _hpt3->Add(hpt3);
+      }
     } // TH3
     else if (kname==hname && obj->InheritsFrom("TH2")) {
 
@@ -385,18 +420,22 @@ TH1D* recurseFile(TDirectory *indir,
       double ptmax = _ptranges[indir->GetName()].second;
 
       TH2D *_hpt2 = (TH2D*)_hpt;
-      for (int i = 1; i != _hpt2->GetNbinsX()+1; ++i) {
-        
-        double pt = _hpt2->GetXaxis()->GetBinCenter(i);
-        if (pt > ptmin && pt < ptmax) {
-        
-          for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
-        
-              _hpt2->SetBinContent(i,j, hpt2->GetBinContent(i,j));
-              _hpt2->SetBinError(i,j, hpt2->GetBinError(i,j));
-          } // for j
-        } // in ptrange
-      } // for i
+      if (ptSelect) {
+        for (int i = 1; i != _hpt2->GetNbinsX()+1; ++i) {
+          
+          double pt = _hpt2->GetXaxis()->GetBinCenter(i);
+          if (pt > ptmin && pt < ptmax) {
+          
+            for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
+          
+                _hpt2->SetBinContent(i,j, hpt2->GetBinContent(i,j));
+                _hpt2->SetBinError(i,j, hpt2->GetBinError(i,j));
+            } // for j
+          } // in ptrange
+        } // for i
+      } else {
+        _hpt2->Add(hpt2);
+      }
 
     } // TH2
     else if (kname==hname && obj->InheritsFrom("TH1")) {
@@ -430,15 +469,19 @@ TH1D* recurseFile(TDirectory *indir,
         if (ptmax==0) ptmax = 3000.;
       } // mass histo
 
-      for (int i = 1; i != _hpt->GetNbinsX()+1; ++i) {
-        
-        double pt = _hpt->GetBinCenter(i);
-        if (pt > ptmin && pt < ptmax) {
+      if (ptSelect) {
+        for (int i = 1; i != _hpt->GetNbinsX()+1; ++i) {
           
-          _hpt->SetBinContent(i, hpt->GetBinContent(i));
-          _hpt->SetBinError(i, hpt->GetBinError(i));
-        } // in ptrange
-      } // for i
+          double pt = _hpt->GetBinCenter(i);
+          if (pt > ptmin && pt < ptmax) {
+            
+            _hpt->SetBinContent(i, hpt->GetBinContent(i));
+            _hpt->SetBinError(i, hpt->GetBinError(i));
+          } // in ptrange
+        } // for i
+      } else {
+        _hpt->Add(hpt);
+      }
 
     } // TH1D
 

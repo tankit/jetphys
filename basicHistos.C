@@ -109,14 +109,28 @@ double vx[neta][nbins] =
   }
   const int npv = pv.size()-1;
 
+  // new histograms for quark/gluon study (Ozlem)
+  hgpt = new TH1D("hgpt","",nx,&x[0]);
+  hgpt0 = new TH1D("hgpt0","",6500,0.,6500.);
+
+  hqgl = new TH1D("hqgl","",101,0,1.01);
+  hqgl_q = new TH1D("hqgl_q","",101,0,1.01);
+  hqgl_g = new TH1D("hqgl_g","",101,0,1.01);
+  hqgl_dq = new TH1D("hqgl_dq","",101,0,1.01);
+  hqgl_dg = new TH1D("hqgl_dg","",101,0,1.01);
 
   // raw spectrum
   hpt = new TH1D("hpt","",nx,&x[0]);
   hpt_pre = new TH1D("hpt_pre","",nx,&x[0]); // prescale weighed
   hpt_gtw = new TH1D("hpt_gtw","",nx,&x[0]); // _mc per trigger
   hpt_g0tw = new TH1D("hpt_g0tw","",nx,&x[0]); // _mc per trigger
-
+  hgpt_g0tw = new TH1D("hgpt_g0tw","",nx,&x[0]);//Ozlem
+  hqpt_g0tw = new TH1D("hqpt_g0tw","",nx,&x[0]);//Ozlem
+  hgpt_g0 = new TH1D("hgpt_g0","",nx,&x[0]);//Ozlem
+  hqpt_g0 = new TH1D("hqpt_g0","",nx,&x[0]);//Ozlem
   hcopt = new TH1D("hcopt","",nx,&x[0]);
+
+
   hpt_noid = new TH1D("hpt_noid","",nx,&x[0]);
   hpt_nojetid = new TH1D("hpt_nojetid","",nx,&x[0]);
   hpt_noevtid = new TH1D("hpt_noevtid","",nx,&x[0]);
@@ -224,6 +238,16 @@ double vx[neta][nbins] =
   pideff = new TProfile("pideff","",nx,&x[0]);
   pvtxeff = new TProfile("pvtxeff","",nx,&x[0]);
   pdqmeff = new TProfile("pdqmeff","",nx,&x[0]);
+
+  // components vs eta (Ozlem)
+  pchftp_vseta = new TProfile("pchftp_vseta","",104,-5.2,5.2);
+  pneftp_vseta = new TProfile("pneftp_vseta","",104,-5.2,5.2);
+  pnhftp_vseta = new TProfile("pnhftp_vseta","",104,-5.2,5.2);
+  pceftp_vseta = new TProfile("pceftp_vseta","",104,-5.2,5.2);
+  pmuftp_vseta = new TProfile("pmuftp_vseta","",104,-5.2,5.2);
+  pbetatp_vseta = new TProfile("pbetatp_vseta","",104,-5.2,5.2);
+  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",104,-5.2,5.2);
+ // all the other fraction: chf, nef, cef, muf, beta
 
   // control plots of components (JEC)
   pncand = new TProfile("pncand","",nx0,&x0[0]);
@@ -388,38 +412,6 @@ double vx[neta][nbins] =
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpftp = new TH3D("hdjmpftp",";p_{T,tag};p_{T,3rd}/p_{T,tag};MPF",
 		      nx,&x[0],n3,&v3[0],na,&va[0]);
-  hdjasymm_a01 = new TH3D("hdjasymm_a01",";p_{T,ave};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a01 = new TH3D("hdjmpf_a01",";p_{T,ave};#eta;MPF",
-		    nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a01 = new TH3D("hdjasymmtp_a01",";p_{T,tag};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a01 = new TH3D("hdjmpftp_a01",";p_{T,tag};#eta;MPF",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a015 = new TH3D("hdjasymm_a015",";p_{T,ave};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a015 = new TH3D("hdjmpf_a015",";p_{T,ave};#eta;MPF",
-		    nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a015 = new TH3D("hdjasymmtp_a015",";p_{T,tag};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a015 = new TH3D("hdjmpftp_a015",";p_{T,tag};#eta;MPF",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a02 = new TH3D("hdjasymm_a02",";p_{T,ave};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a02 = new TH3D("hdjmpf_a02",";p_{T,ave};#eta;MPF",
-		    nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a02 = new TH3D("hdjasymmtp_a02",";p_{T,tag};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a02 = new TH3D("hdjmpftp_a02",";p_{T,tag};#eta;MPF",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymm_a03 = new TH3D("hdjasymm_a03",";p_{T,ave};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpf_a03 = new TH3D("hdjmpf_a03",";p_{T,ave};#eta;MPF",
-		    nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjasymmtp_a03 = new TH3D("hdjasymmtp_a03",";p_{T,tag};#eta;Asymmetry",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
-  hdjmpftp_a03 = new TH3D("hdjmpftp_a03",";p_{T,tag};#eta;MPF",
-		      nx,&x[0],netas,&etarange[0],na,&va[0]);
 
   hr21 = new TH1D("hr21",";pt2/pt1",50,0.,1.);
   hr31 = new TH1D("hr31",";pt3/pt1",50,0.,1.);
@@ -448,23 +440,7 @@ double vx[neta][nbins] =
   hdjasymm->Sumw2();
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
-  hdjmpftp->Sumw2();
-  hdjasymm_a01->Sumw2();
-  hdjmpf_a01->Sumw2();
-  hdjasymmtp_a01->Sumw2();
-  hdjmpftp_a01->Sumw2();
-  hdjasymm_a015->Sumw2();
-  hdjmpf_a015->Sumw2();
-  hdjasymmtp_a015->Sumw2();
-  hdjmpftp_a015->Sumw2();
-  hdjasymm_a02->Sumw2();
-  hdjmpf_a02->Sumw2();
-  hdjasymmtp_a02->Sumw2();
-  hdjmpftp_a02->Sumw2();
-  hdjasymm_a03->Sumw2();
-  hdjmpf_a03->Sumw2();
-  hdjasymmtp_a03->Sumw2();
-  hdjmpftp_a03->Sumw2();
+  hdjmpftp->Sumw2(); 
 
 
   // MC checks
@@ -527,10 +503,11 @@ double vx[neta][nbins] =
     hpt_gg = new TH1D("hpt_gg","",nx,&x[0]);
     hpt_gg0 = new TH1D("hpt_gg0","",nx,&x[0]);
     hpt_g0 = new TH1D("hpt_g0","",nx,&x[0]);
+    hgpt_g = new TH1D("hgpt_g","",nx,&x[0]);//Ozlem
+    hqpt_g = new TH1D("hqpt_g","",nx,&x[0]);//Ozlem
     hpt_g0_tmp = new TH1D("hpt_g0_tmp","",nx,&x[0]);
     ppt_r = new TProfile("ppt_r","",nx,&x[0]);
     ppt_g = new TProfile("ppt_g","",nx,&x[0]);
-
     const double nj = 3;
     vector<double> vnj(nj+1); vnj[0]=0; vnj[1]=1; vnj[2]=2; vnj[3]=3;
 
@@ -587,7 +564,7 @@ double vx[neta][nbins] =
 basicHistos::~basicHistos() {
   
   dir->cd();
-  hpttmp->Delete();
+  //hpttmp->Delete();
   dir->Write();
-  delete dir;
+  //delete dir;
 };
