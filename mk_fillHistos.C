@@ -36,8 +36,8 @@ R__LOAD_LIBRARY(fillHistos.C+g) // g for assert to work
 void mk_fillHistos() {
 
   string algo = "ak4";
-  if (_jp_algo=="AK8") algo = "ak8";
-  if (_jp_algo=="AK4") algo = "ak4";
+  if (strings_equal(_jp_algo,"AK8")) algo = "ak8";
+  if (strings_equal(_jp_algo,"AK4")) algo = "ak4";
 
   // This is already included in the .C files above
   // Including it again breaks CLING in ROOT 6.04.10
@@ -48,16 +48,16 @@ void mk_fillHistos() {
   //const char* p = "/Volumes/LaCie/data_2017/SMPJ/data/";
   //const char* p = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
 
-  if (_jp_type=="DATA") {
+  if (_jp_isdt) {
     cout << "Running over DT" << endl;
     cout << "Load trees..." << endl;
 
-    if (_jp_run=="RunB17") {
+    if (strings_equal(_jp_run,"RunB17")) {
       const char* ps = "Data/2017/";
       c->AddFile(Form("%s%sRunB-2017-part1.root",p,ps));
       c->AddFile(Form("%s%sRunB-2017-part2.root",p,ps));
       c->AddFile(Form("%s%sRunB-2017-part3.root",p,ps));
-    } else if (_jp_run=="RunB16") {
+    } else if (strings_equal(_jp_run,"RunB16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart2.root",p,ps));
@@ -65,35 +65,35 @@ void mk_fillHistos() {
       c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart4.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart5.root",p,ps));
       //c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart6.root",p,ps));
-    } else if (_jp_run=="RunC16") {
+    } else if (strings_equal(_jp_run,"RunC16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p,ps));
-    } else if (_jp_run=="RunD16") {
+    } else if (strings_equal(_jp_run,"RunD16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
-    } else if(_jp_run=="RunE16") {
+    } else if (strings_equal(_jp_run,"RunE16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
-    } else if(_jp_run=="RunFearly16") {
+    } else if (strings_equal(_jp_run,"RunFearly16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
-    } else if(_jp_run=="RunFlate16") {
+    } else if (strings_equal(_jp_run,"RunFlate16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
-    } else if(_jp_run=="RunG16") {
+    } else if (strings_equal(_jp_run,"RunG16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart2.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart3.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart4.root",p,ps));
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p,ps));
-    } else if(_jp_run=="RunH16") {
+    } else if (strings_equal(_jp_run,"RunH16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
       c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
@@ -103,8 +103,7 @@ void mk_fillHistos() {
     } else {
       cout << "Enter a proper value for _jp_run!" << endl;
     }
-
-  } else if (_jp_type=="MC") {
+  } else if (_jp_ispy) {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins in pythia8" << endl;
       cout << "Load trees..." << endl;
@@ -130,7 +129,7 @@ void mk_fillHistos() {
       cout << "Load trees..." << endl;
       c->AddFile(Form("%sP825ns80X/QCD_Pt-15to7000_TuneCUETP8M1_Flat_13TeV_pythia8.root",p));
     }
-  } else if (_jp_type=="HW") {
+  } else if (_jp_ishw) {
     if (_jp_pthatbins) {
       cout << "Running over pthat bins" << endl;
 
