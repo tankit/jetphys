@@ -1621,7 +1621,7 @@ void fillHistos::fillBasic(basicHistos *h)
       h->pmpf2->Fill(pt, 1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
 
       // MC extras
-      if (_jp_ismc and jtgenr[jetidx]<0.25) {
+      if (h->ismc and jtgenr[jetidx]<0.25) {
         h->hpt_gtw->Fill(jtgenpt[jetidx], _w);
         if (_jt_debug) {
           cout << "genmatch " << jetidx << " ptg="<<jtgenpt[jetidx] << " yg="<<jtgeny[jetidx] << " yr="<< y << endl;

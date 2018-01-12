@@ -15,7 +15,7 @@ using namespace std;
 basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
 			 double etamin, double etamax,
 			 double pttrg, double ptmin, double ptmax,
-			 bool ismc)
+			 bool ismcdir)
   : lumsum(0), lumsum2(0) {
 
   TDirectory *curdir = gDirectory;
@@ -322,7 +322,7 @@ double vx[neta][nbins] =
   pmuftp_vstrpu = new TProfile("pmuftp_vstrpu","",50,-0.5,49.5);
   pbetatp_vstrpu = new TProfile("pbetatp_vstrpu","",50,-0.5,49.5);
   pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",50,-0.5,49.5);
-  this->ismc = ismc;
+  this->ismcdir = ismcdir;
 
   //pncand->Sumw2();
   //pnch->Sumw2();
@@ -436,7 +436,7 @@ double vx[neta][nbins] =
   // MC checks
   //htrpu = new TH1D("htrpu","",100,-0.5,99.5);
   htrpu = new TH1D("htrpu","",120,0.,60.); // for PU reweighing
-  if (this->ismc) {
+  if (this->ismcdir) {
     //hpt_jt30 = new TH1D("hpt_jt30","",nx,&x[0]);
     //hpt_jt60 = new TH1D("hpt_jt60","",nx,&x[0]);
     //hpt_jt110 = new TH1D("hpt_jt110","",nx,&x[0]);
@@ -546,7 +546,7 @@ double vx[neta][nbins] =
     //pdy_r->Sumw2();
     //pdy_g->Sumw2();
 
-  } // ismc
+  } // ismcdir
 
   curdir->cd();
 }

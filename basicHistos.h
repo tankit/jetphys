@@ -29,7 +29,7 @@ class basicHistos {
   double pttrg;
   double ptmin;
   double ptmax;
-  bool ismc;
+  bool ismcdir;
 
   // new histograms for quark/gluon study (Ozlem)
   TH1D *hgpt;
@@ -373,10 +373,8 @@ class basicHistos {
   TProfile2D *pdy_r;
   TProfile2D *pdy_g;
 
-  basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="",
-	      double etamin = 0., double etamax = 2.0,
-	      double pttrg = 10., double ptmin = 10., double ptmax = 50.,
-	      bool ismc = false);
+  basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="", double etamin = 0., 
+        double etamax = 2.0, double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
   ~basicHistos();
 
 // private:
