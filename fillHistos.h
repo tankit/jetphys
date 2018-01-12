@@ -308,6 +308,7 @@ public :
   Float_t         bsy;
   //
   Int_t           njt;
+  Int_t           jt3leads[3]; // The three leading jets
   static const Int_t _njt = 250;//100;//90;//kMaxPFJets_;
   Double_t        *jtp4x;//[_njt];   //[njt]
   Double_t        *jtp4y;//[_njt];   //[njt]
@@ -447,7 +448,7 @@ public :
   void fillMcHisto(mcHistos *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
   void writeMcHistos();
 
-  void initRunHistos(string name, double ymin, double ymax);
+  void initRunHistos(string name, double etamin, double etamax);
   void fillRunHistos(string name);
   void writeRunHistos();
 
@@ -455,9 +456,7 @@ public :
 
   void getTriggers();
 
-  // Move to simpleMath.h later
-  inline double delta_phi(double phi1, double phi2) {
-
+  inline double delta_phi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
   }
@@ -467,7 +466,7 @@ private:
   Long64_t _entry;
   double _xsecMinBias;
   double _w, _w0;
-  map<string, double> _wt;
+  map<string, double> _wt; // Mainly for trigger pileup weigths
 
   vector<int> _jkmore;
   map<Int_t, Int_t> _outlist;
@@ -647,59 +646,59 @@ void fillHistos::Init(TTree *tree)
   fChain->SetBranchAddress("GenJets_.fCoordinates.fY", GenJets__fCoordinates_fY, &b_GenJets__fCoordinates_fY);
   fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", GenJets__fCoordinates_fZ, &b_GenJets__fCoordinates_fZ);
   fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT, &b_GenJets__fCoordinates_fT);
-  fChain->SetBranchAddress(Form("PFJets%s_",_jp_chs.c_str()), &PFJetsCHS__, &b_events_PFJetsCHS__);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",_jp_chs.c_str()), PFJetsCHS__P4__fCoordinates_fX, &b_PFJetsCHS__P4__fCoordinates_fX);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fY",_jp_chs.c_str()), PFJetsCHS__P4__fCoordinates_fY, &b_PFJetsCHS__P4__fCoordinates_fY);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fZ",_jp_chs.c_str()), PFJetsCHS__P4__fCoordinates_fZ, &b_PFJetsCHS__P4__fCoordinates_fZ);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fT",_jp_chs.c_str()), PFJetsCHS__P4__fCoordinates_fT, &b_PFJetsCHS__P4__fCoordinates_fT);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",_jp_chs.c_str()), PFJetsCHS__genP4__fCoordinates_fX, &b_PFJetsCHS__genP4__fCoordinates_fX);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",_jp_chs.c_str()), PFJetsCHS__genP4__fCoordinates_fY, &b_PFJetsCHS__genP4__fCoordinates_fY);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",_jp_chs.c_str()), PFJetsCHS__genP4__fCoordinates_fZ, &b_PFJetsCHS__genP4__fCoordinates_fZ);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",_jp_chs.c_str()), PFJetsCHS__genP4__fCoordinates_fT, &b_PFJetsCHS__genP4__fCoordinates_fT);
-  fChain->SetBranchAddress(Form("PFJets%s_.genR_",_jp_chs.c_str()), PFJetsCHS__genR_, &b_PFJetsCHS__genR_);
-  fChain->SetBranchAddress(Form("PFJets%s_.cor_",_jp_chs.c_str()), PFJetsCHS__cor_, &b_PFJetsCHS__cor_);
-  fChain->SetBranchAddress(Form("PFJets%s_.jecLabels_",_jp_chs.c_str()), PFJetsCHS__jecLabels_, &b_PFJetsCHS__jecLabels_);
-  fChain->SetBranchAddress(Form("PFJets%s_.unc_",_jp_chs.c_str()), PFJetsCHS__unc_, &b_PFJetsCHS__unc_);
-  fChain->SetBranchAddress(Form("PFJets%s_.uncSrc_",_jp_chs.c_str()), PFJetsCHS__uncSrc_, &b_PFJetsCHS__uncSrc_);
-  fChain->SetBranchAddress(Form("PFJets%s_.area_",_jp_chs.c_str()), PFJetsCHS__area_, &b_PFJetsCHS__area_);
-  fChain->SetBranchAddress(Form("PFJets%s_.looseID_",_jp_chs.c_str()), PFJetsCHS__looseID_, &b_PFJetsCHS__looseID_);
-  fChain->SetBranchAddress(Form("PFJets%s_.tightID_",_jp_chs.c_str()), PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
-  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfPositive_",_jp_chs.c_str()), PFJetsCHS__CSVpfPositive_, &b_PFJetsCHS__CSVpfPositive_);
-  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfNegative_",_jp_chs.c_str()), PFJetsCHS__CSVpfNegative_, &b_PFJetsCHS__CSVpfNegative_);
-  //fChain->SetBranchAddress(Form("PFJets%s_.boosted_",_jp_chs.c_str()), PFJetsCHS__boosted_, &b_PFJetsCHS__boosted_);
-  fChain->SetBranchAddress(Form("PFJets%s_.QGtagger_",_jp_chs.c_str()), PFJetsCHS__QGtagger_, &b_PFJetsCHS__QGtagger_);
-  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavour_",_jp_chs.c_str()), PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hadronFlavour_",_jp_chs.c_str()), PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
-  fChain->SetBranchAddress(Form("PFJets%s_.recommend1_",_jp_chs.c_str()), PFJetsCHS__recommend1_, &b_PFJetsCHS__recommend1_);
-  fChain->SetBranchAddress(Form("PFJets%s_.recommend2_",_jp_chs.c_str()), PFJetsCHS__recommend2_, &b_PFJetsCHS__recommend2_);
-  fChain->SetBranchAddress(Form("PFJets%s_.recommend3_",_jp_chs.c_str()), PFJetsCHS__recommend3_, &b_PFJetsCHS__recommend3_);
-  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsL_",_jp_chs.c_str()), PFJetsCHS__pfCombinedCvsL_, &b_PFJetsCHS__pfCombinedCvsL_);
-  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsB_",_jp_chs.c_str()), PFJetsCHS__pfCombinedCvsB_, &b_PFJetsCHS__pfCombinedCvsB_);
-  fChain->SetBranchAddress(Form("PFJets%s_.chf_",_jp_chs.c_str()), PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nhf_",_jp_chs.c_str()), PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nemf_",_jp_chs.c_str()), PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.cemf_",_jp_chs.c_str()), PFJetsCHS__cemf_, &b_PFJetsCHS__cemf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.muf_",_jp_chs.c_str()), PFJetsCHS__muf_, &b_PFJetsCHS__muf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",_jp_chs.c_str()), PFJetsCHS__hf_hf_, &b_PFJetsCHS__hf_hf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",_jp_chs.c_str()), PFJetsCHS__hf_phf_, &b_PFJetsCHS__hf_phf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",_jp_chs.c_str()), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",_jp_chs.c_str()), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.chm_",_jp_chs.c_str()), PFJetsCHS__chm_, &b_PFJetsCHS__chm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nhm_",_jp_chs.c_str()), PFJetsCHS__nhm_, &b_PFJetsCHS__nhm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.phm_",_jp_chs.c_str()), PFJetsCHS__phm_, &b_PFJetsCHS__phm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.elm_",_jp_chs.c_str()), PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mum_",_jp_chs.c_str()), PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
-  fChain->SetBranchAddress(Form("PFJets%s_.ncand_",_jp_chs.c_str()), PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
-  //fChain->SetBranchAddress("PFJets%s_.cm_",_jp_chs.c_str()), PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.beta_",_jp_chs.c_str()), PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
-  fChain->SetBranchAddress(Form("PFJets%s_.betaStar_",_jp_chs.c_str()), PFJetsCHS__betaStar_, &b_PFJetsCHS__betaStar_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mpuTrk_",_jp_chs.c_str()), PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mlvTrk_",_jp_chs.c_str()), PFJetsCHS__mlvTrk_, &b_PFJetsCHS__mlvTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mjtTrk_",_jp_chs.c_str()), PFJetsCHS__mjtTrk_, &b_PFJetsCHS__mjtTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hof_",_jp_chs.c_str()), PFJetsCHS__hof_, &b_PFJetsCHS__hof_);
-  fChain->SetBranchAddress(Form("PFJets%s_.pujid_",_jp_chs.c_str()), PFJetsCHS__pujid_, &b_PFJetsCHS__pujid_);
-  fChain->SetBranchAddress(Form("PFJets%s_.calojetpt_",_jp_chs.c_str()), PFJetsCHS__calojetpt_, &b_PFJetsCHS__calojetpt_);
-  fChain->SetBranchAddress(Form("PFJets%s_.calojetef_",_jp_chs.c_str()), PFJetsCHS__calojetef_, &b_PFJetsCHS__calojetef_);
+  fChain->SetBranchAddress(Form("PFJets%s_",_jp_chs), &PFJetsCHS__, &b_events_PFJetsCHS__);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",_jp_chs), PFJetsCHS__P4__fCoordinates_fX, &b_PFJetsCHS__P4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fY",_jp_chs), PFJetsCHS__P4__fCoordinates_fY, &b_PFJetsCHS__P4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__P4__fCoordinates_fZ, &b_PFJetsCHS__P4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fT",_jp_chs), PFJetsCHS__P4__fCoordinates_fT, &b_PFJetsCHS__P4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",_jp_chs), PFJetsCHS__genP4__fCoordinates_fX, &b_PFJetsCHS__genP4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",_jp_chs), PFJetsCHS__genP4__fCoordinates_fY, &b_PFJetsCHS__genP4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__genP4__fCoordinates_fZ, &b_PFJetsCHS__genP4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",_jp_chs), PFJetsCHS__genP4__fCoordinates_fT, &b_PFJetsCHS__genP4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genR_",_jp_chs), PFJetsCHS__genR_, &b_PFJetsCHS__genR_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cor_",_jp_chs), PFJetsCHS__cor_, &b_PFJetsCHS__cor_);
+  fChain->SetBranchAddress(Form("PFJets%s_.jecLabels_",_jp_chs), PFJetsCHS__jecLabels_, &b_PFJetsCHS__jecLabels_);
+  fChain->SetBranchAddress(Form("PFJets%s_.unc_",_jp_chs), PFJetsCHS__unc_, &b_PFJetsCHS__unc_);
+  fChain->SetBranchAddress(Form("PFJets%s_.uncSrc_",_jp_chs), PFJetsCHS__uncSrc_, &b_PFJetsCHS__uncSrc_);
+  fChain->SetBranchAddress(Form("PFJets%s_.area_",_jp_chs), PFJetsCHS__area_, &b_PFJetsCHS__area_);
+  fChain->SetBranchAddress(Form("PFJets%s_.looseID_",_jp_chs), PFJetsCHS__looseID_, &b_PFJetsCHS__looseID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.tightID_",_jp_chs), PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfPositive_",_jp_chs), PFJetsCHS__CSVpfPositive_, &b_PFJetsCHS__CSVpfPositive_);
+  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfNegative_",_jp_chs), PFJetsCHS__CSVpfNegative_, &b_PFJetsCHS__CSVpfNegative_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.boosted_",_jp_chs), PFJetsCHS__boosted_, &b_PFJetsCHS__boosted_);
+  fChain->SetBranchAddress(Form("PFJets%s_.QGtagger_",_jp_chs), PFJetsCHS__QGtagger_, &b_PFJetsCHS__QGtagger_);
+  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavour_",_jp_chs), PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hadronFlavour_",_jp_chs), PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend1_",_jp_chs), PFJetsCHS__recommend1_, &b_PFJetsCHS__recommend1_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend2_",_jp_chs), PFJetsCHS__recommend2_, &b_PFJetsCHS__recommend2_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend3_",_jp_chs), PFJetsCHS__recommend3_, &b_PFJetsCHS__recommend3_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsL_",_jp_chs), PFJetsCHS__pfCombinedCvsL_, &b_PFJetsCHS__pfCombinedCvsL_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsB_",_jp_chs), PFJetsCHS__pfCombinedCvsB_, &b_PFJetsCHS__pfCombinedCvsB_);
+  fChain->SetBranchAddress(Form("PFJets%s_.chf_",_jp_chs), PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhf_",_jp_chs), PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nemf_",_jp_chs), PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cemf_",_jp_chs), PFJetsCHS__cemf_, &b_PFJetsCHS__cemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.muf_",_jp_chs), PFJetsCHS__muf_, &b_PFJetsCHS__muf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",_jp_chs), PFJetsCHS__hf_hf_, &b_PFJetsCHS__hf_hf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",_jp_chs), PFJetsCHS__hf_phf_, &b_PFJetsCHS__hf_phf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",_jp_chs), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",_jp_chs), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.chm_",_jp_chs), PFJetsCHS__chm_, &b_PFJetsCHS__chm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhm_",_jp_chs), PFJetsCHS__nhm_, &b_PFJetsCHS__nhm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.phm_",_jp_chs), PFJetsCHS__phm_, &b_PFJetsCHS__phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.elm_",_jp_chs), PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mum_",_jp_chs), PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
+  fChain->SetBranchAddress(Form("PFJets%s_.ncand_",_jp_chs), PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
+  //fChain->SetBranchAddress("PFJets%s_.cm_",_jp_chs), PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.beta_",_jp_chs), PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
+  fChain->SetBranchAddress(Form("PFJets%s_.betaStar_",_jp_chs), PFJetsCHS__betaStar_, &b_PFJetsCHS__betaStar_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mpuTrk_",_jp_chs), PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mlvTrk_",_jp_chs), PFJetsCHS__mlvTrk_, &b_PFJetsCHS__mlvTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mjtTrk_",_jp_chs), PFJetsCHS__mjtTrk_, &b_PFJetsCHS__mjtTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hof_",_jp_chs), PFJetsCHS__hof_, &b_PFJetsCHS__hof_);
+  fChain->SetBranchAddress(Form("PFJets%s_.pujid_",_jp_chs), PFJetsCHS__pujid_, &b_PFJetsCHS__pujid_);
+  fChain->SetBranchAddress(Form("PFJets%s_.calojetpt_",_jp_chs), PFJetsCHS__calojetpt_, &b_PFJetsCHS__calojetpt_);
+  fChain->SetBranchAddress(Form("PFJets%s_.calojetef_",_jp_chs), PFJetsCHS__calojetef_, &b_PFJetsCHS__calojetef_);
   fChain->SetBranchAddress("genFlavour_", &genFlavour_, &b_events_genFlavour_);
   fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_, &b_events_genFlavourHadron_);
 }
