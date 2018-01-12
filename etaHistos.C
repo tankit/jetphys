@@ -81,6 +81,25 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
     hdjmpfpt[i]->Sumw2();
   }
 
+  // components vs eta (Ozlem)
+  pncandtp_vseta = new TProfile("pcandtp_vseta","",104,-5.2,5.2);
+  pnchtp_vseta = new TProfile("pnchtp_vseta","",104,-5.2,5.2);
+  pnnetp_vseta = new TProfile("pnnetp_vseta","",104,-5.2,5.2);
+  pnnhtp_vseta = new TProfile("pnnhtp_vseta","",104,-5.2,5.2);
+  pncetp_vseta = new TProfile("pncetp_vseta","",104,-5.2,5.2);
+  pnmutp_vseta = new TProfile("pnmutp_vseta","",104,-5.2,5.2);
+  pnhhtp_vseta = new TProfile("pnhhtp_vseta","",104,-5.2,5.2);
+  pnhetp_vseta = new TProfile("pnhetp_vseta","",104,-5.2,5.2);
+  phhftp_vseta = new TProfile("phhftp_vseta","",104,-5.2,5.2);
+  pheftp_vseta = new TProfile("pheftp_vseta","",104,-5.2,5.2);
+  pchftp_vseta = new TProfile("pchftp_vseta","",104,-5.2,5.2);
+  pneftp_vseta = new TProfile("pneftp_vseta","",104,-5.2,5.2);
+  pnhftp_vseta = new TProfile("pnhftp_vseta","",104,-5.2,5.2);
+  pceftp_vseta = new TProfile("pceftp_vseta","",104,-5.2,5.2);
+  pmuftp_vseta = new TProfile("pmuftp_vseta","",104,-5.2,5.2);
+  pbetatp_vseta = new TProfile("pbetatp_vseta","",104,-5.2,5.2);
+  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",104,-5.2,5.2);
+
   curdir->cd();
 }
 

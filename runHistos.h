@@ -23,8 +23,8 @@ class runHistos {
 
  public:
 
-  double ymin;
-  double ymax;
+  double etamin;
+  double etamax;
 
   std::vector<std::string> trg;
   std::map<std::string, double> pt;
@@ -63,7 +63,7 @@ class runHistos {
 
   // Other non-lumi checks
 
-  runHistos(TDirectory *dir, double ymin = 0., double ymax = 3.);
+  runHistos(TDirectory *dir, double etamin = 0., double etamax = 3.);
   ~runHistos();
 
  private:

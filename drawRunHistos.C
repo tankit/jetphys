@@ -568,14 +568,14 @@ void drawRunHistos(string type) {
       leg->SetFillStyle(kNone);
       leg->SetBorderSize(0);
       leg->SetTextSize(0.045);
-      if (_debug) leg->AddEntry(r0,"Jet p_{t}>20 GeV","L");
+      if (_jt_debug) leg->AddEntry(r0,"Jet p_{t}>20 GeV","L");
       leg->AddEntry(r,Form("Jet p_{T}>%1.0f GeV (%s)",thr[t],t),"L");
       leg->AddEntry(r1,"Flagged runs","PL");
 
       TH1D *haxis = (TH1D*)h->DrawClone("AXIS");
 
       r0->SetLineWidth(2);
-      if (_debug) r0->Draw("SAME");
+      if (_jt_debug) r0->Draw("SAME");
       r->SetLineColor(kBlue);
       r->Draw("SAME");
       r1->SetLineColor(kRed);

@@ -29,6 +29,25 @@ class etaHistos {
   // phase space
   string trigname;
 
+  // control plots vs eta (Ozlem)
+  TProfile *pncandtp_vseta;
+  TProfile *pnchtp_vseta;
+  TProfile *pnnetp_vseta;
+  TProfile *pnnhtp_vseta;
+  TProfile *pncetp_vseta;
+  TProfile *pnmutp_vseta;
+  TProfile *pnhhtp_vseta;
+  TProfile *pnhetp_vseta;
+  TProfile *phhftp_vseta;
+  TProfile *pheftp_vseta;
+  TProfile *pchftp_vseta;
+  TProfile *pneftp_vseta;
+  TProfile *pnhftp_vseta;
+  TProfile *pceftp_vseta;
+  TProfile *pmuftp_vseta;
+  TProfile *pbetatp_vseta;
+  TProfile *pbetastartp_vseta;
+  
   // Control plots of resolutions in the pt-eta plane
   // tp: tag-probe (tag), pt: probe-tag (probe)
   vector<TH3D *> hdjasymm;

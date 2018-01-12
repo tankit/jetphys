@@ -13,7 +13,7 @@
 using namespace std;
 
 basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
-			 double ymin, double ymax,
+			 double etamin, double etamax,
 			 double pttrg, double ptmin, double ptmax,
 			 bool ismc)
   : lumsum(0), lumsum2(0) {
@@ -25,8 +25,8 @@ basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
   // phase space
   this->trigname = trigname;
   this->cotrig = cotrig;
-  this->ymin = ymin;
-  this->ymax = ymax;
+  this->etamin = etamin;
+  this->etamax = etamax;
   this->pttrg = pttrg;
   this->ptmin = ptmin;
   this->ptmax = ptmax;
@@ -79,7 +79,7 @@ double vx[neta][nbins] =
   {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
   const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
 
-  int ieta = int(0.5*(ymin+ymax)/0.5); assert(ieta<neta);
+  int ieta = int(0.5*(etamin+etamax)/0.5); assert(ieta<neta);
   vector<double> x;
   for (int i = 0; i != nbins && vx[ieta][i]!=0; ++i) {
     x.push_back(vx[ieta][i]);
@@ -238,16 +238,6 @@ double vx[neta][nbins] =
   pideff = new TProfile("pideff","",nx,&x[0]);
   pvtxeff = new TProfile("pvtxeff","",nx,&x[0]);
   pdqmeff = new TProfile("pdqmeff","",nx,&x[0]);
-
-  // components vs eta (Ozlem)
-  pchftp_vseta = new TProfile("pchftp_vseta","",104,-5.2,5.2);
-  pneftp_vseta = new TProfile("pneftp_vseta","",104,-5.2,5.2);
-  pnhftp_vseta = new TProfile("pnhftp_vseta","",104,-5.2,5.2);
-  pceftp_vseta = new TProfile("pceftp_vseta","",104,-5.2,5.2);
-  pmuftp_vseta = new TProfile("pmuftp_vseta","",104,-5.2,5.2);
-  pbetatp_vseta = new TProfile("pbetatp_vseta","",104,-5.2,5.2);
-  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",104,-5.2,5.2);
- // all the other fraction: chf, nef, cef, muf, beta
 
   // control plots of components (JEC)
   pncand = new TProfile("pncand","",nx0,&x0[0]);

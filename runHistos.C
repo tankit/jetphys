@@ -5,7 +5,7 @@
 // Updated:  August 9, 2011
 #include "runHistos.h"
 
-runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
+runHistos::runHistos(TDirectory *dir, double etamin, double etamax)
   : lumsum(0) {
 
   TDirectory *curdir = gDirectory;
@@ -13,8 +13,8 @@ runHistos::runHistos(TDirectory *dir, double ymin, double ymax)
   this->dir = dir;
 
   // phase space
-  this->ymin = ymin;
-  this->ymax = ymax;
+  this->etamin = etamin;
+  this->etamax = etamax;
 
   this->trg.push_back("jt40");
   this->trg.push_back("jt60");

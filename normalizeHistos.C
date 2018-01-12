@@ -77,10 +77,10 @@ std::map<std::string, double> triglumi;
 
 void normalizeHistos() {
 
-  TFile *fin = new TFile(Form("output-%s-1.root",_jp_type.c_str()),"READ");
+  TFile *fin = new TFile(Form("output-%s-1.root",_jp_type),"READ");
   assert(fin && !fin->IsZombie());
 
-  TFile *fout = new TFile(Form("output-%s-2a.root",_jp_type.c_str()),"RECREATE");
+  TFile *fout = new TFile(Form("output-%s-2a.root",_jp_type),"RECREATE");
   assert(fout && !fout->IsZombie());
 
   if (_lumiscale!=1 && !_jp_ismc)
@@ -89,9 +89,9 @@ void normalizeHistos() {
 
   if (!(_jp_ismc) && _jp_usetriglumi) {
     cout << "Reading trigger luminosity from settings.h" << endl;
-    for (int i = 0; i != _jp_ntrigger; ++i) {
+    for (int i = 0; i != _jp_ntrigs; ++i) {
       double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
-      cout << Form(" *%s: %1.3f /pb", _jp_triggers[i].c_str(),lumi) << endl;
+      cout << Form(" *%s: %1.3f /pb", _jp_triggers[i],lumi) << endl;
       triglumi[_jp_triggers[i]] = lumi;
     }
   }
@@ -135,7 +135,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
   while ( (key = itkey.Next()) ) {
 
-    if (_debug) cout << key->GetName() << endl << flush;
+    if (_jt_debug) cout << key->GetName() << endl << flush;
     obj = ((TKey*)key)->ReadObj(); assert(obj);
     dir = indir;
 

@@ -24,8 +24,8 @@ class basicHistos {
   // phase space
   std::string trigname;
   std::string cotrig;
-  double ymin;
-  double ymax;
+  double etamin;
+  double etamax;
   double pttrg;
   double ptmin;
   double ptmax;
@@ -126,16 +126,6 @@ class basicHistos {
   TProfile *pideff;
   TProfile *pvtxeff;
   TProfile *pdqmeff;
-
-  // control plots vs eta (Ozlem)
-  TProfile *pchftp_vseta;
-  TProfile *pneftp_vseta;
-  TProfile *pnhftp_vseta;
-  TProfile *pceftp_vseta;
-  TProfile *pmuftp_vseta;
-  TProfile *pbetatp_vseta;
-  TProfile *pbetastartp_vseta;
-  // plus all the others
 
   // control plots of components (JEC)
   TProfile *pncand;
@@ -384,7 +374,7 @@ class basicHistos {
   TProfile2D *pdy_g;
 
   basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="",
-	      double ymin = 0., double ymax = 2.0,
+	      double etamin = 0., double etamax = 2.0,
 	      double pttrg = 10., double ptmin = 10., double ptmax = 50.,
 	      bool ismc = false);
   ~basicHistos();

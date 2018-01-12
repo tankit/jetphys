@@ -15,6 +15,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 using namespace tools;
@@ -111,13 +112,12 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
   // }
 
   assert(stp=="tp" || stp=="");
-  bool tp = (stp=="tp");
-  string smethod = (tp ? "Tag-and-probe method" : "Direct match method");
-  const char *cmethod = smethod.c_str();
+//   bool tp = (stp=="tp");
+//   string smethod = (tp ? "Tag-and-probe method" : "Direct match method");
+//   const char *cmethod = smethod.c_str();
 
-  TDirectory *curdir = gDirectory;
+//   TDirectory *curdir = gDirectory;
   setTDRStyle();
-
 
   // Opening the requested files {
   string dt_file = all_MC ? dt_type : "DATA";
@@ -196,11 +196,9 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
   const int nbins = sizeof(xw)/sizeof(xw[0]);
 
   for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) {
-
     double y1 = etas[ieta].first; double y2 = etas[ieta].second;
     int iy = int(0.5*(y1+y2)/0.5); assert(iy<neta);
     cout << "iy = " << iy << endl;
-
 
     // List of differences
     map<string, TH1D*> mdf;
@@ -255,7 +253,6 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
     TLegend *leg = tdrLeg(0.20,0.23-0.05,0.50,0.53-0.05);
 
     for (int jfrac = 0; jfrac != nfrac; ++jfrac) {
-
       string sf = fracs[jfrac];
       const char *cf = fracs[jfrac].c_str();
       const char *ctp = stp.c_str();
@@ -296,7 +293,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
           hdt->SetBinContent(i, hdt->GetBinContent(i)/jec);
         } // for i
       } // _shiftJES
-      
+
       
       if (sf=="cef") { // For cef, add muf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
@@ -350,7 +347,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
           hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
         }
         delete hdt2;
-        
+
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
                                                          cpumc,ctp,cpu));
@@ -377,7 +374,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
         }
         delete hdt2;
         delete hdt3;
-        
+
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
         TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
                                                          cpumc,ctp,cpu));
@@ -465,7 +462,6 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
     TLatex *tex = new TLatex();
     tex->SetNDC(); tex->SetTextSize(h2->GetYaxis()->GetLabelSize()*0.7);
     if (dobeta) {
-
       //TF1 *fchf = new TF1("fchf","[0]+[1]*pow(x,[2])",40,2000);//ptmin,ptmax);
       //fchf->SetParameters(0,-2, -0.05);
       TF1 *fchf = new TF1("fchf",jesFit,40,3000,2);
@@ -481,8 +477,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
       hchfa->SetMarkerColor(kRed+3);
       hchfa->SetLineColor(kRed+3);
       hchfa->Draw("SAMEP");
-    }
-    else {
+    } else {
 
       //TF1 *fchf = new TF1("fchf","[0]+[1]*pow(x,[2])",40,2000);//ptmin,ptmax);
       //fchf->SetParameters(0,-2, -0.05);

@@ -27,7 +27,7 @@ using std::endl;
 // global variables all start with _jp_ (for JetPhysics)
 
 // Print out debugging information (for this only, no _jp_)
-constexpr bool _debug = false;
+constexpr bool _jt_debug = false;
 
 ////////////////////////////////////////
 // Necessary analysis settings/inputs //
@@ -171,17 +171,17 @@ const constexpr char _jp_mctrig[] = "jt450";
 
 // This is the 13 TeV 25 ns list (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
-constexpr int _jp_ntrigger = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
-const constexpr char* _jp_triggers[_jp_ntrigger] =
+constexpr int _jp_ntrigs = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
+const constexpr char* _jp_triggers[_jp_ntrigs] =
   {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"};
-const constexpr double _jp_trigthr[_jp_ntrigger] =
+const constexpr double _jp_trigthr[_jp_ntrigs] =
   {40,        60,        80,       140,       200,       260,       320,       400,      450};
-const constexpr double _jp_trigranges[_jp_ntrigger][2] =
+const constexpr double _jp_trigranges[_jp_ntrigs][2] =
   { {0,84}, {84,114}, {114,196}, {196,272}, {272,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[5,6], AK4
   //{ {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
 // brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
 constexpr bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
-const constexpr double _jp_triglumi[_jp_ntrigger] = // in /ub
+const constexpr double _jp_triglumi[_jp_ntrigs] = // in /ub
 //// 2016: ///
 // brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lumibyls.csv --byls --minBiasXsec 69000
 // {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002}; // Ozlem, add new numbers here for RunG-part1_JSON.txt
@@ -192,7 +192,7 @@ constexpr double _jp_lumi = 35.918235; // 36.810440678; (outdated)
 
 //{ BEGIN RUN2 params
 constexpr double _jp_sqrts = 13000.; // GeV
-constexpr double _jp_emax = _jp_sqrts/2.; // GeV
+constexpr double _jp_emax = _jp_sqrts/2.; // Max possible jet pt
 constexpr double _jp_recopt = 15; // Min observed jet pt
 //} END Run2
 

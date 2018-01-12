@@ -64,7 +64,7 @@ namespace jec {
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
     const char *t = jecgt.c_str();;
-    const char *a = _jp_algo.c_str();
+    const char *a = _jp_algo;
 
     vector<JetCorrectorParameters> vpar;
 
