@@ -1136,7 +1136,7 @@ void fillHistos::fillBasic(basicHistos *h)
   assert(h);
   h->hpttmp->Reset();
   h->hpt_tmp->Reset();
-  if (h->ismc) {
+  if (h->ismcdir) {
     assert(h->hpt_g0_tmp);
     h->hpt_g0_tmp->Reset();
   }
@@ -1195,8 +1195,8 @@ void fillHistos::fillBasic(basicHistos *h)
   if (_jt_debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",h->etamin,h->etamax,h->trigname.c_str()) << endl;
   if (_jt_debug) cout << "Calculate and fill dijet mass" << endl << flush;
 
-  if (h->ismc) h->hpthat->Fill(pthat, _w);
-  if (h->ismc) h->hpthatnlo->Fill(pthat);
+  if (h->ismcdir) h->hpthat->Fill(pthat, _w);
+  if (h->ismcdir) h->hpthatnlo->Fill(pthat);
 
   int i0 = jt3leads[0];
   int i1 = jt3leads[1];
@@ -1375,314 +1375,304 @@ void fillHistos::fillBasic(basicHistos *h)
     bool id = _jetids[jetidx];
 
     double jec2 = jtjesnew[jetidx]/jtjes[jetidx];
+    bool isetadir = fabs(eta) >= h->etamin and fabs(eta) < h->etamax;
+    double ptgen = jtgenpt[jetidx];
 
     // Check effect of ID cuts
-    if (fabs(eta) >= h->etamin and fabs(eta) < h->etamax) { // Jet in eta range
+    if (isetadir) { // Jet in eta range
       if (_jt_debug) {
         cout << "..." << h->trigname << " | " << " index " << jetidx << "/" << njt
-          << " jet pt: " << pt << " y : " << y << " id: " << id << " jec: " << jec << endl;
+          << " jet pt: " << pt << " eta : " << eta << " id: " << id << " jec: " << jec << endl;
         cout << "...evt id: " << _evtid << " weight: " << _w << " met: " << met << " metsumet: " << metsumet << endl;
       }
 
       assert(h->hpt_noid); h->hpt_noid->Fill(pt, _w);
-      assert(h->hpt_nojetid);
-      if (_evtid) h->hpt_nojetid->Fill(pt, _w);
-      assert(h->hpt_noevtid);
-      if (id)    h->hpt_noevtid->Fill(pt, _w);
+      assert(h->hpt_nojetid); if (_evtid) h->hpt_nojetid->Fill(pt, _w);
+      assert(h->hpt_noevtid); if (id) h->hpt_noevtid->Fill(pt, _w);
       // Same versus generator pT as MC extra
       // to decouple efficiency from JEC and JER
-      if (h->ismc) {
-        h->hpt_noid_g->Fill(jtgenpt[jetidx], _w);
-        if (_evtid) h->hpt_nojetid_g->Fill(jtgenpt[jetidx], _w);
-        if (id)    h->hpt_noevtid_g->Fill(jtgenpt[jetidx], _w);
+      if (h->ismcdir) {
+        h->hpt_noid_g->Fill(ptgen, _w);
+        if (_evtid) h->hpt_nojetid_g->Fill(ptgen, _w);
+        if (id)    h->hpt_noevtid_g->Fill(ptgen, _w);
       }
     } // Jet in eta range
 
-    if (h->ismc) { // MC: Check effect of reco eta vs gen eta binning
-      double etagen = jtgeneta[jetidx]; // use jtgeny, if available
-      // GenJets matched to good reco jets in good events
-      if (_evtid and id && pt>_jp_recopt && jtgenr[jetidx] < 0.25 &&
-          fabs(etagen) >= h->etamin && fabs(etagen) < h->etamax) {
-        h->hpt_gg->Fill(jtgenpt[jetidx], _w);
-      }
-      // GenJets matched to any reco jets in any events
-      if (pt>_jp_recopt && jtgenr[jetidx] < 0.25 &&
-          fabs(etagen) >= h->etamin && fabs(etagen) < h->etamax) {
-        h->hpt_gg0->Fill(jtgenpt[jetidx], _w);
-      }
-    } // MC: Reco eta vs gen eta
-
     // REMOVED: "Debugging JEC"
 
-    // calculate efficiencies and fill histograms
-    if (_evtid and id and pt>_jp_recopt and fabs(eta) >= h->etamin and fabs(eta) < h->etamax) {
-      if (_jt_debug) cout << "..jec uncertainty" << endl << flush;
+    if (pt>_jp_recopt) { // pt visible
+      // Flags for studying gen eta vs reco eta effects
+      bool mcstudy = h->ismcdir and jtgenr[jetidx] < 0.25;
+      bool mcgeneta = fabs(jtgeneta[jetidx]) >= h->etamin && fabs(jtgeneta[jetidx]) < h->etamax;
 
-      // Get JEC uncertainty
-      double unc = 0.01; // default for MC
-      if (_jecUnc) {
-        _jecUnc->setJetEta(eta);
-        _jecUnc->setJetPt(pt);
-        unc = _jecUnc->getUncertainty(true);
-        //_jecUnc2->Rjet(pt, unc); // use Fall10 absolute scale uncertainty
-      }
+      if (mcstudy and mcgeneta) // GenJets matched to any reco jets in any events
+        h->hpt_gg0->Fill(ptgen, _w);
 
-      // calculate and/or retrieve efficiencies
-      double ideff = 1.;
-      double vtxeff = 1.;
-      double dqmeff = 1.;
-      double trigeff = 1.;
-      double eff = ideff * vtxeff * dqmeff * trigeff;
+      if (_evtid and id) { // id OK
+        if (mcstudy and mcgeneta) // GenJets matched to good reco jets in good events
+          h->hpt_gg->Fill(ptgen, _w);
 
-      if (_jt_debug) cout << "..raw spectrum" << endl << flush;
+        if (isetadir) { // Correct jet eta range
+          if (_jt_debug) cout << "..jec uncertainty" << endl << flush;
 
-      // REMOVED: "For trigger efficiency"
-
-      if (_jp_doqgl) {
-        // new histograms for quark/gluon study (Ozlem)
-        // 1. open the previous output-MC-1_iteration1.root in the beginning
-        // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
-        // 3. find correct hqgl_q and hqgl_g from array (normalized)
-        // 4. calculate probg = g / (q+g)
-        //double probg = 1.-qgl[jetidx]; // Later, map QGL to probability using hqgl_x
-        assert(h3probg);
-        double probg = h3probg->GetBinContent(h3probg->FindBin(jty[jetidx],jtpt[jetidx],qgl[jetidx]));
-        if (probg>=0 && probg<=1) {
-          assert(h->hgpt);
-          h->hgpt->Fill(pt,_w*probg);
-          assert(h->hgpt0);
-          h->hgpt0->Fill(pt, _w*probg);
-
-          assert(h->hqgl);
-          h->hqgl->Fill(qgl[jetidx], _w);
-          if (_jp_ismc) {
-            assert(h->hqgl_g);
-            assert(h->hqgl_q);
-            bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
-            bool isquark = (fabs(partonflavor[jetidx])<7);
-            assert(isgluon || isquark);
-            if (isgluon) h->hqgl_g->Fill(qgl[jetidx], _w);
-            if (isquark) h->hqgl_q->Fill(qgl[jetidx], _w);
-
-            // For data templates from scaling Pythia, see instructions at
-            // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
-            double x = qgl[jetidx];
-            double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
-            double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 
-                         92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
-            if (isgluon) h->hqgl_dg->Fill(qgl[jetidx], _w*wg);
-            if (isquark) h->hqgl_dq->Fill(qgl[jetidx], _w*wq);
+          // Get JEC uncertainty
+          double unc = 0.01; // default for MC
+          if (_jecUnc) {
+            _jecUnc->setJetEta(eta);
+            _jecUnc->setJetPt(pt);
+            unc = _jecUnc->getUncertainty(true);
+            //_jecUnc2->Rjet(pt, unc); // use Fall10 absolute scale uncertainty
           }
-        } // probg quark/gluon
-      }
 
-      // raw spectrum
-      assert(h->hpt); h->hpt->Fill(pt,_w);
-      assert(h->hpt_tmp); h->hpt_tmp->Fill(pt); // Event statistics
-      assert(h->hpt_pre);
-      if (_jp_isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run]);
-      if (_jp_ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
-      assert(h->hpt0); h->hpt0->Fill(pt, _w);
-      // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
-      // Do proper event statistics
-      assert(h->hpttmp); assert(h->hptevt);
-      if (h->hpttmp->GetBinContent(h->hpttmp->FindBin(pt))==0)
-        h->hptevt->Fill(pt, _w);
-      h->hpttmp->Fill(pt);
+          // calculate and/or retrieve efficiencies
+          double ideff = 1.;
+          double vtxeff = 1.;
+          double dqmeff = 1.;
+          double trigeff = 1.;
+          double eff = ideff * vtxeff * dqmeff * trigeff;
 
-      // leading and non-leading jets
-      if (jetidx==i0) {
-        assert(h->hpt1); h->hpt1->Fill(pt, _w);
-      } else if (jetidx==i1) {
-        assert(h->hpt2); h->hpt2->Fill(pt,_w);
-      } else if (jetidx==2) {
-        assert(h->hpt3); h->hpt3->Fill(pt,_w);
-      }
+          if (_jt_debug) cout << "..raw spectrum" << endl << flush;
 
-      if (_jt_debug) cout << "..basic properties" << endl << flush;
+          // REMOVED: "For trigger efficiency"
 
-      // basic properties
-      assert(h->ppt); h->ppt->Fill(pt, pt, _w);
-      assert(h->pmass); h->pmass->Fill(pt, mass/energy, _w);
-      assert(h->pjec); h->pjec->Fill(pt, jec, _w);
-      assert(h->pjec2); h->pjec2->Fill(pt, jec2, _w);
-      assert(h->punc); h->punc->Fill(pt, unc, _w);
-      // JEC monitoring
-      assert(h->pjec_l1); h->pjec_l1->Fill(pt, jtjes_l1[jetidx], _w);
-      assert(h->pjec_l2l3); h->pjec_l2l3->Fill(pt, jtjes_l2l3[jetidx], _w);
-      assert(h->pjec_res); h->pjec_res->Fill(pt, jtjes_res[jetidx], _w);
+          if (_jp_doqgl) {
+            // new histograms for quark/gluon study (Ozlem)
+            // 1. open the previous output-MC-1_iteration1.root in the beginning
+            // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
+            // 3. find correct hqgl_q and hqgl_g from array (normalized)
+            // 4. calculate probg = g / (q+g)
+            //double probg = 1.-qgl[jetidx]; // Later, map QGL to probability using hqgl_x
+            assert(h3probg);
+            double probg = h3probg->GetBinContent(h3probg->FindBin(jty[jetidx],jtpt[jetidx],qgl[jetidx]));
+            if (probg>=0 and probg<=1) {
+              assert(h->hgpt);
+              h->hgpt->Fill(pt,_w*probg);
+              assert(h->hgpt0);
+              h->hgpt0->Fill(pt, _w*probg);
 
-      // efficiencies
-      assert(h->peff); h->peff->Fill(pt, eff, _w);
-      assert(h->pideff); h->pideff->Fill(pt, ideff, _w);
-      assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
-      assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
+              assert(h->hqgl);
+              h->hqgl->Fill(qgl[jetidx], _w);
+              if (_jp_ismc) {
+                assert(h->hqgl_g);
+                assert(h->hqgl_q);
+                bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
+                bool isquark = (fabs(partonflavor[jetidx])<7);
+                assert(isgluon || isquark);
+                if (isgluon) h->hqgl_g->Fill(qgl[jetidx], _w);
+                if (isquark) h->hqgl_q->Fill(qgl[jetidx], _w);
 
-      if (_jt_debug) cout << "..control plots of components" << endl << flush;
+                // For data templates from scaling Pythia, see instructions at
+                // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
+                double x = qgl[jetidx];
+                double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+                double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 
+                            92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+                if (isgluon) h->hqgl_dg->Fill(qgl[jetidx], _w*wg);
+                if (isquark) h->hqgl_dq->Fill(qgl[jetidx], _w*wq);
+              }
+            } // probg quark/gluon
+          }
 
-      // control plots of jet components (JEC)
-      assert(h->pncand); h->pncand->Fill(pt, jtn[jetidx], _w);
-      assert(h->pnch); h->pnch->Fill(pt, jtnch[jetidx], _w);
-      assert(h->pnne); h->pnne->Fill(pt, jtnne[jetidx], _w);
-      assert(h->pnnh); h->pnnh->Fill(pt, jtnnh[jetidx], _w);
-      assert(h->pnce); h->pnce->Fill(pt, jtnce[jetidx], _w);
-      assert(h->pnmu); h->pnmu->Fill(pt, jtnmu[jetidx], _w);
-      //
-      assert(h->pchf); h->pchf->Fill(pt, jtchf[jetidx], _w);
-      assert(h->pnef); h->pnef->Fill(pt, jtnef[jetidx], _w);
-      assert(h->pnhf); h->pnhf->Fill(pt, jtnhf[jetidx], _w);
-      assert(h->pcef); h->pcef->Fill(pt, jtcef[jetidx], _w);
-      assert(h->pmuf); h->pmuf->Fill(pt, jtmuf[jetidx], _w);
-      assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
-      assert(h->pbetastar); h->pbetastar->Fill(pt, jtbetastar[jetidx], _w);
+          // raw spectrum
+          assert(h->hpt); h->hpt->Fill(pt,_w);
+          assert(h->hpt_tmp); h->hpt_tmp->Fill(pt); // Event statistics
+          assert(h->hpt_pre);
+          if (_jp_isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run]);
+          if (_jp_ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
+          assert(h->hpt0); h->hpt0->Fill(pt, _w);
+          // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
+          // Do proper event statistics
+          assert(h->hpttmp); assert(h->hptevt);
+          if (h->hpttmp->GetBinContent(h->hpttmp->FindBin(pt))==0)
+            h->hptevt->Fill(pt, _w);
+          h->hpttmp->Fill(pt);
 
-      // control plots for topology (JEC)
-      h->pa->Fill(pt, jta[jetidx], _w);
-      h->ptrpu->Fill(pt, trpu, _w);
-      h->prho->Fill(pt, rho, _w);
-      h->pnpv->Fill(pt, npvgood, _w);
-      h->pnpvall->Fill(pt, npv, _w);
-      if (pt >= h->ptmin && pt < h->ptmax) { // Trigger pt range
-        h->htrpu2->Fill(trpu, _w);
-        //
-        h->pnpvvsrho->Fill(rho, npvgood, _w);
-        h->prhovsnpv->Fill(npvgood, rho, _w);
-        h->prhovsnpvall->Fill(npv, rho, _w);
-        h->h2rhovsnpv->Fill(npvgood, rho, _w);
-        //
-        h->prhovstrpu->Fill(trpu, rho, _w);
-        h->pnpvvstrpu->Fill(trpu, npvgood, _w);
-        h->pnpvallvstrpu->Fill(trpu, npv, _w);
-        h->pitpuvstrpu->Fill(trpu, itpu, _w);
-        h->hjet_vstrpu->Fill(trpu, _w);
+          // leading and non-leading jets
+          if (jetidx==i0) {
+            assert(h->hpt1); h->hpt1->Fill(pt, _w);
+          } else if (jetidx==i1) {
+            assert(h->hpt2); h->hpt2->Fill(pt,_w);
+          } else if (jetidx==i2) {
+            assert(h->hpt3); h->hpt3->Fill(pt,_w);
+          }
 
-        if (_jt_debug) cout << "..control plots for topology" << endl << flush;
+          if (_jt_debug) cout << "..basic properties" << endl << flush;
 
-        h->htrpu->Fill(trpu, _w);
-        if (h->ismc) {
-          h->hitpu->Fill(itpu, _w);
-          h->hootpuearly->Fill(ootpuearly, _w);
-          h->hootpulate->Fill(ootpulate, _w);
-          h->h2itvsoot->Fill(itpu, ootpulate, _w);
-        }
+          // basic properties
+          assert(h->ppt); h->ppt->Fill(pt, pt, _w);
+          assert(h->pmass); h->pmass->Fill(pt, mass/energy, _w);
+          assert(h->pjec); h->pjec->Fill(pt, jec, _w);
+          assert(h->pjec2); h->pjec2->Fill(pt, jec2, _w);
+          assert(h->punc); h->punc->Fill(pt, unc, _w);
+          // JEC monitoring
+          assert(h->pjec_l1); h->pjec_l1->Fill(pt, jtjes_l1[jetidx], _w);
+          assert(h->pjec_l2l3); h->pjec_l2l3->Fill(pt, jtjes_l2l3[jetidx], _w);
+          assert(h->pjec_res); h->pjec_res->Fill(pt, jtjes_res[jetidx], _w);
 
-        h->hnpvgood->Fill(npvgood, _w);
-        h->hrho->Fill(rho, _w);
-        h->hselpt->Fill(pt, _w);
-        h->hmass->Fill(mass/energy, _w);
-        h->hy->Fill(y, _w);
-        h->hy2->Fill(y, _w);
-        h->heta->Fill(eta, _w);
-        h->heta2->Fill(eta, _w);
-        h->hphi->Fill(phi, _w);
-        h->hdphi->Fill(dphi, _w);
-        h->hdpt->Fill(dpt, _w);
-        h->hjet->Fill(pt / sumet, _w);
-        h->hmet->Fill(met / sumet, _w);
-        h->hmetphi->Fill(delta_phi(metphi, phi), _w);
-        // control plots for vertex
-        h->hpvndof->Fill(pvndof);
-        h->hpvx->Fill(pvx-bsx);
-        h->hpvy->Fill(pvy-bsy);
-        h->hpvz->Fill(pvz-0.);
-        h->hpvr->Fill(tools::oplus(pvx-bsx, pvy-bsy));
-        h->hpvrho->Fill(pvrho-tools::oplus(bsx, bsy));
-        // closure plots for JEC
-        h->hmpf->Fill(1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
-        h->hmpf1->Fill(1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
-        h->hmpf2->Fill(1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
-        // Component fractions
-        h->hncand->Fill(jtn[jetidx], _w);
-        h->hnch->Fill(jtnch[jetidx], _w);
-        h->hnne->Fill(jtnne[jetidx], _w);
-        h->hnnh->Fill(jtnnh[jetidx], _w);
-        h->hnce->Fill(jtnce[jetidx], _w);
-        h->hnmu->Fill(jtnmu[jetidx], _w);
-        //
-        h->hchf->Fill(jtchf[jetidx], _w);
-        h->hnef->Fill(jtnef[jetidx], _w);
-        h->hnhf->Fill(jtnhf[jetidx], _w);
-        h->hcef->Fill(jtcef[jetidx], _w);
-        h->hmuf->Fill(jtmuf[jetidx], _w);
-        h->hbeta->Fill(jtbeta[jetidx], _w);
-        h->hbetastar->Fill(jtbetastar[jetidx], _w);
+          // efficiencies
+          assert(h->peff); h->peff->Fill(pt, eff, _w);
+          assert(h->pideff); h->pideff->Fill(pt, ideff, _w);
+          assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
+          assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
 
-        h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
-        h->hyeta2->Fill(y-eta, _w);
-        h->hbetabetastar->Fill(jtbeta[jetidx], jtbetastar[jetidx], _w);
-        h->hetaphi->Fill(eta, phi, _w);
+          if (_jt_debug) cout << "..control plots of components" << endl << flush;
 
-      } // within trigger pT range
+          // control plots of jet components (JEC)
+          assert(h->pncand); h->pncand->Fill(pt, jtn[jetidx], _w);
+          assert(h->pnch); h->pnch->Fill(pt, jtnch[jetidx], _w);
+          assert(h->pnne); h->pnne->Fill(pt, jtnne[jetidx], _w);
+          assert(h->pnnh); h->pnnh->Fill(pt, jtnnh[jetidx], _w);
+          assert(h->pnce); h->pnce->Fill(pt, jtnce[jetidx], _w);
+          assert(h->pnmu); h->pnmu->Fill(pt, jtnmu[jetidx], _w);
+          //
+          assert(h->pchf); h->pchf->Fill(pt, jtchf[jetidx], _w);
+          assert(h->pnef); h->pnef->Fill(pt, jtnef[jetidx], _w);
+          assert(h->pnhf); h->pnhf->Fill(pt, jtnhf[jetidx], _w);
+          assert(h->pcef); h->pcef->Fill(pt, jtcef[jetidx], _w);
+          assert(h->pmuf); h->pmuf->Fill(pt, jtmuf[jetidx], _w);
+          assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
+          assert(h->pbetastar); h->pbetastar->Fill(pt, jtbetastar[jetidx], _w);
 
-      // closure plots for JEC
-      h->pdpt->Fill(pt, dpt, _w);
-      h->pmpf->Fill(pt, 1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
-      h->pmpf1->Fill(pt, 1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
-      h->pmpf2->Fill(pt, 1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
+          // control plots for topology (JEC)
+          h->pa->Fill(pt, jta[jetidx], _w);
+          h->ptrpu->Fill(pt, trpu, _w);
+          h->prho->Fill(pt, rho, _w);
+          h->pnpv->Fill(pt, npvgood, _w);
+          h->pnpvall->Fill(pt, npv, _w);
+          if (pt >= h->ptmin && pt < h->ptmax) { // Trigger pt range
+            h->htrpu2->Fill(trpu, _w);
+            //
+            h->pnpvvsrho->Fill(rho, npvgood, _w);
+            h->prhovsnpv->Fill(npvgood, rho, _w);
+            h->prhovsnpvall->Fill(npv, rho, _w);
+            h->h2rhovsnpv->Fill(npvgood, rho, _w);
+            //
+            h->prhovstrpu->Fill(trpu, rho, _w);
+            h->pnpvvstrpu->Fill(trpu, npvgood, _w);
+            h->pnpvallvstrpu->Fill(trpu, npv, _w);
+            h->pitpuvstrpu->Fill(trpu, itpu, _w);
+            h->hjet_vstrpu->Fill(trpu, _w);
 
-      // MC extras
-      if (h->ismc and jtgenr[jetidx]<0.25) {
-        h->hpt_gtw->Fill(jtgenpt[jetidx], _w);
-        if (_jt_debug) {
-          cout << "genmatch " << jetidx << " ptg="<<jtgenpt[jetidx] << " yg="<<jtgeny[jetidx] << " yr="<< y << endl;
-        }
+            if (_jt_debug) cout << "..control plots for topology" << endl << flush;
 
-        //int flv = abs(jtgenflv[jetidx]);
-        double ptgen = jtgenpt[jetidx];
-        //double r = (jtgenpt[jetidx] ? pt/jtgenpt[jetidx] : 0);
-        double r = (ptgen ? pt/ptgen : 0);
-        //double resp = (jtjesnew[jetidx] ? r / jtjesnew[jetidx] : 0);
-        double dy = (r ? TMath::Sign(jty[jetidx]-jtgeny[jetidx], jtgeny[jetidx]) : 0.);
-        h->hpt_r->Fill(pt, _w);
-        h->hpt_g->Fill(ptgen, _w);
+            h->htrpu->Fill(trpu, _w);
+            if (h->ismcdir) {
+              h->hitpu->Fill(itpu, _w);
+              h->hootpuearly->Fill(ootpuearly, _w);
+              h->hootpulate->Fill(ootpulate, _w);
+              h->h2itvsoot->Fill(itpu, ootpulate, _w);
+            }
 
-        if (partonflavor[jetidx]==21)
-          h->hgpt_g->Fill(ptgen); // Ozlem
-        else
-          h->hqpt_g->Fill(ptgen, _w); // Ozlem
+            h->hnpvgood->Fill(npvgood, _w);
+            h->hrho->Fill(rho, _w);
+            h->hselpt->Fill(pt, _w);
+            h->hmass->Fill(mass/energy, _w);
+            h->hy->Fill(y, _w);
+            h->hy2->Fill(y, _w);
+            h->heta->Fill(eta, _w);
+            h->heta2->Fill(eta, _w);
+            h->hphi->Fill(phi, _w);
+            h->hdphi->Fill(dphi, _w);
+            h->hdpt->Fill(dpt, _w);
+            h->hjet->Fill(pt / sumet, _w);
+            h->hmet->Fill(met / sumet, _w);
+            h->hmetphi->Fill(delta_phi(metphi, phi), _w);
+            // control plots for vertex
+            h->hpvndof->Fill(pvndof);
+            h->hpvx->Fill(pvx-bsx);
+            h->hpvy->Fill(pvy-bsy);
+            h->hpvz->Fill(pvz-0.);
+            h->hpvr->Fill(tools::oplus(pvx-bsx, pvy-bsy));
+            h->hpvrho->Fill(pvrho-tools::oplus(bsx, bsy));
+            // closure plots for JEC
+            h->hmpf->Fill(1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
+            h->hmpf1->Fill(1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
+            h->hmpf2->Fill(1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
+            // Component fractions
+            h->hncand->Fill(jtn[jetidx], _w);
+            h->hnch->Fill(jtnch[jetidx], _w);
+            h->hnne->Fill(jtnne[jetidx], _w);
+            h->hnnh->Fill(jtnnh[jetidx], _w);
+            h->hnce->Fill(jtnce[jetidx], _w);
+            h->hnmu->Fill(jtnmu[jetidx], _w);
+            //
+            h->hchf->Fill(jtchf[jetidx], _w);
+            h->hnef->Fill(jtnef[jetidx], _w);
+            h->hnhf->Fill(jtnhf[jetidx], _w);
+            h->hcef->Fill(jtcef[jetidx], _w);
+            h->hmuf->Fill(jtmuf[jetidx], _w);
+            h->hbeta->Fill(jtbeta[jetidx], _w);
+            h->hbetastar->Fill(jtbetastar[jetidx], _w);
 
-        h->ppt_r->Fill(pt, pt, _w);
-        h->ppt_g->Fill(ptgen, ptgen, _w);
+            h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
+            h->hyeta2->Fill(y-eta, _w);
+            h->hbetabetastar->Fill(jtbeta[jetidx], jtbetastar[jetidx], _w);
+            h->hetaphi->Fill(eta, phi, _w);
 
-        if (r) {
+          } // within trigger pT range
+
+          // closure plots for JEC
+          h->pdpt->Fill(pt, dpt, _w);
+          h->pmpf->Fill(pt, 1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
+          h->pmpf1->Fill(pt, 1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
+          h->pmpf2->Fill(pt, 1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
+
+          if (mcstudy) { // MC extras
+            if (_jt_debug)
+              cout << "genmatch " << jetidx << " ptg="<<ptgen << " yg="<<jtgeny[jetidx] << " yr="<< y << endl;
+
+            double r = (ptgen ? pt/ptgen : 0);
+            //double resp = (jtjesnew[jetidx] ? r / jtjesnew[jetidx] : 0);
+            double dy = (r ? TMath::Sign(jty[jetidx]-jtgeny[jetidx], jtgeny[jetidx]) : 0.);
+            h->hpt_r->Fill(pt, _w);
+            h->hpt_g->Fill(ptgen, _w);
+
+            h->hpt_gtw->Fill(ptgen, _w);
+            // Ozlem: (gluon vs quark)
+            if (partonflavor[jetidx]==21) h->hgpt_g->Fill(ptgen, _w);
+            else h->hqpt_g->Fill(ptgen, _w);
+
+            h->ppt_r->Fill(pt, pt, _w);
+            h->ppt_g->Fill(ptgen, ptgen, _w);
+
+            if (r) {
+              // Response closure vs NPV
+              h->p2rvsnpv->Fill(ptgen, npvgood, r, _w);
+
+              // Response closure
+              h->h2r_r->Fill(pt, r, _w);
+              h->h2r_g->Fill(ptgen, r, _w);
+              h->p2r_r->Fill(pt, r, _w);
+              h->p2r_g->Fill(ptgen, r, _w);
+              h->p2r_ruw->Fill(pt, r); // unweighted!
+              h->p2r_guw->Fill(ptgen, r); // unweighted!
+
+              // Rapidity closure
+              h->h2dy_r->Fill(pt, dy, _w);
+              h->h2dy_g->Fill(ptgen, dy, _w);
+              h->p2dy_r->Fill(pt, dy, _w);
+              h->p2dy_g->Fill(ptgen, dy, _w);
+              h->p2dy_ruw->Fill(pt, dy); // unweighted
+              h->p2dy_guw->Fill(ptgen, dy); // unweighted
+              h->pdy_r->Fill(pt, fabs(y), dy, _w);
+              h->pdy_g->Fill(ptgen, fabs(y), dy, _w);
+            }
+          } // is MC
+        } // etabin
+
+        // MC: Filling outside of eta bin
+        if (mcstudy and ptgen!=0 and jtjesnew[jetidx]!=0) {
+          double r = (ptgen ? pt / ptgen : 0);
+          double resp = r / jtjesnew[jetidx];
+
           // Response closure vs NPV
-          h->p2rvsnpv->Fill(ptgen, npvgood, r, _w);
-
-          // Response closure
-          h->h2r_r->Fill(pt, r, _w);
-          h->h2r_g->Fill(ptgen, r, _w);
-          h->p2r_r->Fill(pt, r, _w);
-          h->p2r_g->Fill(ptgen, r, _w);
-          h->p2r_ruw->Fill(pt, r); // unweighted!
-          h->p2r_guw->Fill(ptgen, r); // unweighted!
-
-          // Rapidity closure
-          h->h2dy_r->Fill(pt, dy, _w);
-          h->h2dy_g->Fill(ptgen, dy, _w);
-          h->p2dy_r->Fill(pt, dy, _w);
-          h->p2dy_g->Fill(ptgen, dy, _w);
-          h->p2dy_ruw->Fill(pt, dy); // unweighted
-          h->p2dy_guw->Fill(ptgen, dy); // unweighted
-          h->pdy_r->Fill(pt, fabs(y), dy, _w);
-          h->pdy_g->Fill(ptgen, fabs(y), dy, _w);
-        }
-      } // is MC
-    } // if id && etabin
-
-    // MC: Filling outside of eta bin
-    if (h->ismc and _evtid and id and pt > _jp_recopt and
-        jtgenr[jetidx]<0.25 and jtgenpt[jetidx]!=0 and jtjesnew[jetidx]!=0) {
-
-      double ptgen = jtgenpt[jetidx];
-      double r = (ptgen ? pt / ptgen : 0);
-      double resp = r / jtjesnew[jetidx];
-
-      // Response closure vs NPV
-      if (r) {
-        h->p3rvsnpv->Fill(ptgen, jteta[jetidx], npvgood, resp, _w);
-        h->p3rvsnpvW->Fill(ptgen, fabs(jteta[jetidx]), npvgood, resp, _w);
-      }
-    } // if id && MC
+          if (r) {
+            h->p3rvsnpv->Fill(ptgen, jteta[jetidx], npvgood, resp, _w);
+            h->p3rvsnpvW->Fill(ptgen, fabs(jteta[jetidx]), npvgood, resp, _w);
+          }
+        } // if MC 
+      } // if id
+    } // pt visible
   } // for jetidx
 
   // Event statistics
@@ -1696,27 +1686,24 @@ void fillHistos::fillBasic(basicHistos *h)
     }
   } // for xidx
 
-  // Unbiased generator spectrum (for each trigger)
-  if (_jp_ismc) {
+  if (_jp_ismc) { // Unbiased generator spectrum (for each trigger)
     if (_jt_debug) cout << "Truth loop:" << endl;
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
-      double geny = gen_jty[gjetidx];
-      if (fabs(geny) >= h->etamin && fabs(geny) < h->etamax) {
-        h->hpt_g0tw->Fill(gen_jtpt[gjetidx], _w);
-        if (_jt_debug) {
-          cout << "genjet " << gjetidx << "/" << gen_njt
-               << " ptg="<<gen_jtpt[gjetidx] << " yg="<<gen_jty[gjetidx] << endl;
-        }
+      double geneta = gen_jteta[gjetidx];
+      double genpt = gen_jtpt[gjetidx];
+      if (fabs(geneta) >= h->etamin && fabs(geneta) < h->etamax) {
+        if (_jt_debug)
+          cout << "genjet " << gjetidx << "/" << gen_njt << " ptg="<<genpt << " etag="<<geneta << endl;
 
-        if (gen_partonflavor[gjetidx]==21)
-          h->hgpt_g0tw->Fill(gen_jtpt[gjetidx], _w); // Ozlem
-        else
-          h->hqpt_g0tw->Fill(gen_jtpt[gjetidx], _w); // Ozlem
+        h->hpt_g0tw->Fill(genpt, _w);
+        // Ozlem: (gluon vs quark)
+        if (gen_partonflavor[gjetidx]==21) h->hgpt_g0tw->Fill(genpt, _w);
+        else h->hqpt_g0tw->Fill(genpt, _w);
       }
     }
   }
   //
-  if (h->ismc) {
+  if (h->ismcdir) {
     // unfolding studies (Mikael)
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
       double ygen = fabs(gen_jty[gjetidx]);
@@ -1762,13 +1749,12 @@ void fillHistos::fillBasic(basicHistos *h)
     } // for j
 
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
-      double ygen = gen_jty[gjetidx];
-      if (fabs(ygen) >= h->etamin && fabs(ygen) < h->etamax) {
+      double etagen = gen_jty[gjetidx];
+      if (fabs(etagen) >= h->etamin && fabs(etagen) < h->etamax) {
         h->hpt_g0->Fill(gen_jtpt[gjetidx], _w);
-        if (gen_partonflavor[gjetidx]==21)
-          h->hgpt_g0->Fill(gen_jtpt[gjetidx], _w); // Ozlem
-        else
-          h->hqpt_g0->Fill(gen_jtpt[gjetidx], _w); // Ozlem
+        // Ozlem: (gluon vs quark)
+        if (gen_partonflavor[gjetidx]==21) h->hgpt_g0->Fill(gen_jtpt[gjetidx], _w);
+        else h->hqpt_g0->Fill(gen_jtpt[gjetidx], _w);
 
         assert(h->hpt_g0_tmp);
         h->hpt_g0_tmp->Fill(gen_jtpt[gjetidx]);
