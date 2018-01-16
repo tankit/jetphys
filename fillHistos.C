@@ -270,7 +270,7 @@ void fillHistos::Loop()
     // At least a singular recalculation of JEC is always performed
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";
-    string jecgt = _jp_jecgt + _jp_jecvers + "_" + (_jp_isdt ? "DATA" : "MC") + "_";
+    string jecgt = string(_jp_jecgt) + string(_jp_jecvers) + string("_") + (_jp_isdt ? string("DATA") : string("MC")) + string("_");
     const char *t = jecgt.c_str();
 
     cout << "Loading "<<a<<"PF JEC" << endl;
