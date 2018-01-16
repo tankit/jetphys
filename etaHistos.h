@@ -29,6 +29,10 @@ class etaHistos {
   // phase space
   string trigname;
 
+  double pttrg;
+  double ptmin;
+  double ptmax;
+
   // control plots vs eta (Ozlem)
   TProfile *pncandtp_vseta;
   TProfile *pnchtp_vseta;
@@ -60,7 +64,7 @@ class etaHistos {
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 
   etaHistos() {}
-  etaHistos(TDirectory *dir, string trigname);
+  etaHistos(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax);
   ~etaHistos();
 
  private:

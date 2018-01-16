@@ -4,7 +4,7 @@
 
 #include "etaHistos.h"
 
-etaHistos::etaHistos(TDirectory *dir, string trigname) {
+etaHistos::etaHistos(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax) {
 
   TDirectory *curdir = gDirectory;
   assert(dir->cd());
@@ -12,6 +12,10 @@ etaHistos::etaHistos(TDirectory *dir, string trigname) {
 
   // phase space
   this->trigname = trigname;
+  
+  this->pttrg = pttrg;
+  this->ptmin = ptmin;
+  this->ptmax = ptmax;
 
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);

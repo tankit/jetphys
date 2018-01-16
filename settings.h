@@ -67,15 +67,15 @@ constexpr Long64_t _js_skim = 0; // "prescale", off if zero
 //{ BEGIN Switches to decide what goes into fillhistos
 // If the output files grow too much, processing becomes more difficult. 
 // Produce run-level histograms
-constexpr bool _jp_doRunHistos = false; //true; Set to false to save time
+constexpr bool _jp_doRunHistos = false; // Not needed very often
 // Produce basic set of histograms
 constexpr bool _jp_doBasicHistos = true;
 // Produce full-eta TH3 histograms
 constexpr bool _jp_doEtaHistos = true;
 // Special reco/gen histos in mc
-constexpr bool _jp_doEtaHistosMcResponse = true;
-// Eta compositions
-constexpr bool _jp_doetacompos = true;
+constexpr bool _jp_doEtaHistosMcResponse = false; // Special studies
+// Toggle 3D asymmetry and mpf histos off, if too much space is consumed
+constexpr bool _jp_do3dHistos = true;
 //} END 
 
 //{ BEGIN JES switches and JEC settings

@@ -1047,9 +1047,9 @@ void fillHistos::initBasics(string name)
   TDirectory *topdir = f->GetDirectory(name.c_str()); assert(topdir);
   topdir->cd();
 
-  // Rapidity bins + HF + barrel
-  double y[] = {0., 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7, 0., 1.3};
-  const int ny = sizeof(y)/sizeof(y[0])-1;
+  // Pseudorapidity bins + HF + barrel
+  double etas[] = {0., 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7, 0., 1.3};
+  const int ny = sizeof(etas)/sizeof(etas[0])-1;
 
   // define triggers
   vector<string> triggers;
@@ -1078,10 +1078,10 @@ void fillHistos::initBasics(string name)
   // Loop over pseudorapidity, trigger bins
   for (int etaidx = 0; etaidx != ny; ++etaidx) {
 
-    if (y[etaidx+1] > y[etaidx]) { // create real bins only
+    if (etas[etaidx+1] > etas[etaidx]) { // create real bins only
 
       // subdirectory for rapidity bin
-      const char *yname = Form("Eta_%1.1f-%1.1f", y[etaidx], y[etaidx+1]);
+      const char *yname = Form("Eta_%1.1f-%1.1f", etas[etaidx], etas[etaidx+1]);
       assert(topdir);
       //assert(topdir->mkdir(yname));
       topdir->mkdir(yname);
@@ -1103,7 +1103,7 @@ void fillHistos::initBasics(string name)
 
         // Initialize and store
         assert(dir);
-        basicHistos *h = new basicHistos(dir, trg, "", y[etaidx], y[etaidx+1], pttrg[trg],
+        basicHistos *h = new basicHistos(dir, trg, "", etas[etaidx], etas[etaidx+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second, triggers[j]=="mc");
         _histos[name].push_back(h);
       } // for j
@@ -1202,7 +1202,7 @@ void fillHistos::fillBasic(basicHistos *h)
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
   if (_evtid and i0>=0 and _jetids[i0] and jtpt[i0]>_jp_recopt) { // First leading jet
-    if (i2>=0 and _jetids[i2] and jtpt[i1]_jp_recopt) { // Second leading jet
+    if (i1>=0 and _jetids[i1] and jtpt[i1]>_jp_recopt) { // Second leading jet
       //{ Calculate and fill dijet mass.
       _j1.SetPtEtaPhiE(jtpt[i0],jteta[i0],jtphi[i0],jte[i0]);
       _j2.SetPtEtaPhiE(jtpt[i1],jteta[i1],jtphi[i1],jte[i1]);
@@ -1245,21 +1245,23 @@ void fillHistos::fillBasic(basicHistos *h)
             double ptprobe = jtpt[iprobe];
             double phiprobe = jtphi[iprobe];
 
-            //{ Dijet balance histograms
-            double asymm = (ptprobe - pttag)/(2*ptave);
-            double asymmtp = (ptprobe - pttag)/(2*pttag);
-            double mpf = met*cos(delta_phi(metphi2,jtphi[itag]))/2;
-            double mpftp = mpf/pttag;
-            mpf /= ptave;
             double alphatp = pt3/pttag;
-            // Asymmetry and mpf
-            assert(h->hdjasymm);   h->hdjasymm->Fill(ptave, alpha, asymm, _w);
-            assert(h->hdjasymmtp); h->hdjasymmtp->Fill(pttag, alphatp, asymmtp, _w);
-            assert(h->hdjmpf);     h->hdjmpf->Fill(ptave, alpha, mpf, _w);
-            assert(h->hdjmpftp);   h->hdjmpftp->Fill(pttag, alphatp, mpftp, _w);
+            //{ Dijet balance histograms
+            if (_jp_do3dHistos) {
+              double asymm = (ptprobe - pttag)/(2*ptave);
+              double asymmtp = (ptprobe - pttag)/(2*pttag);
+              double mpf = met*cos(delta_phi(metphi2,jtphi[itag]))/2;
+              double mpftp = mpf/pttag;
+              mpf /= ptave;
+
+              // Asymmetry and mpf
+              assert(h->hdjasymm);   h->hdjasymm->Fill(ptave, alpha, asymm, _w);
+              assert(h->hdjasymmtp); h->hdjasymmtp->Fill(pttag, alphatp, asymmtp, _w);
+              assert(h->hdjmpf);     h->hdjmpf->Fill(ptave, alpha, mpf, _w);
+              assert(h->hdjmpftp);   h->hdjmpftp->Fill(pttag, alphatp, mpftp, _w);
+            }
             //} // Dijet balance
-
-
+            
             if (alphatp < 0.3) {
               double metstuff = met2 * cos(delta_phi(metphi2, phiprobe));
               if (pttag >= h->ptmin and pttag < h->ptmax)
@@ -1375,11 +1377,11 @@ void fillHistos::fillBasic(basicHistos *h)
     bool id = _jetids[jetidx];
 
     double jec2 = jtjesnew[jetidx]/jtjes[jetidx];
-    bool isetadir = fabs(eta) >= h->etamin and fabs(eta) < h->etamax;
+    bool etarange = fabs(eta) >= h->etamin and fabs(eta) < h->etamax;
     double ptgen = jtgenpt[jetidx];
 
     // Check effect of ID cuts
-    if (isetadir) { // Jet in eta range
+    if (etarange) { // Jet in eta range
       if (_jt_debug) {
         cout << "..." << h->trigname << " | " << " index " << jetidx << "/" << njt
           << " jet pt: " << pt << " eta : " << eta << " id: " << id << " jec: " << jec << endl;
@@ -1403,16 +1405,16 @@ void fillHistos::fillBasic(basicHistos *h)
     if (pt>_jp_recopt) { // pt visible
       // Flags for studying gen eta vs reco eta effects
       bool mcstudy = h->ismcdir and jtgenr[jetidx] < 0.25;
-      bool mcgeneta = fabs(jtgeneta[jetidx]) >= h->etamin && fabs(jtgeneta[jetidx]) < h->etamax;
+      bool mcgenetarange = fabs(jtgeneta[jetidx]) >= h->etamin && fabs(jtgeneta[jetidx]) < h->etamax;
 
-      if (mcstudy and mcgeneta) // GenJets matched to any reco jets in any events
+      if (mcstudy and mcgenetarange) // GenJets matched to any reco jets in any events
         h->hpt_gg0->Fill(ptgen, _w);
 
       if (_evtid and id) { // id OK
-        if (mcstudy and mcgeneta) // GenJets matched to good reco jets in good events
+        if (mcstudy and mcgenetarange) // GenJets matched to good reco jets in good events
           h->hpt_gg->Fill(ptgen, _w);
 
-        if (isetadir) { // Correct jet eta range
+        if (etarange) { // Correct jet eta range
           if (_jt_debug) cout << "..jec uncertainty" << endl << flush;
 
           // Get JEC uncertainty
@@ -1517,7 +1519,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
           if (_jt_debug) cout << "..control plots of components" << endl << flush;
 
-          // control plots of jet components (JEC)
+          // Composition stuff without T&P (according to triggers)
           assert(h->pncand); h->pncand->Fill(pt, jtn[jetidx], _w);
           assert(h->pnch); h->pnch->Fill(pt, jtnch[jetidx], _w);
           assert(h->pnne); h->pnne->Fill(pt, jtnne[jetidx], _w);
@@ -1608,7 +1610,6 @@ void fillHistos::fillBasic(basicHistos *h)
             h->hyeta2->Fill(y-eta, _w);
             h->hbetabetastar->Fill(jtbeta[jetidx], jtbetastar[jetidx], _w);
             h->hetaphi->Fill(eta, phi, _w);
-
           } // within trigger pT range
 
           // closure plots for JEC
@@ -1710,7 +1711,7 @@ void fillHistos::fillBasic(basicHistos *h)
 
       for (int j = 0; j != njt; ++j) {
         //double yreco = fabs(jty[j]);
-        bool id = (_jetids[j] && _evtid && _pass);
+        bool id = (_jetids[j] && _evtid);
         if ((ygen >= h->etamin && ygen < h->etamax && gen_jtpt[gjetidx]>_jp_recopt) &&
             //(yreco >= h->etamin && yreco < h->etamax)
             (jtpt[j]>_jp_recopt && id)) {
@@ -1739,7 +1740,7 @@ void fillHistos::fillBasic(basicHistos *h)
     //
     for (int j = 0; j != njt; ++j) {
       double yreco = fabs(jty[j]);
-      bool id  = (_jetids[j] && _evtid && _pass && jtpt[j]>_jp_recopt);
+      bool id  = (_jetids[j] && _evtid && jtpt[j]>_jp_recopt);
       if (yreco >= h->etamin && yreco < h->etamax && id) {
         h->my->Fill(jtpt[j], _w);
         h->myf->Fill(jtpt[j], _w);
@@ -1857,7 +1858,7 @@ void fillHistos::initEtas(string name)
 
     // Initialize and store
     assert(dir);
-    etaHistos *h = new etaHistos(dir, trg);
+    etaHistos *h = new etaHistos(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second);
     _etahistos[name].push_back(h);
   } // for j
 
@@ -1901,71 +1902,61 @@ void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
   }
 
   // check if required trigger fired
-  if (!fired) return;
-  
-  // Tag-and-probe for composition vs eta (Ozlem) || jetidx is the probe
-  if (jetidx<2 && njt>=2 and pt>_jp_recopt) {
-    int itag = (jetidx==0 ? 1 : 0);
-    double etatag = jteta[itag];
-    double pttag = jtpt[itag];
-    double dphi = delta_phi(phi, jtphi[itag]);
-    double pt3 = (njt>=3 ? jtpt[2] : 0.);
-    
-    // Select appropriage tag pT bin and dijet topology
-    if (_evtid and id and _jetids[itag] and fabs(etatag) < 1.3 and 
-      dphi > 2.7 and pt3 < 0.3*pttag and pttag > h->ptmin and pttag < h->ptmax) {
-      
-      assert(h->pchftp_vseta);
-    h->pchftp_vseta->Fill(eta, jtchf[jetidx], _w);
-    assert(h->pneftp_vseta);
-    h->pneftp_vseta->Fill(eta, jtnef[jetidx], _w);
-    assert(h->pnhftp_vseta);
-    h->pnhftp_vseta->Fill(eta, jtnhf[jetidx], _w);
-    assert(h->pceftp_vseta);
-    h->pceftp_vseta->Fill(eta, jtcef[jetidx], _w);
-    assert(h->pmuftp_vseta);
-    h->pmuftp_vseta->Fill(eta, jtmuf[jetidx], _w);
-    assert(h->pbetatp_vseta);
-    h->pbetatp_vseta->Fill(eta, jtbeta[jetidx], _w);
-    assert(h->pbetastartp_vseta);
-    h->pbetastartp_vseta->Fill(eta, jtbetastar[jetidx], _w);
-      } // select pt bin for profiles vseta
-  } // tag-and-probe vs eta
+  if (!fired or !_pass) return;
 
-  // Calculate and fill dijet balance histograms
-  if (njt>=2 && _evtid && delta_phi(_phi[0],_phi[1])>2.8
-      && _jetids[0] && _jetids[1] && _pt[0]>_jp_recopt && _pt[1]>_jp_recopt) {
-    // Two leading jets
-    for (int itag = 0; itag<2; ++itag) {
-      int iprobe = (itag==0 ? 1 : 0);
-      double etatag = fabs(_eta[itag]);
-      double etaprobe = _eta[iprobe]; // Allow pos. and neg. vals.
-      if (etatag < 1.3) {
-        double pttag = _pt[itag];
+  // Tag & probe hoods
+  int i0 = jt3leads[0];
+  int i1 = jt3leads[1];
+  int i2 = jt3leads[2];
+  if (_evtid and i0>=0 and _jetids[i0] and jtpt[i0]>_jp_recopt and i1>=0 and _jetids[i1] and jtpt[i1]>_jp_recopt) { // Leading jets
+    double dphi = delta_phi(jtphi[i0], jtphi[i1]);
+    if (dphi > 2.7) { // Back-to-back condition
+      double pt3 = ((i2>=0 and jtpt[i2]>_jp_recopt) ? jtpt[i2] : 0.);
+      double ptave = 0.5 * (jtpt[i0] + jtpt[i1]);
+      double alpha = pt3/ptave;
+
+      for (auto itag_lead = 0u; itag_lead<2u; ++itag_lead) { // Look for both t&p combos for the leading jets
+        int itag = jt3leads[itag_lead];
+        int iprobe = jt3leads[(itag_lead==0 ? 1 : 0)];
+        double etatag = jteta[itag];
+        double etaprobe = jteta[iprobe];
+        double pttag = jtpt[itag];
         double ptprobe = _pt[iprobe];
-        double pt3 = (njt>2 ? _pt[2] : 0.);
-        double ptave = 0.5 * (pttag + ptprobe); assert(ptave);
-        double alpha = pt3/ptave;
-        //double alphatp = pt3/pttag;
-        double asymm = (ptprobe - pttag)/(2*ptave);
-        //double asymmtp = (ptprobe - pttag)/(2*pttag);
-        double mpf = met*cos(delta_phi(metphi2,_phi[itag]))/(2*ptave);
-        //double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/(2*pttag);
-        for (auto alphaidx = 0u; alphaidx < h->alpharange.size(); ++alphaidx) {
-          float alphasel = h->alpharange[alphaidx];
-          if (alpha<alphasel) {
-          // Val 10 = excluded, -10 = ok
-            h->hdjasymm[alphaidx]  ->Fill(ptave,   etaprobe, asymm, _w);
-            h->hdjmpf[alphaidx]    ->Fill(ptave,   etaprobe, mpf  , _w);
-            h->hdjasymmtp[alphaidx]->Fill(pttag,   etaprobe, asymm, _w);
-            h->hdjmpftp[alphaidx]  ->Fill(pttag,   etaprobe, mpf  , _w);
-            h->hdjasymmpt[alphaidx]->Fill(ptprobe, etaprobe, asymm, _w);
-            h->hdjmpfpt[alphaidx]  ->Fill(ptprobe, etaprobe, mpf  , _w);
+        double alphatp = pt3/pttag;
+        if (fabs(etatag) < 1.3) {
+          if (_jp_do3dHistos) {
+            double asymm = (ptprobe - pttag)/(2*ptave);
+            //double asymmtp = (ptprobe - pttag)/(2*pttag);
+            double mpf = met*cos(delta_phi(metphi2,_phi[itag]))/(2*ptave);
+            //double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/(2*pttag);
+            for (auto alphaidx = 0u; alphaidx < h->alpharange.size(); ++alphaidx) {
+              float alphasel = h->alpharange[alphaidx];
+              if (alpha<alphasel) {
+                // Val 10 = excluded, -10 = ok
+                h->hdjasymm[alphaidx]  ->Fill(ptave,   etaprobe, asymm, _w);
+                h->hdjmpf[alphaidx]    ->Fill(ptave,   etaprobe, mpf  , _w);
+                h->hdjasymmtp[alphaidx]->Fill(pttag,   etaprobe, asymm, _w);
+                h->hdjmpftp[alphaidx]  ->Fill(pttag,   etaprobe, mpf  , _w);
+                h->hdjasymmpt[alphaidx]->Fill(ptprobe, etaprobe, asymm, _w);
+                h->hdjmpfpt[alphaidx]  ->Fill(ptprobe, etaprobe, mpf  , _w);
+              }
+            }
           }
-        }
-      } // etatag < 1.3
-    } // for itag (two leading jets)
-  } // two or more jets, phase space
+
+          // for composition vs eta (Ozlem) || jetidx is the probe
+          if (alphatp < 0.3 and pttag > h->ptmin and pttag < h->ptmax) { // Alpha and trigger
+            assert(h->pchftp_vseta); h->pchftp_vseta->Fill(etaprobe, jtchf[iprobe], _w);
+            assert(h->pneftp_vseta); h->pneftp_vseta->Fill(etaprobe, jtnef[iprobe], _w);
+            assert(h->pnhftp_vseta); h->pnhftp_vseta->Fill(etaprobe, jtnhf[iprobe], _w);
+            assert(h->pceftp_vseta); h->pceftp_vseta->Fill(etaprobe, jtcef[iprobe], _w);
+            assert(h->pmuftp_vseta); h->pmuftp_vseta->Fill(etaprobe, jtmuf[iprobe], _w);
+            assert(h->pbetatp_vseta); h->pbetatp_vseta->Fill(etaprobe, jtbeta[iprobe], _w);
+            assert(h->pbetastartp_vseta); h->pbetastartp_vseta->Fill(etaprobe, jtbetastar[iprobe], _w);
+          } // select pt bin for profiles vseta
+        } // etatag < 1.3
+      } // tag & probe
+    } // dphi > 2.7
+  } // ids
 } // fillEta
 
 
@@ -2117,23 +2108,25 @@ void fillHistos::fillMcHisto(mcHistos *h,  Float_t* _recopt,  Float_t* _genpt,
         double pt3 = (njt>2 ? _pt[2] : 0.);
         double ptave = 0.5 * (pttag + ptprobe);
         assert(ptave);
-        double alpha = pt3/ptave;
-        double alphatp = pt3/pttag;
-        double asymm = (ptprobe - pttag)/(2*ptave);
-        double asymmtp = (ptprobe - pttag)/(2*pttag);
-        double ptresp_tag = _recopt[itag]/_genpt[itag];
-        double ptresp_probe = _recopt[iprobe]/_genpt[iprobe];
-        for (unsigned alphaidx = 0; alphaidx < h->alpharange.size(); ++alphaidx) {
-          float alphasel = h->alpharange[alphaidx];
-          if (alphatp<alphasel) {
-            h->hdjasymmtp     [alphaidx]->Fill(pttag, etaprobe, asymmtp,      _w);
-            h->hdjresptp_tag  [alphaidx]->Fill(pttag, etaprobe, ptresp_tag,   _w);
-            h->hdjresptp_probe[alphaidx]->Fill(pttag, etaprobe, ptresp_probe, _w);
-          }
-          if (alpha<alphasel) {
-            h->hdjasymm     [alphaidx]->Fill(ptave, etaprobe, asymm,        _w);
-            h->hdjresp_tag  [alphaidx]->Fill(ptave, etaprobe, ptresp_tag,   _w);
-            h->hdjresp_probe[alphaidx]->Fill(ptave, etaprobe, ptresp_probe, _w);
+        if (_jp_do3dHistos) {
+          double alpha = pt3/ptave;
+          double alphatp = pt3/pttag;
+          double asymm = (ptprobe - pttag)/(2*ptave);
+          double asymmtp = (ptprobe - pttag)/(2*pttag);
+          double ptresp_tag = _recopt[itag]/_genpt[itag];
+          double ptresp_probe = _recopt[iprobe]/_genpt[iprobe];
+          for (unsigned alphaidx = 0; alphaidx < h->alpharange.size(); ++alphaidx) {
+            float alphasel = h->alpharange[alphaidx];
+            if (alphatp<alphasel) {
+              h->hdjasymmtp     [alphaidx]->Fill(pttag, etaprobe, asymmtp,      _w);
+              h->hdjresptp_tag  [alphaidx]->Fill(pttag, etaprobe, ptresp_tag,   _w);
+              h->hdjresptp_probe[alphaidx]->Fill(pttag, etaprobe, ptresp_probe, _w);
+            }
+            if (alpha<alphasel) {
+              h->hdjasymm     [alphaidx]->Fill(ptave, etaprobe, asymm,        _w);
+              h->hdjresp_tag  [alphaidx]->Fill(ptave, etaprobe, ptresp_tag,   _w);
+              h->hdjresp_probe[alphaidx]->Fill(ptave, etaprobe, ptresp_probe, _w);
+            }
           }
         }
       } // etatag < 1.3
@@ -2183,8 +2176,7 @@ void fillHistos::initRunHistos(string name, double etamin, double etamax) {
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile :
-              new TFile(Form("output-%s-1.root",_jp_type), "RECREATE"));
+  TFile *f = _outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
   assert(f && !f->IsZombie());
   //assert(f->mkdir(name.c_str()));
   f->mkdir(name.c_str());
@@ -2267,7 +2259,6 @@ void fillHistos::fillRunHistos(string name)
       } // for trgidx
     } // new run
   }
-
 
   double dphi = (njt>=2 ? delta_phi(jtphi[0], jtphi[1]) : 0.);
   double pt3 = (njt>=3 ? jtpt[2] : 0.);
