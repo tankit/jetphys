@@ -27,13 +27,13 @@
   // * Run duplicate checker with new data files, but turn of later (slow)
   //   => settings.h : _jp_checkduplicates
   //
-  // * Point mk_fillHistos.C to correct data/MC files, 
-  //   mk_theory.C to correct theory, and fillHistos.C to correct JSON etc.
+  // * Point mk_histosFill.C to correct data/MC files, 
+  //   mk_theory.C to correct theory, and histosFill.C to correct JSON etc.
   //   [tbd: make these all configurable]
   // * Optimize bins for given luminosity (optimizeBins.C, histosBasic.C)
   //
   // (Check that new runs are listed in JetMETTau stream)
-  // (Update trigger thresholds in mk_combineHistos.C)
+  // (Update trigger thresholds in mk_histosCombine.C)
   // (Update lumi and max pT in settings.h)
   // Reoptimize bins for given luminosity (optimizeBins.C, histosBasic.C)
   // Instructions of getting the external data are at the end
@@ -59,21 +59,21 @@
 //         (- for MC include generator truth information for analysis closure)
   cout << "\nStep 1: Histogram measured jet pt and correction factors"
        << "\n========================================================\n";
-  gROOT->ProcessLine(".x mk_fillHistos.C");
+  gROOT->ProcessLine(".x mk_histosFill.C");
   //cout << "NB: this step is now performed in JetAnalyzer" << endl;
   //cout << "use the output of 'analyzeJets Jets_FWL_cfg.py'" << endl;
   cout << "NB: this step is very slow (~4h) and is switched off" << endl;
-  cout << "NB: to run, execute 'root -l -b -q mk_fillHistos.C'" << endl;
+  cout << "NB: to run, execute 'root -l -b -q mk_histosFill.C'" << endl;
 
 // Step 2a: - apply corrections, normalize luminosity and eta width
   cout << "\nStep 2a: Apply corrections and normalization factors"
        << "\n====================================================\n";
-  gROOT->ProcessLine(".x mk_normalizehistos.C+g");
+  gROOT->ProcessLine(".x mk_histosNormalize.C+g");
 
 // Step 2b: - stitch different triggers together
   cout << "\nStep 2b: Stitch different triggers together"
        << "\n===========================================\n";
-  gROOT->ProcessLine(".x mk_combineHistos.C+g");
+  gROOT->ProcessLine(".x mk_histosCombine.C+g");
 
 // Step 3a: - unfold spectrum iteratively using Ansatz method
 // Step 3b: - unfold spectrum using reweighted Pythia MC

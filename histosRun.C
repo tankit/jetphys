@@ -3,9 +3,9 @@
 // Author:   mikko.voutilainen@cern.ch
 // Created:  June 4, 2010
 // Updated:  August 9, 2011
-#include "runHistos.h"
+#include "histosRun.h"
 
-runHistos::runHistos(TDirectory *dir, double etamin, double etamax)
+histosRun::histosRun(TDirectory *dir, double etamin, double etamax)
   : lumsum(0) {
 
   TDirectory *curdir = gDirectory;
@@ -41,7 +41,7 @@ runHistos::runHistos(TDirectory *dir, double etamin, double etamax)
   curdir->cd();
 }
 
-runHistos::~runHistos() {
+histosRun::~histosRun() {
 
   dir->cd();
 

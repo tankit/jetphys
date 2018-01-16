@@ -21,8 +21,8 @@ R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 
 #include "tools.h"
 R__LOAD_LIBRARY(tools.C+)
-#include "runHistos.h"
-R__LOAD_LIBRARY(runHistos.C+)
+#include "histosRun.h"
+R__LOAD_LIBRARY(histosRun.C+)
 #include "histosBasic.h"
 R__LOAD_LIBRARY(histosBasic.C+)
 #include "histosEta.h"
@@ -30,10 +30,10 @@ R__LOAD_LIBRARY(histosEta.C+)
 #include "histosMC.h"
 R__LOAD_LIBRARY(histosMC.C+)
 
-#include "fillHistos.h"
-R__LOAD_LIBRARY(fillHistos.C+g) // g for assert to work
+#include "histosFill.h"
+R__LOAD_LIBRARY(histosFill.C+g) // g for assert to work
 
-void mk_fillHistos() {
+void mk_histosFill() {
 
   string algo = "ak4";
   if (strings_equal(_jp_algo,"AK8")) algo = "ak8";
@@ -143,7 +143,7 @@ void mk_fillHistos() {
   cout << "Got " << centries << " entries" << endl;
 
   if (centries > 0) {
-    fillHistos filler(c);
+    histosFill filler(c);
 	filler.Loop();
   } else {
     cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;

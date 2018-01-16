@@ -5,10 +5,10 @@
 // Updated: Aug 31, 2016
 // Further updates: see git log
 
-#define fillHistos_cxx
-#include "fillHistos.h"
+#define histosFill_cxx
+#include "histosFill.h"
 
-void fillHistos::Loop()
+void histosFill::Loop()
 {
   if (fChain == 0) return;
 
@@ -20,7 +20,7 @@ void fillHistos::Loop()
 
   map<string, int> cnt; // efficiency counters
 
-  ferr = new ofstream("fillHistos.log",ios::out);
+  ferr = new ofstream("histosFill.log",ios::out);
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << endl << "Starting Loop() initialization:" << endl << flush;
@@ -1020,7 +1020,7 @@ void fillHistos::Loop()
 
 
 // Initialize basic histograms for trigger and eta bins
-void fillHistos::initBasics(string name)
+void histosFill::initBasics(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "initBasics("<<name<<"):" << endl << flush;
@@ -1117,7 +1117,7 @@ void fillHistos::initBasics(string name)
 
 
 // Loop over basic histogram containers to fill all
-void fillHistos::fillBasics(string name)
+void histosFill::fillBasics(string name)
 {
   for (unsigned int histidx = 0; histidx != _histos[name].size(); ++histidx)
     fillBasic(_histos[name][histidx]);
@@ -1125,7 +1125,7 @@ void fillHistos::fillBasics(string name)
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillBasic(histosBasic *h)
+void histosFill::fillBasic(histosBasic *h)
 {
   assert(h);
   h->hpttmp->Reset();
@@ -1269,7 +1269,7 @@ void fillHistos::fillBasic(histosBasic *h)
               h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
 
               //{ Composition vs pt tag pt
-              // Fractions vs pt: we do pt selection later in combineHistos
+              // Fractions vs pt: we do pt selection later in histosCombine
               assert(h->pncandtp);    h->pncandtp->Fill(pttag, jtn[iprobe], _w);
               assert(h->pnchtp);      h->pnchtp->Fill(pttag, jtnch[iprobe], _w);
               assert(h->pnnetp);      h->pnnetp->Fill(pttag, jtnne[iprobe], _w);
@@ -1760,7 +1760,7 @@ void fillHistos::fillBasic(histosBasic *h)
 
 
 // Write and delete histograms
-void fillHistos::writeBasics()
+void histosFill::writeBasics()
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeBasics():" << endl << flush;
@@ -1795,7 +1795,7 @@ void fillHistos::writeBasics()
 
 
 // Initialize eta histograms for trigger bins
-void fillHistos::initEtas(string name)
+void histosFill::initEtas(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "initEtas("<<name<<"):" << endl << flush;
@@ -1869,7 +1869,7 @@ void fillHistos::initEtas(string name)
 
 
 // Loop over basic histogram containers to fill all
-void fillHistos::fillEtas(string name, Float_t* _pt, Float_t* _eta, Float_t* _phi)
+void histosFill::fillEtas(string name, Float_t* _pt, Float_t* _eta, Float_t* _phi)
 {
   for (auto histidx = 0u; histidx != _etahistos[name].size(); ++histidx)
     fillEta(_etahistos[name][histidx], _pt, _eta, _phi);
@@ -1877,7 +1877,7 @@ void fillHistos::fillEtas(string name, Float_t* _pt, Float_t* _eta, Float_t* _ph
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
+void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
 {
   assert(h);
 
@@ -1955,7 +1955,7 @@ void fillHistos::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
 
 
 // Write and delete histograms
-void fillHistos::writeEtas()
+void histosFill::writeEtas()
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeEtas():" << endl << flush;
@@ -1982,7 +1982,7 @@ void fillHistos::writeEtas()
 
 
 // Initialize eta histograms for trigger bins
-void fillHistos::initMcHistos(string name)
+void histosFill::initMcHistos(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "initMcHistos("<<name<<"):" << endl << flush;
@@ -2056,7 +2056,7 @@ void fillHistos::initMcHistos(string name)
 
 
 // Loop over basic histogram containers to fill all
-void fillHistos::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
+void histosFill::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
                               Float_t* _pt, Float_t* _eta,    Float_t* _phi)
 {
   for (auto histidx = 0u; histidx != _mchistos[name].size(); ++histidx)
@@ -2065,7 +2065,7 @@ void fillHistos::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
+void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
                              Float_t* _pt, Float_t* _eta,     Float_t* _phi)
 {
   assert(h);
@@ -2130,7 +2130,7 @@ void fillHistos::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
 
 
 // Write and delete histograms
-void fillHistos::writeMcHistos()
+void histosFill::writeMcHistos()
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeMcHistos():" << endl << flush;
@@ -2157,7 +2157,7 @@ void fillHistos::writeMcHistos()
 
 
 // Initialize basic histograms for trigger and eta bins
-void fillHistos::initRunHistos(string name, double etamin, double etamax) {
+void histosFill::initRunHistos(string name, double etamin, double etamax) {
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "initRunHistos("<<name<<"):" << endl << flush;
@@ -2179,7 +2179,7 @@ void fillHistos::initRunHistos(string name, double etamin, double etamax) {
   TDirectory *dir = f->GetDirectory(name.c_str()); assert(dir);
   dir->cd();
 
-  runHistos *h = new runHistos(dir, etamin, etamax);
+  histosRun *h = new histosRun(dir, etamin, etamax);
   _runhistos[name] = h;
 
   _outfile = f;
@@ -2195,9 +2195,9 @@ void fillHistos::initRunHistos(string name, double etamin, double etamax) {
 
 
 // Fill run histograms
-void fillHistos::fillRunHistos(string name)
+void histosFill::fillRunHistos(string name)
 {
-  runHistos *h = _runhistos[name];
+  histosRun *h = _runhistos[name];
   assert(h);
 
   // Luminosity information
@@ -2300,7 +2300,7 @@ void fillHistos::fillRunHistos(string name)
 
 
 // Write and delete histograms
-void fillHistos::writeRunHistos()
+void histosFill::writeRunHistos()
 {
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeRunHistos():" << endl << flush;
@@ -2311,11 +2311,11 @@ void fillHistos::writeRunHistos()
                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
 
   for (auto histit = _runhistos.begin(); histit != _runhistos.end(); ++histit) {
-    runHistos *h = histit->second;
+    histosRun *h = histit->second;
     delete h;
   } // for histit
 
-  cout << "\nOutput (runHistos) stored in " << _outfile->GetName() << endl;
+  cout << "\nOutput (histosRun) stored in " << _outfile->GetName() << endl;
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << "writeRunHistos() finished:" << endl << flush;
@@ -2326,7 +2326,7 @@ void fillHistos::writeRunHistos()
 } // writeRunHistos
 
 
-void fillHistos::fillJetID(vector<bool> &id)
+void histosFill::fillJetID(vector<bool> &id)
 {
   assert(int(id.size())==njt);
 
@@ -2347,7 +2347,7 @@ void fillHistos::fillJetID(vector<bool> &id)
 
 
 // Load good run and LS information
-void fillHistos::loadJSON(const char* filename)
+void histosFill::loadJSON(const char* filename)
 {
   cout << "Processing loadJSON(\"" << filename << "\"..." << endl;
   ifstream file(filename, ios::in);
@@ -2405,7 +2405,7 @@ void fillHistos::loadJSON(const char* filename)
 
 
 // Load luminosity information
-void fillHistos::loadLumi(const char* filename)
+void histosFill::loadLumi(const char* filename)
 {
   cout << "Processing loadLumi(\"" << filename << "\")..." << endl;
 
@@ -2541,7 +2541,7 @@ void fillHistos::loadLumi(const char* filename)
 } // loadLumi
 
 
-void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
+void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
 {
   cout << "Processing loadPUProfiles(\"" << datafile << "\")..." << endl;
 
@@ -2570,7 +2570,7 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
 } // loadPUProfiles
 
 
-void fillHistos::loadPrescales(const char *prescalefile)
+void histosFill::loadPrescales(const char *prescalefile)
 {
   cout << "Processing loadPrescales(\"" << prescalefile << "\")..." << endl;
   fstream fin(prescalefile);
@@ -2610,7 +2610,7 @@ void fillHistos::loadPrescales(const char *prescalefile)
 } // loadPrescales
 
 
-void fillHistos::loadECALveto(const char *file)
+void histosFill::loadECALveto(const char *file)
 {
   cout << "Processing loadECALveto(\"" << file << "\")..." << endl;
 
@@ -2626,7 +2626,7 @@ void fillHistos::loadECALveto(const char *file)
 
 
 // Update the available trigger types for each new tree
-bool fillHistos::getTriggers()
+bool histosFill::getTriggers()
 {
   TH1F *triggers = (TH1F*)fChain->GetCurrentFile()->Get("ak4/TriggerNames");
   TAxis *xax = triggers->GetXaxis();

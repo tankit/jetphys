@@ -4,7 +4,7 @@
 // Updated: June 2, 2015
 {
   // compile code
-  gROOT->ProcessLine(".L normalizeHistos.C+g");
+  gROOT->ProcessLine(".L histosNormalize.C+g");
 
-  normalizeHistos();
+  histosNormalize();
 }

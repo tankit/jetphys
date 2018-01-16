@@ -29,7 +29,7 @@ map<string, map<int, pair<double, double> > > _massranges;
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
 
-void combineHistos() {
+void histosCombine() {
   
   TDirectory *curdir = gDirectory;
 
@@ -40,7 +40,7 @@ void combineHistos() {
   TFile *fout = new TFile(Form("output-%s-2b.root",_jp_type),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  cout << "Calling combineHistos("<<_jp_type<<");" << endl;
+  cout << "Calling histosCombine("<<_jp_type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
@@ -267,7 +267,7 @@ void combineHistos() {
   fin->Delete();
   cout << "Input file closed" << endl;
 
-} // normalizeHistos
+} // histosNormalize
 
 
 TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,

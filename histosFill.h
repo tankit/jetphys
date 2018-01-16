@@ -4,7 +4,7 @@
 // Created: April 19, 2010
 
 ////////////////////////////////////////////////////////////////////////
-// Notes:   Automatically created using TChain::MakeClass("fillHistos")
+// Notes:   Automatically created using TChain::MakeClass("histosFill")
 //          Keep variable declarations in the automatic order,
 //          update array maximum sizes!!
 ////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,8 @@
 // from TTree ProcessedTree/ProcessedTree
 //////////////////////////////////////////////////////////
 
-#ifndef fillHistos_h
-#define fillHistos_h
+#ifndef histosFill_h
+#define histosFill_h
 
 #include "TROOT.h"
 #include "TChain.h"
@@ -38,7 +38,7 @@
 #include "histosBasic.h"
 #include "histosEta.h"
 #include "histosMC.h"
-#include "runHistos.h"
+#include "histosRun.h"
 #include "tools.h"
 #include "IOV.h"
 
@@ -46,7 +46,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
-class fillHistos {
+class histosFill {
 public :
   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
   Int_t           fCurrent; //!current Tree number in a TChain
@@ -391,9 +391,9 @@ public :
   // end manually added code
   /////////////////////////////////////////////////////////////////////////////
 
-  fillHistos();
-  fillHistos(TChain *tree); // custom
-  virtual ~fillHistos();
+  histosFill();
+  histosFill(TChain *tree); // custom
+  virtual ~histosFill();
   virtual Int_t    Cut(Long64_t entry);
   virtual Int_t    GetEntry(Long64_t entry);
   virtual Long64_t LoadTree(Long64_t entry);
@@ -417,7 +417,7 @@ public :
   map<string, vector<histosBasic*> > _histos;
   map<string, vector<histosEta*> > _etahistos;
   map<string, vector<histosMC*> > _mchistos;
-  map<string, runHistos*> _runhistos;
+  map<string, histosRun*> _runhistos;
   TH1D *hmcweight;
   TH2D *h2etaphiexcl;
   TFile *fetaphiexcl;
@@ -524,13 +524,13 @@ private:
 
 #endif
 
-#ifdef fillHistos_cxx
-fillHistos::fillHistos()
+#ifdef histosFill_cxx
+histosFill::histosFill()
 {
   cout << "This is not supposed to happen! Provide a tree" << endl;
 }
 
-fillHistos::fillHistos(TChain *tree) : fChain(0)
+histosFill::histosFill(TChain *tree) : fChain(0)
 {
   assert(tree);
   Init(tree); // custom
@@ -539,20 +539,20 @@ fillHistos::fillHistos(TChain *tree) : fChain(0)
   _outfile = 0;
 }
 
-fillHistos::~fillHistos()
+histosFill::~histosFill()
 {
    if (!fChain) return;
    delete fChain->GetCurrentFile();
 }
 
-Int_t fillHistos::GetEntry(Long64_t entry)
+Int_t histosFill::GetEntry(Long64_t entry)
 {
    if (!fChain) return 0;
    return fChain->GetEntry(entry);
 }
 
 // Check that the correct tree is open in the chain
-Long64_t fillHistos::LoadTree(Long64_t entry)
+Long64_t histosFill::LoadTree(Long64_t entry)
 {
   if (!fChain)
     return -5;
@@ -597,7 +597,7 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
   return centry;
 }
 
-void fillHistos::Init(TTree *tree)
+void histosFill::Init(TTree *tree)
 {
   if (!tree) return;
   fChain = tree;
@@ -708,19 +708,19 @@ void fillHistos::Init(TTree *tree)
   fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_, &b_events_genFlavourHadron_);
 }
 
-Bool_t fillHistos::Notify()
+Bool_t histosFill::Notify()
 {
   return kTRUE;
 }
 
-void fillHistos::Show(Long64_t entry)
+void histosFill::Show(Long64_t entry)
 {
   if (!fChain) return;
   fChain->Show(entry);
 }
 
-Int_t fillHistos::Cut(Long64_t entry)
+Int_t histosFill::Cut(Long64_t entry)
 {
   return 1;
 }
-#endif // #ifdef fillHistos_cxx
+#endif // #ifdef histosFill_cxx
