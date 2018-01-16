@@ -326,7 +326,7 @@ void fillHistos::Loop()
     loadPUProfiles(_jp_pudata, _jp_pumc);
 
   // Load prescale information to patch 76X
-  if (_jp_prescalefile!="")
+  if (strings_equal(_jp_prescalefile,""))
     loadPrescales(_jp_prescalefile);
 
   // load ECAL veto file for cleaning data
