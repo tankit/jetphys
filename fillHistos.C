@@ -1097,7 +1097,7 @@ void fillHistos::initBasics(string name)
 
         // Initialize and store
         assert(dir);
-        basicHistos *h = new basicHistos(dir, trg, "", etas[etaidx], etas[etaidx+1], pttrg[trg],
+        histosBasic *h = new histosBasic(dir, trg, "", etas[etaidx], etas[etaidx+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second, triggers[j]=="mc");
         _histos[name].push_back(h);
       } // for j
@@ -1125,7 +1125,7 @@ void fillHistos::fillBasics(string name)
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillBasic(basicHistos *h)
+void fillHistos::fillBasic(histosBasic *h)
 {
   assert(h);
   h->hpttmp->Reset();
@@ -1773,7 +1773,7 @@ void fillHistos::writeBasics()
   for (auto histit = _histos.begin(); histit != _histos.end(); ++histit) {
     for (auto histidx = 0u; histidx != histit->second.size(); ++histidx) {
       // Luminosity information
-      basicHistos *h = histit->second[histidx];
+      histosBasic *h = histit->second[histidx];
       for (int j = 0; j != h->hlumi->GetNbinsX()+1; ++j) {
         h->hlumi->SetBinContent(j, _jp_isdt ? h->lumsum : 1. );
         h->hlumi2->SetBinContent(j, _jp_isdt ? h->lumsum2 : 1. );
@@ -1852,7 +1852,7 @@ void fillHistos::initEtas(string name)
 
     // Initialize and store
     assert(dir);
-    etaHistos *h = new etaHistos(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second);
+    histosEta *h = new histosEta(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second);
     _etahistos[name].push_back(h);
   } // for j
 
@@ -1877,7 +1877,7 @@ void fillHistos::fillEtas(string name, Float_t* _pt, Float_t* _eta, Float_t* _ph
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillEta(etaHistos *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
+void fillHistos::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
 {
   assert(h);
 
@@ -1967,7 +1967,7 @@ void fillHistos::writeEtas()
 
   for (auto histit : _etahistos) {
     for (unsigned int histidx = 0; histidx != histit.second.size(); ++histidx) {
-      etaHistos *h = histit.second[histidx];
+      histosEta *h = histit.second[histidx];
       delete h;
     } // for histidx
   } // for histit
@@ -2039,7 +2039,7 @@ void fillHistos::initMcHistos(string name)
 
     // Initialize and store
     assert(dir);
-    mcHistos *h = new mcHistos(dir, trg);
+    histosMC *h = new histosMC(dir, trg);
     _mchistos[name].push_back(h);
   } // for j
 
@@ -2065,7 +2065,7 @@ void fillHistos::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
 
 
 // Fill basic histograms after applying pt, y cuts
-void fillHistos::fillMcHisto(mcHistos *h,  Float_t* _recopt,  Float_t* _genpt,
+void fillHistos::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
                              Float_t* _pt, Float_t* _eta,     Float_t* _phi)
 {
   assert(h);
@@ -2142,7 +2142,7 @@ void fillHistos::writeMcHistos()
 
   for (auto histit : _mchistos) {
     for (auto histidx = 0u; histidx != histit.second.size(); ++histidx) {
-      mcHistos *h = histit.second[histidx];
+      histosMC *h = histit.second[histidx];
       delete h;
     } // for histidx
   } // for histit

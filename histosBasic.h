@@ -2,8 +2,8 @@
 // Author:   mikko.voutilainen@cern.ch
 // Created:  March 20, 2010
 // Updated:  June 9, 2015
-#ifndef __basicHistos_h__
-#define __basicHistos_h__
+#ifndef __histosBasic_h__
+#define __histosBasic_h__
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -17,7 +17,7 @@
 #include <map>
 #include <vector>
 
-class basicHistos {
+class histosBasic {
 
  public:
 
@@ -373,12 +373,12 @@ class basicHistos {
   TProfile2D *pdy_r;
   TProfile2D *pdy_g;
 
-  basicHistos(TDirectory *dir, std::string trigname="", std::string cotrig="", double etamin = 0., 
+  histosBasic(TDirectory *dir, std::string trigname="", std::string cotrig="", double etamin = 0., 
         double etamax = 2.0, double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
-  ~basicHistos();
+  ~histosBasic();
 
 // private:
   TDirectory *dir;
 };
 
-#endif // __basicHistos_h__
+#endif // __histosBasic_h__

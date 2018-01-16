@@ -30,12 +30,12 @@
   // * Point mk_fillHistos.C to correct data/MC files, 
   //   mk_theory.C to correct theory, and fillHistos.C to correct JSON etc.
   //   [tbd: make these all configurable]
-  // * Optimize bins for given luminosity (optimizeBins.C, basicHistos.C)
+  // * Optimize bins for given luminosity (optimizeBins.C, histosBasic.C)
   //
   // (Check that new runs are listed in JetMETTau stream)
   // (Update trigger thresholds in mk_combineHistos.C)
   // (Update lumi and max pT in settings.h)
-  // Reoptimize bins for given luminosity (optimizeBins.C, basicHistos.C)
+  // Reoptimize bins for given luminosity (optimizeBins.C, histosBasic.C)
   // Instructions of getting the external data are at the end
 
   // ***** AFTER RUNNING THE ANALYSIS ****** //

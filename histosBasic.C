@@ -3,7 +3,7 @@
 // Author:   mikko.voutilainen@cern.ch
 // Created:  March 20, 2010
 // Updated:  June 8, 2015
-#include "basicHistos.h"
+#include "histosBasic.h"
 #include "settings.h"
 
 #include "TMath.h"
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-basicHistos::basicHistos(TDirectory *dir, string trigname, string cotrig,
+histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig,
 			 double etamin, double etamax,
 			 double pttrg, double ptmin, double ptmax,
 			 bool ismcdir)
@@ -551,7 +551,7 @@ double vx[neta][nbins] =
   curdir->cd();
 }
   
-basicHistos::~basicHistos() {
+histosBasic::~histosBasic() {
   
   dir->cd();
   //hpttmp->Delete();

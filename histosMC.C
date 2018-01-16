@@ -2,9 +2,9 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#include "mcHistos.h"
+#include "histosMC.h"
 
-mcHistos::mcHistos(TDirectory *dir, string trigname) {
+histosMC::histosMC(TDirectory *dir, string trigname) {
 
   TDirectory *curdir = gDirectory;
   assert(dir->cd());
@@ -84,7 +84,7 @@ mcHistos::mcHistos(TDirectory *dir, string trigname) {
   curdir->cd();
 }
 
-mcHistos::~mcHistos() {
+histosMC::~histosMC() {
   dir->cd();
   dir->Write();
   for (unsigned i = 0; i < alpharange.size(); ++i) {

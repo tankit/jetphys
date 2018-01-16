@@ -35,9 +35,9 @@
 #include "TRandom3.h"
 
 #include "settings.h"
-#include "basicHistos.h"
-#include "etaHistos.h"
-#include "mcHistos.h"
+#include "histosBasic.h"
+#include "histosEta.h"
+#include "histosMC.h"
 #include "runHistos.h"
 #include "tools.h"
 #include "IOV.h"
@@ -414,9 +414,9 @@ public :
   //TH1F *pudt;
   set<string> _trigs;
   vector<bool> _jetids;
-  map<string, vector<basicHistos*> > _histos;
-  map<string, vector<etaHistos*> > _etahistos;
-  map<string, vector<mcHistos*> > _mchistos;
+  map<string, vector<histosBasic*> > _histos;
+  map<string, vector<histosEta*> > _etahistos;
+  map<string, vector<histosMC*> > _mchistos;
   map<string, runHistos*> _runhistos;
   TH1D *hmcweight;
   TH2D *h2etaphiexcl;
@@ -434,17 +434,17 @@ public :
 
   void initBasics(string name);
   void fillBasics(string name);
-  void fillBasic(basicHistos *h);
+  void fillBasic(histosBasic *h);
   void writeBasics();
 
   void initEtas(string name);
   void fillEtas(string name, Float_t *pt, Float_t *eta, Float_t *phi);
-  void fillEta(etaHistos *h, Float_t *pt, Float_t *eta, Float_t *phi);
+  void fillEta(histosEta *h, Float_t *pt, Float_t *eta, Float_t *phi);
   void writeEtas();
 
   void initMcHistos(string name);
   void fillMcHistos(string name, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
-  void fillMcHisto(mcHistos *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
+  void fillMcHisto(histosMC *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
   void writeMcHistos();
 
   void initRunHistos(string name, double etamin, double etamax);

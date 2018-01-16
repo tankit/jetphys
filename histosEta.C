@@ -2,9 +2,9 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#include "etaHistos.h"
+#include "histosEta.h"
 
-etaHistos::etaHistos(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax) {
+histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax) {
 
   TDirectory *curdir = gDirectory;
   assert(dir->cd());
@@ -107,7 +107,7 @@ etaHistos::etaHistos(TDirectory *dir, string trigname, double pttrg, double ptmi
   curdir->cd();
 }
 
-etaHistos::~etaHistos() {
+histosEta::~histosEta() {
   dir->cd();
   dir->Write();
   for (unsigned i = 0; i < alpharange.size(); ++i) {

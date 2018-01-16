@@ -23,12 +23,12 @@ R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(tools.C+)
 #include "runHistos.h"
 R__LOAD_LIBRARY(runHistos.C+)
-#include "basicHistos.h"
-R__LOAD_LIBRARY(basicHistos.C+)
-#include "etaHistos.h"
-R__LOAD_LIBRARY(etaHistos.C+)
-#include "mcHistos.h"
-R__LOAD_LIBRARY(mcHistos.C+)
+#include "histosBasic.h"
+R__LOAD_LIBRARY(histosBasic.C+)
+#include "histosEta.h"
+R__LOAD_LIBRARY(histosEta.C+)
+#include "histosMC.h"
+R__LOAD_LIBRARY(histosMC.C+)
 
 #include "fillHistos.h"
 R__LOAD_LIBRARY(fillHistos.C+g) // g for assert to work
