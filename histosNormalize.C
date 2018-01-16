@@ -135,7 +135,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
   while ( (key = itkey.Next()) ) {
 
-    if (_jt_debug) cout << key->GetName() << endl << flush;
+    if (_jp_debug) cout << key->GetName() << endl << flush;
     obj = ((TKey*)key)->ReadObj(); assert(obj);
     dir = indir;
 

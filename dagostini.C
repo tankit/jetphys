@@ -150,7 +150,7 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
     // Found a subdirectory: copy it to output and go deeper
     if (obj->InheritsFrom("TDirectory")) {
 
-      if (_jt_debug) cout << key->GetName() << endl;
+      if (_jp_debug) cout << key->GetName() << endl;
 
       assert(outdir->mkdir(obj->GetName()));
       outdir->mkdir(obj->GetName());
@@ -293,7 +293,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
                        fnlo->GetParameter(2), fnlo->GetParameter(3), 0, 0);
   cout << "par0 "<< fnlos->GetParameter(0) << "y1 "<< y1<<endl<<flush; //WEIRD: Does not give back y1!!?? FIXME
   
- if (_jt_debug)
+ if (_jp_debug)
     cout << "Calculate forward smearing and unfold hpt" << endl << flush;
 
   TGraphErrors *gfold_fwd = new TGraphErrors(0);
@@ -319,7 +319,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
 
   // Calculate smearing matrix
-  if (_jt_debug) 
+  if (_jp_debug) 
     cout << "Generating smearing matrix T..." << flush;
   double tmp_eps = _epsilon;
   _epsilon = 1e-6; // speed up calculations with acceptable loss of precision
@@ -464,7 +464,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
 
   _epsilon = tmp_eps;
-  if (_jt_debug) 
+  if (_jp_debug) 
     cout << "done." << endl << flush;
 
   /*
@@ -479,7 +479,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   */
 
   // Now to actual unfolding business with the d'Agostini method
-  if (_jt_debug)
+  if (_jp_debug)
     cout << "Unfolding..." << flush;
 
   // RooUnfoldResponse constructor - create from already-filled histograms
@@ -502,7 +502,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   //                 const char* name= 0, const char* title= 0);
   RooUnfoldBayes *uBayes = new RooUnfoldBayes(uResp, hreco, 4);
 
-  if (_jt_debug)
+  if (_jp_debug)
     uBayes->Print();
 
   TH1D *hTrueBayes = (TH1D*)uBayes->Hreco(RooUnfold::kCovariance);
@@ -576,7 +576,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     }
   } // !_jk
   
-  if (_jt_debug)
+  if (_jp_debug)
     cout << "done." << endl << flush;
 
 

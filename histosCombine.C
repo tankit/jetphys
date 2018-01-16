@@ -303,10 +303,10 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         assert(outdir->cd(key->GetName()));
         outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
         outdir2->cd();
-        if (_jt_debug) cout << key->GetName() << endl;
+        if (_jp_debug) cout << key->GetName() << endl;
       }
       else
-        if (_jt_debug) cout << key->GetName() << " (at bottom)" << endl;      
+        if (_jp_debug) cout << key->GetName() << " (at bottom)" << endl;      
 
       assert(indir->cd(obj->GetName()));
       TDirectory *indir2 = indir->GetDirectory(obj->GetName()); assert(indir2);
@@ -370,7 +370,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         _hpt->Reset();
         indir->cd();
         assert(_hpt);
-        if (_jt_debug) cout << "Cloned _" << hpt3->GetName() << endl;
+        if (_jp_debug) cout << "Cloned _" << hpt3->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())
@@ -406,7 +406,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         _hpt->Reset();
         indir->cd();
         assert(_hpt);
-        if (_jt_debug) cout << "Cloned _" << hpt2->GetName() << endl;
+        if (_jp_debug) cout << "Cloned _" << hpt2->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())
@@ -439,7 +439,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         _hpt->Reset();
         indir->cd();
         assert(_hpt);
-        if (_jt_debug) cout << "Cloned _" << hpt->GetName() << endl;
+        if (_jp_debug) cout << "Cloned _" << hpt->GetName() << endl;
       }
 
       if (_ptranges.find(indir->GetName())==_ptranges.end())

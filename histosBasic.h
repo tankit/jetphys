@@ -35,6 +35,14 @@ class histosBasic {
   TH1D *hgpt;
   TH1D *hgpt0;
 
+  //Ozlem
+  TH1D *hgpt_g0tw;
+  TH1D *hqpt_g0tw;
+  TH1D *hgpt_g0;
+  TH1D *hqpt_g0;
+  TH1D *hgpt_g;
+  TH1D *hqpt_g;
+  //
   TH1D *hqgl;
   TH1D *hqgl_q;
   TH1D *hqgl_g;
@@ -340,16 +348,6 @@ class histosBasic {
   TH1D *hpt_g0tw;
   TH1D *hpt_g0_tmp;
   //
-  //Ozlem
-  TH1D *hgpt_g0tw;
-  TH1D *hqpt_g0tw;
-  TH1D *hgpt_g0;
-  TH1D *hqpt_g0;
-  TH1D *hgpt_g;
-  TH1D *hqpt_g;
-
-  //
-
   TProfile *ppt_r;
   TProfile *ppt_g;
   // Response closure

@@ -54,7 +54,12 @@ void histosFill::Loop()
   assert(h2mu && !h2mu->IsZombie());
   //TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRuNxMU_cleaned"); assert(h2mu);
 
-  if (_jp_doqgl) { // Qgl: load quark/gluon probability histos (Ozlem)
+  // Qgl: load quark/gluon probability histos (Ozlem)
+  // 1. open the previous output-MC-1_iteration1.root in the beginning
+  // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
+  // 3. find correct hqgl_q and hqgl_g from array (normalized)
+  // 4. calculate probg = g / (q+g)
+  if (_jp_doqglfile) {
     TFile *finmc = new TFile(_jp_qglfile,"READ");
     assert(finmc && !finmc->IsZombie());
 
@@ -466,7 +471,7 @@ void histosFill::Loop()
       assert(gen_njt<_njt);
     }
 
-    if (_jt_debug) {
+    if (_jp_debug) {
       cout << endl << flush;
       Show(jentry);
       cout << endl << endl << flush;
@@ -573,7 +578,7 @@ void histosFill::Loop()
     if (_pass && rho>40.) {
       ++_rhocounter_bad;
       _pass = false;
-      if (_jt_debug)
+      if (_jp_debug)
         cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d"
                      " jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
                      run, lbn, evt, rho, njt, npv,
@@ -603,13 +608,13 @@ void histosFill::Loop()
             break; // Don't add lesser triggers
           }
         }
-      }
-    } // _jp_domctrigsim
+      } // _jp_domctrigsim
+    } // _jp_ismc
 
     if (_jp_isdt) {
       // For data, check trigger bits
-      if (_jt_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-      if (_jt_debug) cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
+      if (_jp_debug) cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
+      if (_jp_debug) cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
       assert(TriggerDecision_.size() == _availTrigs.size());
 
       for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
@@ -629,7 +634,7 @@ void histosFill::Loop()
           }
 
           // check prescale
-          if (_jt_debug) {
+          if (_jp_debug) {
             double prescale = _prescales[strg][run];
             if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
               cout << "Trigger " << strg << ", "
@@ -1174,7 +1179,7 @@ void histosFill::fillBasic(histosBasic *h)
   if (_jp_ismc)
     h->hlumi_vstrpu->Fill(trpu, _w);
 
-  if (_jt_debug) {
+  if (_jp_debug) {
     if (h == _histos.begin()->second[0]) {
       cout << "Triggers size: " << _trigs.size() << endl;
       for (auto trgit = _trigs.begin(); trgit != _trigs.end(); ++trgit)
@@ -1186,8 +1191,8 @@ void histosFill::fillBasic(histosBasic *h)
   // check if required trigger fired and passed
   if (!fired || !_pass) return;
 
-  if (_jt_debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",h->etamin,h->etamax,h->trigname.c_str()) << endl;
-  if (_jt_debug) cout << "Calculate and fill dijet mass" << endl << flush;
+  if (_jp_debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",h->etamin,h->etamax,h->trigname.c_str()) << endl;
+  if (_jp_debug) cout << "Calculate and fill dijet mass" << endl << flush;
 
   if (h->ismcdir) h->hpthat->Fill(pthat, _w);
   if (h->ismcdir) h->hpthatnlo->Fill(pthat);
@@ -1219,7 +1224,7 @@ void histosFill::fillBasic(histosBasic *h)
 
 
       //{ Tag & probe hoods: Tag in barrel and fires trigger, probe in eta bin unbiased
-      if (_jt_debug) cout << "Calculate and fill dijet balance" << endl << flush;
+      if (_jp_debug) cout << "Calculate and fill dijet balance" << endl << flush;
 
       double dphi = delta_phi(jtphi[i0], jtphi[i1]);
 
@@ -1356,9 +1361,9 @@ void histosFill::fillBasic(histosBasic *h)
   //double metphi = this->metphi;
   double sumet = this->metsumet;
 
-  if (_jt_debug) cout << "Entering jet loop" << endl << flush;
+  if (_jp_debug) cout << "Entering jet loop" << endl << flush;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
-    if (_jt_debug) cout << "Loop over jet " << jetidx << "/" << njt << endl << flush;
+    if (_jp_debug) cout << "Loop over jet " << jetidx << "/" << njt << endl << flush;
 
     // adapt variable names from different trees
     double pt = jtpt[jetidx];
@@ -1376,7 +1381,7 @@ void histosFill::fillBasic(histosBasic *h)
 
     // Check effect of ID cuts
     if (etarange) { // Jet in eta range
-      if (_jt_debug) {
+      if (_jp_debug) {
         cout << "..." << h->trigname << " | " << " index " << jetidx << "/" << njt
           << " jet pt: " << pt << " eta : " << eta << " id: " << id << " jec: " << jec << endl;
         cout << "...evt id: " << _evtid << " weight: " << _w << " met: " << met << " metsumet: " << metsumet << endl;
@@ -1409,7 +1414,7 @@ void histosFill::fillBasic(histosBasic *h)
           h->hpt_gg->Fill(ptgen, _w);
 
         if (etarange) { // Correct jet eta range
-          if (_jt_debug) cout << "..jec uncertainty" << endl << flush;
+          if (_jp_debug) cout << "..jec uncertainty" << endl << flush;
 
           // Get JEC uncertainty
           double unc = 0.01; // default for MC
@@ -1427,47 +1432,43 @@ void histosFill::fillBasic(histosBasic *h)
           double trigeff = 1.;
           double eff = ideff * vtxeff * dqmeff * trigeff;
 
-          if (_jt_debug) cout << "..raw spectrum" << endl << flush;
+          if (_jp_debug) cout << "..raw spectrum" << endl << flush;
 
           // REMOVED: "For trigger efficiency"
 
-          if (_jp_doqgl) {
-            // new histograms for quark/gluon study (Ozlem)
-            // 1. open the previous output-MC-1_iteration1.root in the beginning
-            // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
-            // 3. find correct hqgl_q and hqgl_g from array (normalized)
-            // 4. calculate probg = g / (q+g)
-            //double probg = 1.-qgl[jetidx]; // Later, map QGL to probability using hqgl_x
+          // new histograms for quark/gluon study (Ozlem)
+          double probg = 1.-qgl[jetidx]; // First approximation
+          if (_jp_doqglfile) { // If we loaded a previous file to h3probg, use this for better probg
             assert(h3probg);
-            double probg = h3probg->GetBinContent(h3probg->FindBin(jty[jetidx],jtpt[jetidx],qgl[jetidx]));
-            if (probg>=0 and probg<=1) {
-              assert(h->hgpt);
-              h->hgpt->Fill(pt,_w*probg);
-              assert(h->hgpt0);
-              h->hgpt0->Fill(pt, _w*probg);
-
-              assert(h->hqgl);
-              h->hqgl->Fill(qgl[jetidx], _w);
-              if (_jp_ismc) {
-                assert(h->hqgl_g);
-                assert(h->hqgl_q);
-                bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
-                bool isquark = (fabs(partonflavor[jetidx])<7);
-                assert(isgluon || isquark);
-                if (isgluon) h->hqgl_g->Fill(qgl[jetidx], _w);
-                if (isquark) h->hqgl_q->Fill(qgl[jetidx], _w);
-
-                // For data templates from scaling Pythia, see instructions at
-                // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
-                double x = qgl[jetidx];
-                double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
-                double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 
-                            92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
-                if (isgluon) h->hqgl_dg->Fill(qgl[jetidx], _w*wg);
-                if (isquark) h->hqgl_dq->Fill(qgl[jetidx], _w*wq);
-              }
-            } // probg quark/gluon
+            probg = h3probg->GetBinContent(h3probg->FindBin(eta,pt,qgl[jetidx]));
           }
+          if (probg>=0 and probg<=1) {
+            assert(h->hgpt);
+            h->hgpt->Fill(pt,_w*probg);
+            assert(h->hgpt0);
+            h->hgpt0->Fill(pt, _w*probg);
+
+            assert(h->hqgl);
+            h->hqgl->Fill(qgl[jetidx], _w);
+            if (_jp_ismc) {
+              assert(h->hqgl_g);
+              assert(h->hqgl_q);
+              bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
+              bool isquark = (fabs(partonflavor[jetidx])<7);
+              assert(isgluon || isquark);
+              if (isgluon) h->hqgl_g->Fill(qgl[jetidx], _w);
+              if (isquark) h->hqgl_q->Fill(qgl[jetidx], _w);
+
+              // For data templates from scaling Pythia, see instructions at
+              // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
+              double x = qgl[jetidx];
+              double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+              double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 
+                          92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+              if (isgluon) h->hqgl_dg->Fill(qgl[jetidx], _w*wg);
+              if (isquark) h->hqgl_dq->Fill(qgl[jetidx], _w*wq);
+            }
+          } // probg quark/gluon
 
           // raw spectrum
           assert(h->hpt); h->hpt->Fill(pt,_w);
@@ -1492,7 +1493,7 @@ void histosFill::fillBasic(histosBasic *h)
             assert(h->hpt3); h->hpt3->Fill(pt,_w);
           }
 
-          if (_jt_debug) cout << "..basic properties" << endl << flush;
+          if (_jp_debug) cout << "..basic properties" << endl << flush;
 
           // basic properties
           assert(h->ppt); h->ppt->Fill(pt, pt, _w);
@@ -1511,7 +1512,7 @@ void histosFill::fillBasic(histosBasic *h)
           assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
           assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
 
-          if (_jt_debug) cout << "..control plots of components" << endl << flush;
+          if (_jp_debug) cout << "..control plots of components" << endl << flush;
 
           // Composition stuff without T&P (according to triggers)
           assert(h->pncand); h->pncand->Fill(pt, jtn[jetidx], _w);
@@ -1549,7 +1550,7 @@ void histosFill::fillBasic(histosBasic *h)
             h->pitpuvstrpu->Fill(trpu, itpu, _w);
             h->hjet_vstrpu->Fill(trpu, _w);
 
-            if (_jt_debug) cout << "..control plots for topology" << endl << flush;
+            if (_jp_debug) cout << "..control plots for topology" << endl << flush;
 
             h->htrpu->Fill(trpu, _w);
             if (h->ismcdir) {
@@ -1613,7 +1614,7 @@ void histosFill::fillBasic(histosBasic *h)
           h->pmpf2->Fill(pt, 1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
 
           if (mcstudy) { // MC extras
-            if (_jt_debug)
+            if (_jp_debug)
               cout << "genmatch " << jetidx << " ptg="<<ptgen << " yg="<<jtgeny[jetidx] << " yr="<< y << endl;
 
             double r = (ptgen ? pt/ptgen : 0);
@@ -1682,12 +1683,12 @@ void histosFill::fillBasic(histosBasic *h)
   } // for xidx
 
   if (_jp_ismc) { // Unbiased generator spectrum (for each trigger)
-    if (_jt_debug) cout << "Truth loop:" << endl;
+    if (_jp_debug) cout << "Truth loop:" << endl;
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
       double geneta = gen_jteta[gjetidx];
       double genpt = gen_jtpt[gjetidx];
       if (fabs(geneta) >= h->etamin && fabs(geneta) < h->etamax) {
-        if (_jt_debug)
+        if (_jp_debug)
           cout << "genjet " << gjetidx << "/" << gen_njt << " ptg="<<genpt << " etag="<<geneta << endl;
 
         h->hpt_g0tw->Fill(genpt, _w);
@@ -1886,7 +1887,7 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
-  if (_jt_debug) {
+  if (_jp_debug) {
     if (h == _etahistos.begin()->second[0]) {
       cout << "Triggers size: " << _trigs.size() << endl;
       for (auto trgit = _trigs.begin(); trgit != _trigs.end(); ++trgit)
@@ -2075,7 +2076,7 @@ void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
-  if (_jt_debug) {
+  if (_jp_debug) {
     if (h == _mchistos.begin()->second[0]) {
       cout << "Triggers size: " << _trigs.size() << endl;
       for (auto trgit = _trigs.begin(); trgit != _trigs.end(); ++trgit)
@@ -2359,18 +2360,18 @@ void histosFill::loadJSON(const char* filename)
   file.get(c);
   assert(c=='{');
   while (file >> s && sscanf(s.c_str(),"\"%d\":",&rn)==1) {
-    if (_jt_debug)
+    if (_jp_debug)
       cout << "\"" << rn << "\": " << flush;
 
     while (file.get(c) && c==' ') {};
-    if (_jt_debug)
+    if (_jp_debug)
       cout << c << flush; assert(c=='[');
     ++nrun;
 
     bool endrun = false;
     while (!endrun && file >> s >> s2 &&
            sscanf((s+s2).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3) {
-      if (_jt_debug)
+      if (_jp_debug)
         cout << "["<<ls1<<","<<ls2<<"]"<<s1 << flush;
 
       for (int ls = ls1; ls != ls2+1; ++ls) {
@@ -2382,16 +2383,16 @@ void histosFill::loadJSON(const char* filename)
       s2 = s1;
       endrun = (s2=="]," || s2=="]}");
       if (!endrun && s2!=",") {
-        if (_jt_debug)
+        if (_jp_debug)
           cout<<"s1: "<<s2<<endl<<flush; assert(s2==",");
       }
     } // while ls
-    if (_jt_debug)
+    if (_jp_debug)
       cout << endl;
 
     if (s2=="]}") continue;
     else if (s2!="],") {
-      if (_jt_debug)
+      if (_jp_debug)
         cout<<"s2: "<<s2<<endl<<flush; assert(s2=="],");
     }
   } // while run
@@ -2460,7 +2461,7 @@ void histosFill::loadLumi(const char* filename)
         &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec,&avgpu,sfoo)==15 ||
         (skip=true))) {
 
-    if (_jt_debug) {
+    if (_jp_debug) {
       if (skip) cout << "Skipping line:\n" << s << endl;
       cout << "Run " << run << " ls " << ls
            << " lumi " << rec*1e-6 << "/pb" << endl;
@@ -2594,7 +2595,7 @@ void histosFill::loadPrescales(const char *prescalefile)
     stringstream ss;
     ss << s;
     ss >> run >> ls;
-    if (_jt_debug) cout << " run " << run << " ls " << ls << ": ";
+    if (_jp_debug) cout << " run " << run << " ls " << ls << ": ";
     //ss >> run;
     //cout << " run " << run << ": ";
 
@@ -2603,9 +2604,9 @@ void histosFill::loadPrescales(const char *prescalefile)
       //cout << "trg" << trgs[itrg] << " run " << run << " ls " << ls;
       assert(itrg!=trgs.size());
       _premap[trgs[itrg]][run][ls] = pre;
-      if (_jt_debug) cout << pre << "/" << trgs[itrg] << " ";
+      if (_jp_debug) cout << pre << "/" << trgs[itrg] << " ";
     }
-    if (_jt_debug) cout << endl;
+    if (_jp_debug) cout << endl;
   }
 } // loadPrescales
 
