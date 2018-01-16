@@ -1039,7 +1039,7 @@ void fillHistos::initBasics(string name)
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type.c_str()), "RECREATE"));
+  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE"));
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   assert(f->cd(name.c_str()));
