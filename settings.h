@@ -132,7 +132,7 @@ const constexpr double _jp_pthatsigmas[_jp_npthatbins+1] =
 const constexpr double _jp_pthatnevts[_jp_npthatbins+1] =
   {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 // The filenames need to be given here and in mk_fillHistos, since ROOT is exceedingly stupid
-const constexpr char* _jp_pthatfiles[_jp_npthatbins] = {
+const vector<string> _jp_pthatfiles[_jp_npthatbins] = {
     "P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
     "P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
