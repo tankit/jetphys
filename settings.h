@@ -123,13 +123,13 @@ constexpr bool _jp_pthatbins = true;//false;
 // Number of pthat bins
 constexpr unsigned int _jp_npthatbins = 14;
 // The corresponding ranges, the last number is ~inf
-const constexpr double _jp_pthatranges[_jp_npthatbins+1] = 
+const vector<double> _jp_pthatranges =
   {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
 // The corresponding lumis in an arbitrary scale
-const constexpr double _jp_pthatsigmas[_jp_npthatbins+1] =
+const vector<double> _jp_pthatsigmas =
   {140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
   //{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-const constexpr double _jp_pthatnevts[_jp_npthatbins+1] =
+const vector<double> _jp_pthatnevts =
   {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 // The filenames need to be given here and in mk_fillHistos, since ROOT is exceedingly stupid
 const vector<string> _jp_pthatfiles = {

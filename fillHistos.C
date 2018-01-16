@@ -312,12 +312,6 @@ void fillHistos::Loop()
     assert(_L1RC);
   } // JEC redone
 
-
-  // Set list of triggers
-  for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
-    _triggers.push_back(_jp_triggers[itrg]);
-  }
-
   // Load latest JSON selection
   if (_jp_isdt && _jp_dojson) loadJSON(_jp_json);
 
@@ -669,8 +663,8 @@ void fillHistos::Loop()
     _w = _w0;
 
     // Calculate trigger PU weight
-    for (unsigned int itrg = 0; itrg != _triggers.size(); ++itrg) {
-      const char *trg_name = _triggers[itrg].c_str();
+    for (auto itrg = 0u; itrg != _jp_ntrigs; ++itrg) {
+      const char *trg_name = string(_jp_triggers[itrg]).c_str();
       _wt[trg_name] = 1.;
 
       // Reweigh in-time pile-up
@@ -1049,7 +1043,7 @@ void fillHistos::initBasics(string name)
 
   // Pseudorapidity bins + HF + barrel
   double etas[] = {0., 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7, 0., 1.3};
-  const int ny = sizeof(etas)/sizeof(etas[0])-1;
+  const int netas = sizeof(etas)/sizeof(etas[0])-1;
 
   // define triggers
   vector<string> triggers;
@@ -1076,29 +1070,29 @@ void fillHistos::initBasics(string name)
   }
 
   // Loop over pseudorapidity, trigger bins
-  for (int etaidx = 0; etaidx != ny; ++etaidx) {
+  for (int etaidx = 0; etaidx != netas; ++etaidx) {
 
     if (etas[etaidx+1] > etas[etaidx]) { // create real bins only
 
       // subdirectory for rapidity bin
-      const char *yname = Form("Eta_%1.1f-%1.1f", etas[etaidx], etas[etaidx+1]);
+      const char *etaname = Form("Eta_%1.1f-%1.1f", etas[etaidx], etas[etaidx+1]);
       assert(topdir);
       //assert(topdir->mkdir(yname));
-      topdir->mkdir(yname);
-      assert(topdir->cd(yname));
+      topdir->mkdir(etaname);
+      assert(topdir->cd(etaname));
       //TDirectory *ydir = gDirectory;
-      TDirectory *ydir = topdir->GetDirectory(yname); assert(ydir);
-      ydir->cd();
+      TDirectory *etadir = topdir->GetDirectory(etaname); assert(etadir);
+      etadir->cd();
 
       for (unsigned int j = 0; j != triggers.size(); ++j) {
         // subdirectory for trigger
         const char *trg = triggers[j].c_str();
-        assert(ydir);
+        assert(etadir);
         //assert(ydir->mkdir(trg));
-        ydir->mkdir(trg);
-        assert(ydir->cd(trg));
+        etadir->mkdir(trg);
+        assert(etadir->cd(trg));
         //TDirectory *dir = gDirectory;
-        TDirectory *dir = ydir->GetDirectory(trg); assert(dir);
+        TDirectory *dir = etadir->GetDirectory(trg); assert(dir);
         dir->cd();
 
         // Initialize and store
@@ -2286,7 +2280,7 @@ void fillHistos::fillRunHistos(string name)
         }
 
         int itag = (jetidx==0 ? 1 : 0);
-        if (jetidx<2 and dphi > 2.7 and pt3 < jtpt[itag] and fabs(jty[itag]) < 1.3 and
+        if (jetidx<2 and dphi > 2.7 and pt3 < jtpt[itag] and fabs(jteta[itag]) < 1.3 and
             jtpt[itag] > h->pt[t] and _jetids[itag]) {
           ++h->t_trgtp[t][run];
           h->c_chftp[t][run] += jtchf[jetidx];
@@ -2338,7 +2332,7 @@ void fillHistos::fillJetID(vector<bool> &id)
 
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
 
-    id[jetidx] = ((fabs(jty[jetidx])<2.5 ? jtidtight[jetidx] : jtidloose[jetidx]));
+    id[jetidx] = ((fabs(jteta[jetidx])<2.5 ? jtidtight[jetidx] : jtidloose[jetidx]));
              //&& (_jp_ismc || jtbeta[jetidx]!=0));
              //&& (_jp_ismc || (1-jtbetastar[jetidx])>0.5));
 
@@ -2565,8 +2559,8 @@ void fillHistos::loadPUProfiles(const char *datafile, const char *mcfile)
   pumc->Scale(1./pumc->Integral());
 
   // For data, load each trigger separately
-  for (unsigned int itrg = 0 ; itrg != _triggers.size(); ++itrg) {
-    const char *t = _triggers[itrg].c_str();
+  for (auto itrg = 0u ; itrg != _jp_ntrigs; ++itrg) {
+    const char *t = string(_jp_triggers[itrg]).c_str();
     pudist[t] = (TH1D*)fpudist->Get(Form("%s",t)); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
@@ -2632,7 +2626,7 @@ void fillHistos::loadECALveto(const char *file)
 
 
 // Update the available trigger types for each new tree
-void fillHistos::getTriggers()
+bool fillHistos::getTriggers()
 {
   TH1F *triggers = (TH1F*)fChain->GetCurrentFile()->Get("ak4/TriggerNames");
   TAxis *xax = triggers->GetXaxis();
@@ -2649,4 +2643,6 @@ void fillHistos::getTriggers()
       trigger=std::regex_replace(trgName, pfjet, "jt$1", std::regex_constants::format_no_copy);
     _availTrigs.push_back(trigger);
   }
+  
+  return _aivalTrigs.size()>0;
 } // getTriggers

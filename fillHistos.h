@@ -410,7 +410,6 @@ public :
   ofstream *ferr;
   TFile *_outfile;
   map<string, TH1D*> pudist;
-  vector<string> _triggers;
   TH1F *pumc;
   //TH1F *pudt;
   set<string> _trigs;
@@ -454,7 +453,7 @@ public :
 
   void fillJetID(vector<bool> &id);
 
-  void getTriggers();
+  bool getTriggers();
 
   inline double delta_phi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
@@ -567,7 +566,10 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
     fCurrent = fChain->GetTreeNumber();
     if (_jp_isdt) {
       *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
-      getTriggers();
+      if (!getTriggers()) {
+        *ferr << "Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting..." << endl;
+        return -4;
+      }
       *ferr << "Tree " << fCurrent << " triggers:" << endl;
       for (auto str : _availTrigs) {
         if (str.length()==0)
@@ -580,6 +582,10 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
       TString filename = fChain->GetCurrentFile()->GetName();
       // Check the position of the current file in the list of file names
       unsigned currFile = std::find_if(_jp_pthatfiles.begin(),_jp_pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-_jp_pthatfiles.begin();
+      if (_jp_pthatnevts[currFile]<=0.0 or _jp_pthatsigmas[currFile]<=0) {
+        *ferr << "Suspicious pthat slice information for file " << _jp_pthatfiles[currFile] << ". Aborting..." << endl;
+        return -3;
+      }
       _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
       _pthatweight /= _jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]; // Normalize
       *ferr << "Pthat bin changing." << endl << "File " << currFile << " " << fChain->GetCurrentFile()->GetName();
@@ -587,7 +593,6 @@ Long64_t fillHistos::LoadTree(Long64_t entry)
       *ferr << endl << "Weight: " << _pthatweight << endl;
     }
     // slices with pthat bins
-    // sus:q
   }
   return centry;
 }

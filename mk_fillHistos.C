@@ -108,21 +108,15 @@ void mk_fillHistos() {
       cout << "Running over pthat bins in pythia8" << endl;
       cout << "Load trees..." << endl;
 
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",p));
-      c->AddFile(Form("%sP825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",p));
+      if (_jp_pthatfiles.size()!=_jp_npthatbins or _jp_pthatsigmas.size()!=_jp_npthatbins or
+        _jp_pthatnevts.size()!=_jp_npthatbins or _jp_pthatranges.size()!=_jp_npthatbins+1) {
+        cout << "The pthat file information dimensions don't match! Aborting..." << endl;
+        return;
+      }
 
+      for (auto & mcfile : _jp_pthatfiles) {
+        c->AddFile(Form("%s%s",p,mcfile.c_str()));
+      }
     } else {
       cout << "Running over pythia flat sample" << endl;
 
