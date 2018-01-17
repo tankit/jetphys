@@ -60,7 +60,7 @@ void drawGluon() {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *fd = new TFile("output-DATA_31Octlongprobp_RunGpart1-1.root","READ");
+  TFile *fd = new TFile("output-DATA_RunGfull_part-1.root","READ");
   assert(fd && !fd->IsZombie());
   TFile *fm = new TFile("output-MC_30Octlongprobg-1.root","READ");
   assert(fm && !fm->IsZombie());

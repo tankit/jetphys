@@ -34,7 +34,8 @@ constexpr bool strings_equal(char const * a, char const * b) {
 
 // Debugging info
 constexpr bool _jp_debug = false;
-
+#define USEASSERT
+#undef USEASSERT
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -82,7 +83,7 @@ constexpr bool _jp_do3dHistos = true;
 
 // QGL studies by Ozlem (use an external file for qgl studies)
 constexpr bool _jp_doqglfile = false;
-const constexpr char _jp_qglfile[] = "output-DATA_RunG_part1_16oct-1.root";
+const constexpr char _jp_qglfile[] = "output-DATA_RunGfullpart-1.root";
 
 // At some point of time Kostas stored UNCORRECTED four-vector. Current status: CORRECTED
 // NOTE: this is a source of constant anxiety, should be rechecked from time to time
@@ -177,20 +178,20 @@ const vector<double> _jp_pthatnevts =
   {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
 // The filenames need to be given here and in mk_histosFill, since ROOT is exceedingly stupid
 const vector<string> _jp_pthatfiles = {
-    "P825ns80X_Moriond17/QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
-    "P825ns80X_Moriond17/QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
+    "QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
 };
 //} END pthatbins stuff
 

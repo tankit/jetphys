@@ -43,7 +43,7 @@ void histosFill::Loop()
   _trgcounter = _evtcounter = _totcounter = 0;
   _ecalveto = 0;
 
-  // Set cross section weights for pThat bins
+  // Initialize _pthatweight. It will be loaded for each tree separately.
   if (_jp_pthatbins)
     _pthatweight = 0;
 
@@ -412,7 +412,7 @@ void histosFill::Loop()
     assert(_jp_isdt || (_jp_pthatbins && _pthatweight));
     pthat = EvtHdr__mPthat;
     weight = EvtHdr__mWeight;
-    if (_jp_ismc && _jp_pthatbins)
+    if (_jp_ismc and _jp_pthatbins) // weight is most likely redundant if _pthatbins are used, but keep it here just in case.
       weight *= _pthatweight;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
@@ -664,7 +664,7 @@ void histosFill::Loop()
 
     // Retrieve event weight
     _w0 = (_jp_ismc ? weight : 1);
-    assert(_w0);
+    assert(_w0>0);
     _w = _w0;
 
     // Calculate trigger PU weight
@@ -1141,7 +1141,7 @@ void histosFill::fillBasic(histosBasic *h)
   }
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w);
+  assert(_w>0);
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
@@ -1443,30 +1443,38 @@ void histosFill::fillBasic(histosBasic *h)
             probg = h3probg->GetBinContent(h3probg->FindBin(eta,pt,qgl[jetidx]));
           }
           if (probg>=0 and probg<=1) {
-            assert(h->hgpt);
-            h->hgpt->Fill(pt,_w*probg);
-            assert(h->hgpt0);
-            h->hgpt0->Fill(pt, _w*probg);
+            assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
+            assert(h->hgpt0); h->hgpt0->Fill(pt, _w*probg);
 
-            assert(h->hqgl);
-            h->hqgl->Fill(qgl[jetidx], _w);
+            assert(h->hqgl);  h->hqgl->Fill(qgl[jetidx], _w);
+            assert(h->hqgl2); h->hqgl2->Fill(pt, qgl[i], _w);
             if (_jp_ismc) {
               assert(h->hqgl_g);
               assert(h->hqgl_q);
               bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
               bool isquark = (fabs(partonflavor[jetidx])<7);
               assert(isgluon || isquark);
-              if (isgluon) h->hqgl_g->Fill(qgl[jetidx], _w);
-              if (isquark) h->hqgl_q->Fill(qgl[jetidx], _w);
 
-              // For data templates from scaling Pythia, see instructions at
+              // For data templates from scaling Pythia (wq & wg), see instructions at
               // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
               double x = qgl[jetidx];
-              double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
-              double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 
-                          92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
-              if (isgluon) h->hqgl_dg->Fill(qgl[jetidx], _w*wg);
-              if (isquark) h->hqgl_dq->Fill(qgl[jetidx], _w*wq);
+              if (isgluon) {
+                h->hqgl_g->Fill(x, _w);
+                h->hqgl2_g->Fill(pt, x, _w);
+                double wg = 1;//-55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+                assert(wg>0);
+                h->hqgl_dg->Fill(x, _w*wg);
+                h->hqgl2_dg->Fill(pt, x, _w*wg);
+              } else if (isquark) {
+                h->hqgl_q->Fill(x, _w);
+                h->hqgl2_q->Fill(pt, x, _w);
+                double wq = 1;// -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+                assert(wq>0);
+                h->hqgl_dq->Fill(x, _w*wq);
+                h->hqgl2_dq->Fill(pt, x, _w*wq);
+              } else {
+                *ferr << "Quark/Gluon status missing from partonflavor" << endl;
+              }
             }
           } // probg quark/gluon
 
@@ -1883,7 +1891,7 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
   assert(h);
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w);
+  assert(_w>0);
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
@@ -2072,7 +2080,7 @@ void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
   assert(h);
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w);
+  assert(_w>0);
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 

@@ -48,7 +48,12 @@ class histosBasic {
   TH1D *hqgl_g;
   TH1D *hqgl_dq;
   TH1D *hqgl_dg;
-  //TH3D *h3probg;
+  //
+  TH2D *hqgl2;
+  TH2D *hqgl2_g;
+  TH2D *hqgl2_q;
+  TH2D *hqgl2_dg;
+  TH2D *hqgl2_dq;
 
   // raw spectrum
   TH1D *hpt;

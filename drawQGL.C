@@ -15,6 +15,7 @@ Double_t fitTemplate(Double_t *x, Double_t *p) {
   assert(_hg);
 
   double qgl = x[0];
+  //double fg = min(1.,max(1.,p[0]));
   double fg = p[0];
   double fq = 1-fg;
 
@@ -63,7 +64,7 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *fd = new TFile("output-DATA_31Octlongprobp_RunGpart1-1.root","READ");
+  TFile *fd = new TFile("output-DATA_RunGfull_part-1.root","READ");
   assert(fd && !fd->IsZombie());
   TFile *fm = new TFile("output-MC_30Octlongprobg-1.root","READ");
   assert(fm && !fm->IsZombie());
@@ -79,12 +80,12 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   assert(hq);
   //TH1D *hg = (TH1D*)fm->Get(Form("%s/hgpt_g0tw",dir.c_str()));
   //assert(hg);
-  //TH1D *hq = (TH1D*)fm->Get(Form("%s/hqpt_g0tw",dir.c_str()));
+  //TH1D *hq = (TH1D*)fm->Get(Form("%s/hqpt_g0tw",dir.c_str()));                                                                        
   //assert(hq);
   //TH1D *ha = (TH1D*)fm->Get(Form("%s/hpt_g0tw",dir.c_str()));
   //assert(ha);
-  //TH1D *hd = (TH1D*)fd->Get(Form("%s/hpt_g0tw",dir.c_str()));
-  //assert(hd);
+  //TH1D *hd = (TH1D*)fd->Get(Form("%s/hpt_g0tw",dir.c_str())); 
+  //assert(hd);  
   TH1D *ha = (TH1D*)fm->Get(Form("%s/hqgl",dir.c_str()));
   assert(ha);
   TH1D *hd = (TH1D*)fd->Get(Form("%s/hqgl",dir.c_str()));
@@ -102,27 +103,42 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   hqm->Scale(1./hqm->Integral());
   TH1D *hgm = (TH1D*)hg->Clone("hgm");
   hgm->Scale(1./hgm->Integral());
-
+  
   // Apply shaping to create data templates
   // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
-  TH1D *hqd = (TH1D*)hq->Clone("hqd");
+  const bool applyShape = true; // until applied on MC templates
+  const bool applyNorm = true;
   TF1 *fwq = new TF1("fwq","-0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581",
 		 0,1);
-  hqd->Multiply(fwq);
-  hqd->Scale(1./hqd->Integral());
+  TF1 *fwg = new TF1("fwg","-55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*x*x*x -34.3663*x*x + 6.27*x + 0.612992",0,1);
+  // double wq =  -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+  // double wg = -55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+
+
+  TH1D *hqd = (TH1D*)hq->Clone("hqd");
+  if (applyShape) hqd->Multiply(fwq);
+  if (applyNorm) hqd->Scale(1./hqd->Integral());
   TH1D *hgd = (TH1D*)hg->Clone("hgd");
-  TF1 *fwg = new TF1("fwg","-55.7067*x^7 + 113.218*x^6 -21.1421*x^5 -99.927*x^4 + 92.8668*x^3 -34.3663*x^2 + 6.27*x + 0.612992",0,1);
-  hgd->Multiply(fwg);
-  hgd->Scale(1./hgd->Integral());
+  if (applyShape) hgd->Multiply(fwg);
+  if (applyNorm) hgd->Scale(1./hgd->Integral());
 
   // Add MC uncertainty to data to avoid biasing chi2
+  const double minmerr = 0;
    for (int i = 1; i != hd->GetNbinsX()+1; ++i) {
             hd->SetBinError(i, sqrt(pow(hd->GetBinError(i),2)+
-  			    pow(ha->GetBinError(i),2)));
+  			    pow(minmerr*ha->GetBinError(i),2)));
+   }
+
+  // Add minimum uncertainty to data points to avoid shape bias
+   const double minderr = 0;//0.05*1./hd->GetNbinsX();
+   for (int i = 1; i != hd->GetNbinsX()+1; ++i) {
+            hd->SetBinError(i, sqrt(pow(hd->GetBinError(i),2)+
+  			    pow(minderr,2)));
    }
 
   // Do a template fit
   TF1 *f1m = new TF1("f1m",fitTemplate,0,1,1);
+  f1m->SetParameter(0,0.5);
   f1m->SetLineWidth(2);
   f1m->SetNpx(1000.);
   _hq = hqm;
@@ -130,6 +146,7 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   ha->Fit(f1m,"N");
 
   TF1 *f1d = new TF1("f1d",fitTemplate,0,1,1);
+  f1d->SetParameter(0,0.5);
   f1d->SetLineWidth(2);
   f1d->SetNpx(1000.);
   _hq = hqd;
@@ -171,7 +188,7 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   tdrDraw(hqm,"P",kOpenSquare,kRed);
   tdrDraw(hgd,"P",kOpenCircle,kBlue+1); hgd->SetMarkerSize(0.7);
   tdrDraw(hqd,"P",kOpenSquare,kRed+2);  hqd->SetMarkerSize(0.7);
-
+  
   // Draw fits on top
   _hq = hqm;
   _hg = hgm;
@@ -189,7 +206,7 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   leg->AddEntry(ha,"MC","P");
   leg->AddEntry(hgm,"Gluons (MC)","LP");
   leg->AddEntry(hqm,"Quarks (MC)","LP");
-  //c2
+  //c2 
   //c2
   TLatex *tex = new TLatex();
   tex->SetTextSize(0.045);
@@ -256,7 +273,7 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
 void drawQGL() {
 
   setTDRStyle();
-
+  
   TGraphErrors *ggdata = new TGraphErrors(0);
   TGraphErrors *gqdata = new TGraphErrors(0);
   TGraphErrors *ggreco = new TGraphErrors(0);
@@ -317,5 +334,5 @@ void drawQGL() {
   gqgen->SetMarkerColor(kRed);
   gqgen->Draw("SAMEP");
 
->>>>>>> qgl
+  c1->SaveAs(Form("pdf/drawQGL.pdf"));
 }

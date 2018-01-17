@@ -31,7 +31,7 @@ R__LOAD_LIBRARY(histosEta.C+)
 R__LOAD_LIBRARY(histosMC.C+)
 
 #include "histosFill.h"
-R__LOAD_LIBRARY(histosFill.C+g) // g for assert to work
+R__LOAD_LIBRARY(histosFill.C+) // g for assert to work
 
 void mk_histosFill() {
 
@@ -71,21 +71,21 @@ void mk_histosFill() {
       c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p,ps));
     } else if (strings_equal(_jp_run,"RunD16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
     } else if (strings_equal(_jp_run,"RunE16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
     } else if (strings_equal(_jp_run,"RunFearly16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
     } else if (strings_equal(_jp_run,"RunFlate16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
     } else if (strings_equal(_jp_run,"RunG16")) {
       const char* ps = "Data/2016/";
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p,ps));
@@ -95,11 +95,11 @@ void mk_histosFill() {
       c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p,ps));
     } else if (strings_equal(_jp_run,"RunH16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart3.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart4.root",p,ps));
-      c->AddFile(Form("%s%sData/2016/Ntuples-Data-2016RunH-PromptReco-80Xpart5.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart3.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart4.root",p,ps));
+      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart5.root",p,ps));
     } else {
       cout << "Enter a proper value for _jp_run!" << endl;
     }
@@ -114,8 +114,9 @@ void mk_histosFill() {
         return;
       }
 
+      const char* ps = "MC/P825ns80X_Moriond17/";
       for (auto & mcfile : _jp_pthatfiles) {
-        c->AddFile(Form("%s%s",p,mcfile.c_str()));
+        c->AddFile(Form("%s%s%s",p,ps,mcfile.c_str()));
       }
     } else {
       cout << "Running over pythia flat sample" << endl;

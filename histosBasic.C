@@ -119,6 +119,13 @@ double vx[neta][nbins] =
   hqgl_dq = new TH1D("hqgl_dq","",101,0,1.01);
   hqgl_dg = new TH1D("hqgl_dg","",101,0,1.01);
 
+  // add TH2Ds for pT bins here
+  hqgl2 =  new TH2D("hqgl2","",nx,&x[0],101,0,1.01);
+  hqgl2_g =  new TH2D("hqgl2_g","",nx,&x[0],101,0,1.01);
+  hqgl2_q =  new TH2D("hqgl2_q","",nx,&x[0],101,0,1.01);
+  hqgl2_dg =  new TH2D("hqgl2_dg","",nx,&x[0],101,0,1.01);
+  hqgl2_dq =  new TH2D("hqgl2_dq","",nx,&x[0],101,0,1.01);
+
   // raw spectrum
   hpt = new TH1D("hpt","",nx,&x[0]);
   hpt_pre = new TH1D("hpt_pre","",nx,&x[0]); // prescale weighed
