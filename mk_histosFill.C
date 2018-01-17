@@ -8,30 +8,45 @@
 #include "CondFormats/JetMETObjects/src/Utilities.cc"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 #include "CondFormats/JetMETObjects/interface/SimpleJetCorrector.h"
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 // For JEC uncertainty
 #include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 
 #include "tools.h"
-R__LOAD_LIBRARY(tools.C+)
 #include "histosRun.h"
-R__LOAD_LIBRARY(histosRun.C+)
 #include "histosBasic.h"
-R__LOAD_LIBRARY(histosBasic.C+)
 #include "histosEta.h"
-R__LOAD_LIBRARY(histosEta.C+)
 #include "histosMC.h"
-R__LOAD_LIBRARY(histosMC.C+)
 
 #include "histosFill.h"
-R__LOAD_LIBRARY(histosFill.C+) // g for assert to work
+
+#ifdef USEASSERT
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
+R__LOAD_LIBRARY(tools.C+g)
+R__LOAD_LIBRARY(histosRun.C+g)
+R__LOAD_LIBRARY(histosBasic.C+g)
+R__LOAD_LIBRARY(histosEta.C+g)
+R__LOAD_LIBRARY(histosMC.C+g)
+R__LOAD_LIBRARY(histosFill.C+g)
+#else
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
+R__LOAD_LIBRARY(tools.C+)
+R__LOAD_LIBRARY(histosRun.C+)
+R__LOAD_LIBRARY(histosBasic.C+)
+R__LOAD_LIBRARY(histosEta.C+)
+R__LOAD_LIBRARY(histosMC.C+)
+R__LOAD_LIBRARY(histosFill.C+)
+#endif // USEASSERT or not?
 
 void mk_histosFill() {
 

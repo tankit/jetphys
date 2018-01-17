@@ -34,8 +34,10 @@ constexpr bool strings_equal(char const * a, char const * b) {
 
 // Debugging info
 constexpr bool _jp_debug = false;
+// Will assert be used in the programs?
+// NOTE! Run make clean if this is changed to make sure that the setting is on.
 #define USEASSERT
-#undef USEASSERT
+//#undef USEASSERT
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)

@@ -44,7 +44,6 @@ void getSliceEvts() {
       if (!file->IsDirectory() && fname.EndsWith(".root")) {
         TFile *f = new TFile((dirname+"/"+fname).Data());
         TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
-        string suu = "suu";
         std::regex_match(fname.Data(), match, fileformat);
         vals.insert(std::make_pair(stoi(match[1]),std::make_pair(t->GetEntries(),fname)));
       }
