@@ -282,20 +282,18 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
 
   while ( (key = itkey.Next()) ) {
 
-    //obj = ((TKey*)key)->ReadObj(); assert(obj);
-    // It's really slow to read each key; be more selective!
+    // We want the key to match to a directory or the selected histogram
     string classname = ((TKey*)key)->GetClassName();
     string kname = key->GetName();
-    if (classname=="TDirectoryFile" || kname==hname) {
+    if (classname=="TDirectoryFile" or kname==hname) {
       obj = ((TKey*)key)->ReadObj();
       assert(obj);
-    }
-    else {
+    } else {
       continue;
     }
 
-    // Found a subdirectory: copy it to output and go deeper
-    if (classname=="TDirectoryFile" && obj->InheritsFrom("TDirectory")) {
+    if (classname=="TDirectoryFile" and obj->InheritsFrom("TDirectory")) {
+      // Found a subdirectory: copy it to output and go deeper
 
       TDirectory *outdir2 = outdir;
       if (!atBottom) {
@@ -304,9 +302,9 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
         outdir2->cd();
         if (_jp_debug) cout << key->GetName() << endl;
+      } else if (_jp_debug) {
+        cout << key->GetName() << " (at bottom)" << endl;      
       }
-      else
-        if (_jp_debug) cout << key->GetName() << " (at bottom)" << endl;      
 
       assert(indir->cd(obj->GetName()));
       TDirectory *indir2 = indir->GetDirectory(obj->GetName()); assert(indir2);
@@ -323,6 +321,7 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
                0.5*(etamin+etamax));
         if (_hpt) {
           outdir2->cd();
+          // Write out to save ram
           _hpt->Write();
           _hpt = 0;
         }
@@ -330,146 +329,145 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         _hpt = recurseFile(indir2, outdir2, hname, ptSelect, true, _hpt, etamid);
         if (_hpt) {
           outdir2->cd();
+          // Write out to save ram
           _hpt->Write();
           _hpt = 0;
         }
       } else {
         _hpt = recurseFile(indir2, outdir2, hname, ptSelect, atBottom, _hpt, etamid);
       }
-    } // inherits from TDirectory
+      // inherits from TDirectory
+    } else if (kname==hname) {
+      // Flatten TProfile to TH1D for later processing
+      if (obj->InheritsFrom("TProfile")) {
+        if (_hpt==0) {
+          outdir->cd();
+          _hpt = ((TProfile*)obj)->ProjectionX(obj->GetName());
+          indir->cd();
+        }
+      } // TProfile
+      // Flatter TProfile3D to TH3D for later processing
+      if (obj->InheritsFrom("TProfile3D")) {
+        if (_hpt==0) {
+          outdir->cd();
+          _hpt = (TH1D*)((TProfile3D*)obj)->ProjectionXYZ(obj->GetName());
+          indir->cd();
+        }
+      } // TProfile3D
 
-    // Flatten TProfile to TH1D for later processing
-    if (kname==hname && obj->InheritsFrom("TProfile")) {
-
-      if (_hpt==0) {
-        outdir->cd();
-        _hpt = ((TProfile*)obj)->ProjectionX(obj->GetName());
-        indir->cd();
-      }
-    } // TProfile
-
-    // Flatter TProfile3D to TH3D for later processing
-    if (kname==hname && obj->InheritsFrom("TProfile3D")) {
-
-      if (_hpt==0) {
-        outdir->cd();
-        _hpt = (TH1D*)((TProfile3D*)obj)->ProjectionXYZ(obj->GetName());
-        indir->cd();
-      }
-    } // TProfile3D
-
-    // Copy over TH3, TH2, TH1 histograms, in this precise order
-    // Careful with if-then, because TH3 inherits from TH1+TH2
-    // Clone and reset histogram the first time it is seen
-    if (kname==hname && obj->InheritsFrom("TH3")) {
-      TH3D *hpt3 = (TH3D*)obj;
-
-      if (_hpt==0) {
-        outdir->cd();
-        _hpt = (TH1D*)hpt3->Clone(hpt3->GetName());
-        _hpt->Reset();
-        indir->cd();
-        assert(_hpt);
-        if (_jp_debug) cout << "Cloned _" << hpt3->GetName() << endl;
-      }
-
-      if (_ptranges.find(indir->GetName())==_ptranges.end())
-        cout << "pT range not found for directory " << indir->GetName() << endl;
-      assert(_ptranges.find(indir->GetName())!=_ptranges.end());
-      double ptmin = _ptranges[indir->GetName()].first;
-      double ptmax = _ptranges[indir->GetName()].second;
-
-      TH3D *_hpt3 = (TH3D*)_hpt;
-      if (ptSelect) {
-        for (int i = 1; i != _hpt3->GetNbinsX()+1; ++i) {
-          double pt = _hpt3->GetXaxis()->GetBinCenter(i); 
-          if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
-            for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
-              for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
-                _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
-                _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
-              } // for l
-            } // for j
-            break;
-          } // in ptrange
-        } // for i
-      } else {
-        _hpt3->Add(hpt3);
-      }
-    } // TH3
-    else if (kname==hname && obj->InheritsFrom("TH2")) {
-      TH2D *hpt2 = (TH2D*)obj;
-
-      if (_hpt==0) {
-        outdir->cd();
-        _hpt = (TH1D*)hpt2->Clone(hpt2->GetName());
-        _hpt->Reset();
-        indir->cd();
-        assert(_hpt);
-        if (_jp_debug) cout << "Cloned _" << hpt2->GetName() << endl;
-      }
-
-      if (_ptranges.find(indir->GetName())==_ptranges.end())
-        cout << "pT range not found for directory " << indir->GetName() << endl;
-      assert(_ptranges.find(indir->GetName())!=_ptranges.end());
-      double ptmin = _ptranges[indir->GetName()].first;
-      double ptmax = _ptranges[indir->GetName()].second;
-
-      TH2D *_hpt2 = (TH2D*)_hpt;
-      if (ptSelect) {
-        for (int i = 1; i != _hpt2->GetNbinsX()+1; ++i) {
-          double pt = _hpt2->GetXaxis()->GetBinCenter(i);
-          if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
-            for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
+      // Copy over TH3, TH2, TH1 histograms, in this precise order
+      // Careful with if-then, because TH3 inherits from TH1+TH2
+      // Clone and reset histogram the first time it is seen
+      if (obj->InheritsFrom("TH3")) {
+        TH3D *hpt3 = (TH3D*)obj;
+        
+        if (_hpt==0) {
+          outdir->cd();
+          _hpt = (TH1D*)hpt3->Clone(hpt3->GetName());
+          _hpt->Reset();
+          indir->cd();
+          assert(_hpt);
+          if (_jp_debug) cout << "Cloned _" << hpt3->GetName() << endl;
+        }
+        
+        if (_ptranges.find(indir->GetName())==_ptranges.end())
+          cout << "pT range not found for directory " << indir->GetName() << endl;
+        assert(_ptranges.find(indir->GetName())!=_ptranges.end());
+        double ptmin = _ptranges[indir->GetName()].first;
+        double ptmax = _ptranges[indir->GetName()].second;
+        
+        TH3D *_hpt3 = (TH3D*)_hpt;
+        if (ptSelect) {
+          for (int i = 1; i != _hpt3->GetNbinsX()+1; ++i) {
+            double pt = _hpt3->GetXaxis()->GetBinCenter(i); 
+            if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
+              for (int j = 1; j != _hpt3->GetNbinsY()+1; ++j) {
+                for (int k = 1; k != _hpt3->GetNbinsZ()+1; ++k) {
+                  _hpt3->SetBinContent(i,j,k, hpt3->GetBinContent(i,j,k));
+                  _hpt3->SetBinError(i,j,k, hpt3->GetBinError(i,j,k));
+                } // for l
+              } // for j
+              break;
+            } // in ptrange
+          } // for i
+        } else {
+          _hpt3->Add(hpt3);
+        }
+        // TH3
+      } else if (obj->InheritsFrom("TH2")) {
+        TH2D *hpt2 = (TH2D*)obj;
+        
+        if (_hpt==0) {
+          outdir->cd();
+          _hpt = (TH1D*)hpt2->Clone(hpt2->GetName());
+          _hpt->Reset();
+          indir->cd();
+          assert(_hpt);
+          if (_jp_debug) cout << "Cloned _" << hpt2->GetName() << endl;
+        }
+        
+        if (_ptranges.find(indir->GetName())==_ptranges.end())
+          cout << "pT range not found for directory " << indir->GetName() << endl;
+        assert(_ptranges.find(indir->GetName())!=_ptranges.end());
+        double ptmin = _ptranges[indir->GetName()].first;
+        double ptmax = _ptranges[indir->GetName()].second;
+        
+        TH2D *_hpt2 = (TH2D*)_hpt;
+        if (ptSelect) {
+          for (int i = 1; i != _hpt2->GetNbinsX()+1; ++i) {
+            double pt = _hpt2->GetXaxis()->GetBinCenter(i);
+            if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
+              for (int j = 1; j != _hpt2->GetNbinsY()+1; ++j) {
                 _hpt2->SetBinContent(i,j, hpt2->GetBinContent(i,j));
                 _hpt2->SetBinError(i,j, hpt2->GetBinError(i,j));
-            } // for j
-          } // in ptrange
-        } // for i
-      } else {
-        _hpt2->Add(hpt2);
-      }
-    } // TH2
-    else if (kname==hname && obj->InheritsFrom("TH1")) {
-      TH1D *hpt = (TH1D*)obj;
-
-      if (_hpt==0) {
-        outdir->cd();
-        _hpt = (TH1D*)hpt->Clone(hpt->GetName());
-        _hpt->Reset();
-        indir->cd();
-        assert(_hpt);
-        if (_jp_debug) cout << "Cloned _" << hpt->GetName() << endl;
-      }
-
-      if (_ptranges.find(indir->GetName())==_ptranges.end())
-        cout << "pT range not found for directory " << indir->GetName() << endl;
-      assert(_ptranges.find(indir->GetName())!=_ptranges.end());
-      double ptmin = _ptranges[indir->GetName()].first;
-      double ptmax = _ptranges[indir->GetName()].second;
-
-      // Replace ranges for mass histograms
-      if (TString(hname.c_str()).Contains("hdjmass")) {
-        assert(etamid!=0);
-        int ieta = int(etamid/0.5); assert(ieta<=7);
-        ptmin = _massranges[indir->GetName()][ieta].first;
-        ptmax = _massranges[indir->GetName()][ieta].second;
-        if (ptmin==0) ptmin = 10.;
-        if (ptmax==0) ptmax = 3000.;
-      } // mass histo
-
-      if (ptSelect) {
-        for (int i = 1; i != _hpt->GetNbinsX()+1; ++i) {
-          double pt = _hpt->GetBinCenter(i);
-          if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
-            _hpt->SetBinContent(i, hpt->GetBinContent(i));
-            _hpt->SetBinError(i, hpt->GetBinError(i));
-          } // in ptrange
-        } // for i
-      } else {
-        _hpt->Add(hpt);
-      }
-    } // TH1D
+              } // for j
+            } // in ptrange
+          } // for i
+        } else {
+          _hpt2->Add(hpt2);
+        }
+        // TH2
+      } else if (obj->InheritsFrom("TH1")) {
+        TH1D *hpt = (TH1D*)obj;
+        
+        if (_hpt==0) {
+          outdir->cd();
+          _hpt = (TH1D*)hpt->Clone(hpt->GetName());
+          _hpt->Reset();
+          indir->cd();
+          assert(_hpt);
+          if (_jp_debug) cout << "Cloned _" << hpt->GetName() << endl;
+        }
+        
+        if (_ptranges.find(indir->GetName())==_ptranges.end())
+          cout << "pT range not found for directory " << indir->GetName() << endl;
+        assert(_ptranges.find(indir->GetName())!=_ptranges.end());
+        double ptmin = _ptranges[indir->GetName()].first;
+        double ptmax = _ptranges[indir->GetName()].second;
+        
+        // Replace ranges for mass histograms
+        if (TString(hname.c_str()).Contains("hdjmass")) {
+          assert(etamid!=0);
+          int ieta = int(etamid/0.5); assert(ieta<=7);
+          ptmin = _massranges[indir->GetName()][ieta].first;
+          ptmax = _massranges[indir->GetName()][ieta].second;
+          if (ptmin==0) ptmin = 10.;
+          if (ptmax==0) ptmax = 3000.;
+        } // mass histo
+        
+        if (ptSelect) {
+          for (int i = 1; i != _hpt->GetNbinsX()+1; ++i) {
+            double pt = _hpt->GetBinCenter(i);
+            if (pt > ptmin && pt < ptmax) { // TODO: We could do better than a linear search!
+              _hpt->SetBinContent(i, hpt->GetBinContent(i));
+              _hpt->SetBinError(i, hpt->GetBinError(i));
+            } // in ptrange
+          } // for i
+        } else {
+          _hpt->Add(hpt);
+        }
+      } // TH1D
+    }
 
     // Free memory, avoid malloc error
     obj->Delete();

@@ -162,7 +162,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
       }
 
       recurseFile(indir2, outdir2, etawid, etamid);
-      //outdir2->Write(); // does this speedup or slow down?
+      // Clear up RAM. Might cause a slight slowdown.
+      outdir2->Write();
     } // inherits from TDirectory
 
     // Normalize all histograms
@@ -220,8 +221,9 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
       cout << "." << flush;
 
-//////// A block for hpt objects
+
       if (std::find(hptlike.begin(), hptlike.end(), name) != hptlike.end()) {
+//////// A block for hpt objects
 
         TH1D *hpt = (TH1D*)obj2;
         bool isgen = TString(obj2->GetName()).Contains("pt_g");
