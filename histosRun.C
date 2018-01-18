@@ -9,7 +9,8 @@ histosRun::histosRun(TDirectory *dir, double etamin, double etamax)
   : lumsum(0) {
 
   TDirectory *curdir = gDirectory;
-  assert(dir->cd());
+  bool enter = dir->cd();
+  assert(enter);
   this->dir = dir;
 
   // phase space

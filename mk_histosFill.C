@@ -22,12 +22,12 @@
 
 #include "histosFill.h"
 
-#ifdef USEASSERT
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
+#ifdef USEASSERT
 R__LOAD_LIBRARY(tools.C+g)
 R__LOAD_LIBRARY(histosRun.C+g)
 R__LOAD_LIBRARY(histosBasic.C+g)
@@ -35,11 +35,6 @@ R__LOAD_LIBRARY(histosEta.C+g)
 R__LOAD_LIBRARY(histosMC.C+g)
 R__LOAD_LIBRARY(histosFill.C+g)
 #else
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
-R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(tools.C+)
 R__LOAD_LIBRARY(histosRun.C+)
 R__LOAD_LIBRARY(histosBasic.C+)

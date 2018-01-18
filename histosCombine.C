@@ -298,7 +298,8 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
       TDirectory *outdir2 = outdir;
       if (!atBottom) {
         if (outdir->FindKey(obj->GetName())==0) outdir->mkdir(obj->GetName());
-        assert(outdir->cd(key->GetName()));
+        bool enterkeydir = outdir->cd(key->GetName());
+        assert(enterkeydir);
         outdir2 = outdir->GetDirectory(key->GetName()); assert(outdir2);
         outdir2->cd();
         if (_jp_debug) cout << key->GetName() << endl;
@@ -306,7 +307,8 @@ TH1D* recurseFile(TDirectory *indir, TDirectory *outdir, string hname,
         cout << key->GetName() << " (at bottom)" << endl;      
       }
 
-      assert(indir->cd(obj->GetName()));
+      bool enterobjdir = indir->cd(obj->GetName());
+      assert(enterobjdir);
       TDirectory *indir2 = indir->GetDirectory(obj->GetName()); assert(indir2);
       indir2->cd();
 

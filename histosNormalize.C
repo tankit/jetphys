@@ -144,11 +144,13 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
       //assert(outdir->mkdir(obj->GetName()));
       outdir->mkdir(obj->GetName());
-      assert(outdir->cd(obj->GetName()));
+      bool enteroutdir = outdir->cd(obj->GetName());
+      assert(enteroutdir);
       TDirectory *outdir2 = outdir->GetDirectory(obj->GetName()); assert(outdir2);
       outdir2->cd();
 
-      assert(indir->cd(obj->GetName()));
+      bool enterindir = indir->cd(obj->GetName());
+      assert(enterindir);
       TDirectory *indir2 = indir->GetDirectory(obj->GetName());
       indir2->cd();
 
@@ -262,12 +264,12 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
           dmc->cd();
 
           // Add MC truth based trigger efficiency
-          if(!htrigeffmc && dmc->cd(dir->GetName())) {
+          if(!htrigeffmc and dmc->cd(dir->GetName())) {
 
             TDirectory *dir1 = dmc->GetDirectory(dir->GetName()); assert(dir1);
             TH1D *hpty = (TH1D*)dir1->Get("hpt"); assert(hpty);
-            assert(dmc->cd("mc"));
-            dmc->cd("mc");
+            bool entermcdir = dmc->cd("mc");
+            assert(entermcdir);
             TDirectory *dir2 = dmc->GetDirectory("mc"); assert(dir2);
             TH1D *hptx = (TH1D*)dir2->Get(Form("hpt_%s",dir->GetName()));
 
@@ -278,9 +280,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 
           // Add data/MC scale factor for trigger efficiency
           if (!(_jp_ismc) && !htrigeffsf) {
-
-            assert(dmc->cd(dir->GetName()));
-            dmc->cd(dir->GetName());
+            bool enterdir = dmc->cd(dir->GetName());
+            assert(enterdir);
             TDirectory *dirmc = dmc->GetDirectory(dir->GetName()); assert(dirmc);
             TProfile *pm = (TProfile*)dirmc->Get("ptrigefftp");
             TProfile *pd = (TProfile*)dir->Get("ptrigefftp");

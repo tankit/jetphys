@@ -19,7 +19,8 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig,
   : lumsum(0), lumsum2(0) {
 
   TDirectory *curdir = gDirectory;
-  assert(dir->cd());
+  bool enter = dir->cd();
+  assert(enter);
   this->dir = dir;
 
   // phase space

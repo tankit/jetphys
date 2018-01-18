@@ -57,9 +57,9 @@ namespace jec {
     // sanity checks to avoid IOV overlaps
     assert(runmax>=runmin);
     for (auto it = _jecs.begin(); it != _jecs.end(); ++it) {
-      assert( runmax<it->low || runmin>it->up );
+      assert(runmax<it->low or runmin>it->up);
     }
-   
+
     jecgt = jecgt + id + jecvers + "_DATA_"; 
     const char *s;
     const char *p = "CondFormats/JetMETObjects/data/";

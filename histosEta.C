@@ -7,7 +7,8 @@
 histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax) {
 
   TDirectory *curdir = gDirectory;
-  assert(dir->cd());
+  bool enter = dir->cd();
+  assert(enter);
   this->dir = dir;
 
   // phase space

@@ -7,7 +7,8 @@
 histosMC::histosMC(TDirectory *dir, string trigname) {
 
   TDirectory *curdir = gDirectory;
-  assert(dir->cd());
+  bool enter = dir->cd();
+  assert(enter);
   this->dir = dir;
   
   // phase space

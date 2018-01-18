@@ -35,9 +35,8 @@ constexpr bool strings_equal(char const * a, char const * b) {
 // Debugging info
 constexpr bool _jp_debug = false;
 // Will assert be used in the programs?
-// NOTE! Run make clean if this is changed to make sure that the setting is on.
 #define USEASSERT
-//#undef USEASSERT
+#undef USEASSERT // Expert option. Uncomment this if certain that no problems occur. More than 1/3 off the run time.
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -45,7 +44,7 @@ const constexpr char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 const constexpr char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-const constexpr char _jp_type[] = "DATA";
+const constexpr char _jp_type[] = "MC";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 const constexpr char _jp_run[] = "RunG16";
 // Simple helper
@@ -65,7 +64,8 @@ constexpr Long64_t _jp_nentries =
 1000000; // short test run
 // Number of events to skip from the beginning (for debugging)
 constexpr Long64_t _jp_nskip = 0;
-constexpr Long64_t _js_skim = 0; // "prescale", off if zero
+// Step between events
+constexpr Long64_t _jp_skim = 0; // "prescale", off if zero
 //} END run settings
 
 
@@ -156,7 +156,7 @@ const constexpr double _jp_IOVranges[_jp_nIOV][2] =
 
 
 //{ BEGIN For MC reweighting purposes, PU profiles for data and MC
-constexpr bool _jp_reweighPU = false;//true
+constexpr bool _jp_reweighPU = true;
 const constexpr char _jp_pudata[] = "pileup/pileup_DT.root";
 const constexpr char _jp_pumc[]   = "pileup/pu.root";
 const constexpr char _jp_prescalefile[] = "";//pileup/prescales74x.txt";
