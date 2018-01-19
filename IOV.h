@@ -60,56 +60,60 @@ namespace jec {
       assert(runmax<it->low or runmin>it->up);
     }
 
-    jecgt = jecgt + id + jecvers + "_DATA_"; 
-    const char *s;
-    const char *p = "CondFormats/JetMETObjects/data/";
-    const char *t = jecgt.c_str();;
-    const char *a = _jp_algo;
+    const char *tmps;
+    const char *path = "CondFormats/JetMETObjects/data/";
+    string jectmp = jecgt + id + jecvers + (_jp_ismc ? "_MC_" : "_DATA_"); 
+    const char *jecname = jecgt.c_str();
 
     vector<JetCorrectorParameters> vpar;
 
     // L1FastJet for AK*PF, L1Offset for others
-    s = Form("%s%sL1FastJet_%s.txt",p,t,a);
-    if (access(s, F_OK)==-1) {
-      cout << "The IOV files of " << s << " etc. were not found" << endl;
+    tmps = Form("%s%sL1FastJet_%s.txt",path,jecname,_jp_algo);
+    if (access(tmps, F_OK)==-1) {
+      cout << "The IOV files of " << tmps << " etc. were not found" << endl;
       return;
     }
-    dat.names.push_back(string(s));
-    vpar.push_back(JetCorrectorParameters(s));
+    dat.names.push_back(string(tmps));
+    vpar.push_back(JetCorrectorParameters(tmps));
 
-    s = Form("%s%sL2Relative_%s.txt",p,t,a);
-    dat.names.push_back(string(s));
-    vpar.push_back(JetCorrectorParameters(s));
+    tmps = Form("%s%sL2Relative_%s.txt",path,jecname,_jp_algo);
+    dat.names.push_back(string(tmps));
+    vpar.push_back(JetCorrectorParameters(tmps));
 
-    s = Form("%s%sL3Absolute_%s.txt",p,t,a);
-    dat.names.push_back(string(s));
-    vpar.push_back(JetCorrectorParameters(s));
+    tmps = Form("%s%sL3Absolute_%s.txt",path,jecname,_jp_algo);
+    dat.names.push_back(string(tmps));
+    vpar.push_back(JetCorrectorParameters(tmps));
 
-    if (!_jp_skipl2l3res) {
-      s = Form("%s%sL2L3Residual_%s.txt",p,t,a);
-      dat.names.push_back(string(s));
-      vpar.push_back(JetCorrectorParameters(s));
+    if (_jp_isdt) {
+      if (!_jp_skipl2l3res) {
+        tmps = Form("%s%sL2L3Residual_%s.txt",path,jecname,_jp_algo);
+        dat.names.push_back(string(tmps));
+        vpar.push_back(JetCorrectorParameters(tmps));
+      }
+      tmps = Form("%s%sUncertainty_%s.txt",path,jecname,_jp_algo);
+      dat.unc = new JetCorrectionUncertainty(tmps);
     }
-
     dat.corr = new FactorizedJetCorrector(vpar);
 
     // For type-I and type-II MET
     vector<JetCorrectorParameters> vrc;
-    s = Form("%s%sL1RC_%s.txt",p,t,a);
-    vrc.push_back(JetCorrectorParameters(s));
+    tmps = Form("%s%sL1RC_%s.txt",path,jecname,_jp_algo);
+    vrc.push_back(JetCorrectorParameters(tmps));
     dat.l1rc = new FactorizedJetCorrector(vrc);
-
-    s = Form("%s%sUncertainty_%s.txt",p,t,a);
-    dat.unc = new JetCorrectionUncertainty(s);
 
     _jecs.push_back(dat);
   } // add
-  
+
   bool IOV::setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc) {
     assert(_jecs.size()!=0);
+    auto cit = &_jecs[_current];
+    if (cit->low <= run and cit->up >= run) // If no change is needed
+      return true;
+
+    // If the current IOV was not fine, search through all the IOVs
     for (int i = 0, N = int(_jecs.size()); i<N; ++i) {
       auto it = &_jecs[i];
-      if (it->low <= run && it->up >= run) {
+      if (it->low <= run and it->up >= run) {
         if (i!=_current) {
           _current = i;
           *corr = it->corr;

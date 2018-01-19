@@ -462,7 +462,6 @@ public :
 
 private:
   Long64_t _entries;
-  Long64_t _entry;
   double _xsecMinBias;
   double _w, _w0;
   map<string, double> _wt; // Mainly for trigger pileup weigths
@@ -478,7 +477,7 @@ private:
   double _pthatweight;
 
   bool   _pass;
-  bool   _evtid;
+  bool   _pass_qcdmet;
 
   set<int> _runveto;
   map<int, map<int, int> > _json;

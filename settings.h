@@ -35,8 +35,7 @@ constexpr bool strings_equal(char const * a, char const * b) {
 // Debugging info
 constexpr bool _jp_debug = false;
 // Will assert be used in the programs?
-#define USEASSERT
-#undef USEASSERT // Expert option. Uncomment this if certain that no problems occur. More than 1/3 off the run time.
+#define USEASSERT // Expert option: comment this if certain that no problems occur. More than 1/3 off the run time.
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -66,6 +65,8 @@ constexpr Long64_t _jp_nentries =
 constexpr Long64_t _jp_nskip = 0;
 // Step between events
 constexpr Long64_t _jp_skim = 0; // "prescale", off if zero
+// Only load selected branches (large speedup, but be careful!)
+constexpr bool _jp_quick = true;
 //} END run settings
 
 
@@ -101,9 +102,13 @@ const constexpr char _jp_json[] = "lumicalc/Cert_271036-284044_13TeV_23Sep2016Re
 //string _jp_json = "PromptReco/Cert_299614-299617_13TeV_PromptReco_Collisions17_50ns_JSON.txt";
 //string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
 
-// Calculate luminosity on the fly based on .csv file. E.g. the new json could effect this.
+// Calculate luminosity on the fly based on .csv file and take only events with non-zero luminosity.
 constexpr bool _jp_dolumi = false; // CAUTION, this might be broken.
 const constexpr char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls.csv"; // Run II
+
+// Add prescale information from a file
+constexpr bool _jp_doprescale = false; // CAUTION, this shouldn't be nowadays necessary
+const constexpr char _jp_prescalefile[] = "pileup/prescales74x.txt";
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 constexpr bool _jp_domctrigsim = true;
@@ -141,17 +146,18 @@ constexpr double _jp_lumi = 35.918235; // 36.810440678; (outdated)
 //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
 // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
 // Summer16_03Feb2017G_V7_DATA.tar.gz [BCD, EF, G, H]
-const constexpr char _jp_jecgt[] = "Summer16_03Feb2017";//BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
-const constexpr char _jp_jecvers[] = "_V7";//"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+const constexpr char _jp_jecgt[] = "Summer16_07Aug2017";//"Summer16_03Feb2017";//BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
+const constexpr char _jp_jecvers[] = "_V4";//"_V7";//"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 constexpr const bool _jp_useIOV = true ;//false
 constexpr const unsigned int _jp_nIOV = 4;
 const constexpr char* _jp_IOVnames[_jp_nIOV] =
-  {"BCD",    "EF",    "G",   "H"};
+  {"BCD",    "EF",    "GH"};//{"BCD",    "EF",    "G",   "H"};
 // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
 const constexpr double _jp_IOVranges[_jp_nIOV][2] =
-  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
+  { {1,276811}, {276831,278801}, {278802,400000} }; // Spring/Summer16_23Sep2016
+//  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
 //} END JES and JEC
 
 
@@ -159,7 +165,6 @@ const constexpr double _jp_IOVranges[_jp_nIOV][2] =
 constexpr bool _jp_reweighPU = true;
 const constexpr char _jp_pudata[] = "pileup/pileup_DT.root";
 const constexpr char _jp_pumc[]   = "pileup/pu.root";
-const constexpr char _jp_prescalefile[] = "";//pileup/prescales74x.txt";
 //} END PU profiles
 
 
@@ -202,43 +207,44 @@ const vector<string> _jp_pthatfiles = {
 constexpr double _jp_sqrts = 13000.; // GeV
 constexpr double _jp_emax = _jp_sqrts/2.; // Max possible jet pt
 constexpr double _jp_recopt = 15; // Min observed jet pt
+constexpr double _jp_xsecMinBias = 7.126E+10;
 //} END Run2
 
-
-//{ BEGIN Possibly outdated, probably shouldn't be touched
+//{ BEGIN Special histosFill analyses that are not typically needed
 // Eta phi exclusion due to ecal problems
-constexpr bool _jp_etaphiexcl = false;
+constexpr bool _jp_doetaphiexcl = false;
 const constexpr char _jp_etaphitype[] = "h2hotr"; // h2hotr (Robert) or h2hotm (Mikko)
 
 // Veto jets near ECAL boundaries in JetID
 constexpr bool _jp_doECALveto = false;//true;
 const constexpr char _jp_ecalveto[] = "lumicalc/ecalveto.root";
 
+// Check for duplicates (warning: takes a lot of memory!)
+constexpr bool _jp_checkduplicates = false;
+//} END Special analyses that are not typically needed
+
+//{ BEGIN histosNormalize (leave these off if not interested on details)
 // Correct for trigger efficiency based on MC
 constexpr bool _jp_dotrigeff = false;
- // Correct pT<114 GeV only, if above _jp_dotrigeff=true
+// Correct pT<114 GeV only, if above _jp_dotrigeff=true
 constexpr bool _jp_dotrigefflowptonly = false;
 // Correct for time-dependence (prescales) in data
 constexpr bool _jp_dotimedep = false;
-// For creating smearing matrix
-constexpr bool _jp_doMatrix = false;
+//} END histosNormalize
 
-// Check that run / lumi section was listed in the .csv file
-constexpr bool _jp_dolumcheck = false;
-// Veto bad run list
-constexpr bool _jp_dorunveto = false;
-// Check for duplicates (warning: takes a lot of memory!)
-constexpr bool _jp_checkduplicates = false;
-// Only load selected branches (large speedup, but be careful!)
-constexpr bool _jp_quick = true;
+//{ BEGIN drawSummary
 // Center uncertainties around ansatz (true) or data (false)
 constexpr bool _jp_centerOnAnsatz = false;
 constexpr bool _jp_centerOnTheory = false;
-
 // Plot Pythia for final PRL results
-constexpr bool _plotPythia = false;
+constexpr bool _jp_plotPythia = false;
+// Draw againts HERAPDF1.7 instead of PDF4LHC (drawSummary)
+constexpr bool _jp_herapdf = false;
+// Produce plots (also drawRunHistos)
+constexpr bool _jp_pdf = true;
+//} END drawSummary
 
-// TODO: Do we still need these?
+//{ BEGIN limits for histosNormalize, dagostini, drawSummary, drawRunHistos
 // Minimum and maximum pT range to be plotted and fitted
 constexpr double _jp_fitptmin = 114;//43;
 // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
@@ -246,14 +252,6 @@ constexpr double _jp_xmin57 = 114;//56;
 constexpr double _jp_xminpas = 114;//56;
 constexpr double _jp_xmin = 114;//24.;//20.;
 constexpr double _jp_xmax = 1497;//TEMP PATCH for partial data //1999.;
-
-constexpr double _jp_xsecMinBias = 7.126E+10;
-
-// Draw againts HERAPDF1.7 instead of PDF4LHC (drawSummary)
-constexpr bool _jp_herapdf = false;
-
-// Produce plots (drawSummary and drawRunHistos)
-constexpr bool _jp_pdf = true;
-//} END Outdated
+//} END limits
 
 #endif // __settings_h__

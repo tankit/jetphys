@@ -1220,14 +1220,14 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     l->DrawClone();
     gthsysup->DrawClone("SAME L");
     gthsysdw->DrawClone("SAME L");
-    if (_plotPythia) gmc->DrawClone("SAMEL");
+    if (_jp_plotPythia) gmc->DrawClone("SAMEL");
     
     g->SetMarkerStyle(kFullCircle);
     g->SetMarkerSize(0.7);
     g->DrawClone("SAME PZ");
 
     //TLegend *leg = new TLegend(30, _plotPythia ? 1.2 : 1.3, 150,1.75,"","br");
-    TLegend *leg = new TLegend(60, _plotPythia ? 1.1 : 1.2, 300, 1.8,"","br");
+    TLegend *leg = new TLegend(60, _jp_plotPythia ? 1.1 : 1.2, 300, 1.8,"","br");
     leg->SetBorderSize(0);
     leg->SetFillStyle(kNone);
     leg->SetTextFont(43);
@@ -1239,7 +1239,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 				// (_ak7 ? "QCD-11-004" : "QCD-10-010"), "P");
     leg->AddEntry(gthsysup, "Theory uncertainty","L");
     leg->AddEntry(gerr_1a, "Exp. uncertainty","F");
-    if (_plotPythia) leg->AddEntry(gmc, "Pythia D6T","L");
+    if (_jp_plotPythia) leg->AddEntry(gmc, "Pythia D6T","L");
     leg->Draw();
 
     TLegend *leg2010 = new TLegend(30, 1.3, 150, 1.75, "", "br");
@@ -1447,7 +1447,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     //gthsysdw->DrawClone("SAME L");
     hthsysup->DrawClone("SAME HIST][");
     hthsysdw->DrawClone("SAME HIST][");
-    if (_plotPythia) gmc->DrawClone("SAME L");
+    if (_jp_plotPythia) gmc->DrawClone("SAME L");
 
     // Vivian
     l->SetLineStyle(kDotted);
