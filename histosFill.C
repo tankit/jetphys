@@ -263,15 +263,15 @@ void histosFill::Loop()
   if (_jp_isdt and _jp_useIOV) {
     // If multiple IOV's are used, we set _JEC etc for each event separately, checking that the IOV is correct
     for (unsigned iovidx=0; iovidx<_jp_nIOV; ++iovidx)
-      _iov.add(_jp_IOVnames[iovidx],_jp_jecgt,_jp_jecvers,_jp_IOVranges[iovidx][0],_jp_IOVranges[iovidx][1]);
+      _iov.add(_jp_IOVnames[iovidx],_jp_IOVranges[iovidx][0],_jp_IOVranges[iovidx][1]);
   } else {
     // If only one great IOV is used, we can set _JEC etc. directly here.
-    _iov.add("",_jp_jecgt,_jp_jecvers,_jp_IOVranges[0][0],_jp_IOVranges[_jp_nIOV-1][1]);
-    bool setcorrection = _iov.setCorr(_jp_IOVranges[0][1],&_JEC,&_L1RC,&_jecUnc);
+    _iov.add("");
+    bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
     assert(setcorrection);
     assert(_JEC);
     assert(_L1RC);
-    assert(_jecUnc);
+    if (_jp_isdt) assert(_jecUnc);
   } // JEC redone
 
   // Load latest JSON selection
@@ -353,7 +353,7 @@ void histosFill::Loop()
       cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
                       (long int)jentry, 100.*djentry/nentries, stop.RealTime()) << endl;
       TDatime now;
-      cout << "Current time: ";
+      cout << "NOW: ";
       now.Print();
       now.Set(now.Convert()+stop.RealTime()*(nentries/djentry-1));
       cout << "ETA: ";
@@ -505,7 +505,7 @@ void histosFill::Loop()
 
     // Reject events with no vertex
     pvrho = tools::oplus(pvx, pvy);
-    _pass = _pass and !(npvgood>0 and pvrho<2.);
+    _pass = _pass and npvgood>0 and pvrho<2.;
     if (_pass) ++cnt["03vtx"];
 
     // Event cuts against beam backgrounds
@@ -653,7 +653,7 @@ void histosFill::Loop()
 
     // load correct IOV for JEC
     if (_jp_isdt and _jp_useIOV) {
-      bool setcorrection = _iov.setCorr(run,&_JEC,&_L1RC,&_jecUnc);
+      bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
       assert(setcorrection);
       assert(_JEC);
       assert(_L1RC);
@@ -998,7 +998,8 @@ void histosFill::Loop()
   if (_jp_ismc or !_jp_useIOV) {
     delete _JEC;
     delete _L1RC;
-    delete _jecUnc;
+    if (_jp_isdt)
+      delete _jecUnc;
   }
 }
 
@@ -1396,8 +1397,8 @@ void histosFill::fillBasic(histosBasic *h)
           h->hpt_gg->Fill(ptgen, _w);
 
         if (etarange) { // Correct jet eta range
-          if (_jp_debug) cout << "..jec uncertainty" << endl << flush;
 
+          if (_jp_debug) cout << "..unfolding" << endl << flush;
           if (h->ismcdir) {
             // unfolding studies (Mikael)
             h->my->Fill(pt, _w);
@@ -1418,9 +1419,10 @@ void histosFill::fillBasic(histosBasic *h)
             } // Delta r
           }
 
+          if (_jp_debug) cout << "..jec uncertainty" << endl << flush;
           // Get JEC uncertainty
           double unc = 0.01; // default for MC
-          if (_jecUnc) {
+          if (_jp_isdt and _jecUnc) {
             _jecUnc->setJetEta(eta);
             _jecUnc->setJetPt(pt);
             unc = _jecUnc->getUncertainty(true);

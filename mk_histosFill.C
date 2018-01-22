@@ -121,6 +121,11 @@ void mk_histosFill() {
       if (_jp_pthatfiles.size()!=_jp_npthatbins or _jp_pthatsigmas.size()!=_jp_npthatbins or
         _jp_pthatnevts.size()!=_jp_npthatbins or _jp_pthatranges.size()!=_jp_npthatbins+1) {
         cout << "The pthat file information dimensions don't match! Aborting..." << endl;
+        cout << "Bins: " << _jp_npthatbins << endl;
+        cout << "Files: " << _jp_pthatfiles.size() << endl;
+        cout << "Sigmas: " << _jp_pthatsigmas.size() << endl;
+        cout << "Evts: " << _jp_pthatnevts.size() << endl;
+        cout << "Ranges-1: " << _jp_pthatranges.size()-1 << endl;
         return;
       }
 

@@ -43,7 +43,7 @@ const constexpr char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 const constexpr char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-const constexpr char _jp_type[] = "MC";
+const constexpr char _jp_type[] = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 const constexpr char _jp_run[] = "RunG16";
 // Simple helper
@@ -59,8 +59,9 @@ constexpr bool _jp_ishw = strings_equal(_jp_type,"HW");
 constexpr Long64_t _jp_nentries =
 //-1; // all
 //10; // debug
+10000; // shorter test run
 //100000; // short test run
-1000000; // short test run
+//1000000; // shortish test run
 // Number of events to skip from the beginning (for debugging)
 constexpr Long64_t _jp_nskip = 0;
 // Step between events
@@ -151,11 +152,11 @@ const constexpr char _jp_jecvers[] = "_V4";//"_V7";//"V4"; // Summer16_03Feb // 
 
 // Use Intervals-Of-Validity for JEC
 constexpr const bool _jp_useIOV = true ;//false
-constexpr const unsigned int _jp_nIOV = 4;
+constexpr const unsigned int _jp_nIOV = 3; //4;
 const constexpr char* _jp_IOVnames[_jp_nIOV] =
   {"BCD",    "EF",    "GH"};//{"BCD",    "EF",    "G",   "H"};
 // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
-const constexpr double _jp_IOVranges[_jp_nIOV][2] =
+const constexpr int _jp_IOVranges[_jp_nIOV][2] =
   { {1,276811}, {276831,278801}, {278802,400000} }; // Spring/Summer16_23Sep2016
 //  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
 //} END JES and JEC

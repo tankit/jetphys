@@ -18,8 +18,8 @@ namespace jec {
   
   struct IOVdata {
     vector<string> names;
-    unsigned int low;
-    unsigned int up;
+    int low;
+    int up;
     FactorizedJetCorrector* corr;
     FactorizedJetCorrector* l1rc;
     JetCorrectionUncertainty* unc;
@@ -31,8 +31,8 @@ namespace jec {
   public:
     IOV();
     ~IOV();
-    void add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax);
-    bool setCorr(unsigned int,FactorizedJetCorrector**,FactorizedJetCorrector**,JetCorrectionUncertainty**);
+    void add(string id, int runmin = -1, int runmax = -1);
+    bool setCorr(FactorizedJetCorrector**,FactorizedJetCorrector**,JetCorrectionUncertainty** unc=0,int run = -1);
 
   private:
     vector<IOVdata> _jecs;
@@ -40,30 +40,25 @@ namespace jec {
   }; // class IOV
 
   IOV::IOV() : _current(-1) {}
-  IOV::~IOV() {
-    for (auto &jec: _jecs) {
-      delete jec.corr;
-      delete jec.l1rc;
-      delete jec.unc;
-    }
-  }
+  IOV::~IOV() {}
 
   // body part (separate later to another file)
-  void IOV::add(string id, string jecgt, string jecvers, unsigned int runmin, unsigned int runmax) {
+  void IOV::add(string id, int runmin, int runmax) {
     IOVdata dat;
     dat.low = runmin;
     dat.up = runmax;
 
-    // sanity checks to avoid IOV overlaps
-    assert(runmax>=runmin);
-    for (auto it = _jecs.begin(); it != _jecs.end(); ++it) {
-      assert(runmax<it->low or runmin>it->up);
+    if (runmin != -1) {
+      // sanity checks to avoid IOV overlaps
+      assert(runmax>=runmin);
+      for (auto it = _jecs.begin(); it != _jecs.end(); ++it)
+        assert(runmax<it->low or runmin>it->up);
     }
 
     const char *tmps;
     const char *path = "CondFormats/JetMETObjects/data/";
-    string jectmp = jecgt + id + jecvers + (_jp_ismc ? "_MC_" : "_DATA_"); 
-    const char *jecname = jecgt.c_str();
+    string jectmp = string(_jp_jecgt) + id + string(_jp_jecvers) + (_jp_ismc ? "_MC_" : "_DATA_"); 
+    const char *jecname = jectmp.c_str();
 
     vector<JetCorrectorParameters> vpar;
 
@@ -91,6 +86,7 @@ namespace jec {
         vpar.push_back(JetCorrectorParameters(tmps));
       }
       tmps = Form("%s%sUncertainty_%s.txt",path,jecname,_jp_algo);
+      dat.names.push_back(string(tmps));
       dat.unc = new JetCorrectionUncertainty(tmps);
     }
     dat.corr = new FactorizedJetCorrector(vpar);
@@ -104,33 +100,45 @@ namespace jec {
     _jecs.push_back(dat);
   } // add
 
-  bool IOV::setCorr(unsigned int run,FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc) {
+  bool IOV::setCorr(FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,JetCorrectionUncertainty** unc, int run) {
     assert(_jecs.size()!=0);
-    auto cit = &_jecs[_current];
-    if (cit->low <= run and cit->up >= run) // If no change is needed
-      return true;
 
-    // If the current IOV was not fine, search through all the IOVs
-    for (int i = 0, N = int(_jecs.size()); i<N; ++i) {
-      auto it = &_jecs[i];
-      if (it->low <= run and it->up >= run) {
-        if (i!=_current) {
-          _current = i;
-          *corr = it->corr;
-          *l1rc = it->l1rc;
-          *unc = it->unc;
-          cout << endl << "IOV handling in use." << endl;
-          for (auto &name: it->names) {
-            cout << "Loading ... " << name << endl;
-          }
-        }
+    if (_current != -1) { // Check if we are already in the correct IOV
+      auto cit = &_jecs[_current];
+      if (cit->low <= run and cit->up >= run)
         return true;
-      }
     }
+
+    if (_jp_ismc or run==-1) {
+      cout << endl << "Loading a single JEC" << endl;
+      *corr = _jecs[0].corr;
+      *l1rc = _jecs[0].l1rc;
+      if (_jp_isdt) *unc = _jecs[0].unc;
+      for (auto &name: _jecs[0].names)
+        cout << "Loading ... " << name << endl;
+      return true;
+    } else {
+      // If the current IOV was not fine, search through all the IOVs
+      for (int i = 0, N = int(_jecs.size()); i<N; ++i) {
+        auto it = &_jecs[i];
+        if (it->low <= run and it->up >= run) {
+          if (i!=_current) {
+            _current = i;
+            *corr = it->corr;
+            *l1rc = it->l1rc;
+            *unc = it->unc;
+            cout << endl << "IOV handling in use." << endl;
+            for (auto &name: it->names) {
+              cout << "Loading ... " << name << endl;
+            }
+          }
+          return true;
+        }
+      }
+    } // getCorr
     cout << "IOV for run " << run << " not found!!" << endl << flush;
     return false;
-  } // getCorr
-
+  }
 
 } // namescape jec
 #endif
