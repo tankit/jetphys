@@ -34,9 +34,8 @@ void histosFill::Loop()
                info.fMemTotal, info.fMemUsed, info.fMemFree,
                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
 
-  _nbadevts_dup = _nbadevts_run = _nbadevts_ls = _nbadevts_lum = 0;
-  _nbadevts_veto = _nbadevts_stream = 0;
-  _bscounter_bad = _bscounter_good = _halocounter_bad = _halocounter_good = 0;
+  _nbadevts_json = _nbadevts_dup = _nbadevts_run = _nbadevts_ls = _nbadevts_lum = 0;
+  _bscounter_bad = _bscounter_good = 0;
   _ecalcounter_good = _ecalcounter_bad = 0;
   _rhocounter_good = _rhocounter_bad = 0;
   _trgcounter = _evtcounter = _totcounter = 0;
@@ -46,12 +45,14 @@ void histosFill::Loop()
   if (_jp_pthatbins)
     _pthatweight = 0;
 
-  // Map of mu per (run,lumi)
-  TFile *fmu = new TFile("pileup/MUperLSvsRUN_MB.root","READ");
-  assert(fmu && !fmu->IsZombie());
-  TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU");
-  assert(h2mu && !h2mu->IsZombie());
-  //TH2F *h2mu = (TH2F*)fmu->Get("hLSvsRuNxMU_cleaned"); assert(h2mu);
+  TH2F *h2mu = 0;
+  if (_jp_dotrpufile) {
+    // Map of mu per (run,lumi)
+    TFile *fmu = new TFile(_jp_trpufile,"READ");
+    assert(fmu && !fmu->IsZombie());
+    h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU");
+    assert(h2mu and !h2mu->IsZombie());
+  }
 
   // Qgl: load quark/gluon probability histos (Ozlem)
   // 1. open the previous output-MC-1_iteration1.root in the beginning
@@ -380,7 +381,7 @@ void histosFill::Loop()
 
     if (_jp_isdt) {
       trpu = _avgpu[run][lbn];
-      if (trpu==0) {
+      if (trpu==0 and _jp_dotrpufile and h2mu) {
         int irun = h2mu->GetXaxis()->FindBin(run);
         int ilbn = h2mu->GetYaxis()->FindBin(lbn);
         trpu = h2mu->GetBinContent(irun, ilbn);
@@ -463,7 +464,7 @@ void histosFill::Loop()
           ++_nbadevts_json;
           continue;
         }
-      } // _jp_isdt && _jp_dojson
+      } // _jp_dojson
 
       if (_jp_dolumi) {
         // Do we have the run listed in the .csv file?
@@ -487,16 +488,10 @@ void histosFill::Loop()
           //continue; // Could be Poisson fluctuation to zero
         }
       } // _jp_dolumi
-    }
-
-    // Do we exercise run veto based on cross section stability?
-    if (_runveto.find(run)!=_runveto.end()) {
-      ++_nbadevts_veto;
-      continue;
-    }
+    } // _jp_isdt
 
     // Keep track of LBNs
-    _jt15lums.insert(pair<int, int>(run, lbn));
+    _passedlumis.insert(pair<int, int>(run, lbn));
 
     ++cnt["02ls"];
 
@@ -918,28 +913,23 @@ void histosFill::Loop()
   cout << "Processed " << _trgcounter << " events passing "
        << " basic data quality and trigger cuts" << endl;
   cout << "(out of " << _evtcounter << " passing data quality cuts)" << endl;
-  if (_badruns.size()!=0 or _badlums.size()!=0 or _nolums.size()!=0 or
-      _nbadevts_dup!=0 or _nbadevts_json!=0) {
-    cout << "Found " << _badruns.size() << " bad runs:";
-    for (auto runit = _badruns.begin(); runit != _badruns.end(); ++runit)
-      cout << " " << *runit;
-    cout << endl;
-    cout << "These contained " << _nbadevts_run << " bad events" << endl;
-    cout << "Found " << _nbadevts_json << " bad events according to new JSON"
-         << (_jp_dojson ? " (events cut)" : "(events not cut)") << endl;
+  if (_jp_dojson)
+    cout << "Found " << _nbadevts_json << " bad events according to new JSON (events cut)" << endl;
+  if (_jp_dolumi) {
+    cout << "Found " << _nbadevts_run << " bad events according to lumi file." << endl;
+    if (_badruns.size()>0) {
+      cout << "The found " << _badruns.size() << " bad runs:";
+      for (auto &runit : _badruns)
+        cout << " " << runit;
+      cout << endl;
+    }
     cout << "Found " << _badlums.size() << " bad LS and "
-         << _nolums.size() << " non-normalizable LS in good runs" << endl;
+        << _nolums.size() << " non-normalizable LS in good runs" << endl;
     cout << "These contained " << _nbadevts_ls << " discarded events"
-         << " in bad LS and " << _nbadevts_lum << " in non-normalizable LS"
-         << endl;
-    cout << endl;
-    cout << "Found " << _nbadevts_dup << " duplicate events, which were"
-         << " properly discarded" << endl;
-    cout << "The vetoed runs contained " << _nbadevts_veto
-         << " events" << endl;
-  } // has badruns
-  cout << "Runs not in JetMETTau stream contained " << _nbadevts_stream
-       << " events" << endl;
+        << " in bad LS and " << _nbadevts_lum << " in non-normalizable LS" << endl << endl;
+  }
+  if (_jp_checkduplicates)
+    cout << "Found " << _nbadevts_dup << " duplicate events, which were" << " properly discarded" << endl;
 
   // Report beam spot cut efficiency
   cout << "Beam spot counter discarded " << _bscounter_bad
@@ -949,12 +939,14 @@ void histosFill::Loop()
   cout << "Beam spot expectation is less than 0.5%" << endl;
 
   // Report ECAL hole veto efficiency
-  cout << "ECAL hole veto counter discarded " << _ecalcounter_bad
-       << " events out of " << _ecalcounter_good
-       << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100.
-       << "%)" << endl;
-  cout << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
-
+  if (_jp_doECALveto) {
+    cout << "ECAL hole veto counter discarded " << _ecalcounter_bad
+        << " events out of " << _ecalcounter_good
+        << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100.
+        << "%)" << endl;
+    cout << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
+  }
+  
   // Report rho veto efficiency
   cout << "Rho<40 veto counter discarded " << _rhocounter_bad
        << " events out of " << _rhocounter_good
@@ -962,45 +954,46 @@ void histosFill::Loop()
        << "%)" << endl;
   cout << "Rho veto expectation is less than 1 ppm" << endl;
 
-  // Report beam halo efficiency
-  cout << "Beam halo counter flagged (not discarded)" << _halocounter_bad
-       << " events out of " << _halocounter_good
-       << " (" << double(_halocounter_bad)/double(_halocounter_good)*100.
-       << "%) " << endl;
-  cout << "This is after the beam spot constraint" << endl;
-
   cout << endl;
   for (auto cit = cnt.begin(); cit != cnt.end(); ++cit)
     cout << Form("%s: %d (%1.1f%%)", cit->first.c_str(), cit->second, 100. * cit->second / max(1, cnt["01all"])) << endl;
   cout << endl;
 
-  // Report LS actually used for Jet15U in the analysis
-  // (not necessarily containing any Jet15U triggers, though)
-  cout << "Reporting JetMETTau LS in fillhistos.json" << endl;
-  ofstream fout("fillhistos.json", ios::out);
-  for (auto lumit = _jt15lums.begin(); lumit != _jt15lums.end(); ++lumit)
-    fout << lumit->first << " " << lumit->second << endl;
-  if (_jp_dojson) {
-    cout << "Reporting LS marked newly bad in fillhistos.json.bad" << endl;
-    ofstream fout2("fillhistos.json.bad", ios::out);
-    for (auto jsit = _badjson.begin(); jsit != _badjson.end(); ++jsit)
-      fout2 << jsit->first << " " << jsit->second << endl;
+  cout << "Reporting lumis not discraded in report_passedlumis.json" << endl;
+  ofstream fout("report_passedlumis.json", ios::out);
+  for (auto &lumit : _passedlumis)
+    fout << lumit.first << " " << lumit.second << endl;
+  if (_jp_dojson and _badjson.size()>0) {
+    cout << "Reporting lumis discarded by json selection (_jp_dojson) in report_badlumis_json.json" << endl;
+    ofstream fout2("report_badlumis_json.json", ios::out);
+    for (auto &jsit : _badjson)
+      fout2 << jsit.first << " " << jsit.second << endl;
   } // _jp_dojson
+  if (_jp_dolumi) {
+    if (_badlums.size()>0) {
+      cout << "Reporting lumis discarded by lumifile selection (_jp_dolumi) in report_badlumis_lumi.json" << endl;
+      ofstream fout2("report_badlumis_lumi.json", ios::out);
+      for (auto &jsit : _nolums)
+        fout2 << jsit.first << " " << jsit.second << endl;
+    } // _badlums
+    if (_nolums.size()>0) {
+      cout << "Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in report_badlumis_zerolumi.json" << endl;
+      ofstream fout2("report_badlumis_zerolumi.json", ios::out);
+      for (auto &jsit : _nolums)
+        fout2 << jsit.first << " " << jsit.second << endl;
+    } // _nolums
+  } // _jp_dolumi
 
   stop.Stop();
+  TDatime now;
+  cout << "Stopping at: ";
+  now.Print();
   cout << "Processing used " << stop.CpuTime() << "s CPU time ("
        << stop.CpuTime()/3600. << "h)" << endl;
   cout << "Processing used " << stop.RealTime() << "s real time ("
        << stop.RealTime()/3600. << "h)" << endl;
-  cout << endl << endl;
 
   delete ferr;
-  if (_jp_ismc or !_jp_useIOV) {
-    delete _JEC;
-    delete _L1RC;
-    if (_jp_isdt)
-      delete _jecUnc;
-  }
 }
 
 
@@ -2406,18 +2399,13 @@ void histosFill::loadLumi(const char* filename)
   float secLS = 2.3310e+01;
   string s;
   int rn, fill, ls, ifoo;
-  float del, rec, avgpu, ffoo;
+  float del, rec, avgpu, energy;
   char sfoo[512];
   bool getsuccess1 = static_cast<bool>(getline(f, s, '\n'));
   assert(getsuccess1);
   cout << endl << "string: " << s << " !" << endl << flush;
 
-  // HOX: the lumi file format has been changing:
-  //bool v1 = (s==string("run,ls,delivered,recorded"));
-  //bool v2 = (s==string("Run,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
-  //bool v3 = (s==string("Run:Fill,LS,UTCTime,Beam Status,E(GeV),Delivered(/ub),Recorded(/ub)"));
-  //assert(v1 || v2 || v3);
-  //assert (s=="#Data tag : online , Norm tag: None");
+  // HOX: the lumi file format has been changing. Change the asserts when needed.
   assert (s=="#Data tag : v1 , Norm tag: None");
 
   //assert(getline(f, s, '\r'));
@@ -2432,33 +2420,25 @@ void histosFill::loadLumi(const char* filename)
   double lumsum_good(0);
   double lumsum_json(0);
   bool skip(false);
-  // REMOVED: "while ((v1 && f >> s &&" etc.
-  while (//getline(f, s, '\r') &&
-        getline(f, s, '\n') &&
-        //f >> s &&
-        (sscanf(s.c_str(),"%d:%d,%d:%d,%d/%d/%d %d:%d:%d,STABLE BEAMS,"
-        "%f,%f,%f,%f,%s", &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,
-        &ifoo,&ifoo,&ifoo, &ffoo,&del,&rec,&avgpu,sfoo)==15 ||
-        (skip=true))) {
+  while (getline(f, s, '\n')) {
+    // Skip if not STABLE BEAMS or wrong number of arguments
+    // STABLE BEAMS alts: ADJUST, BEAM DUMP, FLAT TOP, INJECTION PHYSICS BEAM, N/A, RAMP DOWN, SETUP, SQUEEZE
+    if (sscanf(s.c_str(),"%d:%d,%d:%d,%d/%d/%d %d:%d:%d,STABLE BEAMS,%f,%f,%f,%f,%s",
+        &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,&ifoo,&ifoo,&ifoo, &energy,&del,&rec,&avgpu,sfoo)!=15)
+      skip=true;
 
-    if (_jp_debug) {
-      if (skip) cout << "Skipping line:\n" << s << endl;
-      cout << "Run " << run << " ls " << ls
-           << " lumi " << rec*1e-6 << "/pb" << endl;
-    }
+    if (_jp_debug)
+      cout << "Run " << run << " ls " << ls << " lumi " << rec*1e-6 << "/pb" << endl;
 
-    // LS is not STABLE BEAMS but something else:
-    // ADJUST, BEAM DUMP, FLAT TOP, INJECTION PHYSICS BEAM, N/A, RAMP DOWN,
-    // SETUP, SQUEEZE
-    if (skip) {
+    if (skip) { // The user should know if this happens, since we can choose to use only STABLE BEAMS
+      if (skip) cout << "Skipping line (effects the recorded lumi):\n" << s << endl;
       skip = false;
       continue;
     }
 
     assert(_lums[rn][ls]==0);
     assert(_avgpu[rn][ls]==0);
-    // Try to get this in units of pb-1
-    // apparently it is given in s^-1 cm^-2
+    // Try to get this in units of pb-1; apparently it is given in s^-1 cm^-2
     //double lum = lvtx * secLS * 1e-36 ;
     //if (lum==0) lum = lhf * secLS * 1e-36 ;
     // lumiCalc.py returns lumi in units of mub-1 (=>nb-1=>pb-1)
@@ -2467,10 +2447,8 @@ void histosFill::loadLumi(const char* filename)
     //if (lum2==0) lum2 = lvtx * secLS * 1e-36 ;
     double lum2 = del*1e-6;
     //assert(lum!=0);
-    if (lum==0 and goodruns.find(rn)!=goodruns.end() and
-        (!_jp_dojson or _json[rn][ls]==1)) {
+    if (lum==0 and goodruns.find(rn)!=goodruns.end() and (!_jp_dojson or _json[rn][ls]==1))
       nolums.insert(pair<int, int>(rn,ls));
-    }
 
     _avgpu[rn][ls] = avgpu; // * 69000. / 78400.; // brilcalc --minBiasXsec patch
     _lums[rn][ls] = lum;

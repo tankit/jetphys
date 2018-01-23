@@ -1,6 +1,6 @@
 lumicalc/
 CondFormats
-*.root
+*.root*
 *_C*
 *.log
 *.so
@@ -12,4 +12,5 @@ CondFormats
 *.rootmap
 *doc*
 *tmp*
+*pdf
 pileup/Run*

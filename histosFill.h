@@ -479,7 +479,6 @@ private:
   bool   _pass;
   bool   _pass_qcdmet;
 
-  set<int> _runveto;
   map<int, map<int, int> > _json;
   map<int, map<int, float> > _avgpu;
   map<int, map<int, float> > _lums;
@@ -494,18 +493,15 @@ private:
   set<pair<int, int> > _badlums;
   set<pair<int, int> > _nolums;
   set<pair<int, int> > _badjson;
-  set<pair<int, int> > _jt15lums;
+  set<pair<int, int> > _passedlumis;
   int _nbadevts_dup;
   int _nbadevts_run;
   int _nbadevts_ls;
   int _nbadevts_lum;
   int _nbadevts_json;
   int _nbadevts_veto;
-  int _nbadevts_stream;
   int _bscounter_bad;
   int _bscounter_good;
-  int _halocounter_bad;
-  int _halocounter_good;
   int _ecalcounter_bad;
   int _ecalcounter_good;
   int _rhocounter_bad;

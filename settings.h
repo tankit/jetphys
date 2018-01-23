@@ -59,8 +59,8 @@ constexpr bool _jp_ishw = strings_equal(_jp_type,"HW");
 constexpr Long64_t _jp_nentries =
 //-1; // all
 //10; // debug
-10000; // shorter test run
-//100000; // short test run
+//10000; // shorter test run
+100000; // short test run
 //1000000; // shortish test run
 // Number of events to skip from the beginning (for debugging)
 constexpr Long64_t _jp_nskip = 0;
@@ -98,18 +98,21 @@ constexpr bool _jp_redojes = true;
 constexpr bool _jp_skipl2l3res = false;
 
 // Reapply json selection based on the latest one (check lumicalc if false!).
-constexpr bool _jp_dojson = false; // CAUTION, this isn't necessary in everyday use.
+constexpr bool _jp_dojson = true;
 const constexpr char _jp_json[] = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
-//string _jp_json = "PromptReco/Cert_299614-299617_13TeV_PromptReco_Collisions17_50ns_JSON.txt";
-//string _jp_json = "lumicalc/Cert_271036-282092_13TeV_PromptReco_Collisions16_JSON.txt";
+//const constexpr char _jp_json[] = "lumicalc/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file and take only events with non-zero luminosity.
-constexpr bool _jp_dolumi = false; // CAUTION, this might be broken.
-const constexpr char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls.csv"; // Run II
+constexpr bool _jp_dolumi = true;
+const constexpr char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls16.csv";
+//const constexpr char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls17.csv";
 
 // Add prescale information from a file
 constexpr bool _jp_doprescale = false; // CAUTION, this shouldn't be nowadays necessary
 const constexpr char _jp_prescalefile[] = "pileup/prescales74x.txt";
+
+constexpr bool _jp_dotrpufile = false; // CAUTION, the histo file in the repo is 2015
+const constexpr char _jp_trpufile[] = "pileup/MUperLSvsRUN_MB.root";
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 constexpr bool _jp_domctrigsim = true;
@@ -117,32 +120,31 @@ constexpr bool _jp_domctrigsim = true;
 constexpr bool _jp_usemctrig = true;
 // This is the 13 TeV 25 ns list of triggers (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
-constexpr int _jp_ntrigs = 9; // jt450 unprescaled, so drop 500, but add Zero Bias
+constexpr int _jp_ntrigs = 9; // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500!)
 const constexpr char* _jp_triggers[_jp_ntrigs] =
-{"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"};
+{"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"}; // "jt500"};
 // reference trigger (for PU profile) in the mc folder
-const constexpr char _jp_mctrig[] = "jt450";
+const constexpr char _jp_mctrig[] = "jt450"; // "jt500";
 // Thresholds for the corresponding triggers (same as in trigger name)
 const constexpr double _jp_trigthr[_jp_ntrigs] =
-{40,        60,        80,       140,       200,       260,       320,       400,      450};
+{40,        60,        80,       140,       200,       260,       320,       400,      450}; // 500};
 // Trigger ranges (differ from thresholds)
 const constexpr double _jp_trigranges[_jp_ntrigs][2] =
 { {0,84}, {84,114}, {114,196}, {196,272}, {272,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[5,6], AK4
-//{ {0,84}, {84,114}, {114,174}, {174,245}, {245,330}, {330,395}, {395,468}, {468,548}, {548,6500} }; // V[3,4], AK4
 
 // Trigger lumis for weighting
 constexpr bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 const constexpr double _jp_triglumi[_jp_ntrigs] = // in /ub
-//// 2016: ///
-// brilcalc lumi --hltpath "HLT_PFJet40_v*" -i [JSON]
-// brilcalc lumi -i Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --normtag /afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json --hltpath "HLT_PFJet*" -o brilcalc_lumibyls.csv --byls --minBiasXsec 69000
-// {264854.065,719060.448,2734876.213,23973802.117,102890630.006,587903231.81,1754681848.318,5142568134.826,35863307558.002}; // Ozlem, add new numbers here for RunG-part1_JSON.txt
-{264314.035000,718756.543000,2727540.789000,23949603.660000,102671554.653000,587533626.778000,1753875820.267000,5139583558.868000,35918235379.677002};//Ozlem added new numbers here for RunG-part1_JSON.txt
+// 2016 final: brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --byls --normtag=$PWD/../../../Normtags/normtag_DATACERT.json --minBiasXsec 80000 --hltpath="HLT_PFJet*" -o brilcalc_lumibyls16.csv
+{264821.835,718829.826,2733420.74,23966019.286,102854094.409,587728815.19,1753996573.885,5141160409.826,35860066023.522};
+// 2017 final: brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt --byls --normtag=/eos/user/h/hsiikone/Normtags/normtag_BRIL.json --minBiasXsec 80000 --hltpath="HLT_PFJet*" -o brilcalc_lumibyls17.csv
+// {480907.381,1135408.863,4300901.657,39784735.913,218494113.161,553531633.649,1402704877.698,4201460774.775,10434425834.42,41366526620.215};
 // Unprescaled luminosity for plots
-constexpr double _jp_lumi = 35.918235; // 36.810440678; (outdated)
+constexpr double _jp_lumi = 
+35.860066; // 2016
+//41.366527; // 2017
 
 //} END Switches and their settings
-
 
 //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
 // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
