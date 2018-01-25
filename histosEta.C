@@ -108,16 +108,11 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   curdir->cd();
 }
 
-histosEta::~histosEta() {
+void histosEta::Write() {
   dir->cd();
   dir->Write();
-  for (unsigned i = 0; i < alpharange.size(); ++i) {
-    delete hdjasymm[i];
-    delete hdjasymmtp[i];
-    delete hdjasymmpt[i];
-    delete hdjmpf[i];
-    delete hdjmpftp[i];
-    delete hdjmpfpt[i];
-  }
-  delete dir;
+}
+
+histosEta::~histosEta() {
+  Write();
 };

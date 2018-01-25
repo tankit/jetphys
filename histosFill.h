@@ -424,6 +424,7 @@ public :
   TH3D *h3probg;
 
   vector<string> _availTrigs;
+  vector<unsigned int> _goodTrigs;
 
   void loadJSON(const char* filename);
   void loadLumi(const char* filename);
@@ -566,14 +567,15 @@ Long64_t histosFill::LoadTree(Long64_t entry)
         return -4;
       }
       *ferr << "Tree " << fCurrent << " triggers:" << endl;
-      for (auto str : _availTrigs) {
-        if (str.length()==0)
-          *ferr << "x ";
-        else
-          *ferr << str << " ";
+      for (auto trigi = 0u; trigi < _availTrigs.size(); ++trigi) {
+        auto str = _availTrigs[trigi];
+        *ferr << str;
+        if (std::find(_goodTrigs.begin(),_goodTrigs.end(),trigi)!=_goodTrigs.end()) *ferr << "_y ";
+        else *ferr << "_n ";
+        if (trigi%10==9) *ferr << endl;
       }
       *ferr << endl << flush;
-    } else {
+    } else if (_jp_pthatbins) {
       TString filename = fChain->GetCurrentFile()->GetName();
       // Check the position of the current file in the list of file names
       unsigned currFile = std::find_if(_jp_pthatfiles.begin(),_jp_pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-_jp_pthatfiles.begin();

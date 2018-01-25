@@ -67,6 +67,8 @@ class histosEta {
   histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax);
   ~histosEta();
 
+  void Write();
+
  private:
   TDirectory *dir;
 };

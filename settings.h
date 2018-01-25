@@ -35,7 +35,7 @@ constexpr bool strings_equal(char const * a, char const * b) {
 // Debugging info
 constexpr bool _jp_debug = false;
 // Will assert be used in the programs?
-#define USEASSERT // Expert option: comment this if certain that no problems occur. More than 1/3 off the run time.
+//#define USEASSERT // Expert option: comment this if certain that no problems occur. More than 1/3 off the run time.
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -43,7 +43,7 @@ const constexpr char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 const constexpr char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-const constexpr char _jp_type[] = "DATA";
+const constexpr char _jp_type[] = "MC";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 const constexpr char _jp_run[] = "RunG16";
 // Simple helper
@@ -57,10 +57,10 @@ constexpr bool _jp_ishw = strings_equal(_jp_type,"HW");
 //{ BEGIN run settings
 // Number of events to process (-1 for all)
 constexpr Long64_t _jp_nentries =
-//-1; // all
+-1; // all
 //10; // debug
 //10000; // shorter test run
-100000; // short test run
+//100000; // short test run
 //1000000; // shortish test run
 // Number of events to skip from the beginning (for debugging)
 constexpr Long64_t _jp_nskip = 0;
@@ -68,6 +68,8 @@ constexpr Long64_t _jp_nskip = 0;
 constexpr Long64_t _jp_skim = 0; // "prescale", off if zero
 // Only load selected branches (large speedup, but be careful!)
 constexpr bool _jp_quick = true;
+// Save the infos at times. Setting this to true might help with long runs. (Not recommended
+constexpr bool _jp_save = false;
 //} END run settings
 
 
@@ -123,8 +125,8 @@ constexpr bool _jp_usemctrig = true;
 constexpr int _jp_ntrigs = 9; // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500!)
 const constexpr char* _jp_triggers[_jp_ntrigs] =
 {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"}; // "jt500"};
-// reference trigger (for PU profile) in the mc folder
-const constexpr char _jp_mctrig[] = "jt450"; // "jt500";
+// reference trigger for PU profile in the mc folder and for trigger lumi weighting
+const constexpr char _jp_reftrig[] = "jt450"; // "jt500";
 // Thresholds for the corresponding triggers (same as in trigger name)
 const constexpr double _jp_trigthr[_jp_ntrigs] =
 {40,        60,        80,       140,       200,       260,       320,       400,      450}; // 500};
@@ -140,10 +142,7 @@ const constexpr double _jp_triglumi[_jp_ntrigs] = // in /ub
 // 2017 final: brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt --byls --normtag=/eos/user/h/hsiikone/Normtags/normtag_BRIL.json --minBiasXsec 80000 --hltpath="HLT_PFJet*" -o brilcalc_lumibyls17.csv
 // {480907.381,1135408.863,4300901.657,39784735.913,218494113.161,553531633.649,1402704877.698,4201460774.775,10434425834.42,41366526620.215};
 // Unprescaled luminosity for plots
-constexpr double _jp_lumi = 
-35.860066; // 2016
-//41.366527; // 2017
-
+constexpr double _jp_lumi = _jp_triglumi[_jp_ntrigs-1]/1000000000.0; // in /fb
 //} END Switches and their settings
 
 //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
@@ -228,11 +227,11 @@ constexpr bool _jp_checkduplicates = false;
 
 //{ BEGIN histosNormalize (leave these off if not interested on details)
 // Correct for trigger efficiency based on MC
-constexpr bool _jp_dotrigeff = false;
+constexpr bool _jp_dotrigeff = false; // CAUTION: Requires output-MC-1.root file
 // Correct pT<114 GeV only, if above _jp_dotrigeff=true
-constexpr bool _jp_dotrigefflowptonly = false;
+constexpr bool _jp_dotrigefflowptonly = false; // CAUTION: Not needed
 // Correct for time-dependence (prescales) in data
-constexpr bool _jp_dotimedep = false;
+constexpr bool _jp_dotimedep = false; // CAUTION: Unknown consequences
 //} END histosNormalize
 
 //{ BEGIN drawSummary

@@ -1548,8 +1548,8 @@ void drawBTagPurityBin(TDirectory *din, int ibin, string type,
 
   bool _x = (din && dmc);
 
-  TProfile *pfb = (TProfile*)din->Get("mb/pfb"); assert(pfb);
-  TProfile *pfbmc = (_x ? (TProfile*)dmc->Get("mb/pfb") : 0);
+  TProfile *pfb = static_cast<TProfile*>(din->Get("mb/pfb"); assert(pfb);
+  TProfile *pfbmc = (_x ? static_cast<TProfile*>(dmc->Get("mb/pfb") : 0);
   assert(pfbmc||!_x);
 
   float etamin, etamax;
@@ -1779,13 +1779,13 @@ void drawBTagNormBin(TDirectory *din, int ibin, string type,
   bool _x = (din && dmc);
 
   TH1D *hpt = (TH1D*)din->Get("mb/hbpt"); assert(hpt);
-  TProfile *peffb = (TProfile*)din->Get("mb/peffb"); assert(peffb);
-  TProfile *pfb = (TProfile*)din->Get("mb/pfb"); assert(pfb);
+  TProfile *peffb = static_cast<TProfile*>(din->Get("mb/peffb"); assert(peffb);
+  TProfile *pfb = static_cast<TProfile*>(din->Get("mb/pfb"); assert(pfb);
 
   TH1D *hptmc = (_x ? (TH1D*)dmc->Get("mb/hbpt") : 0); assert(hptmc||!_x);
-  TProfile *peffbmc = (_x ? (TProfile*)dmc->Get("mb/peffb") : 0);
+  TProfile *peffbmc = (_x ? static_cast<TProfile*>(dmc->Get("mb/peffb") : 0);
   assert(peffbmc||!_x);
-  TProfile *pfbmc = (_x ? (TProfile*)dmc->Get("mb/pfb") : 0);
+  TProfile *pfbmc = (_x ? static_cast<TProfile*>(dmc->Get("mb/pfb") : 0);
   assert(pfbmc||!_x);
 
   TH1D *hnorm = (TH1D*)hpt->Clone(Form("hnorm_%d",ibin));

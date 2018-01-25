@@ -228,15 +228,6 @@ double vx[neta][nbins] =
   hjet_vstrpu = new TH1D("hjet_vstrpu","",50,-0.5,49.5);
   hlumi_vstrpu = new TH1D("hlumi_vstrpu","",50,-0.5,49.5);
   //
-  //pa->Sumw2();
-  // prho->Sumw2();
-  //prho1->Sumw2();
-  //prho2->Sumw2();
-  //prho3->Sumw2();
-  //prhovsnpv->Sumw2();
-  //prhovsnpvall->Sumw2();
-  //h2rhovsnpv->Sumw2();
-
   // luminosity
   hlumi = new TH1D("hlumi","",nx,&x[0]);
   hlumi2 = new TH1D("hlumi2","",nx,&x[0]);
@@ -558,11 +549,12 @@ double vx[neta][nbins] =
 
   curdir->cd();
 }
-  
-histosBasic::~histosBasic() {
-  
+
+void histosBasic::Write() {
   dir->cd();
-  //hpttmp->Delete();
   dir->Write();
-  //delete dir;
+}
+
+histosBasic::~histosBasic() {
+  Write();
 };

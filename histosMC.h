@@ -43,6 +43,8 @@ class histosMC {
   histosMC(TDirectory *dir, string trigname);
   ~histosMC();
 
+  void Write();
+
  private:
   TDirectory *dir;
 };

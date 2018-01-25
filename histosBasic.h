@@ -380,6 +380,8 @@ class histosBasic {
         double etamax = 2.0, double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
   ~histosBasic();
 
+  void Write();
+
 // private:
   TDirectory *dir;
 };

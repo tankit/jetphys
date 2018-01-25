@@ -182,7 +182,7 @@ TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
     h2r = Rebin(h2, h1); h2 = h2r;
   }
 
-  TH1D *h3 = (TH1D*)h1->Clone(Form("ratio_%s_%s",h1->GetName(),h2->GetName()));
+  TH1D *h3 = dynamic_cast<TH1D*>(h1->Clone(Form("ratio_%s_%s",h1->GetName(),h2->GetName())));
   h3->Divide(h1, h2, c1, c2, opt);
 
   // delete temporary copies
@@ -202,7 +202,7 @@ TH1D *tools::Rebin(const TH1D *h, const TH1D* href) {
   }
 
   // First, we need to rebin inclusive jets to match b-tagged jets
-  TH1D *hre = (TH1D*)href->Clone(Form("%s_rebin",h->GetName()));
+  TH1D *hre = dynamic_cast<TH1D*>(href->Clone(Form("%s_rebin",h->GetName())));
   hre->Reset();
 
   for (int i = 1; i != h->GetNbinsX()+1; ++i) {

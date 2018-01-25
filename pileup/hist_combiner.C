@@ -10,12 +10,14 @@
 
         TFile g(file.Data(),"READ");
         g.cd();
-        TH1D* handle = (TH1D*)gROOT->FindObject("pileup");
-        f.cd();
-        handle->SetName(name.Data());
-        handle->SetTitle(name.Data());
-        handle->Write();
-        handle->Delete();
-        g.Close();
+        TH1D* handle = dynamic_cast<TH1D*>(gROOT->FindObject("pileup"));
+        if (handle) {
+          f.cd();
+          handle->SetName(name.Data());
+          handle->SetTitle(name.Data());
+          handle->Write();
+          handle->Delete();
+          g.Close();
+        }
     }
 }

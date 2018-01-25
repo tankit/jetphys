@@ -84,15 +84,12 @@ void histosFill::Loop()
         string sg = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g",
                          veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
         cout << sg << endl << flush;
-        TH1D *hqgl_g = (TH1D*)finmc->Get(sg.c_str());
-        assert(hqgl_g);
+        TH1D *hqgl_g = dynamic_cast<TH1D*>(finmc->Get(sg.c_str())); assert(hqgl_g);
         hqgl_g->Scale(1./hqgl_g->Integral());
 
         // Quarks in the given eta/pt slice
-        string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q",
-                         veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
-        TH1D *hqgl_q = (TH1D*)finmc->Get(sq.c_str());
-        assert(hqgl_q);
+        string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q", veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
+        TH1D *hqgl_q = dynamic_cast<TH1D*>(finmc->Get(sq.c_str())); assert(hqgl_q);
         hqgl_q->Scale(1./hqgl_q->Integral());
 
         // Loop over qgl indices
@@ -232,29 +229,29 @@ void histosFill::Loop()
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
 
   const char *a = _jp_algo;
-  cout << "\nCONFIGURATION DUMP:" << endl;
-  cout << "-------------------" << endl;
-  cout << Form("Running over %sPF",_jp_algo) << endl;
-  if(_jp_ismc) cout << "Running over MC" << endl;
-  if(_jp_isdt) cout << "Running over data" << endl;
-  cout << (_jp_useIOV ? "Applying" : "Not applying") << " time-dependent JEC (IOV)" << endl;
-  cout << (_jp_doECALveto ? "Vetoing" : "Not vetoing") << " jets in bad ECAL towers" << endl;
-  cout << (_jp_doetaphiexcl ? "Doing" : "Not doing") << " exclusion in eta-phi plane" << endl;
-  cout << endl;
+  *ferr << "\nCONFIGURATION DUMP:" << endl;
+  *ferr << "-------------------" << endl;
+  *ferr << Form("Running over %sPF",_jp_algo) << endl;
+  if(_jp_ismc) *ferr << "Running over MC" << endl;
+  if(_jp_isdt) *ferr << "Running over data" << endl;
+  *ferr << (_jp_useIOV ? "Applying" : "Not applying") << " time-dependent JEC (IOV)" << endl;
+  *ferr << (_jp_doECALveto ? "Vetoing" : "Not vetoing") << " jets in bad ECAL towers" << endl;
+  *ferr << (_jp_doetaphiexcl ? "Doing" : "Not doing") << " exclusion in eta-phi plane" << endl;
+  *ferr << endl;
 
   if (_jp_isdt) {
-    cout << (_jp_dojson ? "Applying" : "Not applying") << " additional JSON selection" << endl;
-    cout << (_jp_doprescale ? "Applying" : "Not applying") << " additional prescalees on run/lumi." << endl;
-    cout << (_jp_doprescale ? "Recalculating" : "Not recalculating") << " luminosities." << endl;
-    cout << (_jp_doRunHistos ? "Storing" : "Not storing") << " additional run-level histograms" << endl;
-    cout << (_jp_doBasicHistos ? "Storing" : "Not storing") << " basic set of histograms" << endl;
-    cout << (_jp_doEtaHistos ? "Storing" : "Not storing") << " histograms with a full eta-range" << endl;
+    *ferr << (_jp_dojson ? "Applying" : "Not applying") << " additional JSON selection" << endl;
+    *ferr << (_jp_doprescale ? "Applying" : "Not applying") << " additional prescalees on run/lumi." << endl;
+    *ferr << (_jp_doprescale ? "Recalculating" : "Not recalculating") << " luminosities." << endl;
+    *ferr << (_jp_doRunHistos ? "Storing" : "Not storing") << " additional run-level histograms" << endl;
+    *ferr << (_jp_doBasicHistos ? "Storing" : "Not storing") << " basic set of histograms" << endl;
+    *ferr << (_jp_doEtaHistos ? "Storing" : "Not storing") << " histograms with a full eta-range" << endl;
   }
   if (_jp_ismc) {
-    cout << (_jp_reweighPU ? "Reweighing" : "Not reweighing") << " pileup profile in MC to data" << endl;
-    cout << (_jp_pthatbins ? "Processing pThat binned samples" : "Processing \"flat\" samples") << endl;
+    *ferr << (_jp_reweighPU ? "Reweighing" : "Not reweighing") << " pileup profile in MC to data" << endl;
+    *ferr << (_jp_pthatbins ? "Processing pThat binned samples" : "Processing \"flat\" samples") << endl;
   }
-  cout << endl;
+  *ferr << endl;
 
   _JEC = 0;
   _L1RC = 0;
@@ -338,27 +335,56 @@ void histosFill::Loop()
   // Event loop
   TStopwatch stop;
   stop.Start();
+  TDatime bgn;
 
-  vector<Long64_t> infojentrys = {100,250,500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,20000000,40000000,80000000};
+  vector<Long64_t> infojentrys = {5000,10000,50000,100000,500000,1000000,5000000,
+                                  10000000,20000000,30000000,40000000,50000000,60000000,70000000,80000000,90000000,
+                                  100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
   Long64_t nbytes = 0, nb = 0;
-  for (Long64_t jentry=nskip; jentry<(nentries+nskip);jentry+=1+_jp_skim) { // Event loop
+  for (Long64_t djentry=0; djentry<nentries;djentry+=1+_jp_skim) { // Event loop
+    Long64_t jentry = djentry+nskip;
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
 
     if (jentry%50000==0) cout << "." << flush;
 
-    Long64_t djentry = jentry - nskip;
-    if (std::find(infojentrys.begin(),infojentrys.end(),djentry)!=infojentrys.end()) {
+    auto infoplace = std::find(infojentrys.begin(),infojentrys.end(),djentry);
+    if (infoplace!=infojentrys.end()) {
       // How long is it going to take?
       cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
                       (long int)jentry, 100.*djentry/nentries, stop.RealTime()) << endl;
+      cout << "BGN: ";
+      bgn.Print();
       TDatime now;
       cout << "NOW: ";
       now.Print();
-      now.Set(now.Convert()+stop.RealTime()*(nentries/djentry-1));
+      if (++infoplace!=infojentrys.end()) {
+        TDatime nxt;
+        nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>((*infoplace))/static_cast<Double_t>(djentry)-1.0)));
+        cout << "NXT: ";
+        nxt.Print();
+      }
+      now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(nentries)/static_cast<Double_t>(djentry)-1.0)));
       cout << "ETA: ";
       now.Print();
+
+      if (_jp_save) {
+        for (auto &manyhists : _histos)
+          for (auto &onehist : manyhists.second)
+            onehist->Write();
+        if (_jp_doEtaHistos) {
+          for (auto &manyhists : _etahistos)
+            for (auto & onehist : manyhists.second)
+              onehist->Write();
+          if (_jp_doEtaHistosMcResponse) {
+            for (auto &manyhists : _mchistos)
+              for (auto & onehist : manyhists.second)
+                onehist->Write();
+          }
+        }
+      }
+
       stop.Continue();
     }
 
@@ -541,8 +567,8 @@ void histosFill::Loop()
     }
 
     // Reset prescales (dynamic can change within run)
-    for (auto scaleit = _prescales.begin(); scaleit != _prescales.end(); ++scaleit)
-      scaleit->second[run] = 0;
+    for (auto &scaleit : _prescales)
+      scaleit.second[run] = 0;
 
     // Fill trigger information
     _trigs.clear();
@@ -552,7 +578,7 @@ void histosFill::Loop()
     if (_jp_ismc) {
       // Always insert the generic mc trigger
       _trigs.insert("mc");
-      if (_jp_domctrigsim && njt>0) {
+      if (_jp_domctrigsim and njt>0) {
         // Only add the greatest trigger present
         for (int itrg = _jp_ntrigs; itrg > 0; --itrg) {
           if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
@@ -568,51 +594,52 @@ void histosFill::Loop()
       if (_jp_debug) {
         cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
         cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
+        cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
       }
       assert(TriggerDecision_.size() == _availTrigs.size());
 
-      for (unsigned int itrg = 0; itrg != TriggerDecision_.size(); ++itrg) {
+      for (auto &itrg : _goodTrigs) { // Loop over the sensible triggers
+        if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
 
-        string strg = _availTrigs[itrg];
-        bool pass = TriggerDecision_[itrg]==1 && strg.length()!=0; // -1, 0, 1
-        if (!pass) continue;
+        string trigname = _availTrigs[itrg];
+        if (_jp_debug and TriggerDecision_[itrg]>0)
+          cout << trigname << " " << TriggerDecision_[itrg]
+               << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
 
         // Set prescale from event for now
-        if (L1Prescale_[itrg]>0 && HLTPrescale_[itrg]>0) {
-          _prescales[strg][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+        if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) {
+          _prescales[trigname][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
         } else {
-          cout << "Error for trigger " << strg << " prescales: "
+          cout << "Error for trigger " << trigname << " prescales: "
                 << "L1  =" << L1Prescale_[itrg]
                 << "HLT =" << HLTPrescale_[itrg] << endl;
-          _prescales[strg][run] = 0;
+          _prescales[trigname][run] = 0;
+          if (_jp_debug) { // check prescale
+            double prescale = _prescales[trigname][run];
+            if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
+              cout << "Trigger " << trigname << ", "
+              << "Prescale(txt file) = " << prescale << endl;
+              cout << "L1 = " << L1Prescale_[itrg] << ", "
+              << "HLT = " << HLTPrescale_[itrg] << endl;
+              assert(false);
+            }
+          } // debug
         }
 
-        // check prescale
-        if (_jp_debug) {
-          double prescale = _prescales[strg][run];
-          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-            cout << "Trigger " << strg << ", "
-                  << "Prescale(txt file) = " << prescale << endl;
-            cout << "L1 = " << L1Prescale_[itrg] << ", "
-                  << "HLT = " << HLTPrescale_[itrg] << endl;
-            assert(false);
-          }
-        } // debug
-
-        if (_prescales[strg][run]!=0) {
+        if (_prescales[trigname][run]!=0) {
           // Set trigger only if prescale information is known
-          _trigs.insert(strg);
+          _trigs.insert(trigname);
         } else {
           // Make sure all info is good! This is crucial if there is something odd with the tuples
-          *ferr << "Missing prescale for " << strg
+          *ferr << "Missing prescale for " << trigname
                 << " in run " << run << endl << flush;
         }
-      } // for itrg
+      } // for itrg (_goodTrigs)
     }
 
     ++_totcounter;
     if (_pass) ++_evtcounter;
-    _pass = _pass and _trigs.size()!=0;
+    _pass = _pass and _trigs.size()>0;
     if (_pass) {
       ++_trgcounter;
       if (_jp_isdt) ++cnt["07trg"];
@@ -641,7 +668,7 @@ void histosFill::Loop()
         _pass = _pass and (pudist[trg_name]->GetBinContent(pudist[trg_name]->FindBin(trpu))!=0);
       }
     } // for itrg
-    _wt["mc"] = _wt[_jp_mctrig];
+    _wt["mc"] = _wt[_jp_reftrig];
     if (_pass and _jp_ismc) ++cnt["07puw"];
 
     // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
@@ -754,7 +781,10 @@ void histosFill::Loop()
     int i1 = jt3leads[1];
     int i2 = jt3leads[2];
 
-    if (_jp_debug) cout << "Gen flav calculation!" << endl;
+    if (_jp_debug) {
+      cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
+      cout << "Gen flav calculation!" << endl;
+    }
     if (_jp_ismc) {
       for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
         genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
@@ -909,55 +939,52 @@ void histosFill::Loop()
   if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
 
   // List bad runs
-  cout << "Processed " << _totcounter << " events in total" << endl;
-  cout << "Processed " << _trgcounter << " events passing "
-       << " basic data quality and trigger cuts" << endl;
-  cout << "(out of " << _evtcounter << " passing data quality cuts)" << endl;
+  *ferr << "Processed " << _totcounter << " events in total" << endl
+        << "Processed " << _trgcounter << " events passing "
+        << " basic data quality and trigger cuts" << endl
+        << "(out of " << _evtcounter << " passing data quality cuts)" << endl;
   if (_jp_dojson)
-    cout << "Found " << _nbadevts_json << " bad events according to new JSON (events cut)" << endl;
+    *ferr << "Found " << _nbadevts_json << " bad events according to new JSON (events cut)" << endl;
   if (_jp_dolumi) {
-    cout << "Found " << _nbadevts_run << " bad events according to lumi file." << endl;
+    *ferr << "Found " << _nbadevts_run << " bad events according to lumi file." << endl;
     if (_badruns.size()>0) {
-      cout << "The found " << _badruns.size() << " bad runs:";
+      *ferr << "The found " << _badruns.size() << " bad runs:";
       for (auto &runit : _badruns)
-        cout << " " << runit;
-      cout << endl;
+        *ferr << " " << runit;
+      *ferr << endl;
     }
-    cout << "Found " << _badlums.size() << " bad LS and "
-        << _nolums.size() << " non-normalizable LS in good runs" << endl;
-    cout << "These contained " << _nbadevts_ls << " discarded events"
-        << " in bad LS and " << _nbadevts_lum << " in non-normalizable LS" << endl << endl;
+    *ferr << "Found " << _badlums.size() << " bad LS and "
+          << _nolums.size() << " non-normalizable LS in good runs" << endl
+          << "These contained " << _nbadevts_ls << " discarded events"
+          << " in bad LS and " << _nbadevts_lum << " in non-normalizable LS" << endl << endl;
   }
   if (_jp_checkduplicates)
-    cout << "Found " << _nbadevts_dup << " duplicate events, which were" << " properly discarded" << endl;
+    *ferr << "Found " << _nbadevts_dup << " duplicate events, which were" << " properly discarded" << endl;
 
   // Report beam spot cut efficiency
-  cout << "Beam spot counter discarded " << _bscounter_bad
-       << " events out of " << _bscounter_good
-       << " (" << double(_bscounter_bad)/double(_bscounter_good)*100.
-       << "%)" << endl;
-  cout << "Beam spot expectation is less than 0.5%" << endl;
+  *ferr << "Beam spot counter discarded " << _bscounter_bad << " events out of " << _bscounter_good
+        << " (" << double(_bscounter_bad)/double(_bscounter_good)*100. << "%)" << endl
+        << "Beam spot expectation is less than 0.5%" << endl;
 
   // Report ECAL hole veto efficiency
   if (_jp_doECALveto) {
-    cout << "ECAL hole veto counter discarded " << _ecalcounter_bad
-        << " events out of " << _ecalcounter_good
-        << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100.
-        << "%)" << endl;
-    cout << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
+    *ferr << "ECAL hole veto counter discarded " << _ecalcounter_bad << " events out of " << _ecalcounter_good
+          << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100. << "%)" << endl
+          << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
   }
   
   // Report rho veto efficiency
-  cout << "Rho<40 veto counter discarded " << _rhocounter_bad
-       << " events out of " << _rhocounter_good
-       << " (" << double(_rhocounter_bad)/double(_rhocounter_good)*100.
-       << "%)" << endl;
-  cout << "Rho veto expectation is less than 1 ppm" << endl;
+  *ferr << "Rho<40 veto counter discarded " << _rhocounter_bad << " events out of " << _rhocounter_good
+        << " (" << double(_rhocounter_bad)/double(_rhocounter_good)*100. << "%)" << endl
+        << "Rho veto expectation is less than 1 ppm" << endl << endl;
+  for (auto &cit : cnt) {
+    cout << Form("%s: %d (%1.1f%%)", cit.first.c_str(), cit.second, 100. * cit.second / max(1, cnt["01all"])) << endl;
+    *ferr << Form("%s: %d (%1.1f%%)", cit.first.c_str(), cit.second, 100. * cit.second / max(1, cnt["01all"])) << endl;
+  }
+  if (_jp_isdt) *ferr << "Note that for DT it is likely that we lose a large percentage of events for the trigger." << endl
+                      << "Events triggered by JetHT and AK8PFJet are included in addition to AK4PFJet." << endl;
+  *ferr << endl;
 
-  cout << endl;
-  for (auto cit = cnt.begin(); cit != cnt.end(); ++cit)
-    cout << Form("%s: %d (%1.1f%%)", cit->first.c_str(), cit->second, 100. * cit->second / max(1, cnt["01all"])) << endl;
-  cout << endl;
 
   cout << "Reporting lumis not discraded in report_passedlumis.json" << endl;
   ofstream fout("report_passedlumis.json", ios::out);
@@ -990,9 +1017,15 @@ void histosFill::Loop()
   now.Print();
   cout << "Processing used " << stop.CpuTime() << "s CPU time ("
        << stop.CpuTime()/3600. << "h)" << endl;
+  *ferr << "Processing used " << stop.CpuTime() << "s CPU time ("
+        << stop.CpuTime()/3600. << "h)" << endl;
   cout << "Processing used " << stop.RealTime() << "s real time ("
        << stop.RealTime()/3600. << "h)" << endl;
+  *ferr << "Processing used " << stop.RealTime() << "s real time ("
+        << stop.RealTime()/3600. << "h)" << endl;
 
+  // We don't delete that much stuff here, since ROOT takes care of garbage collection
+  // (and gets very easily angry!!!)
   delete ferr;
 }
 
@@ -1035,7 +1068,7 @@ void histosFill::initBasics(string name)
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
   }
-  if (_jp_isdt || _jp_domctrigsim) {
+  if (_jp_isdt or _jp_domctrigsim) {
     // This is done both for data and MC, because why not?
     for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
       string trg = _jp_triggers[itrg];
@@ -1160,7 +1193,7 @@ void histosFill::fillBasic(histosBasic *h)
       cout << "Triggers size: " << _trigs.size() << endl;
       for (auto trgit = _trigs.begin(); trgit != _trigs.end(); ++trgit)
         cout << *trgit << ", ";
-      cout << "(" << h->trigname << ")" << endl;
+      cout << "Current: " << "(" << h->trigname << ")" << endl;
     }
   }
 
@@ -1187,14 +1220,10 @@ void histosFill::fillBasic(histosBasic *h)
       // The eta sectors are filled according to max eta
       // NOTE: alpha and dphi cuts are currently completely missing!
       if (goodjets and etamaxdj >= h->etamin and etamaxdj < h->etamax) {
-        assert(h->hdjmass);
-        h->hdjmass->Fill(djmass, _w);
-        assert(h->hdjmass0);
-        h->hdjmass0->Fill(djmass, _w);
-        assert(h->pdjmass_ptratio);
-        h->pdjmass_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
-        assert(h->pdjmass0_ptratio);
-        h->pdjmass0_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
+        assert(h->hdjmass); h->hdjmass->Fill(djmass, _w);
+        assert(h->hdjmass0); h->hdjmass0->Fill(djmass, _w);
+        assert(h->pdjmass_ptratio); h->pdjmass_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
+        assert(h->pdjmass0_ptratio); h->pdjmass0_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
       }
       //} Dijet mass
 
@@ -1982,7 +2011,7 @@ void histosFill::initMcHistos(string name)
     pt["mc"] = pair<double, double>(_jp_recopt, _jp_emax);
     pttrg["mc"] = _jp_recopt;
   }
-  if (_jp_isdt || _jp_domctrigsim) {
+  if (_jp_isdt or _jp_domctrigsim) {
     // This is done both for data and MC, because why not?
     for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
       string trg = _jp_triggers[itrg];
@@ -2428,7 +2457,7 @@ void histosFill::loadLumi(const char* filename)
       skip=true;
 
     if (_jp_debug)
-      cout << "Run " << run << " ls " << ls << " lumi " << rec*1e-6 << "/pb" << endl;
+      cout << "Run " << rn << " ls " << ls << " lumi " << rec*1e-6 << "/pb" << endl;
 
     if (skip) { // The user should know if this happens, since we can choose to use only STABLE BEAMS
       if (skip) cout << "Skipping line (effects the recorded lumi):\n" << s << endl;
@@ -2511,7 +2540,7 @@ void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   TFile *fpumc = new TFile(mcfile,"READ");
   assert(fpumc and !fpumc->IsZombie());
 
-  pumc = (TH1F*)fpumc->Get("pileupmc"); assert(pumc);
+  pumc = dynamic_cast<TH1F*>(fpumc->Get("pileupmc")); assert(pumc);
 
   // Normalize
   pumc->Scale(1./pumc->Integral());
@@ -2519,7 +2548,7 @@ void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_ntrigs; ++itrg) {
     string t = string(_jp_triggers[itrg]);
-    pudist[t] = (TH1D*)fpudist->Get(t.c_str()); assert(pudist[t]);
+    pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str())); assert(pudist[t]);
     pudist[t]->Scale(1./pudist[t]->Integral());
   }
   // REMOVED: "data with only one histo:"
@@ -2581,19 +2610,31 @@ void histosFill::loadECALveto(const char *file)
 // Update the available trigger types for each new tree
 bool histosFill::getTriggers()
 {
-  TH1F *triggers = (TH1F*)fChain->GetCurrentFile()->Get("ak4/TriggerNames");
+  TH1F *triggers = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerNames")); assert(triggers);
   TAxis *xax = triggers->GetXaxis();
 
   std::regex pfjet("HLT_PFJet([0-9]*)_v[0-9]*");
+  std::regex ak8("HLT_AK8PFJet([0-9]*)_v[0-9]*");
+  std::regex jetht("HLT_PFHT([0-9]*)_v[0-9]*");
 
   _availTrigs.clear();
+  _goodTrigs.clear();
   for (int trgidx = xax->GetFirst(); trgidx <= xax->GetLast(); ++trgidx) {
     string trgName = xax->GetBinLabel(trgidx);
     if (trgName.compare("")==0) // Ignore empty places on x-axis
       continue;
-    string trigger = ""; // HLT_PFJet are given non-empty trigger names
-    if (std::regex_match(trgName,pfjet))
+    string trigger = "x"; // HLT_PFJet are given non-empty trigger names
+    if (std::regex_match(trgName,pfjet)) {
       trigger=std::regex_replace(trgName, pfjet, "jt$1", std::regex_constants::format_no_copy);
+      _goodTrigs.push_back(_availTrigs.size());
+    } else if (std::regex_match(trgName,ak8)) {
+      trigger=std::regex_replace(trgName, ak8, "ak8jt$1", std::regex_constants::format_no_copy);
+    } else if (std::regex_match(trgName,jetht)) {
+      trigger=std::regex_replace(trgName, jetht, "jetht$1", std::regex_constants::format_no_copy);
+    } else {
+      trigger="x";
+      cout << "Unknown trigger type " << trgName << endl;
+    }
     _availTrigs.push_back(trigger);
   }
 

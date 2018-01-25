@@ -85,16 +85,12 @@ histosMC::histosMC(TDirectory *dir, string trigname) {
   curdir->cd();
 }
 
-histosMC::~histosMC() {
+void histosMC::Write() {
   dir->cd();
   dir->Write();
-  for (unsigned i = 0; i < alpharange.size(); ++i) {
-    delete hdjasymm[i];
-    delete hdjasymmtp[i];
-    delete hdjresp_tag[i];
-    delete hdjresptp_tag[i];
-    delete hdjresp_probe[i];
-    delete hdjresptp_probe[i];
-  }
-  delete dir;
+}
+
+
+histosMC::~histosMC() {
+  Write();
 };

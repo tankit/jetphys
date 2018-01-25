@@ -121,7 +121,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
 
   // Opening the requested files {
   string dt_file = all_MC ? dt_type : "DATA";
-  dt_file = "output-" + dt_file + (_vspt ? "-2b" : "-1") + ".root";
+  dt_file = "output-" + dt_file + (_vspt ? "-2b" : "-2b") + ".root";
   cout << Form("%s%s",dt_path.c_str(),dt_file.c_str()) << endl;
   TFile *fdt = new TFile(Form("%s%s",dt_path.c_str(),dt_file.c_str()),"READ");
 
@@ -134,7 +134,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
 
 
   string mc_file = all_DT ? "DATA" : mc_type;
-  mc_file = "output-" + mc_file + (_vspt ? "-2b" : "-1") + ".root";
+  mc_file = "output-" + mc_file + (_vspt ? "-2b" : "-2b") + ".root";
   TFile *fmc = new TFile(Form("%s%s",mc_path.c_str(),mc_file.c_str()),"READ");
 
   assert(fmc && !fdt->IsZombie());
@@ -259,22 +259,24 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
 
       string spu = modenames[mode];
       const char *cpu = spu.c_str();
-      string spudt = (_vspt ? "" : (all_MC ? "mc/" : "jt40/"));
+      string spudt = "";// (_vspt ? "" : (all_MC ? "mc/" : "jt40/"));
       const char *cpudt = spudt.c_str();
-      string spumc = (_vspt ? "" : (all_DT ? "jt40/" : "mc/"));
+      string spumc = "";//(_vspt ? "" : (all_DT ? "jt40/" : "mc/"));
       const char *cpumc = spumc.c_str();
 
       assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
       const char *hname1 = Form("%sp%s%s%s",cpudt,cf,ctp,cpu);
-      TProfile *pdt = (TProfile*)gDirectory->Get(hname1);
-      if (!pdt) cout << hname1 << " not found in "
-                     << gDirectory->GetName() << endl << flush;
+      TProfile *pdt = (TProfile*)(gDirectory->Get(hname1));
+      if (!pdt) {
+        cout << hname1 << " not found in " << gDirectory->GetName() << endl << flush;
+        gDirectory->ls();
+      }
       assert(pdt);
       pdt->SetName(Form("%s_dt",pdt->GetName()));
 
       assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
       const char *hname2 = Form("%sp%s%s%s",cpumc,cf,ctp,cpu);
-      TProfile *pmc = (TProfile*)gDirectory->Get(hname2);
+      TProfile *pmc = (TProfile*)(gDirectory->Get(hname2));
       if (!pmc) cout << hname2 << " not found in "
                      << gDirectory->GetName() << endl << flush;
       assert(pmc);
@@ -288,7 +290,6 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
       // Scale data by response to MC-equivalent energy fractions
       if (_shiftJES) {
         for (int i = 1; i != hdt->GetNbinsX()+1; ++i) {
-
           double jec = jesShift(hdt->GetBinCenter(i));
           hdt->SetBinContent(i, hdt->GetBinContent(i)/jec);
         } // for i
@@ -297,76 +298,54 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
       
       if (sf=="cef") { // For cef, add muf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spmuf%s%s",
-                                                         cpudt,ctp,cpu));
-        assert(pdt2);
+        TProfile *pdt2 = (TProfile*)(gDirectory->Get(Form("%spmuf%s%s",cpudt,ctp,cpu))); assert(pdt2);
         TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href)); 
-        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
           hdt->SetBinContent(i, hdt->GetBinContent(i)+hdt2->GetBinContent(i));
-        }
         delete hdt2;
         
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spmuf%s%s",
-                                                         cpumc,ctp,cpu));
-        assert(pmc2);
+        TProfile *pmc2 = (TProfile*)(gDirectory->Get(Form("%spmuf%s%s",cpumc,ctp,cpu))); assert(pmc2);
         TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
           hmc->SetBinContent(i, hmc->GetBinContent(i)+hmc2->GetBinContent(i));
-        }
         delete hmc2;
       } // cef -> cef + muf
       else if (sf=="betastar") { // For betastar, multiply by chf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
-                                                         cpudt,ctp,cpu));
-        assert(pdt2);
+        TProfile *pdt2 = (TProfile*)(gDirectory->Get(Form("%spchf%s%s",cpudt,ctp,cpu))); assert(pdt2);
         TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
           hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
-        }
         delete hdt2;
         
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
-                                                         cpumc,ctp,cpu));
-        assert(pmc2);
+        TProfile *pmc2 = (TProfile*)(gDirectory->Get(Form("%spchf%s%s",cpumc,ctp,cpu))); assert(pmc2);
         TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
           hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
-        }
         delete hmc2;
       } // betastar -> chf * betastar
       else if (sf=="beta") { // For beta, multiply by chf
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
-                                                         cpudt,ctp,cpu));
-        assert(pdt2);
+        TProfile *pdt2 = (TProfile*)(gDirectory->Get(Form("%spchf%s%s",cpudt,ctp,cpu))); assert(pdt2);
         TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
           hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));
-        }
         delete hdt2;
 
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spchf%s%s",
-                                                         cpumc,ctp,cpu));
-        assert(pmc2);
+        TProfile *pmc2 = (TProfile*)(gDirectory->Get(Form("%spchf%s%s",cpumc,ctp,cpu))); assert(pmc2);
         TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
+        for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
           hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));
-        }
         delete hmc2;
       } // beta -> chf * beta
       else if (sf=="chf") { // For chf, multiply by (1-beta-betastar)
         assert(ddt->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pdt2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
-                                                         cpudt,ctp,cpu));
-        assert(pdt2);
+        TProfile *pdt2 = (TProfile*)(gDirectory->Get(Form("%spbeta%s%s",cpudt,ctp,cpu))); assert(pdt2);
         TH1D *hdt2 = (_vspu ? pdt2->ProjectionX() : tools::Rebin(pdt2, href));
-        TProfile *pdt3 = (TProfile*)gDirectory->Get(Form("%spbetastar%s%s",
-                                                         cpudt,ctp,cpu));
-        assert(pdt3);
+        TProfile *pdt3 = (TProfile*)(gDirectory->Get(Form("%spbetastar%s%s",cpudt,ctp,cpu))); assert(pdt3);
         TH1D *hdt3 = (_vspu ? pdt3->ProjectionX() : tools::Rebin(pdt3, href));
         for (int i = 1; i != hdt2->GetNbinsX()+1; ++i) {
           hdt->SetBinContent(i, hdt->GetBinContent(i)
@@ -376,18 +355,13 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
         delete hdt3;
 
         assert(dmc->cd(Form("Eta_%1.1f-%1.1f",y1,y2)));
-        TProfile *pmc2 = (TProfile*)gDirectory->Get(Form("%spbeta%s%s",
-                                                         cpumc,ctp,cpu));
-        assert(pmc2);
+        TProfile *pmc2 = (TProfile*)(gDirectory->Get(Form("%spbeta%s%s",cpumc,ctp,cpu))); assert(pmc2);
         TH1D *hmc2 = (_vspu ? pmc2->ProjectionX() : tools::Rebin(pmc2, href));
-        TProfile *pmc3 = (TProfile*)gDirectory->Get(Form("%spbetastar%s%s",
-                                                         cpumc,ctp,cpu));
-        assert(pmc3);
+        TProfile *pmc3 = (TProfile*)(gDirectory->Get(Form("%spbetastar%s%s",cpumc,ctp,cpu))); assert(pmc3);
         TH1D *hmc3 = (_vspu ? pmc3->ProjectionX() : tools::Rebin(pmc3, href));
         for (int i = 1; i != hmc2->GetNbinsX()+1; ++i) {
           hmc->SetBinContent(i, hmc->GetBinContent(i)
-                             * (1 - (dobeta ? hmc2->GetBinContent(i) : 0)
-                                - hmc3->GetBinContent(i)));
+                             * (1 - (dobeta ? hmc2->GetBinContent(i) : 0) - hmc3->GetBinContent(i)));
         }
         delete hmc2;
         delete hmc3;
@@ -412,7 +386,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
       hsdt->Add(hdt, "SAME P");
       
       // Then, do the difference
-      TH1D *hdf = (TH1D*)hdt->Clone(Form("hdf%d",ieta));
+      TH1D *hdf = dynamic_cast<TH1D*>(hdt->Clone(Form("hdf%d",ieta))); assert(hdt);
       hdf->Add(hdt, hmc, 100, -100);
       hdf->SetLineColor(style[cf].first + 1);
       hdf->SetMarkerColor(style[cf].first + 1);
@@ -467,7 +441,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
       TF1 *fchf = new TF1("fchf",jesFit,40,3000,2);
       fchf->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
       //mdf["beta"]->Fit(fchf,"QRN");
-      TH1D *hchfa = (TH1D*)mdf["beta"]->Clone("hcfha");
+      TH1D *hchfa = dynamic_cast<TH1D*>(mdf["beta"]->Clone("hcfha")); assert(hchfa);
       hchfa->Add(mdf["chf"]);
       hchfa->Add(mdf["betastar"]);
       hchfa->Fit(fchf,"QRN");
@@ -509,8 +483,7 @@ void drawFracs(unsigned mode, string mc_path="./", string dt_path="./", string p
     fnef->SetLineColor(kBlue+1);
     fnef->Draw("SAME");
 
-    //TH1D *hall = (TH1D*)hchfa->Clone("hall");
-    TH1D *hall = (TH1D*)mdf["chf"]->Clone("hall");
+    TH1D *hall = dynamic_cast<TH1D*>(mdf["chf"]->Clone("hall")); assert(hall);
     if (dobeta) hall->Add(mdf["beta"]);
     hall->Add(mdf["betastar"]);
     hall->Add(mdf["nef"]);

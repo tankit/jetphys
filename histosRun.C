@@ -49,12 +49,9 @@ histosRun::~histosRun() {
   int nruns = lums.size();
 
   // Runs
-  TH1I *runs = new TH1I("runs",Form("runs %1.3g pb-1",lumsum),
-			nruns,-0.5,nruns-0.5);
-  TH1D *runlumi = new TH1D("runlumi",Form("runlumi %1.3g pb-1",lumsum),
-			   nruns,-0.5,nruns-0.5);
-  TH1D *runlumi2 = new TH1D("runlumi2",Form("runlumi2 %1.3g pb-1",lumsum2),
-			    nruns,-0.5,nruns-0.5);
+  TH1I *runs = new TH1I("runs",Form("runs %1.3g pb-1",lumsum),nruns,-0.5,nruns-0.5);
+  TH1D *runlumi = new TH1D("runlumi",Form("runlumi %1.3g pb-1",lumsum),nruns,-0.5,nruns-0.5);
+  TH1D *runlumi2 = new TH1D("runlumi2",Form("runlumi2 %1.3g pb-1",lumsum2),nruns,-0.5,nruns-0.5);
 
   { int i = 1;
     for (map<int, float>::const_iterator it = runlums.begin();
@@ -116,8 +113,7 @@ histosRun::~histosRun() {
     pt_trg[t] = new TH1D(Form("pt_%s",t),Form("pt_%s",t),nruns,-0.5,nruns-0.5);
 
     int i = 1;
-    for (map<int, float>::const_iterator it = runlums.begin();
-	 it != runlums.end(); ++it, ++i) {
+    for (map<int, float>::const_iterator it = runlums.begin(); it != runlums.end(); ++it, ++i) {
 
       int run = it->first;
       runs->SetBinContent(i, run);
@@ -210,5 +206,4 @@ histosRun::~histosRun() {
   } // for j
 
   dir->Write();
-  //delete dir;
 };
