@@ -30,9 +30,10 @@
 using namespace std;
 
 void recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt", bool ptSelect = true, 
-                 bool othProf = false, int lvl = 0, double etamid = 0);
+                 bool othProf = false, int lvl = 0, double etamid = 0, TH1 *_hpt = 0);
 map<string, pair<double, double> > _ptranges;
 map<string, double> _trigwgts;
+
 
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
@@ -274,20 +275,22 @@ inline void binCp(TProfile *_hpt, TProfile *hpt, int bin) {
 }
 
 template<typename T>
-inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSelect, bool othProf) {
-  int prevcycle = -1;
+inline void fillHisto(T *hpt, TH1 *_hpt0, TDirectory *outdir, TDirectory *indir, bool ptSelect, bool othProf) {
+//   int prevcycle = -1;
   const char* hname = hpt->GetName();
-  T *_hpt = 0;
-  TKey* outkey = dynamic_cast<TKey*>(outdir->FindKey(hname));
-  if (outkey) {
-    prevcycle = outkey->GetCycle();
-    _hpt =  dynamic_cast<T*>(outkey->ReadObj());
-  } else {
-    outdir->cd();
-    _hpt = dynamic_cast<T*>(hpt->Clone(hname)); assert(_hpt);
-    _hpt->Reset();
-    indir->cd();
-    if (_jp_debug) cout << "Cloned _" << hname << endl;
+  T *_hpt = dynamic_cast<T*>(_hpt0);
+  if (!_hpt) {
+//     TKey* outkey = dynamic_cast<TKey*>(outdir->FindKey(hname));
+//     if (outkey) {
+//       prevcycle = outkey->GetCycle();
+//       _hpt =  dynamic_cast<T*>(outkey->ReadObj());
+//     } else {
+      outdir->cd();
+      _hpt = dynamic_cast<T*>(hpt->Clone(hname)); assert(_hpt);
+      _hpt->Reset();
+      indir->cd();
+      if (_jp_debug) cout << "Cloned _" << hname << endl;
+//     }
   }
 
   if (ptSelect) {
@@ -325,15 +328,15 @@ inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSele
     _hpt->Add(hpt,wgt);
     outdir->cd();
   }
-  outdir->cd();
-  _hpt->Write();
-  if (prevcycle!=-1) outdir->Delete(Form("%s;%d",hpt->GetName(),prevcycle));
+//   outdir->cd();
+//   _hpt->Write();
+//   if (prevcycle!=-1) outdir->Delete(Form("%s;%d",hpt->GetName(),prevcycle));
 //   if (string(indir->GetName())=="jt450") _hpt->Write();
 }
 
 
 void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSelect,
-                 bool othProf, int lvl, double etamid) {
+                 bool othProf, int lvl, double etamid, TH1 *_hpt) {
 
   TDirectory *curdir = gDirectory;
   // Automatically go through the list of keys (directories)
@@ -377,12 +380,31 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
         // If yes, the next level is the bottom level with triggers
         // set flag and reset the combined histogram pointer
         float etamin, etamax;
-        if (lvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) )
-          recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, 0.5*(etamin+etamax));
-        else if (lvl==0 and TString(indir2->GetName()).Contains("FullEta"))
-          recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, etamid);
-        else
+        if (lvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) ) {
+          outdir2->cd();
+          TObject *inobj = indir2->Get(Form("jt40/%s",hname.c_str()));
+          if (inobj) {
+            TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
+            if (hpt) {
+              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, 0.5*(etamin+etamax), hpt);
+              hpt->Write();
+              indir2->cd();
+            }
+          }
+        } else if (lvl==0 and TString(indir2->GetName()).Contains("FullEta")) {
+          outdir2->cd();
+          TObject *inobj = indir2->Get(Form("jt40/%s",hname.c_str()));
+          if (inobj) {
+            TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
+            if (hpt) {
+              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, etamid, hpt);
+              hpt->Write();
+              indir2->cd();
+            }
+          }
+        } else {
           recurseFile(indir2, outdir2, hname, ptSelect, othProf, lvl, etamid);
+        }
       }
       obj->Delete();
     } // while key
@@ -396,13 +418,13 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
 
       if (obj->InheritsFrom("TProfile")) {
         TProfile *hpt = dynamic_cast<TProfile*>(obj);
-        fillHisto(hpt, outdir, indir, ptSelect, othProf);
+        fillHisto(hpt, _hpt, outdir, indir, ptSelect, othProf);
       } else {
         TH1 *hpt = 0;
         if (obj->InheritsFrom("TH3")) hpt = dynamic_cast<TH3D*>(obj);
         else if (obj->InheritsFrom("TH2")) hpt = dynamic_cast<TH2D*>(obj);
         else if (obj->InheritsFrom("TH1")) hpt = dynamic_cast<TH1D*>(obj);
-        if (hpt) fillHisto(hpt, outdir, indir, ptSelect, othProf);
+        if (hpt) fillHisto(hpt, _hpt, outdir, indir, ptSelect, othProf);
       }
       obj->Delete();
     }
