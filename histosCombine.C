@@ -30,9 +30,10 @@
 using namespace std;
 
 void recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt", bool ptSelect = true, 
-                 bool othProf = false, int lvl = 0, double etamid = 0, TH1 *_hpt = 0);
+                 bool othProf = false, int lvl = -1, double etamid = 0);
 map<string, pair<double, double> > _ptranges;
 map<string, double> _trigwgts;
+vector<string> _ignoretrgs;
 
 
 // global variables (not pretty, but works)
@@ -54,20 +55,26 @@ void histosCombine() {
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
 
   // Store pT ranges to a nice map
-  for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
-    _ptranges[_jp_triggers[itrg]] = pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
-
-    if (_jp_ismc) { // When in mc, we need to know how to use trigger weighting. Either mc or triggers are ignored
-      _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
+    if (_jp_ismc) {
       if (_jp_usemctrig) {
-        _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
-      } else if (_jp_domctrigsim) {
+        _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
+      } else {
         _ptranges["mc"] = pair<double,double>(0., 0.);
+        _ignoretrgs.push_back("mc");
       }
-    } else if (_jp_usetriglumi) {
-      _trigwgts[_jp_triggers[itrg]] = _jp_triglumi[_jp_ntrigs-1]/_jp_triglumi[itrg];
     }
-  }
+    for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
+      _ptranges[_jp_triggers[itrg]] = pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
+
+      if (_jp_ismc and _jp_usemctrig) { // When in mc, we need to know how to use trigger weighting. Either mc or triggers are ignored
+        _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
+        _ignoretrgs.push_back(_jp_triggers[itrg]);
+      } else if (_jp_isdt and _jp_usetriglumi) {
+        _trigwgts[_jp_triggers[itrg]] = _jp_triglumi[_jp_ntrigs-1]/_jp_triglumi[itrg];
+      }
+    }
+    
+    
 
   // Loop over all the directories recursively
   // List here the histograms that need merging
@@ -275,22 +282,13 @@ inline void binCp(TProfile *_hpt, TProfile *hpt, int bin) {
 }
 
 template<typename T>
-inline void fillHisto(T *hpt, TH1 *_hpt0, TDirectory *outdir, TDirectory *indir, bool ptSelect, bool othProf) {
-//   int prevcycle = -1;
+inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSelect, bool othProf) {
   const char* hname = hpt->GetName();
-  T *_hpt = dynamic_cast<T*>(_hpt0);
+  T *_hpt = dynamic_cast<T*>(dynamic_cast<TObject*>(outdir->Get(hpt->GetName())));
   if (!_hpt) {
-//     TKey* outkey = dynamic_cast<TKey*>(outdir->FindKey(hname));
-//     if (outkey) {
-//       prevcycle = outkey->GetCycle();
-//       _hpt =  dynamic_cast<T*>(outkey->ReadObj());
-//     } else {
-      outdir->cd();
-      _hpt = dynamic_cast<T*>(hpt->Clone(hname)); assert(_hpt);
-      _hpt->Reset();
-      indir->cd();
-      if (_jp_debug) cout << "Cloned _" << hname << endl;
-//     }
+    cout << "Savings histogram fetch failed: " << hpt->GetName() << " in " << indir->GetName() << endl;
+    if (_jp_debug) cout << "Cloned _" << hname << endl;
+    return;
   }
 
   if (ptSelect) {
@@ -328,19 +326,18 @@ inline void fillHisto(T *hpt, TH1 *_hpt0, TDirectory *outdir, TDirectory *indir,
     _hpt->Add(hpt,wgt);
     outdir->cd();
   }
-//   outdir->cd();
-//   _hpt->Write();
-//   if (prevcycle!=-1) outdir->Delete(Form("%s;%d",hpt->GetName(),prevcycle));
-//   if (string(indir->GetName())=="jt450") _hpt->Write();
 }
 
 
-void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSelect,
-                 bool othProf, int lvl, double etamid, TH1 *_hpt) {
+void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSelect, bool othProf, int lvl, double etamid) {
 
   TDirectory *curdir = gDirectory;
   // Automatically go through the list of keys (directories)
   TObject *obj = 0;
+  if (lvl==-1) {
+    lvl++;
+    cout << endl << hname << " ";
+  }
 
   if (lvl<2) {
     TList *keys = indir->GetListOfKeys();
@@ -356,10 +353,11 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
         continue;
       }
       if (obj->InheritsFrom("TDirectory")) {
+        int loclvl = lvl;
         // Found a subdirectory: copy it to output and go deeper
 
         TDirectory *outdir2 = outdir;
-        if (lvl == 0) {
+        if (loclvl == 0) {
           if (outdir->FindKey(obj->GetName())==0) outdir->mkdir(obj->GetName());
           bool enterkeydir = outdir->cd(kname.c_str());
           assert(enterkeydir);
@@ -368,7 +366,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
           if (_jp_debug) cout << kname.c_str() << endl;
         } else {
           if (_jp_debug) cout << kname.c_str() << " (at bottom)" << endl;
-          lvl += 1;
+          loclvl++; // Increase the level by one when we enter e.g. jt40
         }
 
         bool enterobjdir = indir->cd(obj->GetName());
@@ -380,56 +378,63 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
         // If yes, the next level is the bottom level with triggers
         // set flag and reset the combined histogram pointer
         float etamin, etamax;
-        if (lvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) ) {
+        if (loclvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) ) {
           outdir2->cd();
-          TObject *inobj = indir2->Get(Form("jt40/%s",hname.c_str()));
+          TObject *inobj = indir2->Get(Form("%s/%s",(_jp_isdt or (_jp_ismc and _jp_domctrigsim and !_jp_usemctrig)) ? _jp_reftrig : "mc",hname.c_str()));
           if (inobj) {
+            cout << indir2->GetName() << " ";
             TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
+            hpt->Reset();
             if (hpt) {
-              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, 0.5*(etamin+etamax), hpt);
+              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, 0.5*(etamin+etamax));
               hpt->Write();
+              hpt->Delete();
               indir2->cd();
             }
           }
-        } else if (lvl==0 and TString(indir2->GetName()).Contains("FullEta")) {
+        } else if (loclvl==0 and TString(indir2->GetName()).Contains("FullEta")) {
           outdir2->cd();
-          TObject *inobj = indir2->Get(Form("jt40/%s",hname.c_str()));
+          TObject *inobj = indir2->Get(Form("%s/%s",(_jp_isdt or (_jp_ismc and _jp_domctrigsim and !_jp_usemctrig)) ? _jp_reftrig : "mc",hname.c_str()));
           if (inobj) {
+            cout << indir2->GetName() << " ";
             TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
+            hpt->Reset();
             if (hpt) {
-              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, etamid, hpt);
+              recurseFile(indir2, outdir2, hname, ptSelect, othProf, 1, etamid);
               hpt->Write();
+              hpt->Delete();
               indir2->cd();
             }
           }
         } else {
-          recurseFile(indir2, outdir2, hname, ptSelect, othProf, lvl, etamid);
+          if (loclvl==0 or std::find(_ignoretrgs.begin(),_ignoretrgs.end(),indir2->GetName())==_ignoretrgs.end()) {
+            if (loclvl>0) {
+              cout << indir2->GetName();
+              if (string(indir2->GetName())==string(_jp_reftrig)) cout << "; ";
+              else cout << ",";
+            }
+            recurseFile(indir2, outdir2, hname, ptSelect, othProf, loclvl, etamid);
+          }
         }
       }
       obj->Delete();
     } // while key
   } else {
-    // Search for the histogram. This is more cost-effective and avoids using multiple cycles of the same object.
     obj = indir->Get(hname.c_str());
     if (obj) {
-      // Copy over TH3, TH2, TProfile, TH1 histograms, in this precise order
-      // Careful with if-then, because TH3 inherits from TH1+TH2
-      // Clone and reset histogram the first time it is seen
-
+      // Copy over TProfile, TH3, TH2, TH1 histograms, in this precise order.
       if (obj->InheritsFrom("TProfile")) {
         TProfile *hpt = dynamic_cast<TProfile*>(obj);
-        fillHisto(hpt, _hpt, outdir, indir, ptSelect, othProf);
+        if (hpt) fillHisto(hpt, outdir, indir, ptSelect, othProf);
       } else {
         TH1 *hpt = 0;
         if (obj->InheritsFrom("TH3")) hpt = dynamic_cast<TH3D*>(obj);
         else if (obj->InheritsFrom("TH2")) hpt = dynamic_cast<TH2D*>(obj);
         else if (obj->InheritsFrom("TH1")) hpt = dynamic_cast<TH1D*>(obj);
-        if (hpt) fillHisto(hpt, _hpt, outdir, indir, ptSelect, othProf);
+        if (hpt) fillHisto(hpt, outdir, indir, ptSelect, othProf);
       }
       obj->Delete();
     }
   }
-  if (indir==_top)
-    cout << "." << flush;
   curdir->cd();
 } // recurseFile

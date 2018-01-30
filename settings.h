@@ -43,7 +43,7 @@ const constexpr char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 const constexpr char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-const constexpr char _jp_type[] = "MC";
+const constexpr char _jp_type[] = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 const constexpr char _jp_run[] = "RunG16";
 // Simple helper
@@ -118,8 +118,8 @@ const constexpr char _jp_trpufile[] = "pileup/MUperLSvsRUN_MB.root";
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 constexpr bool _jp_domctrigsim = true;
-// Use "mc" trigger for whole pT range instead of stiching triggers together in histosCombine (requires trigsim)
-constexpr bool _jp_usemctrig = true;
+// Use "mc" trigger for whole pT range instead of stiching triggers together in histosCombine (false requires trigsim)
+constexpr bool _jp_usemctrig = false;
 // This is the 13 TeV 25 ns list of triggers (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
 constexpr int _jp_ntrigs = 9; // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500!)

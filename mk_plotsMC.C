@@ -6,7 +6,7 @@
     gROOT->ProcessLine(".L drawFracs.C");
 
     string path="./";
-    string title="RunFgG";
+    string title="RunG";
 
     //drawFracs(0,path,path,title,"hwpdf","HW");
     //drawFracs(1,path,path,title,"hwpdf","HW");
