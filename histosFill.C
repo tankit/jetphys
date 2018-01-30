@@ -20,7 +20,7 @@ void histosFill::Loop()
 
   map<string, int> cnt; // efficiency counters
 
-  ferr = new ofstream("histosFill.log",ios::out);
+  ferr = new ofstream("reports/histosFill.log",ios::out);
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << endl << "Starting Loop() initialization:" << endl << flush;
