@@ -986,26 +986,26 @@ void histosFill::Loop()
   *ferr << endl;
 
 
-  cout << "Reporting lumis not discraded in report_passedlumis.json" << endl;
-  ofstream fout("report_passedlumis.json", ios::out);
+  cout << "Reporting lumis not discraded in reports/passedlumis.json" << endl;
+  ofstream fout("reports/passedlumis.json", ios::out);
   for (auto &lumit : _passedlumis)
     fout << lumit.first << " " << lumit.second << endl;
   if (_jp_dojson and _badjson.size()>0) {
-    cout << "Reporting lumis discarded by json selection (_jp_dojson) in report_badlumis_json.json" << endl;
-    ofstream fout2("report_badlumis_json.json", ios::out);
+    cout << "Reporting lumis discarded by json selection (_jp_dojson) in reports/badlumis_json.json" << endl;
+    ofstream fout2("reports/badlumis_json.json", ios::out);
     for (auto &jsit : _badjson)
       fout2 << jsit.first << " " << jsit.second << endl;
   } // _jp_dojson
   if (_jp_dolumi) {
     if (_badlums.size()>0) {
-      cout << "Reporting lumis discarded by lumifile selection (_jp_dolumi) in report_badlumis_lumi.json" << endl;
-      ofstream fout2("report_badlumis_lumi.json", ios::out);
+      cout << "Reporting lumis discarded by lumifile selection (_jp_dolumi) in reports/badlumis_lumi.json" << endl;
+      ofstream fout2("reports/badlumis_lumi.json", ios::out);
       for (auto &jsit : _nolums)
         fout2 << jsit.first << " " << jsit.second << endl;
     } // _badlums
     if (_nolums.size()>0) {
-      cout << "Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in report_badlumis_zerolumi.json" << endl;
-      ofstream fout2("report_badlumis_zerolumi.json", ios::out);
+      cout << "Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in reports/badlumis_zerolumi.json" << endl;
+      ofstream fout2("reports/badlumis_zerolumi.json", ios::out);
       for (auto &jsit : _nolums)
         fout2 << jsit.first << " " << jsit.second << endl;
     } // _nolums

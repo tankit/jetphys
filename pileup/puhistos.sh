@@ -30,7 +30,7 @@ for loc in ${FOLDERS[@]}; do
         wait
     done
     rm clumis.json
-    root -l -b -q ../hist_combiner.C
+    root -l -b -q ../puhist_combine.C
     wait
     rm HLT_*.root
     wait
