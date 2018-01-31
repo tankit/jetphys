@@ -1,9 +1,6 @@
 // Some helpful tools
 #include "tools.h"
 
-using namespace std;
-//using namespace tools;
-
 // Add a list of files to a TChain
 int tools::addFiles(TChain *c, string filelistname) {
 

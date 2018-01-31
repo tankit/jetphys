@@ -12,8 +12,16 @@
 #include <fstream>
 #include <cassert>
 
-namespace tools {
+using std::string;
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::ofstream;
+using std::cerr;
+using std::ios;
+using std::vector;
 
+namespace tools {
   int addFiles(TChain *c, std::string filelistname);
   double delta_phi(double a, double b);
   double delta_eta(double a, double b);
