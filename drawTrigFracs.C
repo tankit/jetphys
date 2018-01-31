@@ -1,7 +1,7 @@
 // Purpose: Plot PF energy fractions vs pT/PU/NPV (Run II cleaned code)
 // Author: mikko.voutilainen(at)nospam.cern.ch
 // Created: Dec 11, 2015
-#include "drawFracs.h"
+#include "drawTrigFracs.h"
 
 using namespace tools;
 
@@ -13,7 +13,7 @@ const constexpr double _rangemax[_nmodes] = {3450, 38.5, 40.5, 5};
 const constexpr double _h2min[_nmodes] = {-4+1e-5 -6, -6+1e-5, -6+1e-5, -6+1e-5};
 const constexpr double _h2max[_nmodes] = {+4-1e-5 +6, +6+10-1e-5, +6+10-1e-5, +6+10-1e-5};
 
-void drawFracs(unsigned mode, string mc_path, string dt_path, string plot_title, string savedir, string mc_type, string dt_type) {
+void drawTrigFracs(unsigned mode, string mc_path, string dt_path, string plot_title, string savedir, string mc_type, string dt_type) {
   setTDRStyle();
 
   bool all_DT = false, all_MC = false;
