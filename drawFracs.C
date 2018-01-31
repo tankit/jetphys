@@ -11,7 +11,7 @@ using namespace tools;
 const constexpr unsigned _nmodes = 4;
 const constexpr char* _modenames[_nmodes] = {"","_vstrpu","_vsnpv","_vseta"};
 const constexpr double _rangemin[_nmodes] = {37, 0.5, 0.5,-5};
-const constexpr double _rangemax[_nmodes] = {3450, 38.5, 40.5};
+const constexpr double _rangemax[_nmodes] = {3450, 38.5, 40.5, 5};
 const constexpr double _h2min[_nmodes] = {-4+1e-5 -6, -6+1e-5, -6+1e-5, -6+1e-5};
 const constexpr double _h2max[_nmodes] = {+4-1e-5 +6, +6+10-1e-5, +6+10-1e-5, +6+10-1e-5};
 
@@ -80,7 +80,9 @@ void drawFracs(unsigned mode, string mc_path, string dt_path, string plot_title,
   _name["cef"] = "Electrons+muons";
 
   if (mode==3) {
-    
+    dmc->cd("../FullEta_Reco");
+    ddt->cd("../FullEta_Reco");
+    makeProfile(mode, dmc, ddt, mc_type, dt_type, plot_title, savedir, 0);
   } else {
     for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta)
       makeProfile(mode, dmc, ddt, mc_type, dt_type, plot_title, savedir, ieta, _etas[ieta].first, _etas[ieta].second);
@@ -114,6 +116,8 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
     for (int i = 0; i <= 25; ++i) x.push_back(-0.5+2*i);
   } else if (_vsnpv) {
     for (int i = 0; i <= 25; ++i) x.push_back(-0.5+2*i);
+  } else if (_vseta) {
+    for (int i = 0; i <= 104; ++i) x.push_back(-5.2+0.1*i);
   }
   const int nx = x.size()-1;
 
@@ -132,9 +136,12 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
   } else if (_vspu) {
     h->SetXTitle("TruePU");
     h2->SetXTitle("TruePU");
-  } else {
+  } else if (_vsnpv) {
     h->SetXTitle("N_{PV,good}");
     h2->SetXTitle("N_{PV,good}");
+  } else if (_vseta) {
+    h->SetXTitle("Eta");
+    h2->SetXTitle("Eta");
   }
   h->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
   h2->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
@@ -147,7 +154,11 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
   TCanvas *c1 = tdrDiCanvas(Form("c1%s%s%s_%d",_vsnpv?"_vsNPV":"",_vspu?"_vsTRPU":"",_vseta?"_vseta":"",tagnro),h,h2,4,0);
 
   c1->cd(1);
-  TLegend *leg = tdrLeg(0.20,0.23-0.05,0.50,0.53-0.05);
+  TLegend *leg = 0;
+  if (_vseta)
+    leg = tdrLeg(0.40,0.23,0.60,0.53);
+  else
+    leg = tdrLeg(0.20,0.18,0.50,0.48);
 
   const char *dirname = Form("Eta_%1.1f-%1.1f",eta1,eta2);
 
@@ -156,7 +167,7 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
   map<string,TH1D*> dtHistos;
   for (auto &jfrac : _fracs) {
     const char *hname0 = Form("p%s%s%s",jfrac,ctp,_modenames[mode]);
-    bool enterdtdir = ddt->cd(dirname); assert(enterdtdir);
+    if (!_vseta) { bool enterdtdir = ddt->cd(dirname); assert(enterdtdir); }
     TProfile *pdt = dynamic_cast<TProfile*>(gDirectory->Get(hname0)); assert(pdt);
     if (!pdt) {
       cout << hname0 << " not found in (dt) " << gDirectory->GetName() << endl << flush;
@@ -167,8 +178,7 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
     dtHistos[jfrac] = (_vspt ? tools::Rebin(pdt, href) : pdt->ProjectionX(Form("%s_px",pdt->GetName())));
     pdt->Delete();
 
-    bool entermcdir = dmc->cd(dirname);
-    assert(entermcdir);
+    if (!_vseta) { bool entermcdir = dmc->cd(dirname); assert(entermcdir); }
     TProfile *pmc = dynamic_cast<TProfile*>(gDirectory->Get(hname0)); assert(pmc);
     if (!pmc) {
       cout << hname0 << " not found in (mc) " << gDirectory->GetName() << endl << flush;
@@ -291,7 +301,9 @@ void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string mc_type
   //hsdf->Draw("SAME");
   gPad->RedrawAxis();
 
-  c1->SaveAs(Form("%s/drawFracs_%1.1f-%1.1f%s%s%s%s.pdf", savedir.c_str(), eta1, eta2, _shiftJES ? "_shiftJES" : "",
+  c1->SaveAs(Form("%s/drawFracs%s%s%s%s%s.pdf", savedir.c_str(),
+                  _vseta?"":Form("_%1.1f-%1.1f", eta1, eta2), 
+                  _shiftJES ? "_shiftJES" : "",
                   _vsnpv ? "_vsNPV" : "",_vspu ?  "_vsTRPU" : "", _vseta ? "_vseta" : ""));
 
   if (_dofit) { // Estimate jet response slope by analyzing composition

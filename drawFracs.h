@@ -10,7 +10,7 @@
 
 #include "tools.h"
 #include "tdrstyle_mod15.C"
-//#include "settings.h"
+#include "settings.h"
 
 #include <map>
 #include <vector>
@@ -93,4 +93,4 @@ Double_t jesFit(Double_t *x, Double_t *p) {
   return (p[0] + p[1]/3.*100*(fhb->Eval(ptx)-fhb->Eval(ptref)));
 } // jesFit
 
-#endif
+#endif // DRAWFRACS_H
