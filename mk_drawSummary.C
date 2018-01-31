@@ -34,7 +34,7 @@
   //drawNPCorr(type);
 
     /*
-  if (_jp_type=="MC" || _jp_type=="HW")
+  if (_jp_ismc)
     drawClosure(_jp_type,false); // Incl jet (PF in 36x)
     */
   //drawClosure("HW",false); // Incl jet (PF in 36x)

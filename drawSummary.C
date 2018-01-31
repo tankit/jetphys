@@ -134,12 +134,12 @@ void drawEtaSpectra(string type) {
   leg2->Draw();
 
   TLatex *tjet = new TLatex(0.19,0.18,Form("Anti-k_{T} R=%1.1f",
-					   _jp_algo=="AK7" ? 0.7 : 0.5));
+					   string(_jp_algo)=="AK7" ? 0.7 : 0.5));
   tjet->SetTextSize(0.04);
   tjet->SetNDC();
   tjet->Draw();
 
-  //cmsPrel(type=="DATA" ? _jp_lumi : 0);
+  //cmsPrel(_jp_isdt ? _jp_lumi : 0);
 
   vector<TH1D*> vhnlo(etas.size());
   vector<TGraphErrors*> vnlo(etas.size());
@@ -304,7 +304,7 @@ void drawEtaSpectra(string type) {
 		 fs->GetChisquare(), fs->GetNDF()) << endl;
   } // for i
 
-  const char *a = _jp_algo.c_str();
+  const char *a = string(_jp_algo).c_str();
   //if(_eps) c1->SaveAs(Form("eps/summaryEtaSpectra_%s_%s.eps",a,t));
   if(_jp_pdf) c1->SaveAs(Form("pdf/summaryEtaSpectra_%s_%s.pdf",a,t));
   //if(_gif) c1->SaveAs(Form("gif/summaryEtaSpectra_%s_%s.gif",a,t));
@@ -343,8 +343,8 @@ void drawEtaSpectra(string type) {
   //tex->DrawLatex(0.19,0.33+0.03,"#mu_{R} = #mu_{F} = p_{T}");
   tex->DrawLatex(0.19,0.30+0.03,"#mu_{R} = #mu_{F} = p_{T}");
 
-  //if (type=="DATA" && _final) cmsFinal(_jp_lumi);
-  //else cmsPrel(type=="DATA" ? _jp_lumi : 0);
+  //if (_jp_isdt and _final) cmsFinal(_jp_lumi);
+  //else cmsPrel(_jp_isdt ? _jp_lumi : 0);
   
   gPad->RedrawAxis();
 
@@ -377,11 +377,11 @@ void drawEtaSpectra(string type) {
   gROOT->ProcessLine(".! mkdir txt");
   for (unsigned int i = 0; i != vdata.size(); ++i) {
     ofstream fout(Form("txt/CMS_incjet_y%1.1f_%1.1f_%s.txt",0.5*i,0.5*(i+1),
-		       _jp_algo.c_str()),ios::out);
-    fout << Form("Inclusive jet double-differential cross sections in the |rapidity| range %1.1f to %1.1f, using a jet resolution R value of %1.1f.",0.5*i,0.5*(i+1),_jp_algo=="AK7" ? 0.7 : 0.5) << endl;
+		       _jp_algo),ios::out);
+    fout << Form("Inclusive jet double-differential cross sections in the |rapidity| range %1.1f to %1.1f, using a jet resolution R value of %1.1f.",0.5*i,0.5*(i+1),string(_jp_algo)=="AK7" ? 0.7 : 0.5) << endl;
     fout << "RE : P P --> JET X" << endl;
     fout << Form("ABS(YRAP) : %1.1f TO %1.1f",0.5*i,0.5*(i+1)) << endl;
-    fout << Form("R : %1.1f",_jp_algo=="AK7" ? 0.7 : 0.5) << endl;
+    fout << Form("R : %1.1f",string(_jp_algo)=="AK7" ? 0.7 : 0.5) << endl;
     fout << "SQRT(S) : 7 TeV" << endl;
     fout << "x-axis header: PT IN GEV" << endl;
     fout << "y-axis header: D2(SIG)/DPT/DYRAP IN PB/GEV" << endl;
@@ -894,7 +894,7 @@ void drawDataTheoryRatio() {
 void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 
   //bool _usejpt = true;
-  bool _ak7 = (_jp_algo=="AK7");
+  bool _ak7 = (string(_jp_algo)=="AK7");
 
   TDirectory *curdir = gDirectory;
 
@@ -971,7 +971,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   //string ssv38x = (v38x ? "_38X" : "");
   //string ssid = ssak7 + ssv38x;
   const char *sid = "";//ssid.c_str();
-  //bool _ak7 = (_jp_algo=="AK7");  
+  //bool _ak7 = (string(_jp_algo)=="AK7");  
 
   TCanvas *c1a = new TCanvas("c1a","c1a",1800,1200);
   c1a->SetTopMargin(0.10);
@@ -1608,7 +1608,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   //else 
   //cmsPrel(_jp_lumi, true);
 
-  const char *t = _jp_algo.c_str();
+  const char *t = string(_jp_algo).c_str();
   //if(_eps) c1->SaveAs(Form("eps/summaryDataTheoryRatioPRL3x2%s%s.eps",sid,t));
   if(_jp_pdf) c1->SaveAs(Form("pdf/summaryDataTheoryRatioPRL3x2%s%s.pdf",sid,t));
 
@@ -1619,7 +1619,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   latex->DrawLatex(0.06, 0.96, Form("CMS preliminary"));//,_jp_lumi/1e3));
   latex->SetTextAlign(21); // align middle
   //latex->DrawLatex(0.55, 0.96, ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
-  //latex->DrawLatex(0.55, 0.96, _jp_algo=="AK7" ?
+  //latex->DrawLatex(0.55, 0.96, string(_jp_algo)=="AK7" ?
   latex->DrawLatex(0.52, 0.96, _ak7 ?
 		   "Anti-k_{T} R = 0.7" : "Anti-k_{T} R = 0.5");
   latex->SetTextAlign(31); // align right
@@ -1945,7 +1945,7 @@ void drawUnfoldSummary(string type, string algo) {
     talgo->Draw();
   }
 
-  //cmsPrel(type=="DATA" ? _jp_lumi : 0);
+  //cmsPrel(_jp_isdt ? _jp_lumi : 0);
 
   vector<TGraphErrors*> gfolds(etas.size());
   for (unsigned int i = 0; i != etas.size(); ++i) {
@@ -2014,8 +2014,8 @@ void drawUnfoldSummary(string type, string algo) {
     leg->SetX2NDC(0.63);
     leg->Draw();
     tjet->DrawLatex(0.33,0.18,"Anti-k_{T} R=0.5");
-    //if (type=="DATA" && algo=="PF" && _final) cmsFinal(_jp_lumi);
-    //else cmsPrel(type=="DATA" ? _jp_lumi : 0);
+    //if (_jp_isdt and algo=="PF" && _final) cmsFinal(_jp_lumi);
+    //else cmsPrel(_jp_isdt ? _jp_lumi : 0);
 
     if (algo!="PF") {
       //if(_eps) c1->SaveAs(Form("eps/summaryUnfoldingPAS_%s_%s.eps",a,t));
@@ -2489,13 +2489,13 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
   //hup->Draw("SAMEL");
   //hdw->Draw("SAMEL");
   l->DrawLine(_jp_xmin,1,_jp_xmax,1);
-  tex->DrawLatex(0.80,0.20,_jp_algo.c_str());
+  tex->DrawLatex(0.80,0.20,string(_jp_algo).c_str());
   c2->cd();
   //gerr->Draw("SAME E3");
   //hup->Draw("SAMEL");
   //hdw->Draw("SAMEL");
   l->DrawLine(_jp_xmin,1,_jp_xmax,1);
-  tex->DrawLatex(0.80,0.20,_jp_algo.c_str());
+  tex->DrawLatex(0.80,0.20,string(_jp_algo).c_str());
 
   //leg2->AddEntry(gerr, "MC truth JEC", "F");
 
@@ -2630,7 +2630,7 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
 
   const char *a = algo.c_str();
   const char *v = (is38x ? "_38X" : "");
-  const char *tc = _jp_algo.c_str();
+  const char *tc = string(_jp_algo).c_str();
   if (isb) {
     //if(_eps) c1->SaveAs("eps/summaryBClosure.eps");
     if(_jp_pdf) c1->SaveAs("pdf/summaryBClosure.pdf");

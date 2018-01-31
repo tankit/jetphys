@@ -45,20 +45,37 @@ void Fracs::drawFracs(unsigned mode) {
   _ddt->cd();
   TDirectory *ddt = gDirectory;
   if (mode==3) {
-    dmc->cd("../FullEta_Reco");
-    ddt->cd("../FullEta_Reco");
-    makeProfile(mode, dmc, ddt, 0);
+    dmc->cd("../FullEta_Reco"); dmc = gDirectory;
+    ddt->cd("../FullEta_Reco"); ddt = gDirectory;
+    if (_pertrg) {
+      for (unsigned itrg = 0; itrg < _jp_ntrigs; ++itrg) {
+        auto ctrg = _jp_triggers[itrg];
+        makeProfile(mode, dmc, ddt, ctrg);
+      }
+    } else {
+      makeProfile(mode, dmc, ddt, "");
+    }
   } else {
-    for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta)
-      makeProfile(mode, dmc, ddt, _etas[ieta].first, _etas[ieta].second);
+    if (_pertrg) {
+      for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta) {
+        for (unsigned itrg = 0; itrg < _jp_ntrigs; ++itrg) {
+          auto ctrg = _jp_triggers[itrg];
+          makeProfile(mode, dmc, ddt, ctrg, _etas[ieta].first, _etas[ieta].second);
+        }
+      }
+    } else {
+      for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta)
+        makeProfile(mode, dmc, ddt, "", _etas[ieta].first, _etas[ieta].second);
+    }
   }
 } // drawFracs
 
 
-void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double eta1, double eta2) {
+void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double eta1, double eta2) {
   // List of differences
-  string taguniq = string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2)) + string(_shiftJES ? "_shiftJES" : "") 
+  string taguniq = (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2)) + string(_shiftJES ? "_shiftJES" : "") 
                  + string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"");
+  string trgdir = _pertrg?("/"+trg).c_str():"";
   map<string, TH1D*> mdf;
 
   THStack *hsdt = new THStack(Form("hsdt%s",taguniq.c_str()),"stacked histograms");
@@ -96,11 +113,11 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
   c1->cd(1);
   TLegend *leg = 0;
   if (_vseta)
-    leg = tdrLeg(0.40,0.23,0.60,0.53);
+    leg = tdrLeg(0.35,0.15,0.55,0.45);
   else
     leg = tdrLeg(0.20,0.18,0.50,0.48);
 
-  const char *dirname = Form("Eta_%1.1f-%1.1f",eta1,eta2);
+  const char *dirname = Form("Eta_%1.1f-%1.1f%s",eta1,eta2,trgdir.c_str());
 
   TH1D *href = new TH1D("href","", _x.size()-1, &_x[0]);
   map<string,TH1D*> mcHistos;
@@ -108,7 +125,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
   for (auto &frc : _fracs) {
     const char *hname0 = Form("p%s%s%s",frc.c_str(),_tp.c_str(),_modes[mode].c_str());
     if (!_vseta) { bool enterdtdir = ddt->cd(dirname); assert(enterdtdir); }
-    TProfile *pdt = dynamic_cast<TProfile*>(gDirectory->Get(hname0)); assert(pdt);
+    else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
+    TProfile *pdt = dynamic_cast<TProfile*>(gDirectory->Get(hname0));
     if (!pdt) {
       cout << hname0 << " not found in (dt) " << gDirectory->GetName() << endl << flush;
       gDirectory->ls();
@@ -119,7 +137,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
     pdt->Delete();
 
     if (!_vseta) { bool entermcdir = dmc->cd(dirname); assert(entermcdir); }
-    TProfile *pmc = dynamic_cast<TProfile*>(gDirectory->Get(hname0)); assert(pmc);
+    else if (_pertrg) { bool entermcdir = dmc->cd(trg.c_str()); assert(entermcdir); }
+    TProfile *pmc = dynamic_cast<TProfile*>(gDirectory->Get(hname0));
     if (!pmc) {
       cout << hname0 << " not found in (mc) " << gDirectory->GetName() << endl << flush;
       gDirectory->ls();
@@ -194,6 +213,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
     hdt->SetLineColor(_style[frc].first + 1);
     hdt->SetMarkerStyle(_style[frc].second);
     hdt->SetMarkerSize(frc=="nhf" or (frc=="chf" and _dobeta) ? 1.3 : 1.0);
+    if (_vspt) hdt->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
     hsdt->Add(hdt, "SAME P");
 
     // Then, do the difference
@@ -208,18 +228,16 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
 
     c1->cd(2);
 
-    if (frc==0) {
-      TLine *l = new TLine();
-      l->DrawLine(_rangemin[mode], 0,_rangemax[mode], 0);
-      TLatex *tex = new TLatex();
-      tex->SetNDC();
-      tex->SetTextSize(h2->GetYaxis()->GetLabelSize());
-      tex->DrawLatex(0.17,0.80,Form("Anti-k_{T} R=0.4%s",_shiftJES ? ", shifted by JES" : ""));
-    }
     hdf->Draw("SAME");
     mdf[frc] = hdf;
     hdts.push_back(std::make_pair(hdt,_name[frc]));
   } // for frc
+  TLine *l = new TLine();
+  l->DrawLine(_rangemin[mode], 0,_rangemax[mode], 0);
+  TLatex *tex = new TLatex();
+  tex->SetNDC();
+  tex->SetTextSize(h2->GetYaxis()->GetLabelSize());
+  tex->DrawLatex(0.17,0.80,Form("Anti-k_{T} R=0.4%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=%s",trg.c_str()):""));
 
   for (auto rhdti = hdts.rbegin(); rhdti != hdts.rend(); ++rhdti)
     leg->AddEntry(rhdti->first, rhdti->second.c_str(),"PF");
@@ -229,6 +247,11 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
   hsmc->Draw("SAME");
   hsdt->Draw("SAME");
   leg->Draw("SAME"); // redraw
+  if (_pertrg) {
+    auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_ntrigs,trg)-_jp_triggers;
+    tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
+    tex->DrawLatex(0.43,0.65,Form("%1.1f<p_{T}< %1.1f",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+  }
   gPad->RedrawAxis();
 
   c1->cd(2);
@@ -236,7 +259,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
   //hsdf->Draw("SAME");
   gPad->RedrawAxis();
 
-  c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(), taguniq.c_str()));
+  c1->SaveAs(Form("%s%s/drawFracs%s.pdf",_savedir.c_str(),trgdir.c_str(), taguniq.c_str()));
 
   if (_dofit) { // Estimate jet response slope by analyzing composition
     TLatex *tex = new TLatex();
@@ -289,6 +312,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double 
 
     h2->SetMaximum(+5);//+3.0);
     h2->SetMinimum(-5);//-1.5);
-    c1->SaveAs(Form("%s/drawFracs_WithFit%s.pdf", savedir.c_str(), taguniq.c_str()));
+    c1->SaveAs(Form("%s%s/drawFracs_WithFit%s.pdf",savedir.c_str(),trgdir.c_str(),taguniq.c_str()));
   }
 }

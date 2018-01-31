@@ -297,7 +297,7 @@ void drawTriggerRatio(string type, string algo) {
       TDirectory *dmc1 = gDirectory;
       
       // Process subdirectory
-      //if (type=="DATA" && algo=="PF")
+      //if (_jp_isdt and algo=="PF")
       //drawTriggerRatioBin(din0, din1, ibin1++, type, algo, dmc0, dmc1);
       drawTriggerRatioBin(din0, din1, ibin2++, type, algo);
     } // inherits TDirectory
@@ -309,7 +309,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
 			 string type, string algo,
 			 TDirectory *dmc0, TDirectory *dmc1) {
 
-  const bool _mc = (type=="MC");
+  const bool _mc = _jp_ismc;
   const bool _x = (dmc0 && dmc1);
   assert(algo=="PF" || algo=="CALO");
   assert(!(_x && algo=="CALO"));
@@ -581,7 +581,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
   teta2->SetY(0.88);
   teta2->Draw();
 
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
 
   //TLegend *leg2 = new TLegend(0.65, 0.23, 0.90, 0.59,"","brNDC");
   TLegend *leg2 = new TLegend(0.70, 0.23, 0.95, 0.59,"","brNDC");
@@ -1070,7 +1070,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
   gfold->Draw("SAMEP");
 
   teta->Draw();
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
 
   if (algo!="PF") {
     talgo->Draw();
@@ -1138,7 +1138,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
 
   teta->Draw();
   tchi2->Draw();
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
 
   if (algo!="PF") {
     talgo->Draw();
@@ -1364,7 +1364,7 @@ void drawMultijetsBin(TDirectory *din, int ibin, string type) {
   hpt2->Draw("SAME HF");
   hpt1->Draw("SAME HF");
 
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
   teta->Draw();
   leg->Draw();
 
@@ -1417,7 +1417,7 @@ void drawBFraction(string type) {
       TDirectory *dmc = gDirectory;
       
       // Process subdirectory
-      if (type=="DATA")
+      if (_jp_isdt)
 	drawBFractionBin(din, ibin1++, type, dmc);
       drawBFractionBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1473,7 +1473,7 @@ void drawBFractionBin(TDirectory *din, int ibin, string type,
   hbf->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1532,7 +1532,7 @@ void drawBTagPurity(string type) {
       TDirectory *dmc = gDirectory;
       
       // Process subdirectory
-      if (type=="DATA")
+      if (_jp_isdt)
 	drawBTagPurityBin(din, ibin1++, type, dmc);
       drawBTagPurityBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1589,7 +1589,7 @@ void drawBTagPurityBin(TDirectory *din, int ibin, string type,
   pfb->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1648,7 +1648,7 @@ void drawBTagEfficiency(string type) {
       TDirectory *dmc = gDirectory;
       
       // Process subdirectory
-      if (type=="DATA")
+      if (_jp_isdt)
 	drawBTagEfficiencyBin(din, ibin1++, type, dmc);
       drawBTagEfficiencyBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1704,7 +1704,7 @@ void drawBTagEfficiencyBin(TDirectory *din, int ibin, string type,
   peffb->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(type=="DATA" ? _lumi : 0);
+  cmsPrel(_jp_isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1763,7 +1763,7 @@ void drawBTagNorm(string type) {
       TDirectory *dmc = gDirectory;
       
       // Process subdirectory
-      if (type=="DATA")
+      if (_jp_isdt)
 	drawBTagNormBin(din, ibin1++, type, dmc);
       drawBTagNormBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1856,7 +1856,7 @@ void drawBTagNormBin(TDirectory *din, int ibin, string type,
   hnorm->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(type=="DATA" ? 0 : _lumi);
+  cmsPrel(_jp_isdt ? 0 : _lumi);
   leg->Draw();
 
   const char* t = type.c_str();

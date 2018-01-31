@@ -249,7 +249,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
   assert(sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax)==2);
   sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax);
   int ieta = int((0.5*(etamin+etamax))/0.5);
-  int jeta = (_jp_algo=="AK7" ? min(4,ieta) : ieta);
+  int jeta = (string(_jp_algo)=="AK7" ? min(4,ieta) : ieta);
 
   // inclusive jets
   TH1D *hpt = (TH1D*)din->Get("hpt"); assert(hpt);
@@ -269,7 +269,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
   assert(hmc);
   
   /*
-  int S = (_jp_algo=="AK7" ? 1 : 3);
+  int S = (string(_jp_algo)=="AK7" ? 1 : 3);
   TH1D *hnlo_cteq = (TH1D*)dnlo0->Get(Form("h%d00%d00",S,jeta+1));
   assert(hnlo_cteq);
 
@@ -609,7 +609,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
   TH1D *hpt = (TH1D*)din->Get("hpt"); assert(hpt);
 
   // Read in text file
-  if (_jp_algo=="AK7") {
+  if (string(_jp_algo)=="AK7") {
     const int nchr = 2048;
     char chr[nchr];
     ifstream fs("fastnlo/InclusiveJets_Table_postCWR.txt", ios::in);
@@ -674,7 +674,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
     } // while
   } // ak7
 
-  if (_jp_algo=="AK5") {
+  if (string(_jp_algo)=="AK5") {
 
     const int nchr = 2048;
     char chr[nchr];
@@ -727,7 +727,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
   if (true) {
     const int nchr = 2048;
     char chr[nchr];
-    ifstream fs(Form("fastnlo/InclusiveJets_Table_%s.txt",_jp_algo.c_str()));
+    ifstream fs(Form("fastnlo/InclusiveJets_Table_%s.txt",_jp_algo));
     assert(fs.is_open());
     fs.getline(chr, nchr);
 

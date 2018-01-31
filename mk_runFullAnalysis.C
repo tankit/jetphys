@@ -145,7 +145,7 @@
   gROOT->ProcessLine(".x mk_drawComparison.C");
   cout << "...skip obsolete code, is now run in drawSummary.C" << endl;
 
-  if (_jp_type=="DATA") {
+  if (_jp_isdt) {
     cout << "\nStep 9b: Draw run quality checks"
 	 << "\n================================\n";
     gROOT->ProcessLine(".x mk_drawRunHistos.C");  

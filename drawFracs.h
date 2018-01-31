@@ -2,6 +2,7 @@
 #define DRAWFRACS_H
 
 #include "TFile.h"
+#include "TSystem.h"
 #include "THStack.h"
 #include "TProfile.h"
 #include "TLine.h"
@@ -34,7 +35,7 @@ private:
   TDirectory *_dmc;
   TDirectory *_ddt;
 
-  void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, double etamin = -5.0, double etamax = 5.0);
+  void makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double etamin = -5.0, double etamax = 5.0);
 
   TF1 *_fhb;
   TF1 *_fjes;
@@ -74,6 +75,8 @@ private:
   bool _vsnpv;
   bool _vseta;
 
+  bool _pertrg;
+
   string _plot_title;
   string savedir;
   string _mc_type;
@@ -94,11 +97,18 @@ public:
   *  "DT" (Data sample, default)
   *  "MC" (Pythia, for mc vs mc)
   *  "HW" (Herwig, for mc vs mc) */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, string mc_type = "MC", string dt_type = "RunG") {
-    _plot_title = string(plot_title).c_str();
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG") {
+    _plot_title = plot_title;
     _savedir = savedir;
+    gSystem->MakeDirectory(_savedir.c_str());
+
     _mc_type = mc_type;
     _dt_type = dt_type;
+
+    _pertrg = pertrg;
+    if (pertrg) {
+      for (auto &trg : _jp_triggers) gSystem->MakeDirectory(Form("%s/%s",_savedir.c_str(),trg));
+    }
 
     bool all_DT = false;
     bool all_MC = false;
@@ -110,7 +120,7 @@ public:
 
     // Opening the requested files {
     const char *cdt_type = all_MC ? _dt_type.c_str() : "DATA";
-    TFile *fdt = new TFile(Form("%soutput-%s-2b.root",dt_path,cdt_type),"READ");
+    TFile *fdt = new TFile(Form("%soutput-%s-%s.root",dt_path,cdt_type,pertrg?"1":"2b"),"READ");
     assert(fdt and !fdt->IsZombie());
     bool enterdtstandard = fdt->cd("Standard"); assert(enterdtstandard);
     _ddt = gDirectory;
@@ -118,7 +128,7 @@ public:
     cout << fdt->GetName() << endl;
 
     const char *cmc_type = all_DT ? "DATA" : mc_type.c_str();
-    TFile *fmc = new TFile(Form("%soutput-%s-2b.root",mc_path,cmc_type),"READ");
+    TFile *fmc = new TFile(Form("%soutput-%s-%s.root",mc_path,cmc_type,pertrg?"1":"2b"),"READ");
     assert(fmc and !fdt->IsZombie());
     bool entermcstandard = fmc->cd("Standard"); assert(entermcstandard);
     _dmc = gDirectory;

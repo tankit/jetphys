@@ -175,7 +175,7 @@ void drawRunHistos(string type) {
 
   map<string, map<string, map<string, double> > > scale;
 
-  if (_jp_algo=="AK4") {
+  if (string(_jp_algo)=="AK4") {
 
     /*9fb*/
     scale["jt40"]["Barrel"]["PF"] =  5e7;
@@ -209,7 +209,7 @@ void drawRunHistos(string type) {
     scale["jt450"]["Endcap"]["PF"] =  0.8653;
 
   }
-  if (_jp_algo=="AK7") {
+  if (string(_jp_algo)=="AK7") {
 
     scale["jt40"]["Barrel"]["PF"] =  2.424e+06;
     scale["jt60"]["Barrel"]["PF"] =  2.424e+06;
@@ -425,7 +425,7 @@ void drawRunHistos(string type) {
 	double npv = hn->GetBinContent(i);
 	double y = r->GetBinContent(i);
 	double y0 = r0->GetBinContent(i);
-	_ak7 = (_jp_algo=="AK7"); // change PU smearing
+	_ak7 = (string(_jp_algo)=="AK7"); // change PU smearing
 	double c = 1;//unfold(pt, eta, npv) / unfold(pt, eta, _npv0);
 	r->SetBinContent(i, c * y);
 	r0->SetBinContent(i, c * y0);
@@ -587,7 +587,7 @@ void drawRunHistos(string type) {
       leg->Draw();
       //tjet->Draw();
       tjet->DrawLatex(0.19,0.19,Form("Anti-k_{T} R=%1.1f PF, %s",
-				     _jp_algo=="AK4" ? 0.4 : 0.7, te));
+				     string(_jp_algo)=="AK4" ? 0.4 : 0.7, te));
       //cmsPrel(lumi);
 
       if(_jp_pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_%s.pdf",tc,te,t));
@@ -1151,7 +1151,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   meanpt["jt400"] = 1104;//602.6;//556.1;
 
   map<string, map<string, map<string, double> > > scale;
-  if (_jp_algo=="AK4") {
+  if (string(_jp_algo)=="AK4") {
 
     // 9/fb
     // V4
@@ -1226,7 +1226,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     scale["jt400"]["Endcap"]["PF"] =  0.7181;
     */
   }
-  if (_jp_algo=="AK7") {
+  if (string(_jp_algo)=="AK7") {
     // 20/fb, new thresholds
     scale["jt40"]["Barrel"]["PF"] =  2.424e+06;
     scale["jt80"]["Barrel"]["PF"] =  1.681e+05;
@@ -1300,7 +1300,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   
   const char *a = algo.c_str();
   TH1D *h = new TH1D("h",Form(";#LTN_{PV,good}#GT;Normalized rate per run (%s%s)",
-			      a, _jp_algo.c_str()),
+			      a, _jp_algo),
 		     //100,0.8,15.);
 		     100,0.,30.);
   h->SetMinimum(0.7);
@@ -1375,7 +1375,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
 	  int n = g->GetN();
 	  double pt = meanpt[t];
-	  _ak7 = (_jp_algo=="AK7"); // change PU smearing
+	  _ak7 = (string(_jp_algo)=="AK7"); // change PU smearing
 	  //double c = unfold(pt, eta, x) / unfold(pt, eta, 12.);
 	  double c = unfold(pt, eta, x) / unfold(pt, eta, 13.5);
 	  g->SetPoint(n, x, y/sc*c);

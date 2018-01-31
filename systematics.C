@@ -201,9 +201,8 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 
   // Load the uncertainty
   TH1D *hunc = (TH1D*)dunc->Get("punc"); assert(hunc);
-  //JetCorrectionUncertainty *func = new JetCorrectionUncertainty(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_Uncertainty_%sPF.txt",_algo.c_str()));
-  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt",
-		  _jp_jecgt.c_str(), type.c_str(), _algo.c_str());
+  //JetCorrectionUncertainty *func = new JetCorrectionUncertainty(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_Uncertainty_%sPF.txt",_jp_algo));
+  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", _jp_jecgt, _jp_type, _jp_algo);
   cout << s << endl << flush;
   JetCorrectionUncertainty *func = new JetCorrectionUncertainty(s.c_str());
   const char *jt = jectype.c_str();
@@ -264,7 +263,7 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
   hjav->Reset();
 
   string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt",
-		  _jp_jecgt.c_str(), type.c_str(), _jp_algo.c_str());
+                  _jp_jecgt, _jp_type, _jp_algo);
   cout << s << endl << flush;
   JetCorrectionUncertainty *rjet = new JetCorrectionUncertainty(s.c_str());
 
@@ -764,7 +763,7 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
   for (int isrc = 0; isrc != nsrc; ++isrc) {
     
     string s = Form("CondFormats/JetMETObjects/data/%s_%s_UncertaintySources_%sPF.txt",
-		    _jp_jecgt.c_str(), _jp_type.c_str(), _jp_algo.c_str());
+                    _jp_jecgt, _jp_type, _jp_algo);
     cout << s << endl << flush;
     JetCorrectorParameters *p = new JetCorrectorParameters(s.c_str(),
 							   srcnames[isrc]);

@@ -228,7 +228,6 @@ void histosFill::Loop()
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
 
-  const char *a = _jp_algo;
   *ferr << "\nCONFIGURATION DUMP:" << endl;
   *ferr << "-------------------" << endl;
   *ferr << Form("Running over %sPF",_jp_algo) << endl;

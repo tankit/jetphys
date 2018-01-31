@@ -118,9 +118,9 @@ void dagostiniUnfold(string type) {
   TFile *fout = new TFile(Form("output-%s-3.root",type.c_str()),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  _ak7 = (_jp_algo=="AK7");
+  _ak7 = (string(_jp_algo)=="AK7");
   if (_ak7) cout << "Using AK7 JER" << endl << flush;
-  bool ismc = (type=="MC"||type=="HW");
+  bool ismc = _jp_ismc;
 
   recurseFile(fin, fin2, fout, ismc);
 
@@ -904,7 +904,7 @@ void drawDagostini(string type) {
       //h2resp->Draw("SAME COLZ");
 
       //tex->DrawLatex(0.8, 0.15, _algo=="AK7" ?
-      tex->DrawLatex(0.8, 0.20, _jp_algo=="AK7" ?
+      tex->DrawLatex(0.8, 0.20, string(_jp_algo)=="AK7" ?
 		     "Anti-k_{T} R=0.7, |y|<0.5" :
 		     "Anti-k_{T} R=0.5, |y|<0.5");
       //cmsPrel(_lumi);
@@ -991,7 +991,7 @@ void drawDagostini(string type) {
 
   }
 
-  const char *a = _jp_algo;
+  const char *a = string(_jp_algo).c_str();
   const char *t = type.c_str();
 
   c1->cd(3);
