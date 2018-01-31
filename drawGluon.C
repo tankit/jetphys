@@ -1,7 +1,7 @@
 #include "TFile.h"
 #include "TH1D.h"
 
-#include "tdrstyle_mod15.C"
+#include "tdrstyle_mod18.C"
 
 // Code for template fit
 TH1D *_hq(0), *_hg(0);
