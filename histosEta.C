@@ -21,23 +21,6 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
 
-  // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
-  // pT<100 GeV to optimize bin widths for PFJets and b-tagging
-  // (little higher than resolution, but fairly flat relative width)
-  // http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/QCDAnalysis/HighPtJetAnalysis/interface/DefaultPtBins.h?revision=1.2&view=markup
-  const double ptrange[] =
-    {1, 5, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
-     97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468,
-     507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
-     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000,
-     2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832,
-     4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000};
-  const int npts = sizeof(ptrange)/sizeof(ptrange[0])-1;
-
-  const double etarange[] =
-  {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
-  const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
-
   const int na = 200;
   vector<double> va(na+1);
   for (unsigned int i = 0; i != na+1; ++i)
@@ -58,22 +41,22 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
     // Fill all histo types with a corresponding histogram
     hdjasymm.push_back(  new TH3D((string("hdjasymm_a")+number).c_str(),
                               ";p_{T,ave};#eta;Asymmetry",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
     hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),
                               ";p_{T,tag};#eta;Asymmetry",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
     hdjasymmpt.push_back(new TH3D((string("hdjasymmpt_a")+number).c_str(),
                               ";p_{T,probe};#eta;Asymmetry",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
     hdjmpf.push_back(    new TH3D((string("hdjmpf_a")+number).c_str(),
                               ";p_{T,ave};#eta;MPF",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
     hdjmpftp.push_back(  new TH3D((string("hdjmpftp_a")+number).c_str(),
                               ";p_{T,tag};#eta;MPF",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
     hdjmpfpt.push_back(  new TH3D((string("hdjmpfpt_a")+number).c_str(),
                               ";p_{T,probe};#eta;MPF",
-                              npts,&ptrange[0],netas,&etarange[0],na,&va[0]) );
+                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
   }
 
   // Weights:
@@ -87,23 +70,23 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   }
 
   // components vs eta (Ozlem)
-  pncandtp_vseta = new TProfile("pcandtp_vseta","",104,-5.2,5.2);
-  pnchtp_vseta = new TProfile("pnchtp_vseta","",104,-5.2,5.2);
-  pnnetp_vseta = new TProfile("pnnetp_vseta","",104,-5.2,5.2);
-  pnnhtp_vseta = new TProfile("pnnhtp_vseta","",104,-5.2,5.2);
-  pncetp_vseta = new TProfile("pncetp_vseta","",104,-5.2,5.2);
-  pnmutp_vseta = new TProfile("pnmutp_vseta","",104,-5.2,5.2);
-  pnhhtp_vseta = new TProfile("pnhhtp_vseta","",104,-5.2,5.2);
-  pnhetp_vseta = new TProfile("pnhetp_vseta","",104,-5.2,5.2);
-  phhftp_vseta = new TProfile("phhftp_vseta","",104,-5.2,5.2);
-  pheftp_vseta = new TProfile("pheftp_vseta","",104,-5.2,5.2);
-  pchftp_vseta = new TProfile("pchftp_vseta","",104,-5.2,5.2);
-  pneftp_vseta = new TProfile("pneftp_vseta","",104,-5.2,5.2);
-  pnhftp_vseta = new TProfile("pnhftp_vseta","",104,-5.2,5.2);
-  pceftp_vseta = new TProfile("pceftp_vseta","",104,-5.2,5.2);
-  pmuftp_vseta = new TProfile("pmuftp_vseta","",104,-5.2,5.2);
-  pbetatp_vseta = new TProfile("pbetatp_vseta","",104,-5.2,5.2);
-  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",104,-5.2,5.2);
+  pncandtp_vseta = new TProfile("pcandtp_vseta","",_jp_netas,_jp_etarange);
+  pnchtp_vseta = new TProfile("pnchtp_vseta","",_jp_netas,_jp_etarange);
+  pnnetp_vseta = new TProfile("pnnetp_vseta","",_jp_netas,_jp_etarange);
+  pnnhtp_vseta = new TProfile("pnnhtp_vseta","",_jp_netas,_jp_etarange);
+  pncetp_vseta = new TProfile("pncetp_vseta","",_jp_netas,_jp_etarange);
+  pnmutp_vseta = new TProfile("pnmutp_vseta","",_jp_netas,_jp_etarange);
+  pnhhtp_vseta = new TProfile("pnhhtp_vseta","",_jp_netas,_jp_etarange);
+  pnhetp_vseta = new TProfile("pnhetp_vseta","",_jp_netas,_jp_etarange);
+  phhftp_vseta = new TProfile("phhftp_vseta","",_jp_netas,_jp_etarange);
+  pheftp_vseta = new TProfile("pheftp_vseta","",_jp_netas,_jp_etarange);
+  pchftp_vseta = new TProfile("pchftp_vseta","",_jp_netas,_jp_etarange);
+  pneftp_vseta = new TProfile("pneftp_vseta","",_jp_netas,_jp_etarange);
+  pnhftp_vseta = new TProfile("pnhftp_vseta","",_jp_netas,_jp_etarange);
+  pceftp_vseta = new TProfile("pceftp_vseta","",_jp_netas,_jp_etarange);
+  pmuftp_vseta = new TProfile("pmuftp_vseta","",_jp_netas,_jp_etarange);
+  pbetatp_vseta = new TProfile("pbetatp_vseta","",_jp_netas,_jp_etarange);
+  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",_jp_netas,_jp_etarange);
 
   curdir->cd();
 }

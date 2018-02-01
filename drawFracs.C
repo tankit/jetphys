@@ -27,14 +27,13 @@ void Fracs::drawFracs(unsigned mode) {
   // Build appropriate wide binning
   _x.clear();
   if (_vspt) {
-    for (auto &ptwi : ptw) _x.push_back(ptwi);
+    for (auto &ptwi : _jp_wptrange) _x.push_back(ptwi);
   } else if (_vspu) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vsnpv) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vseta) {
-    //for (int i = 0; i <= 104; ++i) _x.push_back(-5.2+0.1*i);
-    for (auto &ewi : etaw) _x.push_back(ewi);
+    for (auto &ewi : _jp_wetarange) _x.push_back(ewi);
   }
 
   assert(mode<_modes.size());
@@ -135,6 +134,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
     pdt->SetName(Form("%s_dt",pdt->GetName()));
     if (_vspt or _vseta) {
+      pdt->Sumw2(kFALSE);
       TProfile *pdtmp = dynamic_cast<TProfile*>(pdt->Rebin(_x.size()-1,Form("%s_rb",pdt->GetName()),&_x[0]));
       pdt->Delete(); pdt = 0;
       pdt = pdtmp;
@@ -152,6 +152,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
     pmc->SetName(Form("%s_mc",pmc->GetName()));
     if (_vspt or _vseta) {
+      pmc->Sumw2(kFALSE);
       TProfile *pmcmp = dynamic_cast<TProfile*>(pmc->Rebin(_x.size()-1,Form("%s_rb",pmc->GetName()),&_x[0]));
       pmc->Delete(); pdt = 0;
       pmc = pmcmp;

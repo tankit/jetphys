@@ -148,18 +148,18 @@ constexpr double _jp_lumi = _jp_triglumi[_jp_ntrigs-1]/1000000000.0; // in /fb
 //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
 // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
 // Summer16_03Feb2017G_V7_DATA.tar.gz [BCD, EF, G, H]
-const constexpr char _jp_jecgt[] = "Summer16_07Aug2017";//"Summer16_03Feb2017";//BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
-const constexpr char _jp_jecvers[] = "_V4";//"_V7";//"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+const constexpr char _jp_jecgt[] = "Summer16_03Feb2017";//"Summer16_07Aug2017";////BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
+const constexpr char _jp_jecvers[] = "_V9";//"_V4";////"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
 
 // Use Intervals-Of-Validity for JEC
 constexpr const bool _jp_useIOV = true ;//false
-constexpr const unsigned int _jp_nIOV = 3; //4;
+constexpr const unsigned int _jp_nIOV = 4; //3;
 const constexpr char* _jp_IOVnames[_jp_nIOV] =
-  {"BCD",    "EF",    "GH"};//{"BCD",    "EF",    "G",   "H"};
+  {"BCD",    "EF",    "G",   "H"};//{"BCD",    "EF",    "GH"};
 // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
 const constexpr int _jp_IOVranges[_jp_nIOV][2] =
-  { {1,276811}, {276831,278801}, {278802,400000} }; // Spring/Summer16_23Sep2016
-//  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
+//  { {1,276811}, {276831,278801}, {278802,400000} }; // Summer16_23Sep2016
+  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
 //} END JES and JEC
 
 
@@ -255,5 +255,69 @@ constexpr double _jp_xminpas = 114;//56;
 constexpr double _jp_xmin = 114;//24.;//20.;
 constexpr double _jp_xmax = 1497;//TEMP PATCH for partial data //1999.;
 //} END limits
+
+//{ BEGIN Binnings
+// Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
+// pT<100 GeV to optimize bin widths for PFJets and b-tagging
+// (little higher than resolution, but fairly flat relative width)
+// http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/QCDAnalysis/HighPtJetAnalysis/interface/DefaultPtBins.h?revision=1.2&view=markup
+const constexpr double _jp_ptrange[] =
+  {1, 5, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
+   97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468,
+   507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
+   1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000,
+   2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832,
+   4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000};
+const constexpr unsigned int _jp_npts = sizeof(_jp_ptrange)/sizeof(_jp_ptrange[0])-1;
+
+const constexpr double _jp_wptrange[] =
+  {1, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 245, 300, 395, 468, 548,
+   686, 846, 1032, 1248, 1588, 2000, 2500, 3103, 3450, 3637, 3832,
+   4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000};
+const constexpr int _jp_nwpts = sizeof(_jp_wptrange)/sizeof(_jp_wptrange[0])-1;
+
+// Wider version of the binning for less statistical scatter for b-jets
+const constexpr double _jp_wwptrange[] =
+  {1, 5, 15, 24, 37, 56, 84, 114, 153, 196, 245, 330, 430, 548, 686, 846,
+   1032, 1248, 1497, 1784, 2116, 2500, 2941, 3450, 3637,
+   4252, 4961, 5777, 6717, 7000};
+const constexpr int _jp_nwwpts = sizeof(_jp_wwptrange)/sizeof(_jp_wwptrange[0])-1;
+
+// Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
+// Using NLOxNP theory fit as input when available
+const constexpr unsigned int _jp_nptranges = 8;
+const constexpr unsigned int _jp_npts_eta = 65;
+const constexpr double _jp_ptrangevseta[_jp_nptranges][_jp_npts_eta] =
+  {{10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3832, 6076, 6389}, // Eta_0.0-0.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3637, 5220, 5492, 0}, // Eta_0.5-1.0
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2941, 3832, 4037, 0, 0, 0, 0, 0}, // Eta_1.0-1.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2500, 2640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_1.5-2.0
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.0-2.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_3.0-3.5
+   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_3.5-4.0
+
+const constexpr double _jp_wetarange[] =
+  {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322,
+   -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261,
+    0.000,  0.261,  0.522,  0.783,  1.044,  1.305,  1.479,  1.653,  1.930,
+    2.172,  2.322,  2.500,  2.650,  2.853,  2.964,  3.139,  3.489,  3.839, 5.191};
+const constexpr unsigned int _jp_nwetas = sizeof(_jp_wetarange)/sizeof(_jp_wetarange[0])-1;
+
+const constexpr double _jp_posetarange[] =
+  {0, 0.261, 0.522, 0.783, 0.957, 1.131, 1.305, 1.479, 1.93, 2.322, 2.411, 2.5, 2.853, 2.964, 5.191};
+const constexpr unsigned int _jp_nposetas = sizeof(_jp_posetarange)/sizeof(_jp_posetarange[0]);
+
+const constexpr double _jp_etarange[] =
+  {-5.191,-4.889,-4.716,-4.538,-4.363,-4.191,-4.013,-3.839,-3.664,-3.489,-3.314,
+   -3.139,-2.964,-2.853,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
+   -1.566,-1.479,-1.392,-1.305,-1.218,-1.131,-1.044,-0.957,-0.879,-0.783,-0.696,
+   -0.609,-0.522,-0.435,-0.348,-0.261,-0.174,-0.087, 0.000, 0.087, 0.174, 0.261,
+    0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.879, 0.957, 1.044, 1.131, 1.218,
+    1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5,
+    2.65, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363,
+    4.538, 4.716, 4.889, 5.191};
+const constexpr unsigned int _jp_netas = sizeof(_jp_etarange)/sizeof(_jp_etarange[0])-1;
+//} END Binnings
 
 #endif // __settings_h__

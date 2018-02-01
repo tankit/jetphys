@@ -2539,7 +2539,7 @@ void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   TFile *fpumc = new TFile(mcfile,"READ");
   assert(fpumc and !fpumc->IsZombie());
 
-  pumc = dynamic_cast<TH1F*>(fpumc->Get("pileupmc")); assert(pumc);
+  pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc")); assert(pumc);
 
   // Normalize
   pumc->Scale(1./pumc->Integral());

@@ -193,7 +193,7 @@ TH1D *tools::Divide(const TH1D *_h1, const TH1D *_h2, double c1, double c2, cons
 TH1D *tools::Rebin(TH1D *h, TH1D* href) {
   TH1D *hr(0);
   vector<double> hrefx;
-  for (unsigned i = 1; i <= href->GetNbinsX(); ++i)
+  for (int i = 1; i <= href->GetNbinsX(); ++i)
     hrefx.push_back(href->GetBinLowEdge(i));
   hrefx.push_back(href->GetBinLowEdge(href->GetNbinsX()+1));
   hr = dynamic_cast<TH1D*>(h->Rebin(href->GetNbinsX(),h->GetName(),&hrefx[0]));

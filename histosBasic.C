@@ -12,12 +12,10 @@
 
 using namespace std;
 
-histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig,
-			 double etamin, double etamax,
-			 double pttrg, double ptmin, double ptmax,
-			 bool ismcdir)
-  : lumsum(0), lumsum2(0) {
-
+histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double etamin, double etamax,
+                         double pttrg, double ptmin, double ptmax, bool ismcdir) {
+  lumsum = 0;
+  lumsum2 = 0;
   TDirectory *curdir = gDirectory;
   bool enter = dir->cd();
   assert(enter);
@@ -35,79 +33,22 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig,
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
 
-  // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
-  // pT<100 GeV to optimize bin widths for PFJets and b-tagging
-  // (little higher than resolution, but fairly flat relative width)
-  // http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/QCDAnalysis/HighPtJetAnalysis/interface/DefaultPtBins.h?revision=1.2&view=markup
-  const double x0[] =
-    {1, 5, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84,
-     97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468,
-     507, 548, 592, 638, 686, 737, 790, 846, 905, 967,
-     1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000,
-     2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832, 
-     4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000};
-  const int nx0 = sizeof(x0)/sizeof(x0[0])-1;
-  //
-  const double *bx0 = &x0[0];
-  const int nbx0 = nx0;
-
-  // Wider version of the binning for less statistical scatter for b-jets
-  const double xW[] =
-    {1, 5, 15, 24, 37, 56, 84, 114, 153, 196, 245, 330, 430, 548, 686, 846,
-     1032, 1248, 1497, 1784, 2116, 2500, 2941, 3450, 3637,
-     4252, 4961, 5777, 6717, 7000};
-  const int nxW = sizeof(xW)/sizeof(xW[0])-1;
-  //
-  const double *bxW = &xW[0];
-  const int nbxW = nxW;
-
-
-// Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
-// Using NLOxNP theory fit as input when available
-  const int neta = 8;
-  const int nbins = 65;
-double vx[neta][nbins] =
-  {{10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3832, 6076, 6389}, // Eta_0.0-0.5
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3637, 5220, 5492, 0}, // Eta_0.5-1.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2941, 3832, 4037, 0, 0, 0, 0, 0}, // Eta_1.0-1.5
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2500, 2640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_1.5-2.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.0-2.5
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_2.5-3.0
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // Eta_3.0-3.5
-   {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // Eta_3.5-4.0
-
-  const double etarange[] =
-  {-5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261, 0.000, 0.261, 0.522, 0.783, 1.044, 1.305, 1.479, 1.653, 1.930, 2.172, 2.322, 2.500, 2.650, 2.853, 2.964, 3.139, 3.489, 3.839, 5.191};
-  const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
-
-  int ieta = int(0.5*(etamin+etamax)/0.5); assert(ieta<neta);
+  unsigned int ieta = int(0.5*(etamin+etamax)/0.5); assert(ieta<_jp_nptranges);
   vector<double> x;
-  for (int i = 0; i != nbins && vx[ieta][i]!=0; ++i) {
-    x.push_back(vx[ieta][i]);
-  } // for i
+  for (unsigned int i = 0; i < _jp_npts_eta and _jp_ptrangevseta[ieta][i]!=0; ++i)
+    x.push_back(_jp_ptrangevseta[ieta][i]);
   const int nx = x.size()-1;
 
-  const double ay[] =
-    {0, 0.261, 0.522, 0.783, 0.957, 1.131, 1.305, 1.479, 1.93, 2.322, 2.411,
-     2.5, 2.853, 2.964, 5.191};
-  const int nay = sizeof(ay)/sizeof(ay[0]);
-
-  vector<double> yW(nay);
-  for (unsigned int i = 0; i != yW.size(); ++i) {
-    yW[i] = ay[i];
-  }
+  vector<double> yW(_jp_nposetas);
+  for (unsigned int i = 0; i != yW.size(); ++i) yW[i] = _jp_posetarange[i];
   const int nyW = yW.size()-1;
 
   vector<double> y(51);
-  for (unsigned int i = 0; i != y.size(); ++i) {
-    y[i] = -5. + 0.2*i;
-  }
+  for (unsigned int i = 0; i != y.size(); ++i) y[i] = -5. + 0.2*i;
   const int ny = y.size()-1;
 
   vector<double> pv(26);
-  for (unsigned int i = 0; i != pv.size(); ++i) {
-    pv[i] = -0.5 + i;
-  }
+  for (unsigned int i = 0; i != pv.size(); ++i) pv[i] = -0.5 + i;
   const int npv = pv.size()-1;
 
   // new histograms for quark/gluon study (Ozlem)
@@ -178,11 +119,10 @@ double vx[neta][nbins] =
 
   // dijet mass
   hdjmass = new TH1D("hdjmass","",nx,&x[0]);
-  hdjmass0 = new TH1D("hdjmass0","",int(_jp_sqrts),0.,_jp_sqrts);
+  hdjmass0 = new TH1D("hdjmass0","",static_cast<int>(_jp_sqrts),0.,_jp_sqrts);
   //hdjmass0 = new TH1D("hdjmass0","",13000,0.,13000.);
   pdjmass_ptratio = new TProfile("pdjmass_ptratio","",nx,&x[0]);
-  pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","",
-				  int(_jp_sqrts),0.,_jp_sqrts);
+  pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","", static_cast<int>(_jp_sqrts),0.,_jp_sqrts);
   //pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","",13000,0.,13000.);
   //hdjmass->Sumw2();
   //hdjmass0->Sumw2();
@@ -191,7 +131,7 @@ double vx[neta][nbins] =
 
   // basic properties
   ppt = new TProfile("ppt","",nx,&x[0]);
-  pmass = new TProfile("pmass","",nx0,&x0[0]);
+  pmass = new TProfile("pmass","",_jp_npts,&_jp_ptrange[0]);
   hmass = new TH1D("hmass","",100,0.,0.5);
   pjec = new TProfile("pjec","",nx,&x[0]);
   pjec2 = new TProfile("pjec2","",nx,&x[0]);
@@ -239,19 +179,19 @@ double vx[neta][nbins] =
   pdqmeff = new TProfile("pdqmeff","",nx,&x[0]);
 
   // control plots of components (JEC)
-  pncand = new TProfile("pncand","",nx0,&x0[0]);
-  pnch = new TProfile("pnch","",nx0,&x0[0]);
-  pnne = new TProfile("pnne","",nx0,&x0[0]);
-  pnnh = new TProfile("pnnh","",nx0,&x0[0]);
-  pnce = new TProfile("pnce","",nx0,&x0[0]);
-  pnmu = new TProfile("pnmu","",nx0,&x0[0]);
-  pchf = new TProfile("pchf","",nx0,&x0[0]);
-  pnef = new TProfile("pnef","",nx0,&x0[0]);
-  pnhf = new TProfile("pnhf","",nx0,&x0[0]);
-  pcef = new TProfile("pcef","",nx0,&x0[0]);
-  pmuf = new TProfile("pmuf","",nx0,&x0[0]);
-  pbeta = new TProfile("pbeta","",nx0,&x0[0]);
-  pbetastar = new TProfile("pbetastar","",nx0,&x0[0]);
+  pncand = new TProfile("pncand","",_jp_npts,&_jp_ptrange[0]);
+  pnch = new TProfile("pnch","",_jp_npts,&_jp_ptrange[0]);
+  pnne = new TProfile("pnne","",_jp_npts,&_jp_ptrange[0]);
+  pnnh = new TProfile("pnnh","",_jp_npts,&_jp_ptrange[0]);
+  pnce = new TProfile("pnce","",_jp_npts,&_jp_ptrange[0]);
+  pnmu = new TProfile("pnmu","",_jp_npts,&_jp_ptrange[0]);
+  pchf = new TProfile("pchf","",_jp_npts,&_jp_ptrange[0]);
+  pnef = new TProfile("pnef","",_jp_npts,&_jp_ptrange[0]);
+  pnhf = new TProfile("pnhf","",_jp_npts,&_jp_ptrange[0]);
+  pcef = new TProfile("pcef","",_jp_npts,&_jp_ptrange[0]);
+  pmuf = new TProfile("pmuf","",_jp_npts,&_jp_ptrange[0]);
+  pbeta = new TProfile("pbeta","",_jp_npts,&_jp_ptrange[0]);
+  pbetastar = new TProfile("pbetastar","",_jp_npts,&_jp_ptrange[0]);
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
   hnne = new TH1D("hnne","",300,-0.5,299.5);
@@ -266,25 +206,25 @@ double vx[neta][nbins] =
   hbeta = new TH1D("hbeta","",110,0.,1.1);
   hbetastar = new TH1D("hbetastar","",110,0.,1.1);
   // control plots of components (JEC tag-and-probe)
-  pncandtp = new TProfile("pncandtp","",nx0,&x0[0]);
-  pnchtp = new TProfile("pnchtp","",nx0,&x0[0]);
-  pnnetp = new TProfile("pnnetp","",nx0,&x0[0]);
-  pnnhtp = new TProfile("pnnhtp","",nx0,&x0[0]);
-  pncetp = new TProfile("pncetp","",nx0,&x0[0]);
-  pnmutp = new TProfile("pnmutp","",nx0,&x0[0]);
-  pchftp = new TProfile("pchftp","",nx0,&x0[0]);
-  pneftp = new TProfile("pneftp","",nx0,&x0[0]);
-  pnhftp = new TProfile("pnhftp","",nx0,&x0[0]);
-  pceftp = new TProfile("pceftp","",nx0,&x0[0]);
-  pmuftp = new TProfile("pmuftp","",nx0,&x0[0]);
-  pbetatp = new TProfile("pbetatp","",nx0,&x0[0]);
-  pbetastartp = new TProfile("pbetastartp","",nx0,&x0[0]);
+  pncandtp = new TProfile("pncandtp","",_jp_npts,&_jp_ptrange[0]);
+  pnchtp = new TProfile("pnchtp","",_jp_npts,&_jp_ptrange[0]);
+  pnnetp = new TProfile("pnnetp","",_jp_npts,&_jp_ptrange[0]);
+  pnnhtp = new TProfile("pnnhtp","",_jp_npts,&_jp_ptrange[0]);
+  pncetp = new TProfile("pncetp","",_jp_npts,&_jp_ptrange[0]);
+  pnmutp = new TProfile("pnmutp","",_jp_npts,&_jp_ptrange[0]);
+  pchftp = new TProfile("pchftp","",_jp_npts,&_jp_ptrange[0]);
+  pneftp = new TProfile("pneftp","",_jp_npts,&_jp_ptrange[0]);
+  pnhftp = new TProfile("pnhftp","",_jp_npts,&_jp_ptrange[0]);
+  pceftp = new TProfile("pceftp","",_jp_npts,&_jp_ptrange[0]);
+  pmuftp = new TProfile("pmuftp","",_jp_npts,&_jp_ptrange[0]);
+  pbetatp = new TProfile("pbetatp","",_jp_npts,&_jp_ptrange[0]);
+  pbetastartp = new TProfile("pbetastartp","",_jp_npts,&_jp_ptrange[0]);
   //
-  pchftp2 = new TProfile("pchftp2","",nx0,&x0[0]);
-  pneftp2 = new TProfile("pneftp2","",nx0,&x0[0]);
-  pnhftp2 = new TProfile("pnhftp2","",nx0,&x0[0]);
-  pceftp2 = new TProfile("pceftp2","",nx0,&x0[0]);
-  pmuftp2 = new TProfile("pmuftp2","",nx0,&x0[0]);
+  pchftp2 = new TProfile("pchftp2","",_jp_npts,&_jp_ptrange[0]);
+  pneftp2 = new TProfile("pneftp2","",_jp_npts,&_jp_ptrange[0]);
+  pnhftp2 = new TProfile("pnhftp2","",_jp_npts,&_jp_ptrange[0]);
+  pceftp2 = new TProfile("pceftp2","",_jp_npts,&_jp_ptrange[0]);
+  pmuftp2 = new TProfile("pmuftp2","",_jp_npts,&_jp_ptrange[0]);
   //
   hncandtp = new TH1D("hncandtp","",300,-0.5,299.5);
   hnchtp = new TH1D("hnchtp","",300,-0.5,299.5);
@@ -502,7 +442,7 @@ double vx[neta][nbins] =
 
     // Response closure
     p3rvsnpv = new TProfile3D("p3rvsnpv","",nx,&x[0],ny,&y[0],npv,&pv[0]);
-    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",nxW,&xW[0],nyW,&yW[0],npv,&pv[0]);
+    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",_jp_nwwpts,&_jp_wwptrange[0],nyW,&yW[0],npv,&pv[0]);
     p2rvsnpv = new TProfile2D("p2rvsnpv","",nx,&x[0],50,-0.5,49.5);
     h2r_r = new TH2D("h2r_r","",nx,&x[0],600,0,3);
     h2r_g = new TH2D("h2r_g","",nx,&x[0],600,0,3);

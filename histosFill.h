@@ -410,7 +410,7 @@ public :
   ofstream *ferr;
   TFile *_outfile;
   map<string, TH1D*> pudist;
-  TH1F *pumc;
+  TH1D *pumc;
   //TH1F *pudt;
   set<string> _trigs;
   vector<bool> _jetids;

@@ -376,8 +376,8 @@ class histosBasic {
   TProfile2D *pdy_r;
   TProfile2D *pdy_g;
 
-  histosBasic(TDirectory *dir, std::string trigname="", std::string cotrig="", double etamin = 0., 
-        double etamax = 2.0, double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
+  histosBasic(TDirectory *dir, string trigname, string cotrig, double etamin = 0., double etamax = 2.0,
+              double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
   ~histosBasic();
 
   void Write();
