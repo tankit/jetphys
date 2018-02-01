@@ -168,72 +168,37 @@ int tools::findPoint(TGraph *g, double x) {
 } // findPoint(TGraph*)
 
 // Divide histograms, invoking rebin if needed
-TH1D *tools::Divide(const TH1D *h1, const TH1D *h2, double c1, double c2,
-                    const char *opt) {
+TH1D *tools::Divide(const TH1D *_h1, const TH1D *_h2, double c1, double c2, const char *opt) {
 
+  TH1D *h1 = dynamic_cast<TH1D*>(_h1->Clone());
+  TH1D *h2 = dynamic_cast<TH1D*>(_h2->Clone());
   TH1D *h1r(0), *h2r(0);
-  if (h1->GetNbinsX()>h2->GetNbinsX()) {
-    h1r = Rebin(h1, h2); h1 = h1r;
+  if (_h1->GetNbinsX()>_h2->GetNbinsX()) {
+    h1r = Rebin(h1,h2);
+    h1->Delete();
+    h1 = h1r;
   }
-  if (h2->GetNbinsX()>h1->GetNbinsX()) {
-    h2r = Rebin(h2, h1); h2 = h2r;
+  if (_h2->GetNbinsX()>_h1->GetNbinsX()) {
+    h2r = Rebin(h2,h1);
+    h2->Delete();
+    h2 = h2r;
   }
 
   TH1D *h3 = dynamic_cast<TH1D*>(h1->Clone(Form("ratio_%s_%s",h1->GetName(),h2->GetName())));
   h3->Divide(h1, h2, c1, c2, opt);
 
-  // delete temporary copies
-  //if (h1r) h1r->Delete();
-  //if (h2r) h2r->Delete();
-
   return h3;
 } // Divide
-// Rebin first histogram to match the second
-TH1D *tools::Rebin(const TH1D *h, const TH1D* href) {
 
-  //assert(href->GetNbinsX()<=h->GetNbinsX());
-  if (!(href->GetNbinsX()<=h->GetNbinsX())) {
-    cout << "Histo has less bins than ref: "
-         << h->GetNbinsX() << " vs " << href->GetNbinsX()
-         << " for " << h->GetName() << endl;
-  }
-
-  // First, we need to rebin inclusive jets to match b-tagged jets
-  TH1D *hre = dynamic_cast<TH1D*>(href->Clone(Form("%s_rebin",h->GetName())));
-  hre->Reset();
-
-  for (int i = 1; i != h->GetNbinsX()+1; ++i) {
-
-    double x = h->GetBinLowEdge(i);
-    int j = hre->FindBin(x);
-    // Check that h is fully contained within href bin
-    if (h->GetBinContent(i)!=0) {
-
-      if (!(h->GetBinLowEdge(i)>=hre->GetBinLowEdge(j) - 1e-5 &&
-            h->GetBinLowEdge(i+1)<=hre->GetBinLowEdge(j+1) + 1e-5)) {
-        cerr << Form("Warning, bin edges overlapping: h=[%1.0f,%1.0f],"
-                     " hre=[%1.0f,%1.0f] (%s)",
-                     h->GetBinLowEdge(i), h->GetBinLowEdge(i+1),
-                     hre->GetBinLowEdge(j), hre->GetBinLowEdge(j+1),
-                     h->GetName()) << endl;
-      }
-
-      double y = ( hre->GetBinContent(j)*hre->GetBinWidth(j)
-                   + h->GetBinContent(i)*h->GetBinWidth(i) )
-        / hre->GetBinWidth(j);
-      //double ey = ( hre->GetBinError(j)*hre->GetBinWidth(j)
-      //            + h->GetBinError(i)*h->GetBinWidth(i) )
-      // / hre->GetBinWidth(j);
-      double ey = sqrt( pow(hre->GetBinError(j)*hre->GetBinWidth(j),2)
-                        + pow(h->GetBinError(i)*h->GetBinWidth(i),2) )
-        / hre->GetBinWidth(j);
-      hre->SetBinContent(j, y);
-      hre->SetBinError(j, ey);
-    }
-  } // for i
-
-  return hre;
-} // Rebin
+TH1D *tools::Rebin(TH1D *h, TH1D* href) {
+  TH1D *hr(0);
+  vector<double> hrefx;
+  for (unsigned i = 1; i <= href->GetNbinsX(); ++i)
+    hrefx.push_back(href->GetBinLowEdge(i));
+  hrefx.push_back(href->GetBinLowEdge(href->GetNbinsX()+1));
+  hr = dynamic_cast<TH1D*>(h->Rebin(href->GetNbinsX(),h->GetName(),&hrefx[0]));
+  return hr;
+}
 
 
 // Add two histograms by averaging

@@ -27,13 +27,14 @@ void Fracs::drawFracs(unsigned mode) {
   // Build appropriate wide binning
   _x.clear();
   if (_vspt) {
-    for (auto &xwi : xw) _x.push_back(xwi);
+    for (auto &ptwi : ptw) _x.push_back(ptwi);
   } else if (_vspu) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vsnpv) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vseta) {
-    for (int i = 0; i <= 104; ++i) _x.push_back(-5.2+0.1*i);
+    //for (int i = 0; i <= 104; ++i) _x.push_back(-5.2+0.1*i);
+    for (auto &ewi : etaw) _x.push_back(ewi);
   }
 
   assert(mode<_modes.size());
@@ -133,7 +134,12 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       assert(false);
     }
     pdt->SetName(Form("%s_dt",pdt->GetName()));
-    dtHistos[frc] = (_vspt ? tools::Rebin(pdt, href) : pdt->ProjectionX(Form("%s_px",pdt->GetName())));
+    if (_vspt or _vseta) {
+      TProfile *pdtmp = dynamic_cast<TProfile*>(pdt->Rebin(_x.size()-1,Form("%s_rb",pdt->GetName()),&_x[0]));
+      pdt->Delete(); pdt = 0;
+      pdt = pdtmp;
+    }
+    dtHistos[frc] = pdt->ProjectionX(Form("%s_px",pdt->GetName()));
     pdt->Delete();
 
     if (!_vseta) { bool entermcdir = dmc->cd(dirname); assert(entermcdir); }
@@ -145,7 +151,12 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       assert(false);
     }
     pmc->SetName(Form("%s_mc",pmc->GetName()));
-    mcHistos[frc] = (_vspt ? tools::Rebin(pmc, href) : pmc->ProjectionX(Form("%s_px",pmc->GetName())));
+    if (_vspt or _vseta) {
+      TProfile *pmcmp = dynamic_cast<TProfile*>(pmc->Rebin(_x.size()-1,Form("%s_rb",pmc->GetName()),&_x[0]));
+      pmc->Delete(); pdt = 0;
+      pmc = pmcmp;
+    }
+    mcHistos[frc] = pmc->ProjectionX(Form("%s_px",pmc->GetName()));
     pmc->Delete();
   } // for frc in _fracs
   href->Delete();
@@ -213,7 +224,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     hdt->SetLineColor(_style[frc].first + 1);
     hdt->SetMarkerStyle(_style[frc].second);
     hdt->SetMarkerSize(frc=="nhf" or (frc=="chf" and _dobeta) ? 1.3 : 1.0);
-    if (_vspt) hdt->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
+    if (_vspt or _vseta) hdt->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
     hsdt->Add(hdt, "SAME P");
 
     // Then, do the difference
@@ -256,7 +267,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
   c1->cd(2);
   if (_vspt) gPad->SetLogx();
-  //hsdf->Draw("SAME");
   gPad->RedrawAxis();
 
   c1->SaveAs(Form("%s%s/drawFracs%s.pdf",_savedir.c_str(),trgdir.c_str(), taguniq.c_str()));

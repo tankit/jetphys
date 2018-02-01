@@ -44,9 +44,8 @@ namespace tools {
   int findPoint(TGraph *g, double x);
 
   // Histogram manipulation
-  TH1D *Divide(const TH1D *h1, const TH1D *h2, double c1=1, double c2=1,
-	       const char *opt="");
-  TH1D *Rebin(const TH1D *h, const TH1D* href);
+  TH1D *Divide(const TH1D *h1, const TH1D *h2, double c1=1, double c2=1,const char *opt="");
+  TH1D *Rebin(TH1D *h, TH1D* href);
 
   void Hadd(TH1 *h1, TH1 *h2, double ptmax=0, bool syserr = false);
 } // namespace tools
