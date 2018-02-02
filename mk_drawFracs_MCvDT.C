@@ -11,8 +11,8 @@ void mk_drawFracs_MCvDT() {
     //const char *savedir="hwpdf";
     string title="RunG";
 
-    Fracs fracs(path,path,title,savedir);
-    Fracs tfracs(path,path,title,savedir,true);
+    Fracs fracs(path,path,title,savedir,false,"MC","RunG",3);
+    Fracs tfracs(path,path,title,savedir,true,"MC","RunG",3);
     for (unsigned i = 0; i<4; ++i) {
       fracs.drawFracs(i);
       tfracs.drawFracs(i);

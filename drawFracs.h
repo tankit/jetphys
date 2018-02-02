@@ -80,6 +80,7 @@ private:
   vector<double> _x;
 
   string _savedir;
+  int _order;
 
   Fracs() {}
 public:
@@ -91,19 +92,31 @@ public:
   * dt_type:
   *  "DT" (Data sample, default)
   *  "MC" (Pythia, for mc vs mc)
-  *  "HW" (Herwig, for mc vs mc) */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG") {
+  *  "HW" (Herwig, for mc vs mc)
+  * order:
+  *  0 standard
+  *  1 reshuffled */
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
     _plot_title = plot_title;
     _savedir = savedir;
+    assert(order==0 or order==1 or order==2 or order==3);
+    _order = order;
+    // This decides the ordering from bottom to top. Beta and muf are ignored.
+    if (order==0)
+      _fracs = {"betastar","beta","chf","nef","nhf","cef","muf"};
+    else if (order==1)
+      _fracs = {"cef","muf","nef","betastar","beta","chf","nhf"};
+    else if (order==2)
+      _fracs = {"nhf","betastar","beta","chf","nef","cef","muf"};
+    else if (order==3)
+      _fracs = {"betastar","beta","chf","nhf","nef","cef","muf"};
+
     gSystem->MakeDirectory(_savedir.c_str());
 
     _mc_type = mc_type;
     _dt_type = dt_type;
 
     _pertrg = pertrg;
-    if (pertrg) {
-      for (auto &trg : _jp_triggers) gSystem->MakeDirectory(Form("%s/%s",_savedir.c_str(),trg));
-    }
 
     bool all_DT = false;
     bool all_MC = false;
@@ -170,8 +183,6 @@ public:
     _h2min = {-10+1e-5, -6+1e-5, -6+1e-5, -6+1e-5};
     _h2max = { 10-1e-5, 16-1e-5, 16-1e-5, 16-1e-5};
 
-    _fracs = {"betastar","beta","chf","nef","nhf","cef","muf"};
-
     _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
   }
 };
@@ -187,7 +198,7 @@ Double_t jesFit(Double_t *x, Double_t *p, TF1 *fhb) {
   // p[0]: overall scale shift, p[1]: HCAL shift in % (full band +3%)
   double ptref = 208; // pT that minimizes correlation in p[0] and p[1]
   double ptx = max(150.,min(340.,pt));
-  
+
   return (p[0] + p[1]/3.*100*(fhb->Eval(ptx)-fhb->Eval(ptref)));
 } // jesFit
 

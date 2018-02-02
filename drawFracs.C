@@ -73,17 +73,16 @@ void Fracs::drawFracs(unsigned mode) {
 
 void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double eta1, double eta2) {
   // List of differences
-  string taguniq = (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2)) + string(_shiftJES ? "_shiftJES" : "") 
-                 + string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"");
-  string trgdir = _pertrg?("/"+trg).c_str():"";
+  string taguniq = string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"") + string(_shiftJES ? "_shiftJES" : "")
+                 + (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2));
   map<string, TH1D*> mdf;
 
   THStack *hsdt = new THStack(Form("hsdt%s",taguniq.c_str()),"stacked histograms");
   THStack *hsmc = new THStack(Form("hsmc%s",taguniq.c_str()),"stacked histograms");
   THStack *hsdf = new THStack(Form("hsdf%s",taguniq.c_str()),"differences");
 
-  TH1D *h = new TH1D(Form("h%s",taguniq.c_str()),";p_{T} (GeV);PF energy fractions",_x.size()-1,&_x[0]);
-  TH1D *h2 = new TH1D(Form("h2%s",taguniq.c_str()),Form(";p_{T} (GeV);%s-%s (%%)",_dt_type.c_str(),_mc_type.c_str()),_x.size()-1,&_x[0]);
+  TH1D *h = new TH1D(Form("h%s",taguniq.c_str()),Form(";p_{T%s} (GeV);PF energy fractions",_tp=="tp"?",tag":""),_x.size()-1,&_x[0]);
+  TH1D *h2 = new TH1D(Form("h2%s",taguniq.c_str()),Form(";p_{T%s} (GeV);%s-%s (%%)",_tp=="tp"?",tag":"",_dt_type.c_str(),_mc_type.c_str()),_x.size()-1,&_x[0]);
 
   if (_vspt) {
     h->GetXaxis()->SetMoreLogLabels();
@@ -91,8 +90,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     h2->GetXaxis()->SetMoreLogLabels();
     h2->GetXaxis()->SetNoExponent();
   } else if (_vspu) {
-    h->SetXTitle("TruePU");
-    h2->SetXTitle("TruePU");
+    h->SetXTitle("#mu");
+    h2->SetXTitle("#mu");
   } else if (_vsnpv) {
     h->SetXTitle("N_{PV,good}");
     h2->SetXTitle("N_{PV,good}");
@@ -112,12 +111,37 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
   c1->cd(1);
   TLegend *leg = 0;
-  if (_vseta)
-    leg = tdrLeg(0.35,0.15,0.55,0.45);
-  else
-    leg = tdrLeg(0.20,0.18,0.50,0.48);
+  if (_order==0) {
+    if (_vseta)
+      leg = tdrLeg(0.38,0.1,0.58,0.4);
+    else if (_vspt)
+      leg = tdrLeg(0.20,0.18,0.50,0.48);
+    else
+      leg = tdrLeg(0.20,0.18,0.50,0.48);
+  } else if (_order==1) {
+    if (_vseta)
+      leg = tdrLeg(0.38,0.45,0.58,0.75);
+    else if (_vspt)
+      leg = tdrLeg(0.20,0.45,0.50,0.75);
+    else
+      leg = tdrLeg(0.20,0.5,0.50,0.8);
+  } else if (_order==2) {
+    if (_vseta)
+      leg = tdrLeg(0.38,0.1,0.58,0.4);
+    else if (_vspt)
+      leg = tdrLeg(0.20,0.25,0.50,0.55);
+    else
+      leg = tdrLeg(0.20,0.18,0.50,0.48);
+  } else if (_order==3) {
+    if (_vseta)
+      leg = tdrLeg(0.38,0.1,0.58,0.4);
+    else if (_vspt)
+      leg = tdrLeg(0.20,0.18,0.50,0.48);
+    else
+      leg = tdrLeg(0.20,0.18,0.50,0.48);
+  }
 
-  const char *dirname = Form("Eta_%1.1f-%1.1f%s",eta1,eta2,trgdir.c_str());
+  const char *dirname = Form("Eta_%1.1f-%1.1f%s",eta1,eta2,_pertrg?("/"+trg).c_str():"");
 
   TH1D *href = new TH1D("href","", _x.size()-1, &_x[0]);
   map<string,TH1D*> mcHistos;
@@ -262,7 +286,27 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   if (_pertrg) {
     auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_ntrigs,trg)-_jp_triggers;
     tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
-    tex->DrawLatex(0.43,0.65,Form("%1.1f<p_{T}< %1.1f",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+    if (_order==0) {
+      if (_vspt)
+        tex->DrawLatex(0.2,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+      else
+        tex->DrawLatex(0.38,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+    } else if (_order==1) {
+      if (_vspt)
+        tex->DrawLatex(0.2,0.1,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+      else
+        tex->DrawLatex(0.38,0.1,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+    } else if (_order==2) {
+      if (_vspt)
+        tex->DrawLatex(0.2,0.80,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+      else
+        tex->DrawLatex(0.38,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+    } else if (_order==3) {
+      if (_vspt)
+        tex->DrawLatex(0.2,0.75,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+      else
+        tex->DrawLatex(0.38,0.75,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+    }
   }
   gPad->RedrawAxis();
 
@@ -270,7 +314,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   if (_vspt) gPad->SetLogx();
   gPad->RedrawAxis();
 
-  c1->SaveAs(Form("%s%s/drawFracs%s.pdf",_savedir.c_str(),trgdir.c_str(), taguniq.c_str()));
+  c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(), taguniq.c_str()));
 
   if (_dofit) { // Estimate jet response slope by analyzing composition
     TLatex *tex = new TLatex();
@@ -296,7 +340,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       fchf->Draw("SAME");
 
       tex->SetTextColor(kRed);
-      tex->DrawLatex(0.17,0.40,Form("%1.2f#pm%1.2f%%, #chi^2/NDF=%1.1f/%d", fchf->GetParameter(0), 
+      tex->DrawLatex(0.17,0.40,Form("%1.2f#pm%1.2f%%, #chi^2/NDF=%1.1f/%d", fchf->GetParameter(0),
                                     fchf->GetParError(0), fchf->GetChisquare(), fchf->GetNDF()));
     }
 
@@ -323,6 +367,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
     h2->SetMaximum(+5);//+3.0);
     h2->SetMinimum(-5);//-1.5);
-    c1->SaveAs(Form("%s%s/drawFracs_WithFit%s.pdf",savedir.c_str(),trgdir.c_str(),taguniq.c_str()));
+    c1->SaveAs(Form("%s/drawFracs_WithFit%s.pdf",savedir.c_str(),taguniq.c_str()));
   }
 }

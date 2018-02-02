@@ -20,7 +20,7 @@ void histosFill::Loop()
 
   map<string, int> cnt; // efficiency counters
 
-  ferr = new ofstream("reports/histosFill.log",ios::out);
+  ferr = new ofstream(Form("reports/histosFill-%s.log",_jp_type),ios::out);
 
   // Report memory usage to avoid malloc problems when writing file
   *ferr << endl << "Starting Loop() initialization:" << endl << flush;
@@ -552,7 +552,7 @@ void histosFill::Loop()
     } // ecal veto
 
     // Check rho
-    if (_pass) { 
+    if (_pass) {
       if (rho>40.) {
         ++_rhocounter_bad;
         _pass = false;
@@ -971,7 +971,7 @@ void histosFill::Loop()
           << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100. << "%)" << endl
           << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
   }
-  
+
   // Report rho veto efficiency
   *ferr << "Rho<40 veto counter discarded " << _rhocounter_bad << " events out of " << _rhocounter_good
         << " (" << double(_rhocounter_bad)/double(_rhocounter_good)*100. << "%)" << endl
@@ -986,25 +986,25 @@ void histosFill::Loop()
 
 
   cout << "Reporting lumis not discraded in reports/passedlumis.json" << endl;
-  ofstream fout("reports/passedlumis.json", ios::out);
+  ofstream fout(Form("reports/passedlumis-%s.json",_jp_type), ios::out);
   for (auto &lumit : _passedlumis)
     fout << lumit.first << " " << lumit.second << endl;
   if (_jp_dojson and _badjson.size()>0) {
     cout << "Reporting lumis discarded by json selection (_jp_dojson) in reports/badlumis_json.json" << endl;
-    ofstream fout2("reports/badlumis_json.json", ios::out);
+    ofstream fout2(Form("reports/badlumis_json-%s.json",_jp_type), ios::out);
     for (auto &jsit : _badjson)
       fout2 << jsit.first << " " << jsit.second << endl;
   } // _jp_dojson
   if (_jp_dolumi) {
     if (_badlums.size()>0) {
       cout << "Reporting lumis discarded by lumifile selection (_jp_dolumi) in reports/badlumis_lumi.json" << endl;
-      ofstream fout2("reports/badlumis_lumi.json", ios::out);
+      ofstream fout2(Form("reports/badlumis_lumi-%s.json",_jp_type), ios::out);
       for (auto &jsit : _nolums)
         fout2 << jsit.first << " " << jsit.second << endl;
     } // _badlums
     if (_nolums.size()>0) {
       cout << "Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in reports/badlumis_zerolumi.json" << endl;
-      ofstream fout2("reports/badlumis_zerolumi.json", ios::out);
+      ofstream fout2(Form("reports/badlumis_zerolumi-%s.json",_jp_type), ios::out);
       for (auto &jsit : _nolums)
         fout2 << jsit.first << " " << jsit.second << endl;
     } // _nolums
