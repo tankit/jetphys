@@ -29,10 +29,9 @@
 
 using namespace std;
 
-void recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt", bool ptSelect = true, 
+void recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt", bool ptSelect = true,
                  bool othProf = false, int lvl = -1, double etamid = 0);
 map<string, pair<double, double> > _ptranges;
-map<string, double> _trigwgts;
 vector<string> _ignoretrgs;
 
 
@@ -55,26 +54,22 @@ void histosCombine() {
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
 
   // Store pT ranges to a nice map
-    if (_jp_ismc) {
-      if (_jp_usemctrig) {
-        _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
-      } else {
-        _ptranges["mc"] = pair<double,double>(0., 0.);
-        _ignoretrgs.push_back("mc");
-      }
+  if (_jp_ismc) {
+    if (_jp_usemctrig) {
+      _ptranges["mc"] = pair<double,double>(0., _jp_sqrts/2.);
+    } else {
+      _ptranges["mc"] = pair<double,double>(0., 0.);
+      _ignoretrgs.push_back("mc");
     }
-    for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
-      _ptranges[_jp_triggers[itrg]] = pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
+  }
+  for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
+    _ptranges[_jp_triggers[itrg]] = pair<double, double>(_jp_trigranges[itrg][0], _jp_trigranges[itrg][1]);
 
-      if (_jp_ismc and _jp_usemctrig) { // When in mc, we need to know how to use trigger weighting. Either mc or triggers are ignored
-        _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
-        _ignoretrgs.push_back(_jp_triggers[itrg]);
-      } else if (_jp_isdt and _jp_usetriglumi) {
-        _trigwgts[_jp_triggers[itrg]] = _jp_triglumi[_jp_ntrigs-1]/_jp_triglumi[itrg];
-      }
+    if (_jp_ismc and _jp_usemctrig) { // When in mc, we need to know how to use trigger weighting. Either mc or triggers are ignored
+      _ptranges[_jp_triggers[itrg]] = pair<double,double>(0.,0.);
+      _ignoretrgs.push_back(_jp_triggers[itrg]);
     }
-    
-    
+  }
 
   // Loop over all the directories recursively
   // List here the histograms that need merging
@@ -232,7 +227,7 @@ void histosCombine() {
   recurseFile(fin, fout, "hdjresptp_tag_a025");
   recurseFile(fin, fout, "hdjresp_tag_a03");
   recurseFile(fin, fout, "hdjresptp_tag_a03");
-  
+
   recurseFile(fin, fout, "hdjresp_probe_a005");
   recurseFile(fin, fout, "hdjresptp_probe_a005");
   recurseFile(fin, fout, "hdjresp_probe_a01");
@@ -321,9 +316,7 @@ inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSele
       } // in ptrange
     } // for i
   } else {
-    double wgt = 1.0;
-    if (othProf and _jp_isdt and _jp_usetriglumi) wgt = _trigwgts[indir->GetName()];
-    _hpt->Add(hpt,wgt);
+    _hpt->Add(hpt);
     outdir->cd();
   }
 }
@@ -380,9 +373,9 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
         float etamin, etamax;
         if (loclvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) ) {
           outdir2->cd();
-          TObject *inobj = indir2->Get(Form("%s/%s",(_jp_isdt or (_jp_ismc and _jp_domctrigsim and !_jp_usemctrig)) ? _jp_reftrig : "mc",hname.c_str()));
+          TObject *inobj = indir2->Get(Form("%s/%s",_jp_isdt ? _jp_reftrig : "mc",hname.c_str()));
           if (inobj) {
-            cout << indir2->GetName() << " ";
+            cout << "[" << etamin << "," << etamax << "]";
             TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
             hpt->Reset();
             if (hpt) {
@@ -394,9 +387,9 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
           }
         } else if (loclvl==0 and TString(indir2->GetName()).Contains("FullEta")) {
           outdir2->cd();
-          TObject *inobj = indir2->Get(Form("%s/%s",(_jp_isdt or (_jp_ismc and _jp_domctrigsim and !_jp_usemctrig)) ? _jp_reftrig : "mc",hname.c_str()));
+          TObject *inobj = indir2->Get(Form("%s/%s",_jp_isdt ? _jp_reftrig : "mc",hname.c_str()));
           if (inobj) {
-            cout << indir2->GetName() << " ";
+            if (string(indir2->GetName())!="FullEta_Gen") cout << "FullEta";
             TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
             hpt->Reset();
             if (hpt) {
@@ -408,10 +401,11 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
           }
         } else {
           if (loclvl==0 or std::find(_ignoretrgs.begin(),_ignoretrgs.end(),indir2->GetName())==_ignoretrgs.end()) {
-            if (loclvl>0) {
+            string sid = indir->GetName();
+            if (loclvl>0 and (sid=="Eta_0.0-1.3" or (TString(sid).Contains("FullEta") and sid!="FullEta_Gen"))) {
+              if (string(indir2->GetName())=="jt40" or string(indir2->GetName())=="mc") cout << " ";
               cout << indir2->GetName();
-              if (string(indir2->GetName())==string(_jp_reftrig)) cout << "; ";
-              else cout << ",";
+              if (string(indir2->GetName())!=_jp_reftrig) cout << ",";
             }
             recurseFile(indir2, outdir2, hname, ptSelect, othProf, loclvl, etamid);
           }

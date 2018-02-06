@@ -35,7 +35,7 @@ constexpr bool strings_equal(char const * a, char const * b) {
 // Debugging info
 constexpr bool _jp_debug = false;
 // Will assert be used in the programs?
-//#define USEASSERT // Expert option: comment this if certain that no problems occur. More than 1/3 off the run time.
+#define USEASSERT // Expert option: comment this if certain that no problems occur. More than 1/3 off the run time.
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)

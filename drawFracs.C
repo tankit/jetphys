@@ -150,6 +150,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     const char *hname0 = Form("p%s%s%s",frc.c_str(),_tp.c_str(),_modes[mode].c_str());
     if (!_vseta) { bool enterdtdir = ddt->cd(dirname); assert(enterdtdir); }
     else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
+    else { bool enterdtdir = ddt->cd(); assert(enterdtdir); }
     TProfile *pdt = dynamic_cast<TProfile*>(gDirectory->Get(hname0));
     if (!pdt) {
       cout << hname0 << " not found in (dt) " << gDirectory->GetName() << endl << flush;
@@ -168,6 +169,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
     if (!_vseta) { bool entermcdir = dmc->cd(dirname); assert(entermcdir); }
     else if (_pertrg) { bool entermcdir = dmc->cd(trg.c_str()); assert(entermcdir); }
+    else { bool entermcdir = dmc->cd(); assert(entermcdir); }
     TProfile *pmc = dynamic_cast<TProfile*>(gDirectory->Get(hname0));
     if (!pmc) {
       cout << hname0 << " not found in (mc) " << gDirectory->GetName() << endl << flush;

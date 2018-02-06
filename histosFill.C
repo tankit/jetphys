@@ -660,11 +660,12 @@ void histosFill::Loop()
         int k = pudist[trg_name]->FindBin(trpu);
         double w1 = pudist[trg_name]->GetBinContent(k);
         double w2 = pumc->GetBinContent(k);
-        Double_t wtrue = (w1==0 || w2==0 ? 1. : w1 / w2);
+        Double_t wtrue = (w2==0 ? 0. : w1 / w2);
         _wt[trg_name] *= wtrue;
 
         // check for non-zero PU weight
-        _pass = _pass and (pudist[trg_name]->GetBinContent(pudist[trg_name]->FindBin(trpu))!=0);
+        _pass = _pass and wtrue!=0;
+        if (wtrue==0) cout "Zero PU weight!" << endl;
       }
     } // for itrg
     _wt["mc"] = _wt[_jp_reftrig];
@@ -2331,10 +2332,7 @@ void histosFill::fillJetID(vector<bool> &id)
   assert(int(id.size())==njt);
 
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
-
     id[jetidx] = ((fabs(jteta[jetidx])<2.5 ? jtidtight[jetidx] : jtidloose[jetidx]));
-             //&& (_jp_ismc || jtbeta[jetidx]!=0));
-             //&& (_jp_ismc || (1-jtbetastar[jetidx])>0.5));
 
     if (_jp_doECALveto) {
       assert(_ecalveto);
@@ -2342,7 +2340,6 @@ void histosFill::fillJetID(vector<bool> &id)
       id[jetidx] = (id[jetidx] and _ecalveto->GetBinContent(ibin)==0);
     }
   }
-
 } // fillJetID
 
 
