@@ -683,16 +683,13 @@ void histosFill::Loop()
     }
 
     if (_jp_debug) cout << "Entering JEC calculation!" << endl;
+    // REMOVED: "Oversmear MC to match data" (mex and mey definitions moved to later times)
     // Calculate pT, eta, phi, y, E and uncorrected pT
-    // oversmear jets and MET in MC
-    double mex = met * cos(metphi);
-    double mey = met * sin(metphi);
     for (int jetidx = 0; jetidx != njt; ++jetidx) {
       p4.SetPxPyPzE(jtp4x[jetidx],jtp4y[jetidx],jtp4z[jetidx],jtp4t[jetidx]);
       // Divide by the original JES
       if (_jp_debug) cout << "Entering jet loop!" << endl;
-      if (_jp_undojes)
-        p4 *= 1/jtjes[jetidx];
+      if (_jp_undojes) p4 *= 1/jtjes[jetidx];
 
       jtptu[jetidx] = p4.Pt();
       jteu[jetidx] = p4.E();
@@ -732,9 +729,8 @@ void histosFill::Loop()
       assert(jtjesnew[jetidx] == v[v.size()-1]);
 
       if (_jp_debug) cout << "Reapplying JEC!" << endl;
-      // Correct jets
-      if (_jp_redojes)
-        p4 *= jtjesnew[jetidx];
+      if (_jp_redojes) p4 *= jtjesnew[jetidx];
+
       jte[jetidx] = p4.E();
       jtpt[jetidx] = p4.Pt();
       jteta[jetidx] = p4.Eta();
@@ -751,10 +747,6 @@ void histosFill::Loop()
         jtgenphi[jetidx] = gp4.Phi();
       }
 
-      // REMOVED: "Oversmear MC to match data"
-      // TODO: Should we check, what MET is used nowadays?
-      met = tools::oplus(mex, mey);
-      metphi = atan2(mey, mex);
       if (_jp_debug) cout << "Jet " << jetidx << " corrected!" << endl;
     } // for jetidx
 
@@ -808,16 +800,16 @@ void histosFill::Loop()
     } // MC
 
     if (_jp_debug) cout << "MET calculation!" << endl;
-    double ucx = -mex;
-    double ucy = -mey;
+    double mex = met * cos(metphi);
+    double mey = met * sin(metphi);
+    double ucx = mex;
+    double ucy = mey;
     // Propagate jec to MET 1 and MET 2
     for (int jetidx = 0; jetidx != njt; ++jetidx) {
       // Only use jets with corr. pT>25 GeV to equalize data and MC thresholds
       if (jtpt[jetidx] > _jp_recopt and fabs(jteta[jetidx])<4.7) {
-        // MET 1 stuff
-        // Subtract uncorrected jet pT from met, put back corrected
-        // Also add RC offset to keep PU isotropic
-        // Remember that MET is negative vector sum
+        // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
+        // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
         _L1RC->setRho(rho);
         _L1RC->setJetA(jta[jetidx]);
         _L1RC->setJetPt(jtptu[jetidx]);
@@ -829,28 +821,27 @@ void histosFill::Loop()
         mex += dpt * cos(jtphi[jetidx]);
         mey += dpt * sin(jtphi[jetidx]);
 
-        // MET 2 stuff
-        // Keep track of remaining pT in unclustered energy, i.e.
-        // subtract jets from -MET to have the non-jet component
-        // treat UE and PU underneath jets as unclustered in order
-        // to keep the homogeneous
-        double ue = 1.068 * jta[jetidx];
-        ucx -= (l1corr * jtptu[jetidx] - ue) * cos(jtphi[jetidx]);
-        ucy -= (l1corr * jtptu[jetidx] - ue) * sin(jtphi[jetidx]);
+        // MET 2: record unclustered energy.
+        // Keep track of remaining pT in unclustered energy, add to MET l1corr jets, from which ue is substracted.
+        // Effectively this means substracting jets (without their PU and UE) from MET (=> homogeneous background).
+        double ue = 1.068 * jta[jetidx]; // CAUTION: One should check that the magical coefficient here is good.
+        double dptu = -ue + l1corr*jtptu[jetidx];
+        ucx += dptu * cos(jtphi[jetidx]);
+        ucy += dptu * sin(jtphi[jetidx]);
       }
     } // for jetidx
-    // Type I MET
 
+    // Type I MET (this is the best one we've got; works optimally if we keep T0Txy MET as the raw MET and apply here the newest JEC)
+    // met1 = -jtpt[jetidx]+l1corr*jtptu[jetidx]+metraw
     met1 = tools::oplus(mex, mey);
     metphi1 = atan2(mey, mex);
-    // Correct unclustered energy; jec for 10 GeV jets varies between
-    // 1.1-1.22 at |y|<2.5, 2.5-3.0 even goes up to 1.35
-    // => assume average correction of about 1.15 needed
-    // => did not seem even nearly enough; try 1.5
-    // => reduce down to 1.25 (high pT threshold on jets)
-    mex -= 0.25*ucx;//0.5*ucx;
-    mey -= 0.25*ucy;//0.5*ucy;
-    // Type II MET
+
+    // Correct unclustered energy; jec for 10 GeV jets varies between 1.1-1.22 at |y|<2.5,
+    // 2.5-3.0 even goes up to 1.35 => assume 1.15  => try 1.5 => to 1.25 (high pT threshold on jets)
+    mex += 0.25*ucx;
+    mey += 0.25*ucy;
+    // Type II MET witch C = 1.25 (This is not recommended for pfJets.
+    // met2 = met1 - C*uncl.ptsum = met1 + 0.25*(l1corr*jtptu[jetidx]-ue[jetidx]) = 1.25*metraw + 1.25*l1corr*jtptu[jetidx] - jtpt[jetidx] - 0.25ue[jetidx]
     met2 = tools::oplus(mex, mey);
     metphi2 = atan2(mey, mex);
 
@@ -1254,7 +1245,7 @@ void histosFill::fillBasic(histosBasic *h)
             if (_jp_do3dHistos) {
               double asymm = (ptprobe - pttag)/(2*ptave);
               double asymmtp = (ptprobe - pttag)/(2*pttag);
-              double mpf = met*cos(delta_phi(metphi2,jtphi[itag]))/2;
+              double mpf = met1*cos(delta_phi(metphi1,jtphi[itag]))/2;
               double mpftp = mpf/pttag;
               mpf /= ptave;
 
@@ -1267,7 +1258,7 @@ void histosFill::fillBasic(histosBasic *h)
             //} // Dijet balance
 
             if (alphatp < 0.3) {
-              double metstuff = met2 * cos(delta_phi(metphi2, phiprobe));
+              double metstuff = met1 * cos(delta_phi(metphi1, phiprobe));
               if (pttag >= h->ptmin and pttag < h->ptmax)
                 h->hmpfx->Fill(1 + metstuff / pttag, _w);
               h->pmpfx->Fill(pttag, 1 + metstuff / pttag, _w);
@@ -1362,9 +1353,6 @@ void histosFill::fillBasic(histosBasic *h)
   // retrieve event-wide variables
   double dphi = (i1>=0 ? delta_phi(jtphi[i0], jtphi[i1]) : 0.);
   double dpt = (i1>=0 ? fabs(jtpt[i0]-jtpt[i1])/(jtpt[i0]+jtpt[i1]) : 0.999);
-  //double met = this->met;
-  //double metphi = this->metphi;
-  double sumet = this->metsumet;
 
   if (_jp_debug) cout << "Entering jet loop" << endl << flush;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
@@ -1605,8 +1593,8 @@ void histosFill::fillBasic(histosBasic *h)
             h->hphi->Fill(phi, _w);
             h->hdphi->Fill(dphi, _w);
             h->hdpt->Fill(dpt, _w);
-            h->hjet->Fill(pt / sumet, _w);
-            h->hmet->Fill(met / sumet, _w);
+            h->hjet->Fill(pt / metsumet, _w);
+            h->hmet->Fill(met / metsumet, _w);
             h->hmetphi->Fill(delta_phi(metphi, phi), _w);
             // control plots for vertex
             h->hpvndof->Fill(pvndof);
@@ -1914,7 +1902,7 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
           if (_jp_do3dHistos) {
             double asymm = (ptprobe - pttag)/(2*ptave);
 //             double asymmtp = (ptprobe - pttag)/(2*pttag);
-            double mpf = met*cos(delta_phi(metphi2,_phi[itag]))/(2*ptave);
+            double mpf = met1*cos(delta_phi(metphi1,_phi[itag]))/(2*ptave);
 //             double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/(2*pttag);
             for (auto alphaidx = 0u; alphaidx < h->alpharange.size(); ++alphaidx) {
               float alphasel = h->alpharange[alphaidx];
