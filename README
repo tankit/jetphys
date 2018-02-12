@@ -4,6 +4,14 @@ Additions and further development performed by his student Hannu Siikonen.
 Contact: mikko.voutilainen@cern.ch
          hannu.siikonen@cern.ch
 
+IMPORTANT:
+mk_histosFill.C and settings.h are available only in *_template -format.
+The end user is supposed to strip the '_template' from the names of these files.
+The files mk_histosFill.C and settings.h are mentioned in .gitignore, so
+that each user may have their customized setups. The _template files that
+are included in the git repo should be edited only when something is added
+or removed from the project.
+
 The code is made to be run over CMS SMPJ jet tuples, described by
 https://github.com/cms-smpj/SMPJ
 https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy

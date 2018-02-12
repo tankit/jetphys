@@ -145,14 +145,14 @@ public:
     // }
 
     _etas.push_back(make_pair<double, double>(0., 1.3));
-    //_etas.push_back(make_pair<double, double>(0.0, 0.5));
-    //_etas.push_back(make_pair<double, double>(0.5, 1.0));
+    _etas.push_back(make_pair<double, double>(0.0, 0.5));
+    _etas.push_back(make_pair<double, double>(0.5, 1.0));
     _etas.push_back(make_pair<double, double>(1.0, 1.5));
     _etas.push_back(make_pair<double, double>(1.5, 2.0));
     _etas.push_back(make_pair<double, double>(2.0, 2.5));
     _etas.push_back(make_pair<double, double>(2.5, 3.0));
-    //_etas.push_back(make_pair<double, double>(3.0, 3.2));
-    //_etas.push_back(make_pair<double, double>(3.2, 4.7));
+    _etas.push_back(make_pair<double, double>(3.0, 3.2));
+    _etas.push_back(make_pair<double, double>(3.2, 4.7));
 
     _style["betastar"] = make_pair<int, int>(kRed+2, kOpenCircle);
     _style["chf"] = make_pair<int, int>(_dobeta ? kRed+1 : kRed, _dobeta ? kOpenDiamond : kFullCircle);
