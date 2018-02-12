@@ -665,7 +665,7 @@ void histosFill::Loop()
 
         // check for non-zero PU weight
         _pass = _pass and wtrue!=0;
-        if (wtrue==0) cout "Zero PU weight!" << endl;
+        if (wtrue==0) cout << "Zero PU weight!" << endl;
       }
     } // for itrg
     _wt["mc"] = _wt[_jp_reftrig];
