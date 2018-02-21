@@ -7,19 +7,42 @@ if len(sys.argv)!=2:
 
 path = sys.argv[1]
 
+print(path+'lumis.txt')
 f = open(path+'lumis.txt', 'r')
 g = open(path+'lumis.json', 'w')
 
-init = False
+stuff = {}
 for line in f:
     twins = line.split(",", 1)
-    if not init:
-        init = True
-        g.write('{')
+    tmpstuff = sorted(list(map(int,twins[1].rstrip().lstrip().rstrip(']').lstrip('[').split(","))))
+    shortstuff = []
+    prev = tmpstuff[0]
+    start = prev
+    for nxt in tmpstuff[1:]:
+        if nxt==prev+1:
+            prev = nxt
+        elif start==prev:
+            shortstuff.append("["+str(prev)+","+str(prev)+"]")
+            prev = nxt
+            start = nxt
+        else:
+            shortstuff.append("["+str(start)+","+str(prev)+"]")
+            prev = nxt
+            start = nxt
+    if start==prev:
+        shortstuff.append("["+str(prev)+","+str(prev)+"]")
     else:
-        g.write(",\n ")
-    g.write('"' + twins[0] + '": ' + twins[1].rstrip())
-g.write("}")
+        shortstuff.append("["+str(start)+","+str(prev)+"]")
+    stuff[int(twins[0])] = "["+", ".join(shortstuff)+"]"
+
+nxtprnt = ""
+cumulate = ""
+for run in sorted(stuff.keys()):
+    cumulate += nxtprnt
+    cumulate += '"' + str(run) + '": '
+    cumulate += stuff[run]
+    nxtprnt = ", "
+g.write("{" + cumulate + "}")
 
 f.close()
 g.close()
