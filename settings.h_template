@@ -165,8 +165,8 @@ const constexpr int _jp_IOVranges[_jp_nIOV][2] =
 
 //{ BEGIN For MC reweighting purposes, PU profiles for data and MC
 constexpr bool _jp_reweighPU = true;
-const constexpr char _jp_pudata[] = "pileup/pileup_DT.root";
-const constexpr char _jp_pumc[]   = "pileup/pu.root";
+const constexpr char _jp_pudata[] = "pileup/curr/pileup_DT.root";
+const constexpr char _jp_pumc[]   = "pileup/curr/pileup_MC.root";
 //} END PU profiles
 
 
