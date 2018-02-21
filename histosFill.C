@@ -314,8 +314,8 @@ void histosFill::Loop()
   }
 
   if (_jp_doetaphiexcl) {
-    fetaphiexcl = new TFile("hotjets.root","READ");
-    assert(fetaphiexcl and !fetaphiexcl->IsZombie() && "file hotjets.root missing");
+    fetaphiexcl = new TFile(Form("rootfiles/hotjets-run%s.root",_jp_etaphitag),"READ");
+    assert(fetaphiexcl and !fetaphiexcl->IsZombie() && Form("file rootfiles/hotjets-run%s.root missing",_jp_etaphitag));
     h2etaphiexcl = (TH2D*)fetaphiexcl->Get(_jp_etaphitype);
     assert(h2etaphiexcl and "erroneous eta-phi exclusion type");
   }

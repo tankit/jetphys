@@ -48,7 +48,11 @@ Step-by-step installation {
     git clone https://github.com/miquork/jecsys.git
     ln -s jecsys/CondFormats jetphys/
     cd jetphys
-  
+
+  * histograms for excluding hot eta-phi zones in the 2016 data
+    (_jp_doetaphiexcl):
+    ln -s ../jecsys/rootfiles rootfiles
+
   * JEC text files from JECDatabase in github:
     https://github.com/cms-jet/JECDatabase/tree/master/tarballs/Summer15_50nsV5.tar.gz
     [save this to CondFormats/JetMETObjects/data]
@@ -57,7 +61,7 @@ Step-by-step installation {
     cd ../..
   
   
-  * RooUnfold: (not indispensable currently)
+  * RooUnfold: (not indispensable currently & already included in the repo)
     svn co https://svnsrv.desy.de/public/unfolding/RooUnfold/trunk RooUnfold
     cd RooUnfold; make; cd ..
   (see also: http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html )

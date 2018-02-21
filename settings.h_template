@@ -215,6 +215,7 @@ constexpr double _jp_xsecMinBias = 7.126E+10;
 //{ BEGIN Special histosFill analyses that are not typically needed
 // Eta phi exclusion due to ecal problems
 constexpr bool _jp_doetaphiexcl = false;
+const constexpr char _jp_etaphitag[] = "BCD"; // check filenames in jecsys/rootfiles
 const constexpr char _jp_etaphitype[] = "h2hotr"; // h2hotr (Robert) or h2hotm (Mikko)
 
 // Veto jets near ECAL boundaries in JetID
