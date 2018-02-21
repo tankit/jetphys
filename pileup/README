@@ -3,8 +3,8 @@ Instructions to produce PU histos for DT (7.10.2016, Hannu Siikonen)
 
 Step1:
 
-Copy the latest certificate and pileup_latest.txt to the current directory.
-These should be found in /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/
+Copy the latest certificate to the current directory.
+This should be found in /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/
 Finally, set the names of these files in the beginning of the puhistos.sh script.
 
 - Why copy? This way we can easily check afterwards how progressed jsons were previously used
