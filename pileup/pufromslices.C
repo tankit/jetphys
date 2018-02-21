@@ -34,7 +34,7 @@ void pufromslices() {
   std::regex fileformat("QCD_Pt_([0-9]*)to([0-9]*|Inf)_TuneCUETP8M_13TeV_pythia8.root");
   std::cmatch match;
   TFile *output = new TFile("pileup_MC.root","RECREATE");
-  TH1D *summary = new TH1D("pileupmc","",600,0,60);
+  TH1D *summary = new TH1D("pileupmc","",_jp_maxpu,0,_jp_maxpu);
   vector<int> pthatmin =
     {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200};
 
@@ -53,7 +53,7 @@ void pufromslices() {
         std::regex_match(fname.Data(), match, fileformat);
         int number = stoi(match[1]);
         const char *histname = Form("pileupmc%d",number);
-        TH1D *hist = new TH1D(histname,"",600,0,60);
+        TH1D *hist = new TH1D(histname,"",_jp_maxpu,0,_jp_maxpu);
         t->Draw(Form("EvtHdr_.mTrPu>>%s",histname));
         int pos = 0;
         while (pthatmin[pos]!=number)
@@ -63,7 +63,6 @@ void pufromslices() {
     }
   }
   output->cd();
-  summary->Rebin(10);
   summary->Write();
   //output->Write();
   output->Delete();
