@@ -665,11 +665,14 @@ void histosFill::Loop()
 
         // check for non-zero PU weight
         _pass = _pass and wtrue!=0;
-        if (wtrue==0) cout << "Zero PU weight!" << endl;
+        if (wtrue==0) cout << "Zero PU weight! run: " << run << " lumi: " << lbn << " pu: " << trpu << "/" << _jp_maxpu << " trg: " trg_name << endl;
       }
     } // for itrg
     _wt["mc"] = _wt[_jp_reftrig];
-    if (_pass and _jp_ismc) ++cnt["07puw"];
+    if (_jp_ismc) {
+      if (_pass) ++cnt["07puw"];
+      else continue; // Fatal failure
+    }
 
     // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 

@@ -167,6 +167,7 @@ const constexpr int _jp_IOVranges[_jp_nIOV][2] =
 constexpr bool _jp_reweighPU = true;
 const constexpr char _jp_pudata[] = "pileup/curr/pileup_DT.root";
 const constexpr char _jp_pumc[]   = "pileup/curr/pileup_MC.root";
+const constexpr double _jp_maxpu = 80.0;
 //} END PU profiles
 
 
