@@ -29,7 +29,7 @@
 
 #include "../settings.h"
 
-void getSlices() {
+void pufromslices() {
   TString dirname="/eos/cms/store/group/phys_smp/Multijet/13TeV/MC/P825ns80X_Moriond17";
   std::regex fileformat("QCD_Pt_([0-9]*)to([0-9]*|Inf)_TuneCUETP8M_13TeV_pythia8.root");
   std::cmatch match;
@@ -63,6 +63,8 @@ void getSlices() {
     }
   }
   output->cd();
+  summary->Rebin(10);
   summary->Write();
   //output->Write();
+  output->Delete();
 }
