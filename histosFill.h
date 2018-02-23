@@ -426,12 +426,11 @@ public :
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
 
-  void loadJSON(const char* filename);
-  void loadLumi(const char* filename);
-  void loadPUProfiles(const char* datafile, const char* mcfile);
-  void loadPrescales(const char* prescalefilename);
-
-  void loadECALveto(const char* filename);
+  bool loadJSON(const char* filename);
+  bool loadLumi(const char* filename);
+  bool loadPUProfiles(const char* datafile, const char* mcfile);
+  bool loadPrescales(const char* prescalefilename);
+  bool loadECALveto(const char* filename);
 
   void initBasics(string name);
   void fillBasics(string name);

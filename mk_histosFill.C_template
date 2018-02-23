@@ -62,56 +62,147 @@ void mk_histosFill() {
     cout << "Running over DT" << endl;
     cout << "Load trees..." << endl;
 
+    vector<string> files;
     if (strings_equal(_jp_run,"RunB17")) {
       const char* ps = "Data/2017/";
-      c->AddFile(Form("%s%sRunB-2017-part1.root",p,ps));
-      c->AddFile(Form("%s%sRunB-2017-part2.root",p,ps));
-      c->AddFile(Form("%s%sRunB-2017-part3.root",p,ps));
+      files.push_back(Form("%s%sRunB-2017-part1.root",p,ps));
+      files.push_back(Form("%s%sRunB-2017-part2.root",p,ps));
+      files.push_back(Form("%s%sRunB-2017-part3.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunB16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunB16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunC16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunC16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunD16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunD16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunE16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunE16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFearly16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunFearly16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFlate16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunFlate16_Sep23_0.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunG16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunG16_Sep23_0.root",p,ps));
+      files.push_back(Form("%s%sRunG16_Sep23_1.root",p,ps));
+      files.push_back(Form("%s%sRunG16_Sep23_2.root",p,ps));
+      files.push_back(Form("%s%sRunG16_Sep23_3.root",p,ps));
+      files.push_back(Form("%s%sRunG16_Sep23_4.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunH16_Han")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunH16_07Aug17_0.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_1.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_2.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_3.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_4.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_5.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunH16_HanNew")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunH16_07Aug17_New_0.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_1.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_2.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_3.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_4.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_5.root",p,ps));
+      files.push_back(Form("%s%sRunH16_07Aug17_New_6.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunB16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart5.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-LegacyReReco-80Xpart6.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunC16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunC-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunC-LegacyReReco-80Xpart2.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunD16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-LegacyReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-LegacyReReco-80Xpart3.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunE16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-LegacyReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-LegacyReReco-80Xpart3.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFearly16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunFearly-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunFearly-LegacyReReco-80Xpart2.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFlate16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunFlate-LegacyReReco-80Xpart1.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunG16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-LegacyReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-LegacyReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-LegacyReReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-LegacyReReco-80Xpart5.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunH16_Eng")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-LegacyReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-LegacyReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-LegacyReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-LegacyReReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-LegacyReReco-80Xpart5.root",p,ps));
     } else if (strings_equal(_jp_run,"RunB16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart3.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart4.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart5.root",p,ps));
-      //c->AddFile(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart6.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart5.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunB-ReReco-80Xpart6.root",p,ps));
     } else if (strings_equal(_jp_run,"RunC16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunC-ReReco-80Xpart2.root",p,ps));
     } else if (strings_equal(_jp_run,"RunD16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunD-ReReco-80Xpart3.root",p,ps));
     } else if (strings_equal(_jp_run,"RunE16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunE-ReReco-80Xpart3.root",p,ps));
     } else if (strings_equal(_jp_run,"RunFearly16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunFearly-ReReco-80Xpart2.root",p,ps));
     } else if (strings_equal(_jp_run,"RunFlate16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunFlate-ReReco-80X.root",p,ps));
     } else if (strings_equal(_jp_run,"RunG16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart3.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart4.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunG-ReReco-80Xpart5.root",p,ps));
     } else if (strings_equal(_jp_run,"RunH16")) {
       const char* ps = "Data/2016/";
-      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart3.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart4.root",p,ps));
-      c->AddFile(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart5.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart1.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart2.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart3.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart4.root",p,ps));
+      files.push_back(Form("%s%sNtuples-Data-2016RunH-PromptReco-80Xpart5.root",p,ps));
     } else {
       cout << "Enter a proper value for _jp_run!" << endl;
+    }
+    cout << "Loading the files:" << endl;
+    for (auto &fname : files) {
+      cout << fname << endl;
+      c->AddFile(fname.c_str());
     }
   } else if (_jp_ispy) {
     if (_jp_pthatbins) {

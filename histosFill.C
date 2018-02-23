@@ -265,26 +265,41 @@ void histosFill::Loop()
     // If only one great IOV is used, we can set _JEC etc. directly here.
     _iov.add("");
     bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
-    assert(setcorrection);
-    assert(_JEC);
-    assert(_L1RC);
-    if (_jp_isdt) assert(_jecUnc);
+    if (!setcorrection or !_JEC or !_L1RC or (_jp_isdt and !_jecUnc)) {
+      cout << "Issues while loading JEC; aborting..." << endl;
+      return;
+    }
   } // JEC redone
 
   // Load latest JSON selection
-  if (_jp_isdt and _jp_dojson) loadJSON(_jp_json);
+  if (_jp_isdt and _jp_dojson and !loadJSON(_jp_json)) {
+    cout << "Issues loading the JSON file; aborting..." << endl;
+    return;
+  }
 
   // Load PU profiles for MC reweighing
-  if (_jp_ismc and _jp_reweighPU) loadPUProfiles(_jp_pudata, _jp_pumc);
+  if (_jp_ismc and _jp_reweighPU and !loadPUProfiles(_jp_pudata, _jp_pumc)) {
+    cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
+    return;
+  }
 
   // Load prescale information to patch 76X
-  if (_jp_isdt and _jp_doprescale) loadPrescales(_jp_prescalefile);
+  if (_jp_isdt and _jp_doprescale and !loadPrescales(_jp_prescalefile)) {
+    cout << "Issues loading the prescale information; aborting..." << endl;
+    return;
+  }
 
   // load ECAL veto file for cleaning data
-  if (_jp_doECALveto) loadECALveto(_jp_ecalveto);
+  if (_jp_doECALveto and !loadECALveto(_jp_ecalveto)) {
+    cout << "Issues loading the ECAL veto; aborting..." << endl;
+    return;
+  }
 
   // load luminosity tables (prescales now stored in event)
-  if (_jp_isdt and _jp_dolumi) loadLumi(_jp_lumifile);
+  if (_jp_isdt and _jp_dolumi and !loadLumi(_jp_lumifile)) {
+    cout << "Issues loading the Lumi file; aborting..." << endl;
+    return;
+  }
 
   if (_jp_ismc) cout << Form("Running on MC produced with %1.3g nb-1 (%lld evts)",
                         1000. * ntot / _jp_xsecMinBias, ntot) << endl;
@@ -658,9 +673,7 @@ void histosFill::Loop()
       // Reweight in-time pile-up
       if (_jp_ismc and _jp_reweighPU) {
         int k = pudist[trg_name]->FindBin(trpu);
-        double w1 = pudist[trg_name]->GetBinContent(k);
-        double w2 = pumc->GetBinContent(k);
-        Double_t wtrue = (w2==0 ? 0. : w1 / w2);
+        double wtrue = pudist[trg_name]->GetBinContent(k);
         _wt[trg_name] *= wtrue;
 
         // check for non-zero PU weight
@@ -679,10 +692,10 @@ void histosFill::Loop()
     // load correct IOV for JEC
     if (_jp_isdt and _jp_useIOV) {
       bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
-      assert(setcorrection);
-      assert(_JEC);
-      assert(_L1RC);
-      assert(_jecUnc);
+      if (!setcorrection or !_JEC or !_L1RC or !_jecUnc) {
+        cout << "Issues while loading JEC; aborting..." << endl;
+        return;
+      }
     }
 
     if (_jp_debug) cout << "Entering JEC calculation!" << endl;
@@ -2335,34 +2348,31 @@ void histosFill::fillJetID(vector<bool> &id)
 
 
 // Load good run and LS information
-void histosFill::loadJSON(const char* filename)
+bool histosFill::loadJSON(const char* filename)
 {
   cout << "Processing loadJSON(\"" << filename << "\"..." << endl;
   ifstream file(filename, ios::in);
-  assert(file.is_open());
+  if (!file.is_open()) return false;
   char c;
   string s, s2;
   char s1[256];
   int rn(0), ls1(0), ls2(0), nrun(0), nls(0);
   file.get(c);
-  assert(c=='{');
+  if (c!='{') return false;
   while (file >> s && sscanf(s.c_str(),"\"%d\":",&rn)==1) {
     if (_jp_debug)
       cout << "\"" << rn << "\": " << flush;
 
     while (file.get(c) && c==' ') {};
-    if (_jp_debug)
-      cout << c << flush; assert(c=='[');
+    if (_jp_debug) { cout << c << flush; assert(c=='['); }
     ++nrun;
 
     bool endrun = false;
-    while (!endrun && file >> s >> s2 &&
-           sscanf((s+s2).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3) {
+    while (!endrun && file >> s >> s2 && sscanf((s+s2).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3) {
       if (_jp_debug)
         cout << "["<<ls1<<","<<ls2<<"]"<<s1 << flush;
 
       for (int ls = ls1; ls != ls2+1; ++ls) {
-        //assert(_json[rn].find(ls)==_json[rn].end()); // ok if 2 JSON files
         _json[rn][ls] = 1;
         ++nls;
       }
@@ -2370,8 +2380,7 @@ void histosFill::loadJSON(const char* filename)
       s2 = s1;
       endrun = (s2=="]," || s2=="]}");
       if (!endrun && s2!=",") {
-        if (_jp_debug)
-          cout<<"s1: "<<s2<<endl<<flush; assert(s2==",");
+        if (_jp_debug) { cout<<"s1: "<<s2<<endl<<flush; assert(s2==","); }
       }
     } // while ls
     if (_jp_debug)
@@ -2379,21 +2388,20 @@ void histosFill::loadJSON(const char* filename)
 
     if (s2=="]}") continue;
     else if (s2!="],") {
-      if (_jp_debug)
-        cout<<"s2: "<<s2<<endl<<flush; assert(s2=="],");
+      if (_jp_debug) { cout<<"s2: "<<s2<<endl<<flush; assert(s2=="],"); }
     }
   } // while run
-  if (s2!="]}") { cout<<"s3: "<<s2<<endl<<flush; assert(s2=="]}"); }
+  if (s2!="]}") { cout<<"s3: "<<s2<<endl<<flush; return false; }
 
   cout << "Called loadJSON(\"" << filename << "\"):" << endl;
   cout << "Loaded " << nrun << " good runs and " << nls
        << " good lumi sections" << endl;
-
+  return true;
 } // loadJSON
 
 
 // Load luminosity information
-void histosFill::loadLumi(const char* filename)
+bool histosFill::loadLumi(const char* filename)
 {
   cout << "Processing loadLumi(\"" << filename << "\")..." << endl;
 
@@ -2411,25 +2419,23 @@ void histosFill::loadLumi(const char* filename)
   cout << endl;
 
   ifstream f(filename, ios::in);
-  assert(f.is_open());
+  if (!f.is_open()) return false;
   float secLS = 2.3310e+01;
   string s;
   int rn, fill, ls, ifoo;
   float del, rec, avgpu, energy;
   char sfoo[512];
   bool getsuccess1 = static_cast<bool>(getline(f, s, '\n'));
-  assert(getsuccess1);
+  if (!getsuccess1) return false;
   cout << endl << "string: " << s << " !" << endl << flush;
 
-  // HOX: the lumi file format has been changing. Change the asserts when needed.
-  assert (s=="#Data tag : v1 , Norm tag: None");
+  // HOX: the lumi file format has been changing. Change the conditions when needed.
+  if (s!="#Data tag : v1 , Norm tag: None") return false;
 
-  //assert(getline(f, s, '\r'));
   bool getsuccess2 = static_cast<bool>(getline(f, s, '\n'));
-  assert(getsuccess2);
-  //assert(f>>s);
+  if (!getsuccess2) return false;
   cout << endl << "string: " << s << " !" << endl << flush;
-  assert (s=="#run:fill,ls,time,beamstatus,E(GeV),delivered(/ub),recorded(/ub),avgpu,source");
+  if (s!="#run:fill,ls,time,beamstatus,E(GeV),delivered(/ub),recorded(/ub),avgpu,source") return false;
 
   int nls(0);
   double lumsum(0);
@@ -2452,17 +2458,11 @@ void histosFill::loadLumi(const char* filename)
       continue;
     }
 
-    assert(_lums[rn][ls]==0);
-    assert(_avgpu[rn][ls]==0);
-    // Try to get this in units of pb-1; apparently it is given in s^-1 cm^-2
-    //double lum = lvtx * secLS * 1e-36 ;
-    //if (lum==0) lum = lhf * secLS * 1e-36 ;
+    if (_lums[rn][ls]!=0) return false;
+    if (_avgpu[rn][ls]!=0) return false;
     // lumiCalc.py returns lumi in units of mub-1 (=>nb-1=>pb-1)
     double lum = rec*1e-6;
-    //double lum2 = lhf * secLS * 1e-36 ;
-    //if (lum2==0) lum2 = lvtx * secLS * 1e-36 ;
     double lum2 = del*1e-6;
-    //assert(lum!=0);
     if (lum==0 and goodruns.find(rn)!=goodruns.end() and (!_jp_dojson or _json[rn][ls]==1))
       nolums.insert(pair<int, int>(rn,ls));
 
@@ -2475,7 +2475,7 @@ void histosFill::loadLumi(const char* filename)
     if ((!_jp_dojson || _json[rn][ls]))
       lumsum_json += lum;
     ++nls;
-    assert(nls<100000000);
+    if (nls>100000000) return false;
   }
 
   cout << "Called loadLumi(\"" << filename << "\"):" << endl;
@@ -2511,11 +2511,11 @@ void histosFill::loadLumi(const char* filename)
     } // for lumit
     cout << endl;
   } // nolums
-
+  return true;
 } // loadLumi
 
 
-void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
+bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
 {
   cout << "Processing loadPUProfiles(\"" << datafile << "\",\"" << mcfile << "\")..." << endl;
 
@@ -2523,28 +2523,57 @@ void histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
 
   // Load pile-up files and hists from them
   TFile *fpudist = new TFile(datafile, "READ");
-  assert(fpudist and !fpudist->IsZombie());
+  if (!fpudist or fpudist->IsZombie()) return false;
   TFile *fpumc = new TFile(mcfile,"READ");
-  assert(fpumc and !fpumc->IsZombie());
+  if (!fpumc or fpumc->IsZombie()) return false;
 
-  pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc")); assert(pumc);
-
-  // Normalize
+  pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
+  if (!pumc) return false;
   pumc->Scale(1./pumc->Integral());
+  double maxmcpu = pumc->GetMaximum();
+  int lomclim = pumc->FindFirstBinAbove(maxmcpu/100.0);
+  int upmclim = pumc->FindLastBinAbove(maxmcpu/100.0);
+  for (int bin = 0; bin < lomclim; ++bin)
+    pumc->SetBinContent(bin,0.0);
+  for (int bin = upmclim+1; bin <= pumc->GetNbinsX(); ++bin)
+    pumc->SetBinContent(bin,0.0);
+  *ferr << "Discarding mc pu below & above: " << pumc->GetBinLowEdge(lomclim) << " " << pumc->GetBinLowEdge(upmclim+1) << endl;
+  // Normalize
+  int nbinsmc = pumc->GetNbinsX();
+  int kmc = pumc->FindBin(33);
 
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_ntrigs; ++itrg) {
     string t = string(_jp_triggers[itrg]);
-    pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str())); assert(pudist[t]);
+    pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str()));
+    if (!pudist[t]) return false;
+    int nbinsdt = pudist[t]->GetNbinsX();
+    int kdt = pudist[t]->FindBin(33);
+    if (kdt!=kmc or nbinsdt!=nbinsmc) {
+      cout << "The pileup histogram dt vs mc binning or range do not match (dt left mc right):" << endl;
+      cout << " Bins: " << nbinsdt << " " << nbinsmc << endl;
+      cout << " Pu=33 bin: " << kdt << " " << kmc << endl;
+      return false;
+    }
     pudist[t]->Scale(1./pudist[t]->Integral());
+    double maxdtpu = pudist[t]->GetMaximum();
+    int lodtlim = pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
+    int updtlim = pudist[t]->FindLastBinAbove(maxdtpu/100.0);
+    for (int bin = 0; bin < lodtlim; ++bin)
+      pudist[t]->SetBinContent(bin,0.0);
+    for (int bin = updtlim+1; bin <= pudist[t]->GetNbinsX(); ++bin)
+      pudist[t]->SetBinContent(bin,0.0);
+    *ferr << "Discarding dt pu below & above: " << pudist[t]->GetBinLowEdge(lodtlim) << " " << pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
+    pudist[t]->Divide(pumc);
   }
   // REMOVED: "data with only one histo:"
 
   curdir->cd();
+  return true;
 } // loadPUProfiles
 
 
-void histosFill::loadPrescales(const char *prescalefile)
+bool histosFill::loadPrescales(const char *prescalefile)
 {
   cout << "Processing loadPrescales(\"" << prescalefile << "\")..." << endl;
   fstream fin(prescalefile);
@@ -2558,7 +2587,8 @@ void histosFill::loadPrescales(const char *prescalefile)
 
   string srun, sls, strg;
   vector<string> trgs;
-  ss >> srun; assert(srun=="RUN");
+  ss >> srun;
+  if (srun!="RUN") return false;
 
   while (ss >> strg) trgs.push_back(strg);
 
@@ -2570,27 +2600,30 @@ void histosFill::loadPrescales(const char *prescalefile)
     if (_jp_debug) cout << " run " << run << " ls " << ls << ": ";
 
     for (unsigned int itrg = 0; ss >> pre; ++itrg) {
-      assert(itrg!=trgs.size());
+      if (itrg==trgs.size()) return false;
       _premap[trgs[itrg]][run][ls] = pre;
       if (_jp_debug) cout << pre << "/" << trgs[itrg] << " ";
     }
     if (_jp_debug) cout << endl;
   }
+  return true;
 } // loadPrescales
 
 
-void histosFill::loadECALveto(const char *file)
+bool histosFill::loadECALveto(const char *file)
 {
   cout << "Processing loadECALveto(\"" << file << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
 
   TFile *fe = new TFile(file, "READ");
-  assert(fe && !fe->IsZombie());
+  if (!fe or fe->IsZombie()) return false;
 
-  _ecalveto = (TH2F*)fe->Get("ecalveto"); assert(_ecalveto);
+  _ecalveto = (TH2F*)fe->Get("ecalveto");
+  if (!_ecalveto) return false;
 
   curdir->cd();
+  return true;
 } // loadECALveto
 
 
