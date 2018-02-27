@@ -74,10 +74,12 @@ histosRun::~histosRun() {
   map<string, TH1D*> c_nef;
   map<string, TH1D*> c_nhf;
   map<string, TH1D*> c_betastar;
+  map<string, TH1D*> c_betaprime;
   map<string, TH1D*> c_chftp;
   map<string, TH1D*> c_neftp;
   map<string, TH1D*> c_nhftp;
   map<string, TH1D*> c_betastartp;
+  map<string, TH1D*> c_betaprimetp;
   map<string, TH1D*> h0_trg;
   map<string, TH1D*> h_trg;
   map<string, TH1D*> hw_trg; // prescale weights
@@ -98,10 +100,12 @@ histosRun::~histosRun() {
     c_nef[t] = new TH1D(Form("c_nef_%s",t),Form("c_nef_%s",t),nruns,-0.5,nruns-0.5);
     c_nhf[t] = new TH1D(Form("c_nhf_%s",t),Form("c_nhf_%s",t),nruns,-0.5,nruns-0.5);
     c_betastar[t] = new TH1D(Form("c_betastar_%s",t),Form("c_betastar_%s",t),nruns,-0.5,nruns-0.5);
+    c_betaprime[t] = new TH1D(Form("c_betaprime_%s",t),Form("c_betaprime_%s",t),nruns,-0.5,nruns-0.5);
     c_chftp[t] = new TH1D(Form("c_chftp_%s",t),Form("c_chftp_%s",t),nruns,-0.5,nruns-0.5);
     c_neftp[t] = new TH1D(Form("c_neftp_%s",t),Form("c_neftp_%s",t),nruns,-0.5,nruns-0.5);
     c_nhftp[t] = new TH1D(Form("c_nhftp_%s",t),Form("c_nhftp_%s",t),nruns,-0.5,nruns-0.5);
     c_betastartp[t] = new TH1D(Form("c_betastartp_%s",t),Form("c_betastartp_%s",t),nruns,-0.5,nruns-0.5);
+    c_betaprimetp[t] = new TH1D(Form("c_betaprimetp_%s",t),Form("c_betaprimetp_%s",t),nruns,-0.5,nruns-0.5);
     h0_trg[t] = new TH1D(Form("h0_%s",t),Form("h0_%s",t),nruns,-0.5,nruns-0.5);
     h_trg[t] = new TH1D(Form("h_%s",t),Form("h_%s",t),nruns,-0.5,nruns-0.5);
     hw_trg[t] = new TH1D(Form("hw_%s",t),Form("hw_%s",t),nruns,-0.5,nruns-0.5);
@@ -142,6 +146,10 @@ histosRun::~histosRun() {
       double betastar = this->c_betastar[t][run];
       c_betastar[t]->SetBinContent(i, ntrig ? betastar / ntrig : 0.);
       c_betastar[t]->SetBinError(i, ntrig ? betastar / pow(ntrig,1.5) : 0.);
+      //
+      double betaprime = this->c_betaprime[t][run];
+      c_betaprime[t]->SetBinContent(i, ntrig ? betaprime / ntrig : 0.);
+      c_betaprime[t]->SetBinError(i, ntrig ? betaprime / pow(ntrig,1.5) : 0.);
 
       h0_trg[t]->SetBinContent(i, p_trg[t][run]);
       h_trg[t]->SetBinContent(i, t_trg[t][run]);
@@ -164,6 +172,10 @@ histosRun::~histosRun() {
       double betastartp = this->c_betastartp[t][run];
       c_betastartp[t]->SetBinContent(i, ntrigtp ? betastartp / ntrigtp : 0.);
       c_betastartp[t]->SetBinError(i, ntrigtp ? betastartp / pow(ntrigtp,1.5) : 0.);
+      //
+      double betaprimetp = this->c_betaprimetp[t][run];
+      c_betaprimetp[t]->SetBinContent(i, ntrigtp ? betaprimetp / ntrigtp : 0.);
+      c_betaprimetp[t]->SetBinError(i, ntrigtp ? betaprimetp / pow(ntrigtp,1.5) : 0.);
       //
       double lum = runlums_trg[t][run];
       r0_trg[t]->SetBinContent(i, lum ? p_trg[t][run] / lum : 0.);

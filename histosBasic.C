@@ -110,8 +110,8 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   // 1 GeV bins for localizing leading jets
   //hpt0 = new TH1D("hpt0","",int(_jp_emax),0.,_jp_emax);
   hpt0 = new TH1D("hpt0","",6500,0.,6500.);
-  //hpt0->Sumw2(); 
-  
+  //hpt0->Sumw2();
+
   // leading and non-leading jets
   hpt1 = new TH1D("hpt1","",nx,&x[0]);
   hpt2 = new TH1D("hpt2","",nx,&x[0]);
@@ -192,6 +192,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   pmuf = new TProfile("pmuf","",_jp_npts,&_jp_ptrange[0]);
   pbeta = new TProfile("pbeta","",_jp_npts,&_jp_ptrange[0]);
   pbetastar = new TProfile("pbetastar","",_jp_npts,&_jp_ptrange[0]);
+  pbetaprime = new TProfile("pbetaprime","",_jp_npts,&_jp_ptrange[0]);
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
   hnne = new TH1D("hnne","",300,-0.5,299.5);
@@ -205,6 +206,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   hmuf = new TH1D("hmuf","",110,0.,1.1);
   hbeta = new TH1D("hbeta","",110,0.,1.1);
   hbetastar = new TH1D("hbetastar","",110,0.,1.1);
+  hbetaprime = new TH1D("hbetaprime","",110,0.,1.1);
   // control plots of components (JEC tag-and-probe)
   pncandtp = new TProfile("pncandtp","",_jp_npts,&_jp_ptrange[0]);
   pnchtp = new TProfile("pnchtp","",_jp_npts,&_jp_ptrange[0]);
@@ -219,6 +221,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   pmuftp = new TProfile("pmuftp","",_jp_npts,&_jp_ptrange[0]);
   pbetatp = new TProfile("pbetatp","",_jp_npts,&_jp_ptrange[0]);
   pbetastartp = new TProfile("pbetastartp","",_jp_npts,&_jp_ptrange[0]);
+  pbetaprimetp = new TProfile("pbetaprimetp","",_jp_npts,&_jp_ptrange[0]);
   //
   pchftp2 = new TProfile("pchftp2","",_jp_npts,&_jp_ptrange[0]);
   pneftp2 = new TProfile("pneftp2","",_jp_npts,&_jp_ptrange[0]);
@@ -239,6 +242,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   hmuftp = new TH1D("hmuftp","",110,0.,1.1);
   hbetatp = new TH1D("hbetatp","",110,0.,1.1);
   hbetastartp = new TH1D("hbetastartp","",110,0.,1.1);
+  hbetaprimetp = new TH1D("hbetaprimetp","",110,0.,1.1);
   // control plots vs NPV
   pncandtp_vsnpv = new TProfile("pncandtp_vsnpv","",50,-0.5,49.5);
   pnchtp_vsnpv = new TProfile("pnchtp_vsnpv","",50,-0.5,49.5);
@@ -253,6 +257,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   pmuftp_vsnpv = new TProfile("pmuftp_vsnpv","",50,-0.5,49.5);
   pbetatp_vsnpv = new TProfile("pbetatp_vsnpv","",50,-0.5,49.5);
   pbetastartp_vsnpv = new TProfile("pbetastartp_vsnpv","",50,-0.5,49.5);
+  pbetaprimetp_vsnpv = new TProfile("pbetaprimetp_vsnpv","",50,-0.5,49.5);
   //
   pchftp_vstrpu = new TProfile("pchftp_vstrpu","",50,-0.5,49.5);
   pneftp_vstrpu = new TProfile("pneftp_vstrpu","",50,-0.5,49.5);
@@ -261,6 +266,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   pmuftp_vstrpu = new TProfile("pmuftp_vstrpu","",50,-0.5,49.5);
   pbetatp_vstrpu = new TProfile("pbetatp_vstrpu","",50,-0.5,49.5);
   pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",50,-0.5,49.5);
+  pbetaprimetp_vstrpu = new TProfile("pbetaprimetp_vstrpu","",50,-0.5,49.5);
   this->ismcdir = ismcdir;
 
   //pncand->Sumw2();
@@ -355,6 +361,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   hyeta = new TH1D("hyeta","",100,-0.436/4.,0.436/4.);
   hyeta2 = new TH1D("hyeta2","",100,-0.436/4.,0.436/4.);
   hbetabetastar = new TH2D("hbetabetastar","",110,0.,1.1,110,0.,1.1);
+  hbetabetaprime = new TH2D("hbetabetaprime","",110,0.,1.1,110,0.,1.1);
   hetaphi = new TH2D("hetaphi","",100,-4.799,4.799,
 		     144,-TMath::TwoPi(),TMath::TwoPi());
   //hyeta->Sumw2();
@@ -369,7 +376,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   hdjasymm->Sumw2();
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
-  hdjmpftp->Sumw2(); 
+  hdjmpftp->Sumw2();
 
 
   // MC checks
@@ -395,7 +402,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
 
     hpthat = new TH1D("hpthat","",nx,&x[0]);
     hpthatnlo = new TH1D("hpthatnlo","",nx,&x[0]);
-    
+
     //unfolding studies (Mikael)
     //mT: (pTgen,ygen); (pTreco,yreco)
     mT = new TH2D("mT","mT(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
@@ -461,11 +468,11 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
     pdy_r = new TProfile2D("pdy_r","",nx,&x[0],144,0.,TMath::Pi());
     pdy_g = new TProfile2D("pdy_g","",nx,&x[0],144,0.,TMath::Pi());
     //hpthat->Sumw2();
-    
+
     //hpt_noid_g->Sumw2();
     //hpt_nojetid_g->Sumw2();
     //hpt_noevtid_g->Sumw2();
-    
+
     //hpt_r->Sumw2();
     //hpt_g->Sumw2();
     //hpt_gg->Sumw2();

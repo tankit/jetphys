@@ -51,7 +51,8 @@ class histosEta {
   TProfile *pmuftp_vseta;
   TProfile *pbetatp_vseta;
   TProfile *pbetastartp_vseta;
-  
+  TProfile *pbetaprimetp_vseta;
+
   // Control plots of resolutions in the pt-eta plane
   // tp: tag-probe (tag), pt: probe-tag (probe)
   vector<TH3D *> hdjasymm;

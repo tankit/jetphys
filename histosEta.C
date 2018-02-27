@@ -13,7 +13,7 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
 
   // phase space
   this->trigname = trigname;
-  
+
   this->pttrg = pttrg;
   this->ptmin = ptmin;
   this->ptmax = ptmax;
@@ -87,6 +87,7 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   pmuftp_vseta = new TProfile("pmuftp_vseta","",_jp_netas,_jp_etarange);
   pbetatp_vseta = new TProfile("pbetatp_vseta","",_jp_netas,_jp_etarange);
   pbetastartp_vseta = new TProfile("pbetastartp_vseta","",_jp_netas,_jp_etarange);
+  pbetaprimetp_vseta = new TProfile("pbetaprimetp_vseta","",_jp_netas,_jp_etarange);
 
   curdir->cd();
 }

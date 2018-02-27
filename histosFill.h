@@ -151,6 +151,7 @@ public :
   //Int_t           PFJetsCHS__cm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__beta_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__betaStar_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Float_t         PFJetsCHS__betaPrime_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mpuTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mlvTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mjtTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -255,6 +256,7 @@ public :
   //TBranch        *b_PFJetsCHS__cm_;   //!
   TBranch        *b_PFJetsCHS__beta_;   //!
   TBranch        *b_PFJetsCHS__betaStar_;   //!
+  TBranch        *b_PFJetsCHS__betaPrime_;   //!
   TBranch        *b_PFJetsCHS__mpuTrk_;   //!
   TBranch        *b_PFJetsCHS__mlvTrk_;   //!
   TBranch        *b_PFJetsCHS__mjtTrk_;   //!
@@ -327,6 +329,7 @@ public :
   Float_t         *jtjes;//[_njt];   //[njt]
   Float_t         *jtbeta;
   Float_t         *jtbetastar;
+  Float_t         *jtbetaprime;
   Float_t         jtjesnew[_njt];   //[njt]
   Float_t         jtjes_l1[_njt];   //[njt]
   Float_t         jtjes_l2l3[_njt];   //[njt]
@@ -693,6 +696,7 @@ void histosFill::Init(TTree *tree)
   //fChain->SetBranchAddress("PFJets%s_.cm_",_jp_chs), PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
   fChain->SetBranchAddress(Form("PFJets%s_.beta_",_jp_chs), PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
   fChain->SetBranchAddress(Form("PFJets%s_.betaStar_",_jp_chs), PFJetsCHS__betaStar_, &b_PFJetsCHS__betaStar_);
+  fChain->SetBranchAddress(Form("PFJets%s_.betaPrime_",_jp_chs), PFJetsCHS__betaPrime_, &b_PFJetsCHS__betaPrime_);
   fChain->SetBranchAddress(Form("PFJets%s_.mpuTrk_",_jp_chs), PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);
   fChain->SetBranchAddress(Form("PFJets%s_.mlvTrk_",_jp_chs), PFJetsCHS__mlvTrk_, &b_PFJetsCHS__mlvTrk_);
   fChain->SetBranchAddress(Form("PFJets%s_.mjtTrk_",_jp_chs), PFJetsCHS__mjtTrk_, &b_PFJetsCHS__mjtTrk_);

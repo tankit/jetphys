@@ -143,6 +143,7 @@ void histosFill::Loop()
     fChain->SetBranchStatus(Form("PFJets%s_.ncand_",_jp_chs),1); // jtn
     fChain->SetBranchStatus(Form("PFJets%s_.beta_",_jp_chs),1); // jtbeta
     fChain->SetBranchStatus(Form("PFJets%s_.betaStar_",_jp_chs),1); // jtbetastar
+    fChain->SetBranchStatus(Form("PFJets%s_.betaPrime_",_jp_chs),1); // jtbetaprime
     fChain->SetBranchStatus(Form("PFJets%s_.chm_",_jp_chs),1); // jtnch
     fChain->SetBranchStatus(Form("PFJets%s_.phm_",_jp_chs),1); // jtnne
     fChain->SetBranchStatus(Form("PFJets%s_.nhm_",_jp_chs),1); // jtnnh
@@ -195,6 +196,7 @@ void histosFill::Loop()
   jtjes = &PFJetsCHS__cor_[0];
   jtbeta = &PFJetsCHS__beta_[0];
   jtbetastar = &PFJetsCHS__betaStar_[0];
+  jtbetaprime = &PFJetsCHS__betaPrime_[0];
   jtidloose = &PFJetsCHS__looseID_[0];
   jtidtight = &PFJetsCHS__tightID_[0];
   //
@@ -1300,6 +1302,7 @@ void histosFill::fillBasic(histosBasic *h)
               assert(h->pmuftp);      h->pmuftp->Fill(pttag, jtmuf[iprobe], _w);
               assert(h->pbetatp);     h->pbetatp->Fill(pttag, jtbeta[iprobe], _w);
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
+              assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
 
               if (pttag > h->ptmin and pttag < h->ptmax) { // Did tag fire the trigger?
                 // The distributions of event counts per fraction
@@ -1316,6 +1319,7 @@ void histosFill::fillBasic(histosBasic *h)
                 assert(h->hmuftp);      h->hmuftp->Fill(jtmuf[iprobe], _w);
                 assert(h->hbetatp);     h->hbetatp->Fill(jtbeta[iprobe], _w);
                 assert(h->hbetastartp); h->hbetastartp->Fill(jtbetastar[iprobe], _w);
+                assert(h->hbetaprimetp); h->hbetaprimetp->Fill(jtbetaprime[iprobe], _w);
 
                 // Fractions vs number of primary vertices
                 assert(h->pncandtp_vsnpv);    h->pncandtp_vsnpv->Fill(npvgood, jtn[iprobe], _w);
@@ -1331,6 +1335,7 @@ void histosFill::fillBasic(histosBasic *h)
                 assert(h->pmuftp_vsnpv);      h->pmuftp_vsnpv->Fill(npvgood, jtmuf[iprobe], _w);
                 assert(h->pbetatp_vsnpv);     h->pbetatp_vsnpv->Fill(npvgood, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vsnpv); h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[iprobe], _w);
+                assert(h->pbetaprimetp_vsnpv); h->pbetaprimetp_vsnpv->Fill(npvgood, jtbetaprime[iprobe], _w);
 
                 // Fractions vs true pileup
                 assert(h->pchftp_vstrpu);      h->pchftp_vstrpu->Fill(trpu, jtchf[iprobe], _w);
@@ -1340,6 +1345,7 @@ void histosFill::fillBasic(histosBasic *h)
                 assert(h->pmuftp_vstrpu);      h->pmuftp_vstrpu->Fill(trpu, jtmuf[iprobe], _w);
                 assert(h->pbetatp_vstrpu);     h->pbetatp_vstrpu->Fill(trpu, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vstrpu); h->pbetastartp_vstrpu->Fill(trpu, jtbetastar[iprobe], _w);
+                assert(h->pbetaprimetp_vstrpu); h->pbetaprimetp_vstrpu->Fill(trpu, jtbetaprime[iprobe], _w);
               } // Tag fires trigger
             //} Composition vs pt tag pt
             } // dijet system
@@ -1567,6 +1573,7 @@ void histosFill::fillBasic(histosBasic *h)
           assert(h->pmuf); h->pmuf->Fill(pt, jtmuf[jetidx], _w);
           assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
           assert(h->pbetastar); h->pbetastar->Fill(pt, jtbetastar[jetidx], _w);
+          assert(h->pbetaprime); h->pbetaprime->Fill(pt, jtbetaprime[jetidx], _w);
 
           // control plots for topology (JEC)
           h->pa->Fill(pt, jta[jetidx], _w);
@@ -1638,10 +1645,12 @@ void histosFill::fillBasic(histosBasic *h)
             h->hmuf->Fill(jtmuf[jetidx], _w);
             h->hbeta->Fill(jtbeta[jetidx], _w);
             h->hbetastar->Fill(jtbetastar[jetidx], _w);
+            h->hbetaprime->Fill(jtbetaprime[jetidx], _w);
 
             h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
             h->hyeta2->Fill(y-eta, _w);
             h->hbetabetastar->Fill(jtbeta[jetidx], jtbetastar[jetidx], _w);
+            h->hbetabetaprime->Fill(jtbeta[jetidx], jtbetaprime[jetidx], _w);
             h->hetaphi->Fill(eta, phi, _w);
           } // within trigger pT range
 
@@ -1947,6 +1956,7 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
             assert(h->pmuftp_vseta); h->pmuftp_vseta->Fill(etaprobe, jtmuf[iprobe], _w);
             assert(h->pbetatp_vseta); h->pbetatp_vseta->Fill(etaprobe, jtbeta[iprobe], _w);
             assert(h->pbetastartp_vseta); h->pbetastartp_vseta->Fill(etaprobe, jtbetastar[iprobe], _w);
+            assert(h->pbetaprimetp_vseta); h->pbetaprimetp_vseta->Fill(etaprobe, jtbetaprime[iprobe], _w);
           } // select pt bin for profiles vseta
         } // etatag < 1.3
       } // tag & probe
@@ -2244,11 +2254,13 @@ void histosFill::fillRunHistos(string name)
         h->c_nef[t][run] = 0;
         h->c_nhf[t][run] = 0;
         h->c_betastar[t][run] = 0;
+        h->c_betaprime[t][run] = 0;
         h->t_trgtp[t][run] = 0;
         h->c_chftp[t][run] = 0;
         h->c_neftp[t][run] = 0;
         h->c_nhftp[t][run] = 0;
         h->c_betastartp[t][run] = 0;
+        h->c_betaprimetp[t][run] = 0;
 
         for (unsigned int j = 0; j != h->trg.size(); ++j) {
           string const& t2 = h->trg[j];
@@ -2282,6 +2294,7 @@ void histosFill::fillRunHistos(string name)
           h->c_nef[t][run] += jtnef[jetidx];
           h->c_nhf[t][run] += jtnhf[jetidx];
           h->c_betastar[t][run] += jtbetastar[jetidx];
+          h->c_betaprime[t][run] += jtbetaprime[jetidx];
         }
 
         int itag = (jetidx==0 ? 1 : 0);
@@ -2292,6 +2305,7 @@ void histosFill::fillRunHistos(string name)
           h->c_neftp[t][run] += jtnef[jetidx];
           h->c_nhftp[t][run] += jtnhf[jetidx];
           h->c_betastartp[t][run] += jtbetastar[jetidx];
+          h->c_betaprimetp[t][run] += jtbetaprime[jetidx];
         }
 
         for (auto trgit2 = _trigs.begin(); trgit2 != _trigs.end(); ++trgit2) {

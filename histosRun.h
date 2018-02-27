@@ -51,11 +51,13 @@ class histosRun {
   std::map<std::string, std::map<int, double> > c_nef;
   std::map<std::string, std::map<int, double> > c_nhf;
   std::map<std::string, std::map<int, double> > c_betastar;
+  std::map<std::string, std::map<int, double> > c_betaprime;
   // Same with tag-and-probe method
   std::map<std::string, std::map<int, double> > c_chftp;
   std::map<std::string, std::map<int, double> > c_neftp;
   std::map<std::string, std::map<int, double> > c_nhftp;
   std::map<std::string, std::map<int, double> > c_betastartp;
+  std::map<std::string, std::map<int, double> > c_betaprimetp;
 
   // prescale counters
   std::map<std::string, std::map<int, int> > p_trg;

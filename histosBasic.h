@@ -64,7 +64,7 @@ class histosBasic {
   TH1D *hpt_noevtid;
   TH1D *hptevt;
   TH1D *hpttmp;
-  
+
   // delete-m jackknife
   std::vector<TH1D*> hpt_jk;
   TH2D *h2jk;
@@ -76,7 +76,7 @@ class histosBasic {
 
   // 1 GeV ins
   TH1D *hpt0;
-  
+
   // leading and non-leading jets
   TH1D *hpt1;
   TH1D *hpt2;
@@ -101,7 +101,7 @@ class histosBasic {
   TProfile *pjec_l1;
   TProfile *pjec_l2l3;
   TProfile *pjec_res;
-  
+
   TH1D *htrpu;
   TH1D *hitpu;
   TH1D *hootpuearly;
@@ -158,6 +158,7 @@ class histosBasic {
   TProfile *phef;
   TProfile *pbeta;
   TProfile *pbetastar;
+  TProfile *pbetaprime;
   TH1D *hncand;
   TH1D *hnch;
   TH1D *hnne;
@@ -175,6 +176,7 @@ class histosBasic {
   TH1D *hhef;
   TH1D *hbeta;
   TH1D *hbetastar;
+  TH1D *hbetaprime;
   // control plots of components (JEC tag-and-probe)
   TProfile *pncandtp;
   TProfile *pnchtp;
@@ -193,6 +195,7 @@ class histosBasic {
   TProfile *pheftp;
   TProfile *pbetatp;
   TProfile *pbetastartp;
+  TProfile *pbetaprimetp;
   //
   TProfile *pchftp2;
   TProfile *pneftp2;
@@ -219,6 +222,7 @@ class histosBasic {
   TH1D *hheftp;
   TH1D *hbetatp;
   TH1D *hbetastartp;
+  TH1D *hbetaprimetp;
   //
   TProfile *pncandtp_vsnpv;
   TProfile *pnchtp_vsnpv;
@@ -237,6 +241,7 @@ class histosBasic {
   TProfile *pheftp_vsnpv;
   TProfile *pbetatp_vsnpv;
   TProfile *pbetastartp_vsnpv;
+  TProfile *pbetaprimetp_vsnpv;
   //
   TProfile *pchftp_vstrpu;
   TProfile *pneftp_vstrpu;
@@ -247,6 +252,7 @@ class histosBasic {
   //TProfile *pheftp_vstrpu;
   TProfile *pbetatp_vstrpu;
   TProfile *pbetastartp_vstrpu;
+  TProfile *pbetaprimetp_vstrpu;
 
   // control plots for topology (JEC)
   TH1D *hselpt;
@@ -287,7 +293,7 @@ class histosBasic {
   TH3D *hdjasymm;
   TH3D *hdjmpf;
   TH3D *hdjasymmtp;
-  TH3D *hdjmpftp; 
+  TH3D *hdjmpftp;
 
   TH1D *hr21;
   TH1D *hr31;
@@ -302,6 +308,7 @@ class histosBasic {
   TH1D *hyeta;
   TH1D *hyeta2;
   TH2D *hbetabetastar;
+  TH2D *hbetabetaprime;
   TH2D *hetaphi;
 
   // MC checks
