@@ -684,7 +684,7 @@ void histosFill::Loop()
     _wt["mc"] = _wt[_jp_reftrig];
     if (_jp_ismc) {
       if (_pass) ++cnt["07puw"];
-      else if (wtrue==0) continue; // Fatal failure
+      else continue; // Fatal failure
     }
 
     // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
