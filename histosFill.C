@@ -236,8 +236,9 @@ void histosFill::Loop()
   if(_jp_ismc) *ferr << "Running over MC" << endl;
   if(_jp_isdt) *ferr << "Running over data" << endl;
   *ferr << (_jp_useIOV ? "Applying" : "Not applying") << " time-dependent JEC (IOV)" << endl;
-  *ferr << (_jp_doECALveto ? "Vetoing" : "Not vetoing") << " jets in bad ECAL towers" << endl;
-  *ferr << (_jp_doetaphiexcl ? "Doing" : "Not doing") << " exclusion in eta-phi plane" << endl;
+  *ferr << (_jp_doVetoECAL ? "Vetoing" : "Not vetoing") << " jets in bad ECAL towers" << endl;
+  *ferr << (_jp_doVetoECALHot ? "Doing" : "Not doing") << " Hot ECAL tower exclusion in eta-phi plane" << endl;
+  *ferr << (_jp_doVetoHCALHot ? "Doing" : "Not doing") << " Hot HCAL tower exclusion in eta-phi plane" << endl;
   *ferr << endl;
 
   if (_jp_isdt) {
@@ -292,7 +293,7 @@ void histosFill::Loop()
   }
 
   // load ECAL veto file for cleaning data
-  if (_jp_doECALveto and !loadECALveto(_jp_ecalveto)) {
+  if (_jp_doVetoECAL and !loadECALveto(_jp_fECALVeto)) {
     cout << "Issues loading the ECAL veto; aborting..." << endl;
     return;
   }
@@ -330,11 +331,19 @@ void histosFill::Loop()
     initRunHistos("RunsEndcap",2.,3.);
   }
 
-  if (_jp_doetaphiexcl) {
-    fetaphiexcl = new TFile(Form("rootfiles/hotjets-run%s.root",_jp_etaphitag),"READ");
-    assert(fetaphiexcl and !fetaphiexcl->IsZombie() && Form("file rootfiles/hotjets-run%s.root missing",_jp_etaphitag));
-    h2etaphiexcl = (TH2D*)fetaphiexcl->Get(_jp_etaphitype);
-    assert(h2etaphiexcl and "erroneous eta-phi exclusion type");
+  if (_jp_doVetoECALHot) {
+    string ECALHotTag = "";
+    if (std::regex_search(_jp_run,std::regex("Run[BCD]16"))) ECALHotTag = "BCD";
+    if (std::regex_search(_jp_run,std::regex("RunE16"))) ECALHotTag = "EF";
+    if (std::regex_search(_jp_run,std::regex("RunFearly16"))) ECALHotTag = "EF";
+    if (std::regex_search(_jp_run,std::regex("RunFlate16"))) ECALHotTag = "GH";
+    if (std::regex_search(_jp_run,std::regex("Run[GH]16"))) ECALHotTag = "GH";
+    assert(ECALHotTag!="");
+    fECALHotExcl = new TFile(Form("rootfiles/hotjets-run%s.root",ECALHotTag.c_str()),"READ");
+    assert(fECALHotExcl and !fECALHotExcl->IsZombie() && Form("file rootfiles/hotjets-run%s.root missing",ECALHotTag.c_str()));
+    h2ECALHotExcl = (TH2D*)fECALHotExcl->Get(Form("h2hot%s",_jp_ECALHotType));
+    assert(h2ECALHotExcl and "erroneous eta-phi exclusion type");
+    *ferr << "Loading ECAL corrections " << "rootfiles/hotjets-run" << ECALHotTag.c_str() << ".root with h2hot" << _jp_ECALHotType << endl;  
   }
 
   // Report memory usage to avoid malloc problems when writing file
@@ -868,12 +877,21 @@ void histosFill::Loop()
       _jetids[jetid] = true;
     fillJetID(_jetids);
 
-    if (_jp_doetaphiexcl) {
-      // Abort if one of the leading jets is in a difficult zone
-      bool good0 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(jteta[i0],jtphi[i0])) < 0;
-      bool good1 = h2etaphiexcl->GetBinContent(h2etaphiexcl->FindBin(jteta[i1],jtphi[i1])) < 0;
+    if (_jp_isdt and _jp_doVetoHCALHot and worryHCALHotExcl) {
+      bool good0 = jteta[i0] < rangesHCALHotExcl[0] or jteta[i0] > rangesHCALHotExcl[1] or
+                   jtphi[i0] < rangesHCALHotExcl[2] or jtphi[i0] > rangesHCALHotExcl[3];
+      bool good1 = jteta[i1] < rangesHCALHotExcl[0] or jteta[i1] > rangesHCALHotExcl[1] or
+                   jtphi[i1] < rangesHCALHotExcl[2] or jtphi[i1] > rangesHCALHotExcl[3];
       _pass = _pass and good0 and good1;
-      if (_pass) ++cnt["08etaphiexcl"];
+      if (_pass) ++cnt["08etaphiexclHCAL"];
+    }
+
+    if (_jp_isdt and _jp_doVetoECALHot) {
+      // Abort if one of the leading jets is in a difficult zone
+      bool good0 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i0],jtphi[i0])) < 0;
+      bool good1 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i1],jtphi[i1])) < 0;
+      _pass = _pass and good0 and good1;
+      if (_pass) ++cnt["08etaphiexclECAL"];
     }
 
     // We gather some data also from 0-jet events and events with a bad leading jet
@@ -976,7 +994,7 @@ void histosFill::Loop()
         << "Beam spot expectation is less than 0.5%" << endl;
 
   // Report ECAL hole veto efficiency
-  if (_jp_doECALveto) {
+  if (_jp_doVetoECAL) {
     *ferr << "ECAL hole veto counter discarded " << _ecalcounter_bad << " events out of " << _ecalcounter_good
           << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100. << "%)" << endl
           << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
@@ -2352,7 +2370,7 @@ void histosFill::fillJetID(vector<bool> &id)
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
     id[jetidx] = ((fabs(jteta[jetidx])<2.5 ? jtidtight[jetidx] : jtidloose[jetidx]));
 
-    if (_jp_doECALveto) {
+    if (_jp_doVetoECAL) {
       assert(_ecalveto);
       int ibin = _ecalveto->FindBin(jteta[jetidx],jtphi[jetidx]);
       id[jetidx] = (id[jetidx] and _ecalveto->GetBinContent(ibin)==0);

@@ -422,8 +422,10 @@ public :
   map<string, vector<histosMC*> > _mchistos;
   map<string, histosRun*> _runhistos;
   TH1D *hmcweight;
-  TH2D *h2etaphiexcl;
-  TFile *fetaphiexcl;
+  TH2D *h2ECALHotExcl;
+  TFile *fECALHotExcl;
+  bool worryHCALHotExcl;
+  double rangesHCALHotExcl[4];
   TH3D *h3probg;
 
   vector<string> _availTrigs;
@@ -560,10 +562,12 @@ Long64_t histosFill::LoadTree(Long64_t entry)
 
   // A new tree is opened
   if (fChain->GetTreeNumber() != fCurrent) {
-    // Reload the triggers and print them
+
     fCurrent = fChain->GetTreeNumber();
+    *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
+
     if (_jp_isdt) {
-      *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
+      // Reload the triggers and print them
       if (!getTriggers()) {
         *ferr << "Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting..." << endl;
         return -4;
@@ -577,6 +581,24 @@ Long64_t histosFill::LoadTree(Long64_t entry)
         if (trigi%10==9) *ferr << endl;
       }
       *ferr << endl << flush;
+      if (_jp_doVetoHCALHot) {
+        // Reload hot HCAL zones
+        bool worryHCALHotExcl = false;
+        *ferr << "Looking for HCAL exclusion zones..." << endl;
+        for (auto era = 0u; era < _jp_HCALHotEras; ++era) {
+          std::regex HCALEraName(_jp_HCALHotRuns[era]);
+          if (std::regex_search(_jp_run,HCALEraName)) {
+            *ferr << "Doing HCAL exclusion for era " << _jp_HCALHotRuns[era] << " at : (etamin, etamax, phimin, phimax)" << endl;
+            for (auto idxetaphi = 0u; idxetaphi < 4; ++idxetaphi) {
+              *ferr << "  " << _jp_HCALHotRanges[era][idxetaphi];
+              rangesHCALHotExcl[idxetaphi] =  _jp_HCALHotRanges[era][idxetaphi];
+            }
+            *ferr << endl;
+            worryHCALHotExcl = true;
+            break;
+          }
+        }
+      }
     } else if (_jp_pthatbins) {
       TString filename = fChain->GetCurrentFile()->GetName();
       // Check the position of the current file in the list of file names
@@ -602,6 +624,8 @@ void histosFill::Init(TTree *tree)
   fChain = tree;
   fCurrent = -1;
   fChain->SetMakeClass(1);
+  worryHCALHotExcl = false;
+  for (auto i = 0u; i<4; ++i) rangesHCALHotExcl[i] = 0;
 
   fChain->SetBranchAddress("filterIdList_", &filterIdList_, &b_events_filterIdList_);
   fChain->SetBranchAddress("EvtHdr_.mIsPVgood", &EvtHdr__mIsPVgood, &b_events_EvtHdr__mIsPVgood);
