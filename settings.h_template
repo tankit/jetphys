@@ -43,9 +43,9 @@ const constexpr char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 const constexpr char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-const constexpr char _jp_type[] = "MC";
+const constexpr char _jp_type[] = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
-const constexpr char _jp_run[] = "RunH16_Eng";
+const constexpr char _jp_run[] = "RunB16_Eng";
 // Simple helper
 constexpr bool _jp_isdt = strings_equal(_jp_type,"DATA");
 constexpr bool _jp_ismc = !_jp_isdt;
@@ -57,9 +57,10 @@ constexpr bool _jp_ishw = strings_equal(_jp_type,"HW");
 //{ BEGIN run settings
 // Number of events to process (-1 for all)
 constexpr Long64_t _jp_nentries =
-//-1; // all
+-1; // all
 //10; // debug
-100; //debug
+//100; //debug
+//1000;
 //10000; // shorter test run
 //100000; // short test run
 //1000000; // shortish test run
@@ -124,7 +125,7 @@ constexpr bool _jp_domctrigsim = true;
 constexpr bool _jp_usemctrig = false;
 // This is the 13 TeV 25 ns list of triggers (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
-constexpr int _jp_ntrigs = 9; // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500!)
+constexpr int _jp_ntrigs = 9; // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500 and jt550!)
 const constexpr char* _jp_triggers[_jp_ntrigs] =
 {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"}; // "jt500"};
 // reference trigger for PU profile in the mc folder and for trigger lumi weighting
@@ -217,14 +218,27 @@ constexpr double _jp_xsecMinBias = 7.126E+10;
 //} END Run2
 
 //{ BEGIN Special histosFill analyses that are not typically needed
-// Eta phi exclusion due to ecal problems
-constexpr bool _jp_doetaphiexcl = false;
-const constexpr char _jp_etaphitag[] = "BCD"; // check filenames in jecsys/rootfiles
-const constexpr char _jp_etaphitype[] = "h2hotr"; // h2hotr (Robert) or h2hotm (Mikko)
+// Veto jets near ECAL boundaries in JetID (an older routine, kept as a reference)
+constexpr bool _jp_doVetoECAL = false;//true;
+const constexpr char _jp_fECALVeto[] = "lumicalc/ecalveto.root";
 
-// Veto jets near ECAL boundaries in JetID
-constexpr bool _jp_doECALveto = false;//true;
-const constexpr char _jp_ecalveto[] = "lumicalc/ecalveto.root";
+// Eta phi exclusion due to hot ECAL regions (produced with dataequality.C)
+constexpr bool _jp_doVetoECALHot = true;
+const constexpr char _jp_ECALHotType[] = "m"; // h2hotr (Robert) or h2hotm (Mikko)
+
+// Eta phi exclusion due to hot HCAL regions (taken from 
+constexpr bool _jp_doVetoHCALHot = true;
+constexpr int _jp_HCALHotEras = 3;
+const constexpr char* _jp_HCALHotRuns[_jp_HCALHotEras] = {
+  "RunB16",
+  "RunC16",
+  "RunD16"
+};
+const constexpr double _jp_HCALHotRanges[_jp_HCALHotEras][4] =  {// eta{min,max}, phi(min,max}
+  {-2.25, -1.93, 2.2, 2.5},
+  {-3.489, -3.139, 2.237, 2.475},
+  {-3.60, -3.139, 2.237, 2.475}
+};
 
 // Check for duplicates (warning: takes a lot of memory!)
 constexpr bool _jp_checkduplicates = false;
