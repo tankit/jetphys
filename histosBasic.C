@@ -362,8 +362,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   hyeta2 = new TH1D("hyeta2","",100,-0.436/4.,0.436/4.);
   hbetabetastar = new TH2D("hbetabetastar","",110,0.,1.1,110,0.,1.1);
   hbetabetaprime = new TH2D("hbetabetaprime","",110,0.,1.1,110,0.,1.1);
-  hetaphi = new TH2D("hetaphi","",100,-4.799,4.799,
-		     144,-TMath::TwoPi(),TMath::TwoPi());
+  hetaphi = new TH2D("hetaphi","",100,-4.799,4.799,144,-TMath::Pi(),TMath::Pi());
   //hyeta->Sumw2();
   //hyeta2->Sumw2();
 

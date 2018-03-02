@@ -32,12 +32,14 @@
 void pufromslices() {
   TString dirname="/eos/cms/store/group/phys_smp/Multijet/13TeV/MC/P825ns80X_Moriond17";
   std::regex fileformat("QCD_Pt_([0-9]*)to([0-9]*|Inf)_TuneCUETP8M_13TeV_pythia8.root");
+  bool debughistos = true;
+
   std::cmatch match;
   TFile *output = new TFile("pileup_MC.root","RECREATE");
   TH1D *summary = new TH1D("pileupmc","",_jp_maxpu,0,_jp_maxpu);
   vector<int> pthatmin =
     {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200};
-
+  vector<TH1D*> individuals;
 
   TSystemDirectory dir(dirname.Data(), dirname.Data());
   TList *files = dir.GetListOfFiles();
@@ -58,12 +60,17 @@ void pufromslices() {
         int pos = 0;
         while (pthatmin[pos]!=number)
           ++pos;
-        summary->Add(hist,_jp_pthatsigmas[pos]/_jp_pthatnevts[pos]);
+        hist->Scale(_jp_pthatsigmas[pos]/_jp_pthatnevts[pos]);
+        summary->Add(hist);
+        individuals.push_back(hist);
       }
     }
   }
   output->cd();
   summary->Write();
-  //output->Write();
-  output->Delete();
+  if (debughistos) {
+    for (auto &hist : individuals) {
+      hist->Write();
+    }
+  }
 }

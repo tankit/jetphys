@@ -1447,7 +1447,6 @@ void histosFill::fillBasic(histosBasic *h)
           h->hpt_gg->Fill(ptgen, _w);
 
         if (etarange) { // Correct jet eta range
-
           if (_jp_debug) cout << "..unfolding" << endl << flush;
           if (h->ismcdir) {
             // unfolding studies (Mikael)
