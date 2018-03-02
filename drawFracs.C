@@ -48,7 +48,7 @@ void Fracs::drawFracs(unsigned mode) {
     dmc->cd("../FullEta_Reco"); dmc = gDirectory;
     ddt->cd("../FullEta_Reco"); ddt = gDirectory;
     if (_pertrg) {
-      for (unsigned itrg = 0; itrg < _jp_ntrigs; ++itrg) {
+      for (unsigned itrg = 0; itrg < _jp_notrigs; ++itrg) {
         auto ctrg = _jp_triggers[itrg];
         makeProfile(mode, dmc, ddt, ctrg);
       }
@@ -58,7 +58,7 @@ void Fracs::drawFracs(unsigned mode) {
   } else {
     if (_pertrg) {
       for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta) {
-        for (unsigned itrg = 0; itrg < _jp_ntrigs; ++itrg) {
+        for (unsigned itrg = 0; itrg < _jp_notrigs; ++itrg) {
           auto ctrg = _jp_triggers[itrg];
           makeProfile(mode, dmc, ddt, ctrg, _etas[ieta].first, _etas[ieta].second);
         }
@@ -286,7 +286,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   hsdt->Draw("SAME");
   leg->Draw("SAME"); // redraw
   if (_pertrg) {
-    auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_ntrigs,trg)-_jp_triggers;
+    auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_notrigs,trg)-_jp_triggers;
     tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
     if (_order==0) {
       if (_vspt)

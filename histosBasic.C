@@ -33,15 +33,14 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
 
-  unsigned int ieta = int(0.5*(etamin+etamax)/0.5); assert(ieta<_jp_nptranges);
+  unsigned int ieta = int(0.5*(etamin+etamax)/0.5); assert(ieta<_jp_noptranges);
   vector<double> x;
-  for (unsigned int i = 0; i < _jp_npts_eta and _jp_ptrangevseta[ieta][i]!=0; ++i)
+  for (unsigned int i = 0; i < _jp_nopts_eta and _jp_ptrangevseta[ieta][i]!=0; ++i)
     x.push_back(_jp_ptrangevseta[ieta][i]);
   const int nx = x.size()-1;
 
-  vector<double> yW(_jp_nposetas);
+  vector<double> yW(_jp_nposetas+1);
   for (unsigned int i = 0; i != yW.size(); ++i) yW[i] = _jp_posetarange[i];
-  const int nyW = yW.size()-1;
 
   vector<double> y(51);
   for (unsigned int i = 0; i != y.size(); ++i) y[i] = -5. + 0.2*i;
@@ -448,7 +447,7 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, string cotrig, double
 
     // Response closure
     p3rvsnpv = new TProfile3D("p3rvsnpv","",nx,&x[0],ny,&y[0],npv,&pv[0]);
-    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",_jp_nwwpts,&_jp_wwptrange[0],nyW,&yW[0],npv,&pv[0]);
+    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",_jp_nwwpts,&_jp_wwptrange[0],_jp_nposetas,&yW[0],npv,&pv[0]);
     p2rvsnpv = new TProfile2D("p2rvsnpv","",nx,&x[0],50,-0.5,49.5);
     h2r_r = new TH2D("h2r_r","",nx,&x[0],600,0,3);
     h2r_g = new TH2D("h2r_g","",nx,&x[0],600,0,3);

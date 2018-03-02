@@ -66,7 +66,7 @@ void histosFill::Loop()
     double veta[] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7};
     const int neta = sizeof(veta)/sizeof(veta[0])-1;
     // same or vpt, vtrigpt, npt
-    const int npt = _jp_ntrigs;
+    const int npt = _jp_notrigs;
     const double *vtrigpt = &_jp_trigthr[0];
     double vpt[npt+1]; vpt[0] = 0;
     for (int trigidx = 0; trigidx != npt; ++trigidx) vpt[trigidx+1] = _jp_trigranges[trigidx][1];
@@ -503,7 +503,6 @@ void histosFill::Loop()
       }
       events.insert(evt);
     }
-
     ++cnt["01all"];
 
     // Check if good run/LS, including JSON selection
@@ -605,7 +604,7 @@ void histosFill::Loop()
       _trigs.insert("mc");
       if (_jp_domctrigsim and njt>0) {
         // Only add the greatest trigger present
-        for (int itrg = _jp_ntrigs; itrg > 0; --itrg) {
+        for (int itrg = _jp_notrigs; itrg > 0; --itrg) {
           if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
             _trigs.insert(_jp_triggers[itrg-1]);
             break; // Don't add lesser triggers
@@ -623,8 +622,14 @@ void histosFill::Loop()
       }
       assert(TriggerDecision_.size() == _availTrigs.size());
 
-      for (auto &itrg : _goodTrigs) { // Loop over the sensible triggers
+      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
+        _wt[string(_jp_triggers[itrg])] = 1.0;
+
+      for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
+        auto &itrg = _goodTrigs[goodIdx];
         if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
+        double iwgt = 0.0;
+        if (_jp_useversionlumi) iwgt = _goodWgts[goodIdx];
 
         string trigname = _availTrigs[itrg];
         if (_jp_debug and TriggerDecision_[itrg]>0)
@@ -654,6 +659,7 @@ void histosFill::Loop()
         if (_prescales[trigname][run]!=0) {
           // Set trigger only if prescale information is known
           _trigs.insert(trigname);
+          if (_jp_useversionlumi) _wt[trigname] = iwgt;
         } else {
           // Make sure all info is good! This is crucial if there is something odd with the tuples
           *ferr << "Missing prescale for " << trigname
@@ -677,23 +683,23 @@ void histosFill::Loop()
 
     if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
     // Calculate trigger PU weight
-    for (auto itrg = 0u; itrg != _jp_ntrigs; ++itrg) {
-      const char *trg_name = string(_jp_triggers[itrg]).c_str();
-      _wt[trg_name] = 1.;
-
-      // Reweight in-time pile-up
-      if (_jp_ismc and _jp_reweighPU) {
-        int k = pudist[trg_name]->FindBin(trpu);
-        double wtrue = pudist[trg_name]->GetBinContent(k);
-        _wt[trg_name] *= wtrue;
-
-        // check for non-zero PU weight
-        _pass = _pass and wtrue!=0;
-        //if (wtrue==0) cout << "Zero PU weight! run: " << run << " lumi: " << lbn << " pu: " << trpu << "/" << _jp_maxpu << " trg: " << trg_name << endl;
-      }
-    } // for itrg
-    _wt["mc"] = _wt[_jp_reftrig];
     if (_jp_ismc) {
+      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg) {
+        const char *trg_name = string(_jp_triggers[itrg]).c_str();
+        _wt[trg_name] = 1.;
+
+        // Reweight in-time pile-up
+        if (_jp_reweighPU) {
+          int k = pudist[trg_name]->FindBin(trpu);
+          double wtrue = pudist[trg_name]->GetBinContent(k);
+          _wt[trg_name] *= wtrue;
+
+          // check for non-zero PU weight
+          _pass = _pass and wtrue!=0;
+          //if (wtrue==0) cout << "Zero PU weight! run: " << run << " lumi: " << lbn << " pu: " << trpu << "/" << _jp_maxpu << " trg: " << trg_name << endl;
+        }
+      } // for itrg
+      _wt["mc"] = _wt[_jp_reftrig];
       if (_pass) ++cnt["07puw"];
       else continue; // Fatal failure
     }
@@ -1097,7 +1103,7 @@ void histosFill::initBasics(string name)
   }
   if (_jp_isdt or _jp_domctrigsim) {
     // This is done both for data and MC, because why not?
-    for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
+    for (int itrg = 0; itrg != _jp_notrigs; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
       double pt1 = _jp_trigranges[itrg][0];
@@ -1193,11 +1199,9 @@ void histosFill::fillBasic(histosBasic *h)
               << " in run " << run << "!" << endl << flush;
         assert(false);
       }
-    }
-    else
-      prescale = ip->second;
+    } else prescale = ip->second;
 
-    if (prescale==0 && fired) {
+    if (prescale==0 and fired) {
       *ferr << "Prescale zero for trigger " << h->trigname
             << " in run " << run << "!" << endl << flush;
       prescale = 1.;
@@ -1322,7 +1326,7 @@ void histosFill::fillBasic(histosBasic *h)
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
               assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
 
-              if (pttag > h->ptmin and pttag < h->ptmax) { // Did tag fire the trigger?
+              if (pttag >= h->ptmin and pttag < h->ptmax) { // Did tag fire the trigger?
                 // The distributions of event counts per fraction
                 assert(h->hncandtp);    h->hncandtp->Fill(jtn[iprobe], _w);
                 assert(h->hnchtp);      h->hnchtp->Fill(jtnch[iprobe], _w);
@@ -1851,7 +1855,7 @@ void histosFill::initEtas(string name)
   }
   if (_jp_isdt or _jp_domctrigsim) {
     // This is done both for data and MC, because why not?
-    for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
+    for (int itrg = 0; itrg != _jp_notrigs; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
       double pt1 = _jp_trigranges[itrg][0];
@@ -2044,7 +2048,7 @@ void histosFill::initMcHistos(string name)
   }
   if (_jp_isdt or _jp_domctrigsim) {
     // This is done both for data and MC, because why not?
-    for (int itrg = 0; itrg != _jp_ntrigs; ++itrg) {
+    for (int itrg = 0; itrg != _jp_notrigs; ++itrg) {
       string trg = _jp_triggers[itrg];
       triggers.push_back(trg);
       double pt1 = _jp_trigranges[itrg][0];
@@ -2253,9 +2257,7 @@ void histosFill::fillRunHistos(string name)
                 << " run " << run << endl << flush;
           assert(false);
         }
-      }
-      else
-        prescale = _prescales[t][run]; //assert(prescale);
+      } else prescale = _prescales[t][run];
       h->runlums_trg[t][run] += (prescale ? lum / prescale : 0.);
     } // for trgidx
 
@@ -2574,7 +2576,7 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   int kmc = pumc->FindBin(33);
 
   // For data, load each trigger separately
-  for (auto itrg = 0u ; itrg != _jp_ntrigs; ++itrg) {
+  for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
     string t = string(_jp_triggers[itrg]);
     pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str()));
     if (!pudist[t]) return false;
@@ -2664,20 +2666,50 @@ bool histosFill::getTriggers()
   TH1F *triggers = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerNames")); assert(triggers);
   TAxis *xax = triggers->GetXaxis();
 
-  std::regex pfjet("HLT_PFJet([0-9]*)_v[0-9]*");
-  std::regex ak8("HLT_AK8PFJet([0-9]*)_v[0-9]*");
-  std::regex jetht("HLT_PFHT([0-9]*)_v[0-9]*");
+  regex pfjet("HLT_PFJet([0-9]*)_v([0-9]*)");
+  regex ak8("HLT_AK8PFJet([0-9]*)_v[0-9]*");
+  regex jetht("HLT_PFHT([0-9]*)_v[0-9]*");
 
   _availTrigs.clear();
   _goodTrigs.clear();
+  _goodWgts.clear();
   for (int trgidx = xax->GetFirst(); trgidx <= xax->GetLast(); ++trgidx) {
+//     cout << trgidx << " " << xax->GetLast() << endl;
     string trgName = xax->GetBinLabel(trgidx);
-    if (trgName.compare("")==0) // Ignore empty places on x-axis
-      continue;
+    if (trgName.compare("")==0) continue; // Ignore empty places on x-axis
     string trigger = "x"; // HLT_PFJet are given non-empty trigger names
     if (std::regex_match(trgName,pfjet)) {
       trigger=std::regex_replace(trgName, pfjet, "jt$1", std::regex_constants::format_no_copy);
       _goodTrigs.push_back(_availTrigs.size());
+      double trigthr = std::stod(std::regex_replace(trgName, pfjet, "$1", std::regex_constants::format_no_copy));
+      unsigned int thrplace = std::find(_jp_trigthr,_jp_trigthr+_jp_notrigs,trigthr)-_jp_trigthr;
+      if (_jp_useversionlumi) {
+        string trgdummy = std::regex_replace(trgName, pfjet, "$1_$2", std::regex_constants::format_no_copy);
+        bool found = false;
+        for (auto IDidx = 0u; IDidx < _jp_notrigIDs; ++IDidx) {
+          for (auto &currTag : _jp_trigtags[IDidx]) {
+            if (std::regex_match(trgdummy,currTag)) {
+              if (found) {
+                cerr << "Double match for " << trgName << ", check trigger naming in _jp_trigtags. Aborting..." << endl;
+                return false;
+              }
+              found = true;
+              if (thrplace < _jp_notrigs+1)
+                _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]);
+              else {
+                cerr << "Error searching the trigger weight! Aborting..." << endl;
+                return false;
+              }
+            }
+          }
+        }
+        if (!found) {
+          cerr << "No info for " << trgName << " in _jp_trigtag. Could be a dummy trigger in the tuple." << endl;
+          _goodWgts.push_back(0.0);
+        }
+      } else {
+        _goodWgts.push_back(_jp_triglumi[_jp_notrigs-1]/_jp_triglumi[thrplace]);
+      }
     } else if (std::regex_match(trgName,ak8)) {
       trigger=std::regex_replace(trgName, ak8, "ak8jt$1", std::regex_constants::format_no_copy);
     } else if (std::regex_match(trgName,jetht)) {

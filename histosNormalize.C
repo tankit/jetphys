@@ -78,12 +78,12 @@ void histosNormalize() {
 
   if (_jp_usetriglumi) { // Setting up lumis
     cout << "Reading trigger luminosity from settings.h" << endl;
-    for (int i = 0; i < _jp_ntrigs; ++i) {
+    for (int i = 0; i < _jp_notrigs; ++i) {
       double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
       cout << Form(" *%s: %1.3f /pb", _jp_triggers[i],lumi) << endl;
       triglumi[_jp_triggers[i]] = lumi;
     }
-    if (_jp_ismc) triglumi["mc"] = _jp_triglumi[_jp_ntrigs-1]/1e6;
+    if (_jp_ismc) triglumi["mc"] = _jp_triglumi[_jp_notrigs-1]/1e6;
   }
 
   cout << "Calling histosNormalize("<<_jp_type<<");" << endl;
@@ -179,16 +179,18 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       double lumi = 1;
       double lumiref = 1;
 
-      if (_jp_usetriglumi) {
-        lumi = triglumi[trgname];
-        lumiref = triglumi[_jp_reftrig];
-      } else if (_jp_isdt or !_jp_usemctrig) {
-        TH1D* lumihisto = dynamic_cast<TH1D*>(indir->Get("hlumi"));
-        TH1D* lumihistoref = dynamic_cast<TH1D*>(indir->Get(Form("../%s/hlumi",_jp_reftrig)));
-        assert(lumihisto);
-        assert(lumihistoref);
-        lumi = lumihisto->GetBinContent(1);
-        lumiref = lumihistoref->GetBinContent(1);
+      if (!_jp_useversionlumi) {
+        if (_jp_usetriglumi) {
+          lumi = triglumi[trgname];
+          lumiref = triglumi[_jp_reftrig];
+        } else if (_jp_isdt or !_jp_usemctrig) {
+          TH1D* lumihisto = dynamic_cast<TH1D*>(indir->Get("hlumi"));
+          TH1D* lumihistoref = dynamic_cast<TH1D*>(indir->Get(Form("../%s/hlumi",_jp_reftrig)));
+          assert(lumihisto);
+          assert(lumihistoref);
+          lumi = lumihisto->GetBinContent(1);
+          lumiref = lumihistoref->GetBinContent(1);
+        }
       }
 
       if (std::find(hptlike.begin(), hptlike.end(), name) != hptlike.end()) { // A block for hpt objects
@@ -279,8 +281,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
 
             outdir->cd();
             if (h) hpt_notimedep = dynamic_cast<TH1D*>(h->Clone("hpt_notimedep"));
-            if (hpre && h) htimedep = dynamic_cast<TH1D*>(hpre->Clone("htimedep"));
-            if (hpre && h) htimedep->Divide(hpre,h);//,1,1,"B");
+            if (hpre and h) htimedep = dynamic_cast<TH1D*>(hpre->Clone("htimedep"));
+            if (hpre and h) htimedep->Divide(hpre,h);//,1,1,"B");
 
             if (htimedep and lumi>0 and lumiref>0) {
               htimedep->Scale(lumi/lumiref); // This sounds incorrect, idea from the old code

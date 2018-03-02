@@ -430,6 +430,7 @@ public :
 
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
+  vector<double> _goodWgts;
 
   bool loadJSON(const char* filename);
   bool loadLumi(const char* filename);
@@ -576,9 +577,10 @@ Long64_t histosFill::LoadTree(Long64_t entry)
       for (auto trigi = 0u; trigi < _availTrigs.size(); ++trigi) {
         auto str = _availTrigs[trigi];
         *ferr << str;
-        if (std::find(_goodTrigs.begin(),_goodTrigs.end(),trigi)!=_goodTrigs.end()) *ferr << "_y ";
+        auto trgplace = std::find(_goodTrigs.begin(),_goodTrigs.end(),trigi);
+        if (trgplace!=_goodTrigs.end()) *ferr << "_y (" << _goodWgts[trgplace-_goodTrigs.begin()] << ") ";
         else *ferr << "_n ";
-        if (trigi%10==9) *ferr << endl;
+        if (trigi%(_jp_notrigs+1)==_jp_notrigs) *ferr << endl;
       }
       *ferr << endl << flush;
       if (_jp_doVetoHCALHot) {
