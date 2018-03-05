@@ -176,6 +176,8 @@ void histosCombine() {
   recurseFile(fin, fout, "pbetastartp_vseta", false, true);
   recurseFile(fin, fout, "pbetaprimetp_vseta", false, true);
 
+  recurseFile(fin, fout, "ppt_probepertag");
+
   recurseFile(fin, fout, "hdjasymm");
   recurseFile(fin, fout, "hdjasymmtp");
   recurseFile(fin, fout, "hdjasymmpt");

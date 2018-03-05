@@ -206,6 +206,7 @@ public :
   vector<unsigned int> _goodTrigs;
   vector<double> _goodWgts;
   vector<int> _goodNos;
+  vector<int> _goodVNos;
 
   bool loadJSON(const char* filename);
   bool loadLumi(const char* filename);

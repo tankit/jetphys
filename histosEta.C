@@ -4,12 +4,13 @@
 
 #include "histosEta.h"
 
-histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax) {
+histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir) {
 
   TDirectory *curdir = gDirectory;
   bool enter = dir->cd();
   assert(enter);
   this->dir = dir;
+  this->ismcdir = ismcdir;
 
   // phase space
   this->trigname = trigname;
@@ -88,6 +89,12 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   pbetatp_vseta = new TProfile("pbetatp_vseta","",_jp_netas,_jp_etarange);
   pbetastartp_vseta = new TProfile("pbetastartp_vseta","",_jp_netas,_jp_etarange);
   pbetaprimetp_vseta = new TProfile("pbetaprimetp_vseta","",_jp_netas,_jp_etarange);
+
+  if (this->ismcdir) {
+    // response closure
+    p3rvsnpv = new TProfile3D("p3rvsnpv","",_jp_npts,&_jp_ptrange[0],_jp_netas,&_jp_etarange[0],_jp_npvs,&_jp_pvrange[0]);
+    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",_jp_nwwpts,&_jp_wwptrange[0],_jp_nposetas,&_jp_posetarange[0],_jp_npvs,&_jp_pvrange[0]);
+  }
 
   curdir->cd();
 }

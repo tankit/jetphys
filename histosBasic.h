@@ -23,7 +23,6 @@ class histosBasic {
 
   // phase space
   std::string trigname;
-  std::string cotrig;
   double etamin;
   double etamax;
   double pttrg;
@@ -253,7 +252,24 @@ class histosBasic {
   TProfile *pbetatp_vstrpu;
   TProfile *pbetastartp_vstrpu;
   TProfile *pbetaprimetp_vstrpu;
-
+  // control plots vs phi ("pos" and "neg" for positive and negative eta values)
+  TProfile *pchfpostp_vsphi;
+  TProfile *pnefpostp_vsphi;
+  TProfile *pnhfpostp_vsphi;
+  TProfile *pcefpostp_vsphi;
+  TProfile *pmufpostp_vsphi;
+  TProfile *pbetapostp_vsphi;
+  TProfile *pbetastarpostp_vsphi;
+  TProfile *pbetaprimepostp_vsphi;
+  TProfile *pchfnegtp_vsphi;
+  TProfile *pnefnegtp_vsphi;
+  TProfile *pnhfnegtp_vsphi;
+  TProfile *pcefnegtp_vsphi;
+  TProfile *pmufnegtp_vsphi;
+  TProfile *pbetanegtp_vsphi;
+  TProfile *pbetastarnegtp_vsphi;
+  TProfile *pbetaprimenegtp_vsphi;
+  
   // control plots for topology (JEC)
   TH1D *hselpt;
   TH1D *hy;
@@ -362,9 +378,10 @@ class histosBasic {
   //
   TProfile *ppt_r;
   TProfile *ppt_g;
+
+  TProfile *ppt_probepertag;
+
   // Response closure
-  TProfile3D *p3rvsnpv;
-  TProfile3D *p3rvsnpvW;
   TProfile2D *p2rvsnpv;
   TH2D *h2r_r;
   TH2D *h2r_g;
@@ -383,7 +400,7 @@ class histosBasic {
   TProfile2D *pdy_r;
   TProfile2D *pdy_g;
 
-  histosBasic(TDirectory *dir, string trigname, string cotrig, double etamin = 0., double etamax = 2.0,
+  histosBasic(TDirectory *dir, string trigname, double etamin = 0., double etamax = 2.0,
               double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
   ~histosBasic();
 

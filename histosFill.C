@@ -343,7 +343,7 @@ void histosFill::Loop()
     assert(fECALHotExcl and !fECALHotExcl->IsZombie() && Form("file rootfiles/hotjets-run%s.root missing",ECALHotTag.c_str()));
     h2ECALHotExcl = (TH2D*)fECALHotExcl->Get(Form("h2hot%s",_jp_ECALHotType));
     assert(h2ECALHotExcl and "erroneous eta-phi exclusion type");
-    *ferr << "Loading ECAL corrections " << "rootfiles/hotjets-run" << ECALHotTag.c_str() << ".root with h2hot" << _jp_ECALHotType << endl;  
+    *ferr << "Loading ECAL corrections " << "rootfiles/hotjets-run" << ECALHotTag.c_str() << ".root with h2hot" << _jp_ECALHotType << endl;
   }
 
   // Report memory usage to avoid malloc problems when writing file
@@ -1144,7 +1144,7 @@ void histosFill::initBasics(string name)
 
         // Initialize and store
         assert(dir);
-        histosBasic *h = new histosBasic(dir, trg, "", etas[etaidx], etas[etaidx+1], pttrg[trg],
+        histosBasic *h = new histosBasic(dir, trg, etas[etaidx], etas[etaidx+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second, triggers[j]=="mc");
         _histos[name].push_back(h);
       } // for j
@@ -1298,17 +1298,6 @@ void histosFill::fillBasic(histosBasic *h)
             //} // Dijet balance
 
             if (alphatp < 0.3) {
-              double metstuff = met1 * cos(delta_phi(metphi1, phiprobe));
-              if (pttag >= h->ptmin and pttag < h->ptmax)
-                h->hmpfx->Fill(1 + metstuff / pttag, _w);
-              h->pmpfx->Fill(pttag, 1 + metstuff / pttag, _w);
-              if (ptprobe >= h->ptmin and ptprobe < h->ptmax)
-                h->hmpfy->Fill(1 + metstuff / ptprobe, _w);
-              h->pmpfy->Fill(ptprobe, 1 + metstuff / ptprobe, _w);
-              if (ptave >= h->ptmin and ptave < h->ptmax)
-                h->hmpfz->Fill(1 + metstuff / ptave, _w);
-              h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
-
               //{ Composition vs pt tag pt
               // Fractions vs pt: we do pt selection later in histosCombine
               assert(h->pncandtp);    h->pncandtp->Fill(pttag, jtn[iprobe], _w);
@@ -1326,7 +1315,23 @@ void histosFill::fillBasic(histosBasic *h)
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
               assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
 
-              if (pttag >= h->ptmin and pttag < h->ptmax) { // Did tag fire the trigger?
+              cout << ptprobe << " " << pttag << endl;
+              assert(h->ppt_probepertag); h->ppt_probepertag->Fill(pttag,ptprobe/pttag,_w);
+              cout << "kakkaa" << endl;
+
+              double metstuff = met1 * cos(delta_phi(metphi1, phiprobe));
+              assert(h->pmpfz); h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
+              if (ptave >= h->ptmin and ptave < h->ptmax) { // Ave fires trigger
+                assert(h->hmpfz); h->hmpfz->Fill(1 + metstuff / ptave, _w);
+              }
+              assert(h->pmpfy); h->pmpfy->Fill(ptprobe, 1 + metstuff / ptprobe, _w);
+              if (ptprobe >= h->ptmin and ptprobe < h->ptmax) { // Probe fires trigger
+                assert(h->hmpfy); h->hmpfy->Fill(1 + metstuff / ptprobe, _w);
+              }
+              assert(h->pmpfx); h->pmpfx->Fill(pttag, 1 + metstuff / pttag, _w);
+              if (pttag >= h->ptmin and pttag < h->ptmax) { // Tag fires trigger
+                assert(h->hmpfx); h->hmpfx->Fill(1 + metstuff / pttag, _w);
+
                 // The distributions of event counts per fraction
                 assert(h->hncandtp);    h->hncandtp->Fill(jtn[iprobe], _w);
                 assert(h->hnchtp);      h->hnchtp->Fill(jtnch[iprobe], _w);
@@ -1368,6 +1373,28 @@ void histosFill::fillBasic(histosBasic *h)
                 assert(h->pbetatp_vstrpu);     h->pbetatp_vstrpu->Fill(trpu, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vstrpu); h->pbetastartp_vstrpu->Fill(trpu, jtbetastar[iprobe], _w);
                 assert(h->pbetaprimetp_vstrpu); h->pbetaprimetp_vstrpu->Fill(trpu, jtbetaprime[iprobe], _w);
+
+                if (_jp_doPhiHistos) {
+                  if (etaprobe>0) {
+                    assert(h->pchfpostp_vsphi);      h->pchfpostp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
+                    assert(h->pnefpostp_vsphi);      h->pnefpostp_vsphi->Fill(phiprobe, jtnef[iprobe], _w);
+                    assert(h->pnhfpostp_vsphi);      h->pnhfpostp_vsphi->Fill(phiprobe, jtnhf[iprobe], _w);
+                    assert(h->pcefpostp_vsphi);      h->pcefpostp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
+                    assert(h->pmufpostp_vsphi);      h->pmufpostp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
+                    assert(h->pbetapostp_vsphi);     h->pbetapostp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
+                    assert(h->pbetastarpostp_vsphi); h->pbetastarpostp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
+                    assert(h->pbetaprimepostp_vsphi); h->pbetaprimepostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
+                  } else {
+                    assert(h->pchfnegtp_vsphi);      h->pchfnegtp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
+                    assert(h->pnefnegtp_vsphi);      h->pnefnegtp_vsphi->Fill(phiprobe, jtnef[iprobe], _w);
+                    assert(h->pnhfnegtp_vsphi);      h->pnhfnegtp_vsphi->Fill(phiprobe, jtnhf[iprobe], _w);
+                    assert(h->pcefnegtp_vsphi);      h->pcefnegtp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
+                    assert(h->pmufnegtp_vsphi);      h->pmufnegtp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
+                    assert(h->pbetanegtp_vsphi);     h->pbetanegtp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
+                    assert(h->pbetastarnegtp_vsphi); h->pbetastarnegtp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
+                    assert(h->pbetaprimenegtp_vsphi); h->pbetaprimenegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
+                  }
+                }
               } // Tag fires trigger
             //} Composition vs pt tag pt
             } // dijet system
@@ -1435,8 +1462,6 @@ void histosFill::fillBasic(histosBasic *h)
         if (id)    h->hpt_noevtid_g->Fill(ptgen, _w);
       }
     } // Jet in eta range
-
-    // REMOVED: "Debugging JEC"
 
     if (pt>_jp_recopt) { // pt visible
       // Flags for studying gen eta vs reco eta effects
@@ -1723,16 +1748,6 @@ void histosFill::fillBasic(histosBasic *h)
             }
           } // is MC
         } // etabin
-
-        // MC: Filling outside of eta bin
-        if (h->ismcdir and mcgendr and ptgen>0 and jtjesnew[jetidx]!=0) {
-          double resp = pt / (ptgen*jtjesnew[jetidx]);
-          // Response closure vs NPV
-          if (resp) {
-            h->p3rvsnpv->Fill(ptgen, eta, npvgood, resp, _w);
-            h->p3rvsnpvW->Fill(ptgen, fabs(eta), npvgood, resp, _w);
-          }
-        } // if MC
       } // if id
     } // pt visible
   } // for jetidx
@@ -1879,7 +1894,7 @@ void histosFill::initEtas(string name)
 
     // Initialize and store
     assert(dir);
-    histosEta *h = new histosEta(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second);
+    histosEta *h = new histosEta(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second, triggers[j]=="mc");
     _etahistos[name].push_back(h);
   } // for j
 
@@ -1983,6 +1998,29 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
       } // tag & probe
     } // dphi > 2.7
   } // ids
+
+  if (h->ismcdir and _pass_qcdmet) {
+    for (int jetidx = 0; jetidx != njt; ++jetidx) {
+      double pt = jtpt[jetidx];
+      if (pt>_jp_recopt) { // pt visible
+        bool mcgendr = jtgenr[jetidx] < 0.25;
+        bool id = _jetids[jetidx];
+        if (mcgendr and id) { // id OK
+          double ptgen = jtgenpt[jetidx];
+          if (ptgen>0 and jtjesnew[jetidx]!=0) {
+            // CAUTION: Do we lay jtjesnew over the old correction?
+            double resp = pt / (ptgen*jtjesnew[jetidx]);
+            // Response closure vs NPV
+            if (resp) {
+              double eta = jteta[jetidx];
+              h->p3rvsnpv->Fill(ptgen, eta, npvgood, resp, _w);
+              h->p3rvsnpvW->Fill(ptgen, fabs(eta), npvgood, resp, _w);
+            }
+          }
+        } // if id
+      } // pt visible
+    } // for jetidx
+  } // if MC
 } // fillEta
 
 

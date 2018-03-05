@@ -33,6 +33,8 @@ class histosEta {
   double ptmin;
   double ptmax;
 
+  bool ismcdir;
+
   // control plots vs eta (Ozlem)
   TProfile *pncandtp_vseta;
   TProfile *pnchtp_vseta;
@@ -62,10 +64,13 @@ class histosEta {
   vector<TH3D *> hdjmpftp;
   vector<TH3D *> hdjmpfpt;
 
+  TProfile3D *p3rvsnpv;
+  TProfile3D *p3rvsnpvW;
+
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 
   histosEta() {}
-  histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax);
+  histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir = false);
   ~histosEta();
 
   void Write();
