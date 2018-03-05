@@ -348,10 +348,8 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, double etamin, double
     //mT: (pTgen,ygen); (pTreco,yreco)
     mT = new TH2D("mT","mT(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
     mTuw = new TH2D("mTuw","mTuw(yjet);p_{T,gen};p_{T,reco}",nx,&x[0],nx,&x[0]);
-    mTf = new TH2D("mTf","mT(yjet);p_{T,gen};p_{T,reco}",
-		   3485,15,3500, 3485,15,3500);
-    mTfuw = new TH2D("mTfuw","mT(yjet);p_{T,gen};p_{T,reco}",
-		   3485,15,3500, 3485,15,3500);
+    mTf = new TH2D("mTf","mT(yjet);p_{T,gen};p_{T,reco}",3485,15,3500, 3485,15,3500);
+    mTfuw = new TH2D("mTfuw","mT(yjet);p_{T,gen};p_{T,reco}",3485,15,3500, 3485,15,3500);
     mx = new TH1D("mx","mx(ygen);p_{T,gen}",nx,&x[0]); // pTgen, ygen
     mxuw = new TH1D("mxuw","mx(ygen);p_{T,gen}",nx,&x[0]); // pTgen, ygen
     mxf = new TH1D("mxf","mx(ygen);p_{T,gen}",3485,15,3500); // pTgen, ygen
