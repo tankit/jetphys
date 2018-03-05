@@ -1315,9 +1315,7 @@ void histosFill::fillBasic(histosBasic *h)
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
               assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
 
-              cout << ptprobe << " " << pttag << endl;
               assert(h->ppt_probepertag); h->ppt_probepertag->Fill(pttag,ptprobe/pttag,_w);
-              cout << "kakkaa" << endl;
 
               double metstuff = met1 * cos(delta_phi(metphi1, phiprobe));
               assert(h->pmpfz); h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
@@ -2604,14 +2602,16 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   double maxmcpu = pumc->GetMaximum();
   int lomclim = pumc->FindFirstBinAbove(maxmcpu/100.0);
   int upmclim = pumc->FindLastBinAbove(maxmcpu/100.0);
+  int maxmcbin = pumc->FindFirstBinAbove(0.999*maxmcpu);
   for (int bin = 0; bin < lomclim; ++bin)
     pumc->SetBinContent(bin,0.0);
   for (int bin = upmclim+1; bin <= pumc->GetNbinsX(); ++bin)
     pumc->SetBinContent(bin,0.0);
   *ferr << "Discarding mc pu below & above: " << pumc->GetBinLowEdge(lomclim) << " " << pumc->GetBinLowEdge(upmclim+1) << endl;
+  *ferr << "Maximum mc bin: " << maxmcbin << endl;
   // Normalize
   int nbinsmc = pumc->GetNbinsX();
-  int kmc = pumc->FindBin(33);
+  int kmc = pumc->FindBin(33); // Check that pu=33 occurs at the same place as for data
 
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
@@ -2630,12 +2630,30 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
     double maxdtpu = pudist[t]->GetMaximum();
     int lodtlim = pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
     int updtlim = pudist[t]->FindLastBinAbove(maxdtpu/100.0);
-    for (int bin = 0; bin < lodtlim; ++bin)
+    int maxdtbin = pudist[t]->FindFirstBinAbove(0.999*maxdtpu);
+
+    int tailcount = 0;
+    for (int bin = 0; bin < lodtlim; ++bin) { // Set fore-tail to zero
+      ++tailcount;
       pudist[t]->SetBinContent(bin,0.0);
-    for (int bin = updtlim+1; bin <= pudist[t]->GetNbinsX(); ++bin)
+    }
+    for (int bin = updtlim+1; bin <= pudist[t]->GetNbinsX(); ++bin) { // Set aft-tail to zero
+      ++tailcount;
       pudist[t]->SetBinContent(bin,0.0);
+    }
     *ferr << "Discarding dt pu below & above: " << pudist[t]->GetBinLowEdge(lodtlim) << " " << pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
+    *ferr << "Maximum dt bin: " << maxdtbin << endl;
     pudist[t]->Divide(pumc);
+    pudist[t]->Scale(1.0/(pudist[t]->GetBinContent(maxdtbin)));
+
+    int abovecount = 0;
+    for (int bin = 1; bin <= pudist[t]->GetNbinsX(); ++bin) { // Set divergent values to zero
+      if (pudist[t]->GetBinContent(bin)>10.0) {
+        ++abovecount;
+        pudist[t]->SetBinContent(bin,0.0);
+      }
+    }
+    *ferr << "Discarded " << tailcount << " entries from tails and " << abovecount << " from too high values." << endl;
   }
   // REMOVED: "data with only one histo:"
 
