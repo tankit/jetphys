@@ -2598,7 +2598,6 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
 
   pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
   if (!pumc) return false;
-  pumc->Scale(1./pumc->Integral());
   double maxmcpu = pumc->GetMaximum();
   int lomclim = pumc->FindFirstBinAbove(maxmcpu/100.0);
   int upmclim = pumc->FindLastBinAbove(maxmcpu/100.0);
@@ -2626,7 +2625,6 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
       cout << " Pu=33 bin: " << kdt << " " << kmc << endl;
       return false;
     }
-    pudist[t]->Scale(1./pudist[t]->Integral());
     double maxdtpu = pudist[t]->GetMaximum();
     int lodtlim = pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
     int updtlim = pudist[t]->FindLastBinAbove(maxdtpu/100.0);
@@ -2644,11 +2642,11 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
     *ferr << "Discarding dt pu below & above: " << pudist[t]->GetBinLowEdge(lodtlim) << " " << pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
     *ferr << "Maximum dt bin: " << maxdtbin << endl;
     pudist[t]->Divide(pumc);
-    pudist[t]->Scale(1.0/(pudist[t]->GetBinContent(maxdtbin)));
+    double maxvaldt = pudist[t]->GetBinContent(maxdtbin);
 
     int abovecount = 0;
     for (int bin = 1; bin <= pudist[t]->GetNbinsX(); ++bin) { // Set divergent values to zero
-      if (pudist[t]->GetBinContent(bin)>10.0) {
+      if (pudist[t]->GetBinContent(bin)/maxvaldt>10.0) {
         ++abovecount;
         pudist[t]->SetBinContent(bin,0.0);
       }

@@ -33,7 +33,7 @@ void pufromslices() {
   //TString dirname="/eos/cms/store/group/phys_smp/Multijet/13TeV/MC/P825ns80X_Moriond17";
   TString dirname="/work/jet_tuples/MC/P825ns80X_Moriond17";
   std::regex fileformat("QCD_Pt_([0-9]*)to([0-9]*|Inf)_TuneCUETP8M_13TeV_pythia8.root");
-  bool debughistos = true;
+  bool debughistos = false;
 
   std::cmatch match;
   TFile *output = new TFile("pileup_MC.root","RECREATE");
@@ -72,7 +72,7 @@ void pufromslices() {
   summary->Write();
   if (debughistos) {
     for (auto &hist : individuals) {
-      hist->Scale(1.0/hist->GetMaximum());
+      hist->Scale(1.0/hist->GetMaximum()); // The scales are for comparison, so these cannot be used for weighting
       hist->Write();
     }
   }

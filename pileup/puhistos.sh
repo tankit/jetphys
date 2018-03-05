@@ -14,12 +14,12 @@ for loc in ${FOLDERS[@]}; do
     cd $loc
     compareJSON.py --and lumis.json $CERTIFICATE clumis.json
     wait
-    
+
     echo "Starting loop"
     for trg in ${TRIGGERS[@]}; do
         echo "Trigger "${trg}
         TAG=clumis_${trg}
-        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}*" --byls --minBiasXsec 80000 -o ${TAG}.csv
+        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}_v*" --byls --minBiasXsec 80000 -o ${TAG}.csv
         wait
         pileupReCalc_HLTpaths.py -i ${TAG}.csv --inputLumiJSON $PILEUP -o ${TAG}_pileup.txt --runperiod Run2
         wait
@@ -31,8 +31,8 @@ for loc in ${FOLDERS[@]}; do
     rm clumis.json
     root -l -b -q ../puhist_combine.C
     wait
-    rm HLT_*.root
-    wait
+    #rm HLT_*.root
+    #wait
 
     echo "Finished! folder "$loc
     cd ..
