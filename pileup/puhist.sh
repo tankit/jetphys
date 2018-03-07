@@ -7,6 +7,7 @@ CERTIFICATE=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13T
 PILEUP=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt
 NORMTAG=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json
 MAXPU=80
+MINBIAS=69500 #80000
 
 for loc in ${FOLDERS[@]}; do 
     python txt2json.py $loc || echo "lumis.txt not found, trying to use lumis.json"
@@ -19,11 +20,11 @@ for loc in ${FOLDERS[@]}; do
     for trg in ${TRIGGERS[@]}; do
         echo "Trigger "${trg}
         TAG=clumis_${trg}
-        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}_v*" --byls --minBiasXsec 80000 -o ${TAG}.csv
+        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}_v*" --byls --minBiasXsec ${MINBIAS} -o ${TAG}.csv
         wait
         pileupReCalc_HLTpaths.py -i ${TAG}.csv --inputLumiJSON $PILEUP -o ${TAG}_pileup.txt --runperiod Run2
         wait
-        pileupCalc.py -i clumis.json --inputLumiJSON ${TAG}_pileup.txt  --calcMode true --minBiasXsec 80000 --maxPileupBin ${MAXPU} --numPileupBins ${MAXPU} ${trg}.root
+        pileupCalc.py -i clumis.json --inputLumiJSON ${TAG}_pileup.txt  --calcMode true --minBiasXsec ${MINBIAS} --maxPileupBin ${MAXPU} --numPileupBins ${MAXPU} ${trg}.root
         wait
         rm ${TAG}*
         wait
