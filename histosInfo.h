@@ -138,31 +138,31 @@ public :
   //
   Int_t           njt;
   Int_t           jt3leads[3]; // The three leading jets
-  static const Int_t _njt = 250;//100;//90;//kMaxPFJets_;
-  Double_t        *jtp4x;//[_njt];   //[njt]
-  Double_t        *jtp4y;//[_njt];   //[njt]
-  Double_t        *jtp4z;//[_njt];   //[njt]
-  Double_t        *jtp4t;//[_njt];   //[njt]
-  Float_t         jte[_njt];   //[njt]
-  Float_t         jtpt[_njt];   //[njt]
-  //Float_t         jtptuchs[_njt];   //EXTRA
-  Float_t         jtptu[_njt];   //EXTRA
-  //Float_t         jteuchs[_njt];   //EXTRA
-  Float_t         jteu[_njt];   //EXTRA
-  Float_t         jteta[_njt];   //[njt]
-  Float_t         jtphi[_njt];   //[njt]
-  Float_t         jty[_njt];   //[njt]
-  Float_t         *jta;//[_njt];   //[njt]
-  Float_t         *jtjes;//[_njt];   //[njt]
+  static const Int_t _maxnjt = 250;//100;//90;//kMaxPFJets_;
+  Double_t        *jtp4x;//[_maxnjt];   //[njt]
+  Double_t        *jtp4y;//[_maxnjt];   //[njt]
+  Double_t        *jtp4z;//[_maxnjt];   //[njt]
+  Double_t        *jtp4t;//[_maxnjt];   //[njt]
+  Float_t         jte[_maxnjt];   //[njt]
+  Float_t         jtpt[_maxnjt];   //[njt]
+  //Float_t         jtptuchs[_maxnjt];   //EXTRA
+  Float_t         jtptu[_maxnjt];   //EXTRA
+  //Float_t         jteuchs[_maxnjt];   //EXTRA
+  Float_t         jteu[_maxnjt];   //EXTRA
+  Float_t         jteta[_maxnjt];   //[njt]
+  Float_t         jtphi[_maxnjt];   //[njt]
+  Float_t         jty[_maxnjt];   //[njt]
+  Float_t         *jta;//[_maxnjt];   //[njt]
+  Float_t         *jtjes;//[_maxnjt];   //[njt]
   Float_t         *jtbeta;
   Float_t         *jtbetastar;
   Float_t         *jtbetaprime;
-  Float_t         jtjesnew[_njt];   //[njt]
-  Float_t         jtjes_l1[_njt];   //[njt]
-  Float_t         jtjes_l2l3[_njt];   //[njt]
-  Float_t         jtjes_res[_njt];   //[njt]
-  Bool_t          *jtidloose;//[_njt];   //[njt]
-  Bool_t          *jtidtight;//[_njt];   //[njt]
+  Float_t         jtjesnew[_maxnjt];   //[njt]
+  Float_t         jtjes_l1[_maxnjt];   //[njt]
+  Float_t         jtjes_l2l3[_maxnjt];   //[njt]
+  Float_t         jtjes_res[_maxnjt];   //[njt]
+  Bool_t          *jtidloose;//[_maxnjt];   //[njt]
+  Bool_t          *jtidtight;//[_maxnjt];   //[njt]
 
   Float_t         rho;
   Float_t         met;
@@ -196,8 +196,8 @@ public :
   // Additional code for processing
   ofstream *ferr;
   TFile *_outfile;
-  map<string, TH1D*> pudist;
-  TH1D *pumc;
+  map<string, TH1D*> _pudist;
+  TH1D *_pumc;
   //TH1F *pudt;
   set<string> _trigs;
   TH1D *hmcweight;
@@ -226,9 +226,8 @@ private:
   map<string, double> _wt; // Mainly for trigger pileup weigths
 
   vector<int> _jkmore;
-  map<Int_t, Int_t> _outlist;
 
-  TLorentzVector p4, gp4, genp4, cp4, pp4;
+  TLorentzVector p4, gp4, genp4;
   jec::IOV _iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
   JetCorrectionUncertainty *_jecUnc;
@@ -242,8 +241,6 @@ private:
   map<int, map<int, float> > _avgpu;
   map<int, map<int, float> > _lums;
   map<int, map<int, float> > _lums2;
-  //map<string, map<int, int> > _premap;
-  map<string, map<int, map<int, int> > > _premap;
   map<string, map<int, int> > _prescales;
   TH2F *_ecalveto;
 

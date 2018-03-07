@@ -11,13 +11,13 @@
 void histosInfo::Loop()
 {
   if (fChain == 0) return;
-  Long64_t nentries = fChain->GetEntriesFast();
-  Long64_t ntot = fChain->GetEntries();
+  Long64_t _nentries = fChain->GetEntriesFast();
+  Long64_t _ntot = fChain->GetEntries();
   Long64_t nskip = _jp_nskip;//0;
-  nentries = (_jp_nentries==-1 ? ntot-nskip : min(ntot-nskip, _jp_nentries));
-  assert(nskip+nentries);
+  _nentries = (_jp_nentries==-1 ? _ntot-nskip : min(_ntot-nskip, _jp_nentries));
+  assert(nskip+_nentries);
 
-  map<string, int> cnt; // efficiency counters
+  map<string, int> _cnt; // efficiency counters
 
   ferr = new ofstream(Form("reports/histosInfo-%s.log",_jp_type),ios::out);
 
@@ -146,7 +146,7 @@ void histosInfo::Loop()
     metphi = PFMet__phi_;
     metsumet = PFMet__sumEt_;
 
-    ++cnt["01all"];
+    ++_cnt["01all"];
 
     // Check if good run/LS, including JSON selection
     if (_jp_isdt) {
@@ -168,7 +168,7 @@ void histosInfo::Loop()
       } // _jp_dolumi
     } // _jp_isdt
 
-    ++cnt["02ls"];
+    ++_cnt["02ls"];
 
     // Reset event ID
     _pass = true;
@@ -269,15 +269,15 @@ void histosInfo::Loop()
 
         // Reweight in-time pile-up
         if (_jp_reweighPU) {
-          int k = pudist[trg_name]->FindBin(trpu);
-          double wtrue = pudist[trg_name]->GetBinContent(k);
+          int k = _pudist[trg_name]->FindBin(trpu);
+          double wtrue = _pudist[trg_name]->GetBinContent(k);
           _wt[trg_name] *= wtrue;
 
           // check for non-zero PU weight
           _pass = _pass and wtrue!=0;
         }
       } // for itrg
-      if (_pass) ++cnt["07puw"];
+      if (_pass) ++_cnt["07puw"];
       else continue; // Fatal failure
     }
 
@@ -482,49 +482,49 @@ bool histosInfo::loadPUProfiles(const char *datafile, const char *mcfile)
   TDirectory *curdir = gDirectory;
 
   // Load pile-up files and hists from them
-  TFile *fpudist = new TFile(datafile, "READ");
-  if (!fpudist or fpudist->IsZombie()) return false;
+  TFile *f_pudist = new TFile(datafile, "READ");
+  if (!f_pudist or f_pudist->IsZombie()) return false;
   TFile *fpumc = new TFile(mcfile,"READ");
   if (!fpumc or fpumc->IsZombie()) return false;
 
-  pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
-  if (!pumc) return false;
-  pumc->Scale(1./pumc->Integral());
-  double maxmcpu = pumc->GetMaximum();
-  int lomclim = pumc->FindFirstBinAbove(maxmcpu/100.0);
-  int upmclim = pumc->FindLastBinAbove(maxmcpu/100.0);
+  _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
+  if (!_pumc) return false;
+  _pumc->Scale(1./_pumc->Integral());
+  double maxmcpu = _pumc->GetMaximum();
+  int lomclim = _pumc->FindFirstBinAbove(maxmcpu/100.0);
+  int upmclim = _pumc->FindLastBinAbove(maxmcpu/100.0);
   for (int bin = 0; bin < lomclim; ++bin)
-    pumc->SetBinContent(bin,0.0);
-  for (int bin = upmclim+1; bin <= pumc->GetNbinsX(); ++bin)
-    pumc->SetBinContent(bin,0.0);
-  *ferr << "Discarding mc pu below & above: " << pumc->GetBinLowEdge(lomclim) << " " << pumc->GetBinLowEdge(upmclim+1) << endl;
+    _pumc->SetBinContent(bin,0.0);
+  for (int bin = upmclim+1; bin <= _pumc->GetNbinsX(); ++bin)
+    _pumc->SetBinContent(bin,0.0);
+  *ferr << "Discarding mc pu below & above: " << _pumc->GetBinLowEdge(lomclim) << " " << _pumc->GetBinLowEdge(upmclim+1) << endl;
   // Normalize
-  int nbinsmc = pumc->GetNbinsX();
-  int kmc = pumc->FindBin(33);
+  int nbinsmc = _pumc->GetNbinsX();
+  int kmc = _pumc->FindBin(33);
 
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
     string t = string(_jp_triggers[itrg]);
-    pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str()));
-    if (!pudist[t]) return false;
-    int nbinsdt = pudist[t]->GetNbinsX();
-    int kdt = pudist[t]->FindBin(33);
+    _pudist[t] = dynamic_cast<TH1D*>(f_pudist->Get(t.c_str()));
+    if (!_pudist[t]) return false;
+    int nbinsdt = _pudist[t]->GetNbinsX();
+    int kdt = _pudist[t]->FindBin(33);
     if (kdt!=kmc or nbinsdt!=nbinsmc) {
       cout << "The pileup histogram dt vs mc binning or range do not match (dt left mc right):" << endl;
       cout << " Bins: " << nbinsdt << " " << nbinsmc << endl;
       cout << " Pu=33 bin: " << kdt << " " << kmc << endl;
       return false;
     }
-    pudist[t]->Scale(1./pudist[t]->Integral());
-    double maxdtpu = pudist[t]->GetMaximum();
-    int lodtlim = pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
-    int updtlim = pudist[t]->FindLastBinAbove(maxdtpu/100.0);
+    _pudist[t]->Scale(1./_pudist[t]->Integral());
+    double maxdtpu = _pudist[t]->GetMaximum();
+    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
+    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/100.0);
     for (int bin = 0; bin < lodtlim; ++bin)
-      pudist[t]->SetBinContent(bin,0.0);
-    for (int bin = updtlim+1; bin <= pudist[t]->GetNbinsX(); ++bin)
-      pudist[t]->SetBinContent(bin,0.0);
-    *ferr << "Discarding dt pu below & above: " << pudist[t]->GetBinLowEdge(lodtlim) << " " << pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
-    pudist[t]->Divide(pumc);
+      _pudist[t]->SetBinContent(bin,0.0);
+    for (int bin = updtlim+1; bin <= _pudist[t]->GetNbinsX(); ++bin)
+      _pudist[t]->SetBinContent(bin,0.0);
+    *ferr << "Discarding dt pu below & above: " << _pudist[t]->GetBinLowEdge(lodtlim) << " " << _pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
+    _pudist[t]->Divide(_pumc);
   }
   // REMOVED: "data with only one histo:"
 

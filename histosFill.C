@@ -8,100 +8,151 @@
 #define histosFill_cxx
 #include "histosFill.h"
 
-void histosFill::Loop()
+histosFill::histosFill(TChain *tree) :
+  pthat(EvtHdr__mPthat),
+  weight(EvtHdr__mWeight),
+  run(EvtHdr__mRun),
+  evt(EvtHdr__mEvent),
+  lbn(EvtHdr__mLumi),
+  itpu(EvtHdr__mINTPU),
+  ootpulate(EvtHdr__mOOTPULate),
+  ootpuearly(EvtHdr__mOOTPUEarly),
+  npv(EvtHdr__mNVtx),
+  npvgood(EvtHdr__mNVtxGood),
+  pvx(EvtHdr__mPVx),
+  pvy(EvtHdr__mPVy),
+  pvz(EvtHdr__mPVz),
+  pvndof(EvtHdr__mPVndof),
+  bsx(EvtHdr__mBSx),
+  bsy(EvtHdr__mBSy),
+  njt(PFJetsCHS__),
+  gen_njt(GenJets__),
+  rho(EvtHdr__mPFRho),
+  met(PFMet__et_),
+  metphi(PFMet__phi_),
+  metsumet(PFMet__sumEt_)
 {
-  if (fChain == 0) return;
+  assert(tree);
+  Init(tree);
+}
 
-  Long64_t nentries = fChain->GetEntriesFast();
-  Long64_t ntot = fChain->GetEntries();
-  Long64_t nskip = _jp_nskip;//0;
-  nentries = (_jp_nentries==-1 ? ntot-nskip : min(ntot-nskip, _jp_nentries));
-  assert(nskip+nentries);
 
-  map<string, int> cnt; // efficiency counters
-
+// Mostly setting up the root tree and its branches
+void histosFill::Init(TTree *tree)
+{
+  if (!tree) return;
   ferr = new ofstream(Form("reports/histosFill-%s.log",_jp_type),ios::out);
+  _outfile = new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
 
-  // Report memory usage to avoid malloc problems when writing file
-  *ferr << endl << "Starting Loop() initialization:" << endl << flush;
-  cout << endl << "Starting Loop() initialization:" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr <<Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
-  cout << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  fChain = tree;
+  fCurrent = -1;
+  fChain->SetMakeClass(1);
+  worryHCALHotExcl = false;
+  for (auto i = 0u; i<4; ++i) rangesHCALHotExcl[i] = 0;
 
-  _nbadevts_json = _nbadevts_dup = _nbadevts_run = _nbadevts_ls = _nbadevts_lum = 0;
-  _bscounter_bad = _bscounter_good = 0;
-  _ecalcounter_good = _ecalcounter_bad = 0;
-  _rhocounter_good = _rhocounter_bad = 0;
-  _trgcounter = _evtcounter = _totcounter = 0;
-  _ecalveto = 0;
-
-  // Initialize _pthatweight. It will be loaded for each tree separately.
-  if (_jp_pthatbins)
-    _pthatweight = 0;
-
-  TH2F *h2mu = 0;
-  if (_jp_dotrpufile) {
-    // Map of mu per (run,lumi)
-    TFile *fmu = new TFile(_jp_trpufile,"READ");
-    assert(fmu && !fmu->IsZombie());
-    h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU");
-    assert(h2mu and !h2mu->IsZombie());
-  }
-
-  // Qgl: load quark/gluon probability histos (Ozlem)
-  // 1. open the previous output-MC-1_iteration1.root in the beginning
-  // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
-  // 3. find correct hqgl_q and hqgl_g from array (normalized)
-  // 4. calculate probg = g / (q+g)
-  if (_jp_doqglfile) {
-    TFile *finmc = new TFile(_jp_qglfile,"READ");
-    assert(finmc && !finmc->IsZombie());
-
-    double veta[] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7};
-    const int neta = sizeof(veta)/sizeof(veta[0])-1;
-    // same or vpt, vtrigpt, npt
-    const int npt = _jp_notrigs;
-    const double *vtrigpt = &_jp_trigthr[0];
-    double vpt[npt+1]; vpt[0] = 0;
-    for (int trigidx = 0; trigidx != npt; ++trigidx) vpt[trigidx+1] = _jp_trigranges[trigidx][1];
-    const int nqgl = 101; double vqgl[nqgl+1];
-    for (int qglidx = 0; qglidx != nqgl+1; ++qglidx) vqgl[qglidx] = 0. + 0.01*qglidx;
-
-    h3probg = new TH3D("h3probg","Gluon prob.;#eta_{jet};p_{T,jet};QGL",
-      //6,0,3.0, 10,0,1000, 101,0,1.01);
-      neta,veta, npt,vpt, nqgl,vqgl); //101,0,1.01);
-
-    // Loop over pt and eta bins in the gql histos
-    for (int ieta = 1; ieta != h3probg->GetNbinsX()+1; ++ieta) {
-      for (int ipt = 1; ipt != h3probg->GetNbinsY()+1; ++ipt) {
-        // Gluons in the given eta/pt slice
-        string sg = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g",
-                         veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
-        cout << sg << endl << flush;
-        TH1D *hqgl_g = dynamic_cast<TH1D*>(finmc->Get(sg.c_str())); assert(hqgl_g);
-        hqgl_g->Scale(1./hqgl_g->Integral());
-
-        // Quarks in the given eta/pt slice
-        string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q", veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
-        TH1D *hqgl_q = dynamic_cast<TH1D*>(finmc->Get(sq.c_str())); assert(hqgl_q);
-        hqgl_q->Scale(1./hqgl_q->Integral());
-
-        // Loop over qgl indices
-        for (int iqgl = 1; iqgl != h3probg->GetNbinsZ()+1; ++iqgl) {
-          // Fetch gluon probability
-          double probg = hqgl_g->GetBinContent(iqgl) /
-                        (hqgl_g->GetBinContent(iqgl) + hqgl_q->GetBinContent(iqgl));
-          h3probg->SetBinContent(ieta, ipt, iqgl, probg);
-        } // for iqgl
-      } // for ipt
-    } // for ieta
-  }
+  fChain->SetBranchAddress("filterIdList_", &filterIdList_, &b_events_filterIdList_);
+  fChain->SetBranchAddress("EvtHdr_.mIsPVgood", &EvtHdr__mIsPVgood, &b_events_EvtHdr__mIsPVgood);
+  fChain->SetBranchAddress("EvtHdr_.mHCALNoise", &EvtHdr__mHCALNoise, &b_events_EvtHdr__mHCALNoise);
+  fChain->SetBranchAddress("EvtHdr_.mHCALNoiseNoMinZ", &EvtHdr__mHCALNoiseNoMinZ, &b_events_EvtHdr__mHCALNoiseNoMinZ);
+  fChain->SetBranchAddress("EvtHdr_.mRun", &EvtHdr__mRun, &b_events_EvtHdr__mRun);
+  fChain->SetBranchAddress("EvtHdr_.mEvent", &EvtHdr__mEvent, &b_events_EvtHdr__mEvent);
+  fChain->SetBranchAddress("EvtHdr_.mLumi", &EvtHdr__mLumi, &b_events_EvtHdr__mLumi);
+  fChain->SetBranchAddress("EvtHdr_.mBunch", &EvtHdr__mBunch, &b_events_EvtHdr__mBunch);
+  fChain->SetBranchAddress("EvtHdr_.mNVtx", &EvtHdr__mNVtx, &b_events_EvtHdr__mNVtx);
+  fChain->SetBranchAddress("EvtHdr_.mNVtxGood", &EvtHdr__mNVtxGood, &b_events_EvtHdr__mNVtxGood);
+  fChain->SetBranchAddress("EvtHdr_.mOOTPUEarly", &EvtHdr__mOOTPUEarly, &b_events_EvtHdr__mOOTPUEarly);
+  fChain->SetBranchAddress("EvtHdr_.mOOTPULate", &EvtHdr__mOOTPULate, &b_events_EvtHdr__mOOTPULate);
+  fChain->SetBranchAddress("EvtHdr_.mINTPU", &EvtHdr__mINTPU, &b_events_EvtHdr__mINTPU);
+  fChain->SetBranchAddress("EvtHdr_.mNBX", &EvtHdr__mNBX, &b_events_EvtHdr__mNBX);
+  fChain->SetBranchAddress("EvtHdr_.mPVndof", &EvtHdr__mPVndof, &b_events_EvtHdr__mPVndof);
+  fChain->SetBranchAddress("EvtHdr_.mTrPu", &EvtHdr__mTrPu, &b_events_EvtHdr__mTrPu);
+  fChain->SetBranchAddress("EvtHdr_.mPVx", &EvtHdr__mPVx, &b_events_EvtHdr__mPVx);
+  fChain->SetBranchAddress("EvtHdr_.mPVy", &EvtHdr__mPVy, &b_events_EvtHdr__mPVy);
+  fChain->SetBranchAddress("EvtHdr_.mPVz", &EvtHdr__mPVz, &b_events_EvtHdr__mPVz);
+  fChain->SetBranchAddress("EvtHdr_.mBSx", &EvtHdr__mBSx, &b_events_EvtHdr__mBSx);
+  fChain->SetBranchAddress("EvtHdr_.mBSy", &EvtHdr__mBSy, &b_events_EvtHdr__mBSy);
+  fChain->SetBranchAddress("EvtHdr_.mBSz", &EvtHdr__mBSz, &b_events_EvtHdr__mBSz);
+  fChain->SetBranchAddress("EvtHdr_.mPthat", &EvtHdr__mPthat, &b_events_EvtHdr__mPthat);
+  fChain->SetBranchAddress("EvtHdr_.mWeight", &EvtHdr__mWeight, &b_events_EvtHdr__mWeight);
+  fChain->SetBranchAddress("EvtHdr_.mCaloRho", &EvtHdr__mCaloRho, &b_events_EvtHdr__mCaloRho);
+  fChain->SetBranchAddress("EvtHdr_.mPFRho", &EvtHdr__mPFRho, &b_events_EvtHdr__mPFRho);
+  fChain->SetBranchAddress("CaloMet_.et_", &CaloMet__et_, &b_events_CaloMet__et_);
+  fChain->SetBranchAddress("CaloMet_.CaloMetPt_", &CaloMet__CaloMetPt_, &b_events_CaloMet__CaloMetPt_);
+  fChain->SetBranchAddress("CaloMet_.sumEt_", &CaloMet__sumEt_, &b_events_CaloMet__sumEt_);
+  fChain->SetBranchAddress("CaloMet_.phi_", &CaloMet__phi_, &b_events_CaloMet__phi_);
+  fChain->SetBranchAddress("PFMet_.et_", &PFMet__et_, &b_events_PFMet__et_);
+  fChain->SetBranchAddress("PFMet_.CaloMetPt_", &PFMet__CaloMetPt_, &b_events_PFMet__CaloMetPt_);
+  fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_, &b_events_PFMet__sumEt_);
+  fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_, &b_events_PFMet__phi_);
+  fChain->SetBranchAddress("MvaMet_.et_", &MvaMet__et_, &b_events_MvaMet__et_);
+  fChain->SetBranchAddress("MvaMet_.CaloMetPt_", &MvaMet__CaloMetPt_, &b_events_MvaMet__CaloMetPt_);
+  fChain->SetBranchAddress("MvaMet_.sumEt_", &MvaMet__sumEt_, &b_events_MvaMet__sumEt_);
+  fChain->SetBranchAddress("MvaMet_.phi_", &MvaMet__phi_, &b_events_MvaMet__phi_);
+  fChain->SetBranchAddress("TriggerDecision_", &TriggerDecision_, &b_events_TriggerDecision_);
+  fChain->SetBranchAddress("triggerList_", &triggerList_, &b_events_triggerList_);
+  fChain->SetBranchAddress("L1Prescale_", &L1Prescale_, &b_events_L1Prescale_);
+  fChain->SetBranchAddress("HLTPrescale_", &HLTPrescale_, &b_events_HLTPrescale_);
+  fChain->SetBranchAddress("GenJets_", &GenJets__, &b_events_GenJets__);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fX", GenJets__fCoordinates_fX, &b_GenJets__fCoordinates_fX);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fY", GenJets__fCoordinates_fY, &b_GenJets__fCoordinates_fY);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", GenJets__fCoordinates_fZ, &b_GenJets__fCoordinates_fZ);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT, &b_GenJets__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_",_jp_chs), &PFJetsCHS__, &b_events_PFJetsCHS__);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",_jp_chs), PFJetsCHS__P4__fCoordinates_fX, &b_PFJetsCHS__P4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fY",_jp_chs), PFJetsCHS__P4__fCoordinates_fY, &b_PFJetsCHS__P4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__P4__fCoordinates_fZ, &b_PFJetsCHS__P4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fT",_jp_chs), PFJetsCHS__P4__fCoordinates_fT, &b_PFJetsCHS__P4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",_jp_chs), PFJetsCHS__genP4__fCoordinates_fX, &b_PFJetsCHS__genP4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",_jp_chs), PFJetsCHS__genP4__fCoordinates_fY, &b_PFJetsCHS__genP4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__genP4__fCoordinates_fZ, &b_PFJetsCHS__genP4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",_jp_chs), PFJetsCHS__genP4__fCoordinates_fT, &b_PFJetsCHS__genP4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genR_",_jp_chs), PFJetsCHS__genR_, &b_PFJetsCHS__genR_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cor_",_jp_chs), PFJetsCHS__cor_, &b_PFJetsCHS__cor_);
+  fChain->SetBranchAddress(Form("PFJets%s_.jecLabels_",_jp_chs), PFJetsCHS__jecLabels_, &b_PFJetsCHS__jecLabels_);
+  fChain->SetBranchAddress(Form("PFJets%s_.unc_",_jp_chs), PFJetsCHS__unc_, &b_PFJetsCHS__unc_);
+  fChain->SetBranchAddress(Form("PFJets%s_.uncSrc_",_jp_chs), PFJetsCHS__uncSrc_, &b_PFJetsCHS__uncSrc_);
+  fChain->SetBranchAddress(Form("PFJets%s_.area_",_jp_chs), PFJetsCHS__area_, &b_PFJetsCHS__area_);
+  fChain->SetBranchAddress(Form("PFJets%s_.looseID_",_jp_chs), PFJetsCHS__looseID_, &b_PFJetsCHS__looseID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.tightID_",_jp_chs), PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfPositive_",_jp_chs), PFJetsCHS__CSVpfPositive_, &b_PFJetsCHS__CSVpfPositive_);
+  fChain->SetBranchAddress(Form("PFJets%s_.CSVpfNegative_",_jp_chs), PFJetsCHS__CSVpfNegative_, &b_PFJetsCHS__CSVpfNegative_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.boosted_",_jp_chs), PFJetsCHS__boosted_, &b_PFJetsCHS__boosted_);
+  fChain->SetBranchAddress(Form("PFJets%s_.QGtagger_",_jp_chs), PFJetsCHS__QGtagger_, &b_PFJetsCHS__QGtagger_);
+  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavour_",_jp_chs), PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hadronFlavour_",_jp_chs), PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend1_",_jp_chs), PFJetsCHS__recommend1_, &b_PFJetsCHS__recommend1_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend2_",_jp_chs), PFJetsCHS__recommend2_, &b_PFJetsCHS__recommend2_);
+  fChain->SetBranchAddress(Form("PFJets%s_.recommend3_",_jp_chs), PFJetsCHS__recommend3_, &b_PFJetsCHS__recommend3_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsL_",_jp_chs), PFJetsCHS__pfCombinedCvsL_, &b_PFJetsCHS__pfCombinedCvsL_);
+  //fChain->SetBranchAddress(Form("PFJets%s_.pfCombinedCvsB_",_jp_chs), PFJetsCHS__pfCombinedCvsB_, &b_PFJetsCHS__pfCombinedCvsB_);
+  fChain->SetBranchAddress(Form("PFJets%s_.chf_",_jp_chs), PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhf_",_jp_chs), PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nemf_",_jp_chs), PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cemf_",_jp_chs), PFJetsCHS__cemf_, &b_PFJetsCHS__cemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.muf_",_jp_chs), PFJetsCHS__muf_, &b_PFJetsCHS__muf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",_jp_chs), PFJetsCHS__hf_hf_, &b_PFJetsCHS__hf_hf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",_jp_chs), PFJetsCHS__hf_phf_, &b_PFJetsCHS__hf_phf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",_jp_chs), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",_jp_chs), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.chm_",_jp_chs), PFJetsCHS__chm_, &b_PFJetsCHS__chm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhm_",_jp_chs), PFJetsCHS__nhm_, &b_PFJetsCHS__nhm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.phm_",_jp_chs), PFJetsCHS__phm_, &b_PFJetsCHS__phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.elm_",_jp_chs), PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mum_",_jp_chs), PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
+  fChain->SetBranchAddress(Form("PFJets%s_.ncand_",_jp_chs), PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
+  //fChain->SetBranchAddress("PFJets%s_.cm_",_jp_chs), PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.beta_",_jp_chs), PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
+  fChain->SetBranchAddress(Form("PFJets%s_.betaStar_",_jp_chs), PFJetsCHS__betaStar_, &b_PFJetsCHS__betaStar_);
+  fChain->SetBranchAddress(Form("PFJets%s_.betaPrime_",_jp_chs), PFJetsCHS__betaPrime_, &b_PFJetsCHS__betaPrime_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mpuTrk_",_jp_chs), PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mlvTrk_",_jp_chs), PFJetsCHS__mlvTrk_, &b_PFJetsCHS__mlvTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mjtTrk_",_jp_chs), PFJetsCHS__mjtTrk_, &b_PFJetsCHS__mjtTrk_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hof_",_jp_chs), PFJetsCHS__hof_, &b_PFJetsCHS__hof_);
+  fChain->SetBranchAddress(Form("PFJets%s_.pujid_",_jp_chs), PFJetsCHS__pujid_, &b_PFJetsCHS__pujid_);
+  fChain->SetBranchAddress(Form("PFJets%s_.calojetpt_",_jp_chs), PFJetsCHS__calojetpt_, &b_PFJetsCHS__calojetpt_);
+  fChain->SetBranchAddress(Form("PFJets%s_.calojetef_",_jp_chs), PFJetsCHS__calojetef_, &b_PFJetsCHS__calojetef_);
+  fChain->SetBranchAddress("genFlavour_", &genFlavour_, &b_events_genFlavour_);
+  fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_, &b_events_genFlavourHadron_);
 
   if (_jp_quick) { // Activate only some branches
     fChain->SetBranchStatus("*",0);
@@ -229,29 +280,48 @@ void histosFill::Loop()
   gen_jtp4y = &GenJets__fCoordinates_fY[0];
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
+}
 
-  *ferr << "\nCONFIGURATION DUMP:" << endl;
-  *ferr << "-------------------" << endl;
-  *ferr << Form("Running over %sPF",_jp_algo) << endl;
-  if(_jp_ismc) *ferr << "Running over MC" << endl;
-  if(_jp_isdt) *ferr << "Running over data" << endl;
-  *ferr << (_jp_useIOV ? "Applying" : "Not applying") << " time-dependent JEC (IOV)" << endl;
-  *ferr << (_jp_doVetoECAL ? "Vetoing" : "Not vetoing") << " jets in bad ECAL towers" << endl;
-  *ferr << (_jp_doVetoECALHot ? "Doing" : "Not doing") << " Hot ECAL tower exclusion in eta-phi plane" << endl;
-  *ferr << (_jp_doVetoHCALHot ? "Doing" : "Not doing") << " Hot HCAL tower exclusion in eta-phi plane" << endl;
+
+void histosFill::PreRun()
+{
+  _nentries = fChain->GetEntriesFast();
+  _ntot = fChain->GetEntries();
+  _nskip = _jp_nskip;//0;
+  _nentries = (_jp_nentries==-1 ? _ntot-_nskip : min(_ntot-_nskip, _jp_nentries));
+  assert(_nskip+_nentries);
+
+  _nbadevts_json = _nbadevts_dup = _nbadevts_run = _nbadevts_ls = _nbadevts_lum = 0;
+  _bscounter_bad = _bscounter_good = 0;
+  _ecalcounter_good = _ecalcounter_bad = 0;
+  _rhocounter_good = _rhocounter_bad = 0;
+  _trgcounter = _evtcounter = _totcounter = 0;
+  _ecalveto = 0;
+
+  // Initialize _pthatweight. It will be loaded for each tree separately.
+  if (_jp_pthatbins)
+    _pthatweight = 0;
+
+  PrintInfo("\nCONFIGURATION DUMP:");
+  PrintInfo("-------------------");
+  PrintInfo(Form("Running over %sPF",_jp_algo));
+  PrintInfo(Form("Running over %s",_jp_ismc?"MC":"data"));
+  PrintInfo(Form("%s time-dependent JEC (IOV)",_jp_useIOV ? "Applying" : "Not applying"));
+  PrintInfo(Form("%s jets in bad ECAL towers",_jp_doVetoECAL ? "Vetoing" : "Not vetoing"));
+  PrintInfo(Form("%s Hot ECAL tower exclusion in eta-phi plane",_jp_doVetoECALHot ? "Doing" : "Not doing"));
+  PrintInfo(Form("%s Hot HCAL tower exclusion in eta-phi plane",_jp_doVetoHCALHot ? "Doing" : "Not doing"));
   *ferr << endl;
 
   if (_jp_isdt) {
-    *ferr << (_jp_dojson ? "Applying" : "Not applying") << " additional JSON selection" << endl;
-    *ferr << (_jp_doprescale ? "Applying" : "Not applying") << " additional prescalees on run/lumi." << endl;
-    *ferr << (_jp_doprescale ? "Recalculating" : "Not recalculating") << " luminosities." << endl;
-    *ferr << (_jp_doRunHistos ? "Storing" : "Not storing") << " additional run-level histograms" << endl;
-    *ferr << (_jp_doBasicHistos ? "Storing" : "Not storing") << " basic set of histograms" << endl;
-    *ferr << (_jp_doEtaHistos ? "Storing" : "Not storing") << " histograms with a full eta-range" << endl;
-  }
-  if (_jp_ismc) {
-    *ferr << (_jp_reweighPU ? "Reweighing" : "Not reweighing") << " pileup profile in MC to data" << endl;
-    *ferr << (_jp_pthatbins ? "Processing pThat binned samples" : "Processing \"flat\" samples") << endl;
+    PrintInfo(Form("%s additional JSON selection",_jp_dojson ? "Applying" : "Not applying"));
+    PrintInfo(Form("%s additional prescalees on run/lumi.",_jp_doprescale ? "Applying" : "Not applying"));
+    PrintInfo(Form("%s luminosities.",_jp_doprescale ? "Recalculating" : "Not recalculating"));
+    PrintInfo(Form("%s additional run-level histograms",_jp_doRunHistos ? "Storing" : "Not storing"));
+    PrintInfo(Form("%s basic set of histograms",_jp_doBasicHistos ? "Storing" : "Not storing"));
+    PrintInfo(Form("%s histograms with a full eta-range",_jp_doEtaHistos ? "Storing" : "Not storing"));
+  } else if (_jp_ismc) {
+    PrintInfo(Form("%s pileup profile in MC to data",_jp_reweighPU ? "Reweighing" : "Not reweighing"));
+    PrintInfo(Form("Processing %s samples", _jp_pthatbins ? "pThat binned" : "\"flat\""));
   }
   *ferr << endl;
 
@@ -305,8 +375,8 @@ void histosFill::Loop()
   }
 
   if (_jp_ismc) cout << Form("Running on MC produced with %1.3g nb-1 (%lld evts)",
-                        1000. * ntot / _jp_xsecMinBias, ntot) << endl;
-  if (_jp_isdt) cout << Form("Running on %lld events of data",ntot) << endl;
+    1000. * _ntot / _jp_xsecMinBias, _ntot) << endl;
+  if (_jp_isdt) cout << Form("Running on %lld events of data",_ntot) << endl;
 
   // Initialize histograms for different epochs and DQM selections
   if (_jp_doBasicHistos) {
@@ -322,6 +392,15 @@ void histosFill::Loop()
         initMcHistos("FullEta_RecoPerGen_vGen");
       }
     }
+  }
+
+  // For debugging purposes, save the weights used for pileup profiles.
+  if (_jp_ismc and _jp_reweighPU) {
+    _outfile->cd();
+    _outfile->mkdir("puwgt");
+    _outfile->cd("puwgt");
+    for (auto &puprof : _pudist)
+      puprof.second->Write();
   }
 
   if (_jp_isdt and _jp_doRunHistos) {
@@ -343,21 +422,98 @@ void histosFill::Loop()
     assert(fECALHotExcl and !fECALHotExcl->IsZombie() && Form("file rootfiles/hotjets-run%s.root missing",ECALHotTag.c_str()));
     h2ECALHotExcl = (TH2D*)fECALHotExcl->Get(Form("h2hot%s",_jp_ECALHotType));
     assert(h2ECALHotExcl and "erroneous eta-phi exclusion type");
-    *ferr << "Loading ECAL corrections " << "rootfiles/hotjets-run" << ECALHotTag.c_str() << ".root with h2hot" << _jp_ECALHotType << endl;
+    PrintInfo(Form("Loading ECAL corrections rootfiles/hotjets-run%s.root with h2hot %s",ECALHotTag.c_str(),_jp_ECALHotType));
   }
 
-  // Report memory usage to avoid malloc problems when writing file
-  *ferr << "Beginning Loop() proper:" << endl << flush;
-  cout  << "Beginning Loop() proper:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr <<Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
-  cout << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  if (_jp_dotrpufile) {
+    // Map of mu per (run,lumi)
+    TFile *fmu = new TFile(_jp_trpufile,"READ");
+    assert(fmu && !fmu->IsZombie());
+    _h2mu = (TH2F*)fmu->Get("hLSvsRUNxMU");
+    assert(_h2mu and !_h2mu->IsZombie());
+  }
 
-  // Event loop
+  // Qgl: load quark/gluon probability histos (Ozlem)
+  // 1. open the previous output-MC-1_iteration1.root in the beginning
+  // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
+  // 3. find correct hqgl_q and hqgl_g from array (normalized)
+  // 4. calculate probg = g / (q+g)
+  if (_jp_doqglfile) {
+    TFile *finmc = new TFile(_jp_qglfile,"READ");
+    assert(finmc && !finmc->IsZombie());
+
+    double veta[] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.2, 4.7};
+    const int neta = sizeof(veta)/sizeof(veta[0])-1;
+    // same or vpt, vtrigpt, npt
+    const int npt = _jp_notrigs;
+    const double *vtrigpt = &_jp_trigthr[0];
+    double vpt[npt+1]; vpt[0] = 0;
+    for (int trigidx = 0; trigidx != npt; ++trigidx) vpt[trigidx+1] = _jp_trigranges[trigidx][1];
+    const int nqgl = 101; double vqgl[nqgl+1];
+    for (int qglidx = 0; qglidx != nqgl+1; ++qglidx) vqgl[qglidx] = 0. + 0.01*qglidx;
+
+    _h3probg = new TH3D("_h3probg","Gluon prob.;#eta_{jet};p_{T,jet};QGL",
+                        //6,0,3.0, 10,0,1000, 101,0,1.01);
+                        neta,veta, npt,vpt, nqgl,vqgl); //101,0,1.01);
+
+    // Loop over pt and eta bins in the gql histos
+    for (int ieta = 1; ieta != _h3probg->GetNbinsX()+1; ++ieta) {
+      for (int ipt = 1; ipt != _h3probg->GetNbinsY()+1; ++ipt) {
+        // Gluons in the given eta/pt slice
+        string sg = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_g",
+                          veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
+        cout << sg << endl << flush;
+        TH1D *hqgl_g = dynamic_cast<TH1D*>(finmc->Get(sg.c_str())); assert(hqgl_g);
+        hqgl_g->Scale(1./hqgl_g->Integral());
+
+        // Quarks in the given eta/pt slice
+        string sq = Form("Standard/Eta_%1.1f-%1.1f/jt%1.0f/hqgl_q", veta[ieta-1], veta[ieta], vtrigpt[ipt-1]);
+        TH1D *hqgl_q = dynamic_cast<TH1D*>(finmc->Get(sq.c_str())); assert(hqgl_q);
+        hqgl_q->Scale(1./hqgl_q->Integral());
+
+        // Loop over qgl indices
+        for (int iqgl = 1; iqgl != _h3probg->GetNbinsZ()+1; ++iqgl) {
+          // Fetch gluon probability
+          double probg = hqgl_g->GetBinContent(iqgl) /
+          (hqgl_g->GetBinContent(iqgl) + hqgl_q->GetBinContent(iqgl));
+          _h3probg->SetBinContent(ieta, ipt, iqgl, probg);
+        } // for iqgl
+      } // for ipt
+    } // for ieta
+  }
+}
+
+
+void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
+{
+  *ferr << info << endl << flush;
+  if (printcout) cout << info << endl << flush;
+}
+
+
+void histosFill::PrintMemInfo(bool printcout)
+{
+  gSystem->GetMemInfo(&_info);
+  PrintInfo(Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+                 _info.fMemTotal,  _info.fMemUsed,  _info.fMemFree,
+                 _info.fSwapTotal, _info.fSwapUsed, _info.fSwapFree),printcout);
+}
+
+
+void histosFill::Loop()
+{
+  if (fChain == 0) return;
+
+  // Report memory usage to avoid malloc problems when writing file
+  PrintInfo("Starting Loop() initialization:");
+  PrintMemInfo(true);
+
+  PreRun();
+
+  // Report memory usage to avoid malloc problems when writing file
+  PrintInfo("Beginning Loop() proper:");
+  PrintMemInfo(true);
+
   TStopwatch stop;
   stop.Start();
   TDatime bgn;
@@ -365,9 +521,12 @@ void histosFill::Loop()
   vector<Long64_t> infojentrys = {5000,10000,50000,100000,500000,1000000,5000000,
                                   10000000,20000000,30000000,40000000,50000000,60000000,70000000,80000000,90000000,
                                   100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
+  ///////////////
+  // Event loop
+  ///////////////
   Long64_t nbytes = 0, nb = 0;
-  for (Long64_t djentry=0; djentry<nentries;djentry+=1+_jp_skim) { // Event loop
-    Long64_t jentry = djentry+nskip;
+  for (Long64_t djentry=0; djentry<_nentries;djentry+=1+_jp_skim) { // Event loop
+    Long64_t jentry = djentry+_nskip;
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
@@ -378,7 +537,7 @@ void histosFill::Loop()
     if (infoplace!=infojentrys.end()) {
       // How long is it going to take?
       cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
-                      (long int)jentry, 100.*djentry/nentries, stop.RealTime()) << endl;
+                      (long int)jentry, 100.*djentry/_nentries, stop.RealTime()) << endl;
       cout << "BGN: ";
       bgn.Print();
       TDatime now;
@@ -390,7 +549,7 @@ void histosFill::Loop()
         cout << "NXT: ";
         nxt.Print();
       }
-      now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(nentries)/static_cast<Double_t>(djentry)-1.0)));
+      now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(_nentries)/static_cast<Double_t>(djentry)-1.0)));
       cout << "ETA: ";
       now.Print();
 
@@ -413,68 +572,27 @@ void histosFill::Loop()
       stop.Continue();
     }
 
-    // Set auxiliary event variables NOTE: These are kept here, so that the EvtHdr stuff etc.
-    assert(_jp_isdt or !_jp_pthatbins or _pthatweight>0);
-    pthat = EvtHdr__mPthat;
-    weight = EvtHdr__mWeight;
-    // Weight is most likely a redundant constant if pthatbins are used, but keep it here just in case.
-    if (_jp_ismc and _jp_pthatbins)
-      weight *= _pthatweight;
-    // REMOVED: "TEMP PATCH"
-    run = EvtHdr__mRun;
-    evt = EvtHdr__mEvent;
-    lbn = EvtHdr__mLumi;
-
-    trpu = EvtHdr__mTrPu;
-    itpu = EvtHdr__mINTPU;
-    ootpulate = EvtHdr__mOOTPULate;
-    ootpuearly = EvtHdr__mOOTPUEarly;
-
-    if (_jp_isdt) {
+    if (_jp_isdt) { // For DT fetch true pileup from the json or histogram info
       trpu = _avgpu[run][lbn];
-      if (trpu==0 and _jp_dotrpufile and h2mu) {
-        int irun = h2mu->GetXaxis()->FindBin(run);
-        int ilbn = h2mu->GetYaxis()->FindBin(lbn);
-        trpu = h2mu->GetBinContent(irun, ilbn);
+      if (trpu==0 and _jp_dotrpufile and _h2mu) { // This is rarely used, as no new histogram is provided
+        int irun = _h2mu->GetXaxis()->FindBin(run);
+        int ilbn = _h2mu->GetYaxis()->FindBin(lbn);
+        trpu = _h2mu->GetBinContent(irun, ilbn);
       }
+    } else {
+      trpu = EvtHdr__mTrPu;
     }
 
-    npv = EvtHdr__mNVtx;
-    npvgood = EvtHdr__mNVtxGood;
-    pvx = EvtHdr__mPVx;
-    pvy = EvtHdr__mPVy;
-    pvz = EvtHdr__mPVz;
-    pvndof = EvtHdr__mPVndof;
-    bsx = EvtHdr__mBSx;
-    bsy = EvtHdr__mBSy;
-
-    rho = EvtHdr__mPFRho;
-    met = PFMet__et_;
-    metphi = PFMet__phi_;
-    metsumet = PFMet__sumEt_;
-
-    njt = PFJetsCHS__;       //assert(njt < kMaxPFJetsCHS_);
-    gen_njt = GenJets__;
-    gen_njt = GenJets__;
-
-    //assert(njt<_njt);
-    if (!(njt < _njt)) {
-      *ferr << "Array overflow: njt = " << njt
-           << " > njtmax=" << _njt << endl;
-      cout << "Array overflow: njt = "<< njt
-           << " > njtmax=" << _njt << endl;
-      cout << flush;
-      assert(njt<_njt);
+    //assert(njt<_maxnjt);
+    if (njt > _maxnjt) {
+      PrintInfo(Form("Array overflow: njt = %d > njtmax= %d",njt,_maxnjt),true);
+      assert(njt<_maxnjt);
     }
 
-     //assert(_jp_isdt || gen_njt<_njt);
-    if (_jp_ismc and !(gen_njt < _njt)) {
-      *ferr << "Array overflow: gen_njt = " << gen_njt
-           << " > njtmax=" << _njt << endl;
-      cout << "Array overflow: gen_njt = "<< njt
-           << " > njtmax=" << _njt << endl;
-      cout << flush;
-      assert(gen_njt<_njt);
+     //assert(_jp_isdt || gen_njt<_maxnjt);
+    if (_jp_ismc and gen_njt > _maxnjt) {
+      PrintInfo(Form("Array overflow: gen_njt = %d > njtmax= %d",gen_njt,_maxnjt),true);
+      assert(gen_njt<_maxnjt);
     }
 
     if (_jp_debug) {
@@ -503,7 +621,7 @@ void histosFill::Loop()
       }
       events.insert(evt);
     }
-    ++cnt["01all"];
+    ++_cnt["01all"];
 
     // Check if good run/LS, including JSON selection
     if (_jp_isdt) {
@@ -543,7 +661,7 @@ void histosFill::Loop()
     // Keep track of LBNs
     _passedlumis.insert(pair<int, int>(run, lbn));
 
-    ++cnt["02ls"];
+    ++_cnt["02ls"];
 
     // Reset event ID
     _pass = true;
@@ -551,7 +669,7 @@ void histosFill::Loop()
     // Reject events with no vertex
     pvrho = tools::oplus(pvx, pvy);
     _pass = _pass and npvgood>0 and pvrho<2.;
-    if (_pass) ++cnt["03vtx"];
+    if (_pass) ++_cnt["03vtx"];
 
     // Event cuts against beam backgrounds
     if (_pass) {
@@ -560,7 +678,7 @@ void histosFill::Loop()
         _pass = false;
       } else {
         ++_bscounter_good;
-        ++cnt["04bsc"];
+        ++_cnt["04bsc"];
       }
     }
 
@@ -572,7 +690,7 @@ void histosFill::Loop()
         _pass = false;
       } else {
         ++_ecalcounter_good;
-        ++cnt["05ecal"];
+        ++_cnt["05ecal"];
       }
     } // ecal veto
 
@@ -586,7 +704,7 @@ void histosFill::Loop()
                       run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[0] :0.), metsumet, met) << flush;
       } else {
         ++_rhocounter_good;
-        ++cnt["06rho"];
+        ++_cnt["06rho"];
       }
     }
 
@@ -662,8 +780,7 @@ void histosFill::Loop()
           if (_jp_useversionlumi) _wt[trigname] = iwgt;
         } else {
           // Make sure all info is good! This is crucial if there is something odd with the tuples
-          *ferr << "Missing prescale for " << trigname
-                << " in run " << run << endl << flush;
+          PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
         }
       } // for itrg (_goodTrigs)
     }
@@ -673,12 +790,17 @@ void histosFill::Loop()
     _pass = _pass and _trigs.size()>0;
     if (_pass) {
       ++_trgcounter;
-      if (_jp_isdt) ++cnt["07trg"];
+      if (_jp_isdt) ++_cnt["07trg"];
     }
 
-    // Retrieve event weight
-    _w0 = (_jp_ismc ? weight : 1);
-    assert(_w0>0);
+    // Retrieve event weight. _w0 is static, _w is chanching with the trigger
+    _w0 = 1.0;
+    if (_jp_ismc) {
+      _w0 *= weight;
+      if (_jp_pthatbins)
+        _w0 *= _pthatweight;
+      assert(_w0>0);
+    }
     _w = _w0;
 
     if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
@@ -690,17 +812,16 @@ void histosFill::Loop()
 
         // Reweight in-time pile-up
         if (_jp_reweighPU) {
-          int k = pudist[trg_name]->FindBin(trpu);
-          double wtrue = pudist[trg_name]->GetBinContent(k);
+          int k = _pudist[trg_name]->FindBin(trpu);
+          double wtrue = _pudist[trg_name]->GetBinContent(k);
           _wt[trg_name] *= wtrue;
 
           // check for non-zero PU weight
           _pass = _pass and wtrue!=0;
-          //if (wtrue==0) cout << "Zero PU weight! run: " << run << " lumi: " << lbn << " pu: " << trpu << "/" << _jp_maxpu << " trg: " << trg_name << endl;
         }
       } // for itrg
       _wt["mc"] = _wt[_jp_reftrig];
-      if (_pass) ++cnt["07puw"];
+      if (_pass) ++_cnt["07puw"];
       else continue; // Fatal failure
     }
 
@@ -889,7 +1010,7 @@ void histosFill::Loop()
       bool good1 = jteta[i1] < rangesHCALHotExcl[0] or jteta[i1] > rangesHCALHotExcl[1] or
                    jtphi[i1] < rangesHCALHotExcl[2] or jtphi[i1] > rangesHCALHotExcl[3];
       _pass = _pass and good0 and good1;
-      if (_pass) ++cnt["08etaphiexclHCAL"];
+      if (_pass) ++_cnt["08etaphiexclHCAL"];
     }
 
     if (_jp_isdt and _jp_doVetoECALHot) {
@@ -897,17 +1018,17 @@ void histosFill::Loop()
       bool good0 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i0],jtphi[i0])) < 0;
       bool good1 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i1],jtphi[i1])) < 0;
       _pass = _pass and good0 and good1;
-      if (_pass) ++cnt["08etaphiexclECAL"];
+      if (_pass) ++_cnt["08etaphiexclECAL"];
     }
 
     // We gather some data also from 0-jet events and events with a bad leading jet
     if (i0>=0 and _pass) {
-      ++cnt["09njt"];
+      ++_cnt["09njt"];
       if (_jetids[i0] and _pass) {
-        ++cnt["10jtid"];
+        ++_cnt["10jtid"];
         // Check if overweight PU event
         if (_jp_ismc and _pass) {
-          if (jtpt[i0] < 1.5*jtgenpt[i0] or jtpt[i0] < 1.5*pthat) ++cnt["11pthat"];
+          if (jtpt[i0] < 1.5*jtgenpt[i0] or jtpt[i0] < 1.5*pthat) ++_cnt["11pthat"];
           else _pass = false;
         }
       }
@@ -942,124 +1063,96 @@ void histosFill::Loop()
 
     // Report memory usage to avoid malloc problems when writing file
     if (jentry%1000000==0) {
-      *ferr << Form("Doing Loop(), %dM events:",
-                    int(jentry/1e6 + 0.5)) << endl << flush;
-      gSystem->GetMemInfo(&info);
-      *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d,"
-                    " Stot:%d, SUsed:%d, SFree:%d",
-                    info.fMemTotal, info.fMemUsed, info.fMemFree,
-                    info.fSwapTotal, info.fSwapUsed, info.fSwapFree)
-            << endl << flush;
+      PrintInfo( Form("Doing Loop(), %dM events:",int(jentry/1e6 + 0.5)) );
+      PrintMemInfo();
     } // 1M report
-
   } // for jentry
   cout << endl;
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "Finished processing " << nentries << " entries:" << endl << flush;
-  cout  << "Finished processing " << nentries << " entries:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr <<Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
-  cout << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("Finished processing %lld entries:",_nentries),true);
+  PrintMemInfo(true);
 
   if (_jp_doRunHistos)   writeRunHistos();
   if (_jp_doEtaHistos)   writeEtas();
   if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) writeMcHistos();
   if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
 
+  stop.Stop();
+  TDatime now;
+  cout << "Stopping at: ";
+  now.Print();
+  PrintInfo(Form("Processing used %f s CPU time (%f h)",stop.CpuTime(),stop.CpuTime()/3600.),true);
+  PrintInfo(Form("Processing used %f s real time (%f h)",stop.RealTime(),stop.RealTime()/3600.),true);
+}
+
+
+// Report event stuff
+void histosFill::Report()
+{
   // List bad runs
-  *ferr << "Processed " << _totcounter << " events in total" << endl
-        << "Processed " << _trgcounter << " events passing "
-        << " basic data quality and trigger cuts" << endl
-        << "(out of " << _evtcounter << " passing data quality cuts)" << endl;
+  PrintInfo(Form("Processed %d events in total",_totcounter));
+  PrintInfo(Form("Processed %d events passing basic data quality and trigger cuts",_trgcounter));
+  PrintInfo(Form("(out of %d passing data quality cuts)",_evtcounter));
   if (_jp_dojson)
-    *ferr << "Found " << _nbadevts_json << " bad events according to new JSON (events cut)" << endl;
+    PrintInfo(Form("Found %d bad events according to new JSON (events cut)",_nbadevts_json));
   if (_jp_dolumi) {
-    *ferr << "Found " << _nbadevts_run << " bad events according to lumi file." << endl;
+    PrintInfo(Form("Found %d bad events according to lumi file.",_nbadevts_run));
     if (_badruns.size()>0) {
       *ferr << "The found " << _badruns.size() << " bad runs:";
       for (auto &runit : _badruns)
         *ferr << " " << runit;
       *ferr << endl;
     }
-    *ferr << "Found " << _badlums.size() << " bad LS and "
-          << _nolums.size() << " non-normalizable LS in good runs" << endl
-          << "These contained " << _nbadevts_ls << " discarded events"
-          << " in bad LS and " << _nbadevts_lum << " in non-normalizable LS" << endl << endl;
+    PrintInfo(Form("Found %lu bad LS and %lu non-normalizable LS in good runs",_badlums.size(),_nolums.size()));
+    PrintInfo(Form("These contained %d discarded events in bad LS and %d in non-normalizable LS",_nbadevts_ls,_nbadevts_lum));
+    *ferr << endl;
   }
   if (_jp_checkduplicates)
-    *ferr << "Found " << _nbadevts_dup << " duplicate events, which were" << " properly discarded" << endl;
+    PrintInfo(Form("Found %d duplicate events, which were properly discarded",_nbadevts_dup));
 
   // Report beam spot cut efficiency
-  *ferr << "Beam spot counter discarded " << _bscounter_bad << " events out of " << _bscounter_good
-        << " (" << double(_bscounter_bad)/double(_bscounter_good)*100. << "%)" << endl
-        << "Beam spot expectation is less than 0.5%" << endl;
+  PrintInfo(Form("Beam spot counter discarded %d events out of %d (%f %%)\nBeam spot expectation is less than 0.5%%",
+                 _bscounter_bad,_bscounter_good,double(_bscounter_bad)/double(_bscounter_good)*100.));
 
   // Report ECAL hole veto efficiency
-  if (_jp_doVetoECAL) {
-    *ferr << "ECAL hole veto counter discarded " << _ecalcounter_bad << " events out of " << _ecalcounter_good
-          << " (" << double(_ecalcounter_bad)/double(_ecalcounter_good)*100. << "%)" << endl
-          << "ECAL hole expectation is less than 2.6% [=2*57/(60*72)]" << endl;
-  }
+  if (_jp_doVetoECAL)
+    PrintInfo(Form("ECAL hole veto counter discarded %d events out of %d (%f %%)\n"
+                   "ECAL hole expectation is less than 2.6%% [=2*57/(60*72)]",
+                   _ecalcounter_bad,_ecalcounter_good,double(_ecalcounter_bad)/double(_ecalcounter_good)*100.));
 
   // Report rho veto efficiency
-  *ferr << "Rho<40 veto counter discarded " << _rhocounter_bad << " events out of " << _rhocounter_good
-        << " (" << double(_rhocounter_bad)/double(_rhocounter_good)*100. << "%)" << endl
-        << "Rho veto expectation is less than 1 ppm" << endl << endl;
-  for (auto &cit : cnt) {
-    cout << Form("%s: %d (%1.1f%%)", cit.first.c_str(), cit.second, 100. * cit.second / max(1, cnt["01all"])) << endl;
-    *ferr << Form("%s: %d (%1.1f%%)", cit.first.c_str(), cit.second, 100. * cit.second / max(1, cnt["01all"])) << endl;
-  }
-  if (_jp_isdt) *ferr << "Note that for DT it is likely that we lose a large percentage of events for the trigger." << endl
-                      << "Events triggered by JetHT and AK8PFJet are included in addition to AK4PFJet." << endl;
+  PrintInfo(Form("Rho<40 veto counter discarded %d events out of %d (%f %%)\nRho veto expectation is less than 1 ppm",
+                _rhocounter_bad,_rhocounter_good,double(_rhocounter_bad)/double(_rhocounter_good)*100.));
+  for (auto &cit : _cnt)
+    PrintInfo(Form("%s: %d (%1.1f%%)",cit.first.c_str(),cit.second,100.*cit.second/max(1,_cnt["01all"])),true);
+
+  if (_jp_isdt) PrintInfo("Note that for DT it is likely that we lose a large percentage of events for the trigger."
+                          "Events triggered by JetHT and AK8PFJet are included in addition to AK4PFJet.");
   *ferr << endl;
 
-
-  cout << "Reporting lumis not discraded in reports/passedlumis.json" << endl;
+  PrintInfo("Reporting lumis not discraded in reports/passedlumis.json",true);
   ofstream fout(Form("reports/passedlumis-%s.json",_jp_type), ios::out);
-  for (auto &lumit : _passedlumis)
-    fout << lumit.first << " " << lumit.second << endl;
+  for (auto &lumit : _passedlumis) fout << lumit.first << " " << lumit.second << endl;
+
   if (_jp_dojson and _badjson.size()>0) {
-    cout << "Reporting lumis discarded by json selection (_jp_dojson) in reports/badlumis_json.json" << endl;
+    PrintInfo("Reporting lumis discarded by json selection (_jp_dojson) in reports/badlumis_json",true);
     ofstream fout2(Form("reports/badlumis_json-%s.json",_jp_type), ios::out);
-    for (auto &jsit : _badjson)
-      fout2 << jsit.first << " " << jsit.second << endl;
+    for (auto &jsit : _badjson) fout2 << jsit.first << " " << jsit.second << endl;
   } // _jp_dojson
+
   if (_jp_dolumi) {
     if (_badlums.size()>0) {
-      cout << "Reporting lumis discarded by lumifile selection (_jp_dolumi) in reports/badlumis_lumi.json" << endl;
+      PrintInfo("Reporting lumis discarded by lumifile selection (_jp_dolumi) in reports/badlumis_lumi.json",true);
       ofstream fout2(Form("reports/badlumis_lumi-%s.json",_jp_type), ios::out);
-      for (auto &jsit : _nolums)
-        fout2 << jsit.first << " " << jsit.second << endl;
+      for (auto &jsit : _nolums) fout2 << jsit.first << " " << jsit.second << endl;
     } // _badlums
     if (_nolums.size()>0) {
-      cout << "Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in reports/badlumis_zerolumi.json" << endl;
+      PrintInfo("Reporting lumis discarded fby lumifile selection (_jp_dolumi) @ zero luminosity in reports/badlumis_zerolumi.json",true);
       ofstream fout2(Form("reports/badlumis_zerolumi-%s.json",_jp_type), ios::out);
-      for (auto &jsit : _nolums)
-        fout2 << jsit.first << " " << jsit.second << endl;
+      for (auto &jsit : _nolums) fout2 << jsit.first << " " << jsit.second << endl;
     } // _nolums
   } // _jp_dolumi
-
-  stop.Stop();
-  TDatime now;
-  cout << "Stopping at: ";
-  now.Print();
-  cout << "Processing used " << stop.CpuTime() << "s CPU time ("
-       << stop.CpuTime()/3600. << "h)" << endl;
-  *ferr << "Processing used " << stop.CpuTime() << "s CPU time ("
-        << stop.CpuTime()/3600. << "h)" << endl;
-  cout << "Processing used " << stop.RealTime() << "s real time ("
-       << stop.RealTime()/3600. << "h)" << endl;
-  *ferr << "Processing used " << stop.RealTime() << "s real time ("
-        << stop.RealTime()/3600. << "h)" << endl;
-
-  // We don't delete that much stuff here, since ROOT takes care of garbage collection
-  // (and gets very easily angry!!!)
-  delete ferr;
 }
 
 
@@ -1067,17 +1160,13 @@ void histosFill::Loop()
 void histosFill::initBasics(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initBasics("<<name<<"):" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initBasics(%s):",name.c_str()));
+  PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE"));
+  TFile *f = _outfile;
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   bool enteroutdir = f->cd(name.c_str());
@@ -1116,9 +1205,7 @@ void histosFill::initBasics(string name)
 
   // Loop over pseudorapidity, trigger bins
   for (int etaidx = 0; etaidx != netas; ++etaidx) {
-
     if (etas[etaidx+1] > etas[etaidx]) { // create real bins only
-
       // subdirectory for rapidity bin
       const char *etaname = Form("Eta_%1.1f-%1.1f", etas[etaidx], etas[etaidx+1]);
       assert(topdir);
@@ -1151,15 +1238,11 @@ void histosFill::initBasics(string name)
     } // real bin
   } // for etaidx
 
-  _outfile = f;
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initBasics("<<name<<") finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initBasics(%s) finished:",name.c_str()));
+  PrintMemInfo();
 } // initBasic
 
 
@@ -1195,15 +1278,15 @@ void histosFill::fillBasic(histosBasic *h)
     map<int, int>::const_iterator ip = _prescales[h->trigname].find(run);
     if (ip==_prescales[h->trigname].end()) {
       if (fired) {
-        *ferr << "No prescale info for trigger " << h->trigname
-              << " in run " << run << "!" << endl << flush;
+        PrintInfo(Form("No prescale info for trigger %s in run %d!",
+                       h->trigname.c_str(),run));
         assert(false);
       }
     } else prescale = ip->second;
 
     if (prescale==0 and fired) {
-      *ferr << "Prescale zero for trigger " << h->trigname
-            << " in run " << run << "!" << endl << flush;
+      PrintInfo(Form("Prescale zero for trigger %s in run %d!",
+                     h->trigname.c_str(),run));
       prescale = 1.;
       assert(false);
     }
@@ -1518,9 +1601,9 @@ void histosFill::fillBasic(histosBasic *h)
 
           // new histograms for quark/gluon study (Ozlem)
           double probg = 1.-qgl[jetidx]; // First approximation
-          if (_jp_doqglfile) { // If we loaded a previous file to h3probg, use this for better probg
-            assert(h3probg);
-            probg = h3probg->GetBinContent(h3probg->FindBin(eta,pt,qgl[jetidx]));
+          if (_jp_doqglfile) { // If we loaded a previous file to _h3probg, use this for better probg
+            assert(_h3probg);
+            probg = _h3probg->GetBinContent(_h3probg->FindBin(eta,pt,qgl[jetidx]));
           }
           if (probg>=0 and probg<=1) {
             assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
@@ -1553,7 +1636,7 @@ void histosFill::fillBasic(histosBasic *h)
                 h->hqgl_dq->Fill(x, _w*wq);
                 h->hqgl2_dq->Fill(pt, x, _w*wq);
               } else {
-                *ferr << "Quark/Gluon status missing from partonflavor" << endl;
+                PrintInfo("Quark/Gluon status missing from partonflavor");
               }
             }
           } // probg quark/gluon
@@ -1802,12 +1885,8 @@ void histosFill::fillBasic(histosBasic *h)
 void histosFill::writeBasics()
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeBasics():" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeBasics():");
+  PrintMemInfo();
 
   for (auto histit = _histos.begin(); histit != _histos.end(); ++histit) {
     for (auto histidx = 0u; histidx != histit->second.size(); ++histidx) {
@@ -1825,11 +1904,8 @@ void histosFill::writeBasics()
   _outfile->Close();
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeBasic() finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeBasic() finished:");
+  PrintMemInfo();
 } // writeBasic
 
 
@@ -1837,17 +1913,13 @@ void histosFill::writeBasics()
 void histosFill::initEtas(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initEtas("<<name<<"):" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-                info.fMemTotal, info.fMemUsed, info.fMemFree,
-                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initEtas(%s):",name.c_str()));
+  PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE"));
+  TFile *f = _outfile;
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   bool enteroutdir = f->cd(name.c_str());
@@ -1896,15 +1968,11 @@ void histosFill::initEtas(string name)
     _etahistos[name].push_back(h);
   } // for j
 
-  _outfile = f;
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initEtas("<<name<<") finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initEtas(%s) finished:",name.c_str()));
+  PrintMemInfo();
 } // initEtas
 
 
@@ -2026,12 +2094,8 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
 void histosFill::writeEtas()
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeEtas():" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeEtas():");
+  PrintMemInfo();
 
   for (auto histit : _etahistos) {
     for (unsigned int histidx = 0; histidx != histit.second.size(); ++histidx) {
@@ -2041,11 +2105,8 @@ void histosFill::writeEtas()
   } // for histit
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeEtas() finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeEtas() finished:");
+  PrintMemInfo();
 } // writeEtas
 
 
@@ -2053,17 +2114,13 @@ void histosFill::writeEtas()
 void histosFill::initMcHistos(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initMcHistos("<<name<<"):" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-                info.fMemTotal, info.fMemUsed, info.fMemFree,
-                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("initMcHistos(%s):",name.c_str());
+  PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
 
   // open file for output
-  TFile *f = (_outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE"));
+  TFile *f = _outfile;
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   bool entertopdir = f->cd(name.c_str());
@@ -2113,15 +2170,11 @@ void histosFill::initMcHistos(string name)
     _mchistos[name].push_back(h);
   } // for j
 
-  _outfile = f;
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initMcHistos("<<name<<") finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initMcHistos(%s) finished:",name.c_str()));
+  PrintMemInfo();
 } // initMcHistos
 
 
@@ -2207,12 +2260,8 @@ void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
 void histosFill::writeMcHistos()
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeMcHistos():" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeMcHistos():");
+  PrintMemInfo();
 
   for (auto histit : _mchistos) {
     for (auto histidx = 0u; histidx != histit.second.size(); ++histidx) {
@@ -2222,11 +2271,8 @@ void histosFill::writeMcHistos()
   } // for histit
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeMcHistos() finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeMcHistos() finished:");
+  PrintMemInfo();
 } // writeMcHistos
 
 
@@ -2234,15 +2280,11 @@ void histosFill::writeMcHistos()
 void histosFill::initRunHistos(string name, double etamin, double etamax) {
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initRunHistos("<<name<<"):" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-                info.fMemTotal, info.fMemUsed, info.fMemFree,
-                info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo(Form("initRunHistos(%s):",name.c_str()));
+  PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
-  TFile *f = _outfile ? _outfile : new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
+  TFile *f = _outfile;
   assert(f && !f->IsZombie());
   f->mkdir(name.c_str());
   bool enteroutdir = f->cd(name.c_str());
@@ -2253,15 +2295,11 @@ void histosFill::initRunHistos(string name, double etamin, double etamax) {
   histosRun *h = new histosRun(dir, etamin, etamax);
   _runhistos[name] = h;
 
-  _outfile = f;
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "initRunHistos() finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("initRunHistos() finished:");
+  PrintMemInfo();
 } // initRunHistos
 
 
@@ -2289,8 +2327,8 @@ void histosFill::fillRunHistos(string name)
       double prescale(0);
       if (_prescales[t].find(run)==_prescales[t].end()) {
         if (_trigs.find(t)!=_trigs.end()) {
-          *ferr << "Prescale not found for trigger " << t
-                << " run " << run << endl << flush;
+          PrintInfo(Form("Prescale not found for trigger %s run %d",
+                         t.c_str(),run));
           assert(false);
         }
       } else prescale = _prescales[t][run];
@@ -2377,26 +2415,19 @@ void histosFill::fillRunHistos(string name)
 void histosFill::writeRunHistos()
 {
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeRunHistos():" << endl << flush;
-  MemInfo_t info;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeRunHistos():");
+  PrintMemInfo();
 
   for (auto histit = _runhistos.begin(); histit != _runhistos.end(); ++histit) {
     histosRun *h = histit->second;
     delete h;
   } // for histit
 
-  cout << "\nOutput (histosRun) stored in " << _outfile->GetName() << endl;
+  PrintInfo(Form("\nOutput (histosRun) stored in %s",_outfile->GetName()),true);
 
   // Report memory usage to avoid malloc problems when writing file
-  *ferr << "writeRunHistos() finished:" << endl << flush;
-  gSystem->GetMemInfo(&info);
-  *ferr << Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-               info.fMemTotal, info.fMemUsed, info.fMemFree,
-               info.fSwapTotal, info.fSwapUsed, info.fSwapFree) << endl<<flush;
+  PrintInfo("writeRunHistos() finished:");
+  PrintMemInfo();
 } // writeRunHistos
 
 
@@ -2478,14 +2509,15 @@ bool histosFill::loadLumi(const char* filename)
   const int a_goodruns[] = {};
   const int ngoodruns = sizeof(a_goodruns)/sizeof(a_goodruns[0]);
   set<int> goodruns;
-  for (int runidx = 0; runidx != ngoodruns; ++runidx)
-    goodruns.insert(a_goodruns[runidx]);
+  if (ngoodruns>0) { // This is an old remnant
+    for (int runidx = 0; runidx != ngoodruns; ++runidx)
+      goodruns.insert(a_goodruns[runidx]);
 
+    for (auto runit = goodruns.begin(); runit != goodruns.end(); ++runit)
+      cout << *runit << ", ";
+    cout << endl;
+  }
   set<pair<int, int> > nolums;
-
-  for (auto runit = goodruns.begin(); runit != goodruns.end(); ++runit)
-    cout << *runit << ", ";
-  cout << endl;
 
   ifstream f(filename, ios::in);
   if (!f.is_open()) return false;
@@ -2591,67 +2623,67 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
   TDirectory *curdir = gDirectory;
 
   // Load pile-up files and hists from them
-  TFile *fpudist = new TFile(datafile, "READ");
-  if (!fpudist or fpudist->IsZombie()) return false;
+  TFile *f_pudist = new TFile(datafile, "READ");
+  if (!f_pudist or f_pudist->IsZombie()) return false;
   TFile *fpumc = new TFile(mcfile,"READ");
   if (!fpumc or fpumc->IsZombie()) return false;
 
-  pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
-  if (!pumc) return false;
-  double maxmcpu = pumc->GetMaximum();
-  int lomclim = pumc->FindFirstBinAbove(maxmcpu/100.0);
-  int upmclim = pumc->FindLastBinAbove(maxmcpu/100.0);
-  int maxmcbin = pumc->FindFirstBinAbove(0.999*maxmcpu);
+  _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
+  if (!_pumc) return false;
+  double maxmcpu = _pumc->GetMaximum();
+  int lomclim = _pumc->FindFirstBinAbove(maxmcpu/100.0);
+  int upmclim = _pumc->FindLastBinAbove(maxmcpu/100.0);
+  int maxmcbin = _pumc->FindFirstBinAbove(0.999*maxmcpu);
   for (int bin = 0; bin < lomclim; ++bin)
-    pumc->SetBinContent(bin,0.0);
-  for (int bin = upmclim+1; bin <= pumc->GetNbinsX(); ++bin)
-    pumc->SetBinContent(bin,0.0);
-  *ferr << "Discarding mc pu below & above: " << pumc->GetBinLowEdge(lomclim) << " " << pumc->GetBinLowEdge(upmclim+1) << endl;
-  *ferr << "Maximum mc bin: " << maxmcbin << endl;
+    _pumc->SetBinContent(bin,0.0);
+  for (int bin = upmclim+1; bin <= _pumc->GetNbinsX(); ++bin)
+    _pumc->SetBinContent(bin,0.0);
+  PrintInfo(Form("Discarding mc pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)));
+  PrintInfo(Form("Maximum mc bin: %d",maxmcbin));
   // Normalize
-  int nbinsmc = pumc->GetNbinsX();
-  int kmc = pumc->FindBin(33); // Check that pu=33 occurs at the same place as for data
+  int nbinsmc = _pumc->GetNbinsX();
+  int kmc = _pumc->FindBin(33); // Check that pu=33 occurs at the same place as for data
 
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
     string t = string(_jp_triggers[itrg]);
-    pudist[t] = dynamic_cast<TH1D*>(fpudist->Get(t.c_str()));
-    if (!pudist[t]) return false;
-    int nbinsdt = pudist[t]->GetNbinsX();
-    int kdt = pudist[t]->FindBin(33);
+    _pudist[t] = dynamic_cast<TH1D*>(f_pudist->Get(t.c_str()));
+    if (!_pudist[t]) return false;
+    int nbinsdt = _pudist[t]->GetNbinsX();
+    int kdt = _pudist[t]->FindBin(33);
     if (kdt!=kmc or nbinsdt!=nbinsmc) {
       cout << "The pileup histogram dt vs mc binning or range do not match (dt left mc right):" << endl;
       cout << " Bins: " << nbinsdt << " " << nbinsmc << endl;
       cout << " Pu=33 bin: " << kdt << " " << kmc << endl;
       return false;
     }
-    double maxdtpu = pudist[t]->GetMaximum();
-    int lodtlim = pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
-    int updtlim = pudist[t]->FindLastBinAbove(maxdtpu/100.0);
-    int maxdtbin = pudist[t]->FindFirstBinAbove(0.999*maxdtpu);
+    double maxdtpu = _pudist[t]->GetMaximum();
+    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
+    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/100.0);
+    int maxdtbin = _pudist[t]->FindFirstBinAbove(0.999*maxdtpu);
 
     int tailcount = 0;
     for (int bin = 0; bin < lodtlim; ++bin) { // Set fore-tail to zero
       ++tailcount;
-      pudist[t]->SetBinContent(bin,0.0);
+      _pudist[t]->SetBinContent(bin,0.0);
     }
-    for (int bin = updtlim+1; bin <= pudist[t]->GetNbinsX(); ++bin) { // Set aft-tail to zero
+    for (int bin = updtlim+1; bin <= _pudist[t]->GetNbinsX(); ++bin) { // Set aft-tail to zero
       ++tailcount;
-      pudist[t]->SetBinContent(bin,0.0);
+      _pudist[t]->SetBinContent(bin,0.0);
     }
-    *ferr << "Discarding dt pu below & above: " << pudist[t]->GetBinLowEdge(lodtlim) << " " << pudist[t]->GetBinLowEdge(updtlim+1) << " " << t << endl;
-    *ferr << "Maximum dt bin: " << maxdtbin << endl;
-    pudist[t]->Divide(pumc);
-    double maxvaldt = pudist[t]->GetBinContent(maxdtbin);
+    PrintInfo(Form("Discarding dt pu below & above: %f, %f",_pudist[t]->GetBinLowEdge(lodtlim),_pudist[t]->GetBinLowEdge(updtlim+1)));
+    PrintInfo(Form("Maximum dt bin: %d",maxdtbin));
+    _pudist[t]->Divide(_pumc);
+    double maxvaldt = _pudist[t]->GetBinContent(maxdtbin);
 
     int abovecount = 0;
-    for (int bin = 1; bin <= pudist[t]->GetNbinsX(); ++bin) { // Set divergent values to zero
-      if (pudist[t]->GetBinContent(bin)/maxvaldt>10.0) {
+    for (int bin = 1; bin <= _pudist[t]->GetNbinsX(); ++bin) { // Set divergent values to zero
+      if (_pudist[t]->GetBinContent(bin)/maxvaldt>10.0) {
         ++abovecount;
-        pudist[t]->SetBinContent(bin,0.0);
+        _pudist[t]->SetBinContent(bin,0.0);
       }
     }
-    *ferr << "Discarded " << tailcount << " entries from tails and " << abovecount << " from too high values." << endl;
+    PrintInfo(Form("Discarded %d entries from tails and %d from too high values.",tailcount,abovecount));
   }
   // REMOVED: "data with only one histo:"
 
@@ -2688,7 +2720,6 @@ bool histosFill::loadPrescales(const char *prescalefile)
 
     for (unsigned int itrg = 0; ss >> pre; ++itrg) {
       if (itrg==trgs.size()) return false;
-      _premap[trgs[itrg]][run][ls] = pre;
       if (_jp_debug) cout << pre << "/" << trgs[itrg] << " ";
     }
     if (_jp_debug) cout << endl;
@@ -2712,6 +2743,74 @@ bool histosFill::loadECALveto(const char *file)
   curdir->cd();
   return true;
 } // loadECALveto
+
+
+// Check that the correct tree is open in the chain
+Long64_t histosFill::LoadTree(Long64_t entry)
+{
+  if (!fChain)
+    return -5;
+  Long64_t centry = fChain->LoadTree(entry);
+  if (centry < 0)
+    return centry;
+
+  // A new tree is opened
+  if (fChain->GetTreeNumber() != fCurrent) {
+
+    fCurrent = fChain->GetTreeNumber();
+    PrintInfo(Form("Opening tree number %d", fChain->GetTreeNumber()));
+
+    if (_jp_isdt) {
+      // Reload the triggers and print them
+      if (!getTriggers()) {
+        PrintInfo("Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting...");
+        return -4;
+      }
+      PrintInfo(Form("Tree %d triggers:",fCurrent));
+      for (auto trigi = 0u; trigi < _availTrigs.size(); ++trigi) {
+        auto str = _availTrigs[trigi];
+        *ferr << str;
+        auto trgplace = std::find(_goodTrigs.begin(),_goodTrigs.end(),trigi);
+        if (trgplace!=_goodTrigs.end()) *ferr << "_y (" << _goodWgts[trgplace-_goodTrigs.begin()] << ") ";
+        else *ferr << "_n ";
+        if (trigi%(_jp_notrigs+1)==_jp_notrigs) *ferr << endl;
+      }
+      *ferr << endl << flush;
+      if (_jp_doVetoHCALHot) {
+        // Reload hot HCAL zones
+        bool worryHCALHotExcl = false;
+        PrintInfo("Looking for HCAL exclusion zones...");
+        for (auto era = 0u; era < _jp_HCALHotEras; ++era) {
+          std::regex HCALEraName(_jp_HCALHotRuns[era]);
+          if (std::regex_search(_jp_run,HCALEraName)) {
+            PrintInfo(Form("Doing HCAL exclusion for era %s at : (etamin, etamax, phimin, phimax)",_jp_HCALHotRuns[era]));
+            for (auto idxetaphi = 0u; idxetaphi < 4; ++idxetaphi) {
+              *ferr << "  " << _jp_HCALHotRanges[era][idxetaphi];
+              rangesHCALHotExcl[idxetaphi] =  _jp_HCALHotRanges[era][idxetaphi];
+            }
+            *ferr << endl;
+            worryHCALHotExcl = true;
+            break;
+          }
+        }
+      }
+    } else if (_jp_pthatbins) {
+      TString filename = fChain->GetCurrentFile()->GetName();
+      // Check the position of the current file in the list of file names
+      unsigned currFile = std::find_if(_jp_pthatfiles.begin(),_jp_pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-_jp_pthatfiles.begin();
+      if (_jp_pthatnevts[currFile]<=0.0 or _jp_pthatsigmas[currFile]<=0) {
+        PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",_jp_pthatfiles[currFile].c_str()));
+        return -3;
+      }
+      _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
+      _pthatweight /= _jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]; // Normalize
+      PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f",
+                     currFile,fChain->GetCurrentFile()->GetName(),_jp_pthatranges[currFile],_jp_pthatranges[currFile+1],_pthatweight));;
+    }
+    // slices with pthat bins
+  }
+  return centry;
+}
 
 
 // Update the available trigger types for each new tree
