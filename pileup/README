@@ -1,14 +1,26 @@
-
 Instructions to produce PU histos for DT (7.10.2016, Hannu Siikonen)
+
+Note:
+
+The user may choose to use puhist.sh or puhist_all.sh
+The latter is slower, as it checks each trigger version separately.
+For the latter to work, one needs to supply the "per-version" luminosity weights in settings.h
+For the former to work, one needs to supply the "per-year" luminosity weights in settings.h
+The weights are necessary to obtain approximately the same integrals for the various triggers.
+The integrals are not completely equal, which might be due to smearing effects.
+If one cannot provide the weights, one could scale all resulting histograms with their integrals.
+However, if done so, the user needs to simplify the provided code and understand what (s)he is doing.
+
+Step0:
+
+Create a working directory under the pileup directory and copy all the scripts there.
+Enter this directory.
 
 Step1:
 
-Copy the latest certificate to the current directory.
-This should be found in /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/
-Finally, set the names of these files in the beginning of the puhistos.sh script.
-
-- Why copy? This way we can easily check afterwards how progressed jsons were previously used
-- Also the normtag may be changed if really needed
+Check which certificate you want to use.
+This path is given in puhist*.sh
+Change also the normtag and pileup files if needed.
 
 Step2:
 
@@ -29,7 +41,9 @@ Far in the future also the trigger names might change, so also these need to be 
 
 Step3:
 
-Run 'bash puhistos.sh' and hope for the best.
+Make sure that you have a CMSSW environtment installed and run 'cmsenv'
+
+Run 'bash puhist.sh' and hope for the best.
 
 - In general tons of error messages may be produced. Sometimes running python on lxplus generates
 some error messages that needn't be worried about. There are also error messages about missing
@@ -38,11 +52,39 @@ should be cautious with all these errors flying around.
 
 Step4:
 
+Go to each folder (e.g. RunB) separately and run:
+root -l -b -q ../puhist_combine.C or
+root -l -b -q ../puhist_combineversions.C
+(pileup_DTu.root is created)
+
+Then run:
+root -l -b -q ../puhist_normalize.C
+(pileup_DT.root is created)
+
+Note:
+
+If one wishes to use a pileup profile for many runs, one should create a folder (e.g RunBCD),
+enter the folder and run:
+hadd pileup_DTu.root ../RunB/pileup_DTu.root ../RunC/pileup_DTu.root ../RunD/pileup_DTu.root
+and finally
+root -l -b -q ../puhist_normalize.C
+
+It is imperative that no normalization is done before one is at the level for which
+the MC tuple is processed. If one performs premature normalization, the weights
+of different runs will be biased w.r.t data.
+
+If the weighting becomes too involved, one can survive without it. The weighting is just
+meant to give convenient relative weights in for the data processing.
+
+Step5:
+
 Make sure that you have also generated MC pu histos. Basically this is done by
 
-ProcessedTree->Draw("EvtHdr_.mTrPu>>pileupmc(600,0,60)")
+ProcessedTree->Draw("EvtHdr_.mTrPu>>pileupmc(80,0,80)")
 TH1D* th = gROOT->FindObject("pileupmc")
 
 from within the SMP jet tuples.
 
 For the pthat sliced tuples one can utilize the code pufromslices.C
+The pufromslices shows the pileup profiles also for each slice separately,
+but the slices are mostly very similar to each other.
