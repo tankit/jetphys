@@ -78,7 +78,7 @@ void histosNormalize() {
 
   if (_jp_usetriglumi) { // Setting up lumis
     cout << "Reading trigger luminosity from settings.h" << endl;
-    for (int i = 0; i < _jp_notrigs; ++i) {
+    for (unsigned int i = 0; i < _jp_notrigs; ++i) {
       double lumi = _jp_triglumi[i]/1e6; // /ub to /pb
       cout << Form(" *%s: %1.3f /pb", _jp_triggers[i],lumi) << endl;
       triglumi[_jp_triggers[i]] = lumi;

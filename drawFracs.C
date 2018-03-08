@@ -11,6 +11,8 @@ void Fracs::drawFracs(unsigned mode) {
   _vspu = false;
   _vsnpv = false;
   _vseta = false;
+  _vsphi = false;
+  _sphi = "";
   if (mode==0)
     _vspt=true;
   else if (mode==1)
@@ -19,7 +21,13 @@ void Fracs::drawFracs(unsigned mode) {
     _vsnpv=true;
   else if (mode==3)
     _vseta=true;
-  else {
+  else if (mode==4) {
+    _vsphi = true;
+    _sphi = "pos";
+  } else if (mode==5) {
+    _vsphi = true;
+    _sphi = "neg";
+  } else {
     cout << "Problematic mode " << mode << endl;
     return;
   }
@@ -34,9 +42,11 @@ void Fracs::drawFracs(unsigned mode) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vseta) {
     for (auto &ewi : _jp_wetarange) _x.push_back(ewi);
+  } else if (_vsphi) {
+    for (auto &phidx : _jp_phirange) _x.push_back(phidx);
   }
 
-  assert(mode<_modes.size());
+  assert(mode<_modes.size()+1);
 
   setTDRStyle();
 
@@ -73,8 +83,8 @@ void Fracs::drawFracs(unsigned mode) {
 
 void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double eta1, double eta2) {
   // List of differences
-  string taguniq = string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"") + string(_shiftJES ? "_shiftJES" : "")
-                 + (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2));
+  string taguniq = string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"") + string(_vsphi?"_vsphi":"") + _sphi
+                 + string(_shiftJES ? "_shiftJES" : "") + (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2));
   map<string, TH1D*> mdf;
 
   THStack *hsdt = new THStack(Form("hsdt%s",taguniq.c_str()),"stacked histograms");
@@ -147,7 +157,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   map<string,TH1D*> mcHistos;
   map<string,TH1D*> dtHistos;
   for (auto &frc : _fracs) {
-    const char *hname0 = Form("p%s%s%s",frc.c_str(),_tp.c_str(),_modes[mode].c_str());
+    const char *hname0 = Form("p%s%s%s%s",frc.c_str(),_sphi.c_str(),_tp.c_str(),_modes[mode].c_str());
     if (!_vseta) { bool enterdtdir = ddt->cd(dirname); assert(enterdtdir); }
     else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
     else { bool enterdtdir = ddt->cd(); assert(enterdtdir); }

@@ -37,10 +37,26 @@ histosFill::histosFill(TChain *tree) :
 }
 
 
+void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
+{
+  *ferr << info << endl << flush;
+  if (printcout) cout << info << endl << flush;
+}
+
+
+void histosFill::PrintMemInfo(bool printcout)
+{
+  gSystem->GetMemInfo(&_info);
+  PrintInfo(Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
+                 _info.fMemTotal,  _info.fMemUsed,  _info.fMemFree,
+                 _info.fSwapTotal, _info.fSwapUsed, _info.fSwapFree),printcout);
+}
+
+
 // Mostly setting up the root tree and its branches
 void histosFill::Init(TTree *tree)
 {
-  if (!tree) return;
+  if (!tree) return; // With no tree, Loop will be interrupted
   ferr = new ofstream(Form("reports/histosFill-%s.log",_jp_type),ios::out);
   _outfile = new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
 
@@ -283,7 +299,130 @@ void histosFill::Init(TTree *tree)
 }
 
 
-void histosFill::PreRun()
+void histosFill::Loop()
+{
+  if (fChain == 0) return;
+
+  // Report memory usage to avoid malloc problems when writing file
+  PrintInfo("Starting Loop() initialization:");
+  PrintMemInfo(true);
+
+  if (!PreRun()) return;
+
+  // Report memory usage to avoid malloc problems when writing file
+  PrintInfo("Beginning Loop() proper:");
+  PrintMemInfo(true);
+
+  TStopwatch stop;
+  stop.Start();
+  TDatime bgn;
+
+  vector<Long64_t> infojentrys = {5000,10000,50000,100000,500000,1000000,5000000,
+                                  10000000,20000000,30000000,40000000,50000000,60000000,70000000,80000000,90000000,
+                                  100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
+  ///////////////
+  // Event loop
+  ///////////////
+  Long64_t nbytes = 0, nb = 0;
+  for (Long64_t djentry=0; djentry<_nentries;djentry+=1+_jp_skim) { // Event loop
+    Long64_t jentry = djentry+_nskip;
+    Long64_t ientry = LoadTree(jentry);
+    if (ientry < 0) break;
+    nb = fChain->GetEntry(jentry);   nbytes += nb;
+
+    if (jentry%50000==0) cout << "." << flush;
+
+    // How long is it going to take?
+    auto infoplace = std::find(infojentrys.begin(),infojentrys.end(),djentry);
+    if (infoplace!=infojentrys.end()) {
+      cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
+                      (long int)jentry, 100.*djentry/_nentries, stop.RealTime()) << endl;
+      cout << "BGN: ";
+      bgn.Print();
+      TDatime now;
+      cout << "NOW: ";
+      now.Print();
+      if (++infoplace!=infojentrys.end()) {
+        TDatime nxt;
+        nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>((*infoplace))/static_cast<Double_t>(djentry)-1.0)));
+        cout << "NXT: ";
+        nxt.Print();
+      }
+      now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(_nentries)/static_cast<Double_t>(djentry)-1.0)));
+      cout << "ETA: ";
+      now.Print();
+
+      if (_jp_save) {
+        for (auto &manyhists : _histos)
+          for (auto &onehist : manyhists.second)
+            onehist->Write();
+        if (_jp_doEtaHistos) {
+          for (auto &manyhists : _etahistos)
+            for (auto & onehist : manyhists.second)
+              onehist->Write();
+          if (_jp_doEtaHistosMcResponse) {
+            for (auto &manyhists : _mchistos)
+              for (auto & onehist : manyhists.second)
+                onehist->Write();
+          }
+        }
+      }
+      stop.Continue();
+    }
+
+    if (!AcceptEvent()) continue;
+
+    if (_jp_debug) cout << "Histos are being filled!" << endl;
+    // Here can categorize events into different triggers, epochs, topologies etc.
+    // Eta and pT binning are handled in the fillBasic class
+    if (_jp_doBasicHistos) {
+      fillBasics("Standard");
+    }
+
+    if (_jp_doEtaHistos and _pass) {
+      fillEtas("FullEta_Reco", jtpt, jteta, jtphi);
+      if (_jp_ismc and _jp_doEtaHistosMcResponse) {
+        fillEtas("FullEta_Gen", jtgenpt, jtgeneta, jtgenphi);
+        fillMcHistos("FullEta_RecoPerGen_vReco", jtpt, jtgenpt, jtpt,    jteta,    jtphi);
+        fillMcHistos("FullEta_RecoPerGen_vGen",  jtpt, jtgenpt, jtgenpt, jtgeneta, jtgenphi);
+      }
+    }
+
+    // Run quality checks
+    if (_jp_isdt and _jp_doRunHistos) {
+      fillRunHistos("Runs");
+      fillRunHistos("RunsBarrel");
+      fillRunHistos("RunsTransition");
+      fillRunHistos("RunsEndcap");
+    }
+
+    // Report memory usage to avoid malloc problems when writing file
+    if (jentry%1000000==0) {
+      PrintInfo( Form("Doing Loop(), %dM events:",int(jentry/1e6 + 0.5)) );
+      PrintMemInfo();
+    } // 1M report
+  } // for jentry
+  cout << endl;
+
+  // Report memory usage to avoid malloc problems when writing file
+  PrintInfo(Form("Finished processing %lld entries:",_nentries),true);
+  PrintMemInfo(true);
+
+  if (_jp_doRunHistos)   writeRunHistos();
+  if (_jp_doEtaHistos)   writeEtas();
+  if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) writeMcHistos();
+  if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
+
+  stop.Stop();
+  TDatime now;
+  cout << "Stopping at: ";
+  now.Print();
+  PrintInfo(Form("Processing used %f s CPU time (%f h)",stop.CpuTime(),stop.CpuTime()/3600.),true);
+  PrintInfo(Form("Processing used %f s real time (%f h)",stop.RealTime(),stop.RealTime()/3600.),true);
+}
+
+
+bool histosFill::PreRun()
 {
   _nentries = fChain->GetEntriesFast();
   _ntot = fChain->GetEntries();
@@ -340,38 +479,38 @@ void histosFill::PreRun()
     bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
     if (!setcorrection or !_JEC or !_L1RC or (_jp_isdt and !_jecUnc)) {
       cout << "Issues while loading JEC; aborting..." << endl;
-      return;
+      return false;
     }
   } // JEC redone
 
   // Load latest JSON selection
   if (_jp_isdt and _jp_dojson and !loadJSON(_jp_json)) {
     cout << "Issues loading the JSON file; aborting..." << endl;
-    return;
+    return false;
   }
 
   // Load PU profiles for MC reweighing
   if (_jp_ismc and _jp_reweighPU and !loadPUProfiles(_jp_pudata, _jp_pumc)) {
     cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
-    return;
+    return false;
   }
 
   // Load prescale information to patch 76X
   if (_jp_isdt and _jp_doprescale and !loadPrescales(_jp_prescalefile)) {
     cout << "Issues loading the prescale information; aborting..." << endl;
-    return;
+    return false;
   }
 
   // load ECAL veto file for cleaning data
   if (_jp_doVetoECAL and !loadECALveto(_jp_fECALVeto)) {
     cout << "Issues loading the ECAL veto; aborting..." << endl;
-    return;
+    return false;
   }
 
   // load luminosity tables (prescales now stored in event)
   if (_jp_isdt and _jp_dolumi and !loadLumi(_jp_lumifile)) {
     cout << "Issues loading the Lumi file; aborting..." << endl;
-    return;
+    return false;
   }
 
   if (_jp_ismc) cout << Form("Running on MC produced with %1.3g nb-1 (%lld evts)",
@@ -481,609 +620,469 @@ void histosFill::PreRun()
       } // for ipt
     } // for ieta
   }
+  return true;
 }
 
 
-void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
+bool histosFill::AcceptEvent()
 {
-  *ferr << info << endl << flush;
-  if (printcout) cout << info << endl << flush;
-}
-
-
-void histosFill::PrintMemInfo(bool printcout)
-{
-  gSystem->GetMemInfo(&_info);
-  PrintInfo(Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
-                 _info.fMemTotal,  _info.fMemUsed,  _info.fMemFree,
-                 _info.fSwapTotal, _info.fSwapUsed, _info.fSwapFree),printcout);
-}
-
-
-void histosFill::Loop()
-{
-  if (fChain == 0) return;
-
-  // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("Starting Loop() initialization:");
-  PrintMemInfo(true);
-
-  PreRun();
-
-  // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("Beginning Loop() proper:");
-  PrintMemInfo(true);
-
-  TStopwatch stop;
-  stop.Start();
-  TDatime bgn;
-
-  vector<Long64_t> infojentrys = {5000,10000,50000,100000,500000,1000000,5000000,
-                                  10000000,20000000,30000000,40000000,50000000,60000000,70000000,80000000,90000000,
-                                  100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
-  ///////////////
-  // Event loop
-  ///////////////
-  Long64_t nbytes = 0, nb = 0;
-  for (Long64_t djentry=0; djentry<_nentries;djentry+=1+_jp_skim) { // Event loop
-    Long64_t jentry = djentry+_nskip;
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
-
-    if (jentry%50000==0) cout << "." << flush;
-
-    auto infoplace = std::find(infojentrys.begin(),infojentrys.end(),djentry);
-    if (infoplace!=infojentrys.end()) {
-      // How long is it going to take?
-      cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
-                      (long int)jentry, 100.*djentry/_nentries, stop.RealTime()) << endl;
-      cout << "BGN: ";
-      bgn.Print();
-      TDatime now;
-      cout << "NOW: ";
-      now.Print();
-      if (++infoplace!=infojentrys.end()) {
-        TDatime nxt;
-        nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>((*infoplace))/static_cast<Double_t>(djentry)-1.0)));
-        cout << "NXT: ";
-        nxt.Print();
-      }
-      now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(_nentries)/static_cast<Double_t>(djentry)-1.0)));
-      cout << "ETA: ";
-      now.Print();
-
-      if (_jp_save) {
-        for (auto &manyhists : _histos)
-          for (auto &onehist : manyhists.second)
-            onehist->Write();
-        if (_jp_doEtaHistos) {
-          for (auto &manyhists : _etahistos)
-            for (auto & onehist : manyhists.second)
-              onehist->Write();
-          if (_jp_doEtaHistosMcResponse) {
-            for (auto &manyhists : _mchistos)
-              for (auto & onehist : manyhists.second)
-                onehist->Write();
-          }
-        }
-      }
-
-      stop.Continue();
+  if (_jp_isdt) { // For DT fetch true pileup from the json or histogram info
+    trpu = _avgpu[run][lbn];
+    if (trpu==0 and _jp_dotrpufile and _h2mu) { // This is rarely used, as no new histogram is provided
+      int irun = _h2mu->GetXaxis()->FindBin(run);
+      int ilbn = _h2mu->GetYaxis()->FindBin(lbn);
+      trpu = _h2mu->GetBinContent(irun, ilbn);
     }
+  } else { // For MC the info exists in the SMPJ tree
+    trpu = EvtHdr__mTrPu;
+  }
 
-    if (_jp_isdt) { // For DT fetch true pileup from the json or histogram info
-      trpu = _avgpu[run][lbn];
-      if (trpu==0 and _jp_dotrpufile and _h2mu) { // This is rarely used, as no new histogram is provided
-        int irun = _h2mu->GetXaxis()->FindBin(run);
-        int ilbn = _h2mu->GetYaxis()->FindBin(lbn);
-        trpu = _h2mu->GetBinContent(irun, ilbn);
+  if (njt > _maxnjt) {
+    PrintInfo(Form("Array overflow: njt = %d > njtmax= %d",njt,_maxnjt),true);
+    assert(njt<_maxnjt);
+  }
+
+  if (_jp_ismc and gen_njt > _maxnjt) {
+    PrintInfo(Form("Array overflow: gen_njt = %d > njtmax= %d",gen_njt,_maxnjt),true);
+    assert(gen_njt<_maxnjt);
+  }
+
+  if (_jp_debug) {
+    cout << endl << flush;
+    Show(jentry);
+    cout << endl << endl << flush;
+
+    cout << "***Checking basic event variables are read out:" << endl;
+    cout << "isdata = " << _jp_isdt << " / ismc = " << _jp_ismc << endl;
+    cout << "trpu = " << trpu << endl;
+    cout << "pthat = " << pthat << endl;
+    cout << "weight = " << weight << endl;
+    cout << "njt = " << njt << endl;
+    cout << "idloose[0] = " << (njt>0 ? jtidloose[0] : -1) << endl;
+    cout << "idtight[0] = " << (njt>0 ? jtidtight[0] : -1) << endl;
+    cout << "***end basic event variables" << endl;
+    cout << endl << flush;
+  }
+
+  // Check if duplicate
+  if (_jp_isdt and _jp_checkduplicates) {
+    set<int>& events = _duplicates[run][lbn];
+    if (events.find(evt)!=events.end()) {
+      ++_nbadevts_dup;
+      return false;
+    }
+    events.insert(evt);
+  }
+  ++_cnt["01all"];
+
+  // Check if good run/LS, including JSON selection
+  if (_jp_isdt) {
+    if (_jp_dojson) {
+      // Does the run/LS pass the latest JSON selection?
+      if (_json[run][lbn]==0) {
+        _badjson.insert(pair<int, int>(run, lbn));
+        ++_nbadevts_json;
+        return false;
       }
+    } // _jp_dojson
+
+    if (_jp_dolumi) {
+      // Do we have the run listed in the .csv file?
+      auto irun = _lums.find(run);
+      if (irun==_lums.end()) {
+        _badruns.insert(run);
+        ++_nbadevts_run;
+        return false;
+      }
+      // Do we have the LS listed in the .csv file?
+      auto ils = irun->second.find(lbn);
+      if (ils==irun->second.end()) {
+        _badlums.insert(pair<int, int>(run,lbn));
+        ++_nbadevts_ls;
+        return false;
+      }
+      // Does the .csv file list a non-zero luminosity?
+      if (ils->second==0) {
+        _nolums.insert(pair<int, int>(run, lbn));
+        ++_nbadevts_lum;
+        //continue; // Could be Poisson fluctuation to zero
+      }
+    } // _jp_dolumi
+  } // _jp_isdt
+
+  // Keep track of LBNs
+  _passedlumis.insert(pair<int, int>(run, lbn));
+
+  ++_cnt["02ls"];
+
+  // Reset event ID
+  _pass = true;
+
+  // Reject events with no vertex
+  pvrho = tools::oplus(pvx, pvy);
+  _pass = _pass and npvgood>0 and pvrho<2.;
+  if (_pass) ++_cnt["03vtx"];
+
+  // Event cuts against beam backgrounds
+  if (_pass) {
+    if (tools::oplus(pvx-bsx, pvy-bsy)>0.15 or pvndof<=4 or fabs(pvz) >= 24.) {
+      ++_bscounter_bad;
+      _pass = false;
     } else {
-      trpu = EvtHdr__mTrPu;
+      ++_bscounter_good;
+      ++_cnt["04bsc"];
     }
+  }
 
-    //assert(njt<_maxnjt);
-    if (njt > _maxnjt) {
-      PrintInfo(Form("Array overflow: njt = %d > njtmax= %d",njt,_maxnjt),true);
-      assert(njt<_maxnjt);
+  // Event cuts against beam backgrounds
+  if (_pass and _ecalveto) {
+    if ( (njt>=1 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[0],jtphi[0]))!=0)
+      or (njt>=2 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[1],jtphi[1]))!=0) ) {
+      ++_ecalcounter_bad;
+      _pass = false;
+    } else {
+      ++_ecalcounter_good;
+      ++_cnt["05ecal"];
     }
+  } // ecal veto
 
-     //assert(_jp_isdt || gen_njt<_maxnjt);
-    if (_jp_ismc and gen_njt > _maxnjt) {
-      PrintInfo(Form("Array overflow: gen_njt = %d > njtmax= %d",gen_njt,_maxnjt),true);
-      assert(gen_njt<_maxnjt);
+  // Check rho
+  if (_pass) {
+    if (rho>40.) {
+      ++_rhocounter_bad;
+      _pass = false;
+      if (_jp_debug)
+        cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
+                    run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[0] :0.), metsumet, met) << flush;
+    } else {
+      ++_rhocounter_good;
+      ++_cnt["06rho"];
     }
+  }
 
-    if (_jp_debug) {
-      cout << endl << flush;
-      Show(jentry);
-      cout << endl << endl << flush;
+  // Reset prescales (dynamic can change within run)
+  for (auto &scaleit : _prescales)
+    scaleit.second[run] = 0;
 
-      cout << "***Checking basic event variables are read out:" << endl;
-      cout << "isdata = " << _jp_isdt << " / ismc = " << _jp_ismc << endl;
-      cout << "trpu = " << trpu << endl;
-      cout << "pthat = " << pthat << endl;
-      cout << "weight = " << weight << endl;
-      cout << "njt = " << njt << endl;
-      cout << "idloose[0] = " << (njt>0 ? jtidloose[0] : -1) << endl;
-      cout << "idtight[0] = " << (njt>0 ? jtidtight[0] : -1) << endl;
-      cout << "***end basic event variables" << endl;
-      cout << endl << flush;
-    }
+  // Fill trigger information
+  _trigs.clear();
 
-    // Check if duplicate
-    if (_jp_isdt and _jp_checkduplicates) {
-      set<int>& events = _duplicates[run][lbn];
-      if (events.find(evt)!=events.end()) {
-        ++_nbadevts_dup;
-        continue;
-      }
-      events.insert(evt);
-    }
-    ++_cnt["01all"];
+  // Simulate other triggers for MC, if so wished
+  // (this is slow, though)
+  if (_jp_ismc) {
+    // Always insert the generic mc trigger
+    _trigs.insert("mc");
+    if (_jp_domctrigsim and njt>0) {
+      // Only add the greatest trigger present
+      for (int itrg = _jp_notrigs-1; itrg >= 0; --itrg) {
+        if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
+          const char *trg_name = string(_jp_triggers[itrg]).c_str();
+          _trigs.insert(trg_name);
+          _wt[trg_name] = 1.;
 
-    // Check if good run/LS, including JSON selection
-    if (_jp_isdt) {
-      if (_jp_dojson) {
-        // Does the run/LS pass the latest JSON selection?
-        if (_json[run][lbn]==0) {
-          _badjson.insert(pair<int, int>(run, lbn));
-          ++_nbadevts_json;
-          continue;
-        }
-      } // _jp_dojson
+          // Reweight in-time pile-up
+          if (_jp_reweighPU) {
+            int k = _pudist[trg_name]->FindBin(trpu);
+            double wtrue = _pudist[trg_name]->GetBinContent(k);
+            _wt[trg_name] *= wtrue;
 
-      if (_jp_dolumi) {
-        // Do we have the run listed in the .csv file?
-        auto irun = _lums.find(run);
-        if (irun==_lums.end()) {
-          _badruns.insert(run);
-          ++_nbadevts_run;
-          continue;
-        }
-        // Do we have the LS listed in the .csv file?
-        auto ils = irun->second.find(lbn);
-        if (ils==irun->second.end()) {
-          _badlums.insert(pair<int, int>(run,lbn));
-          ++_nbadevts_ls;
-          continue;
-        }
-        // Does the .csv file list a non-zero luminosity?
-        if (ils->second==0) {
-          _nolums.insert(pair<int, int>(run, lbn));
-          ++_nbadevts_lum;
-          //continue; // Could be Poisson fluctuation to zero
-        }
-      } // _jp_dolumi
-    } // _jp_isdt
-
-    // Keep track of LBNs
-    _passedlumis.insert(pair<int, int>(run, lbn));
-
-    ++_cnt["02ls"];
-
-    // Reset event ID
-    _pass = true;
-
-    // Reject events with no vertex
-    pvrho = tools::oplus(pvx, pvy);
-    _pass = _pass and npvgood>0 and pvrho<2.;
-    if (_pass) ++_cnt["03vtx"];
-
-    // Event cuts against beam backgrounds
-    if (_pass) {
-      if (tools::oplus(pvx-bsx, pvy-bsy)>0.15 or pvndof<=4 or fabs(pvz) >= 24.) {
-        ++_bscounter_bad;
-        _pass = false;
-      } else {
-        ++_bscounter_good;
-        ++_cnt["04bsc"];
-      }
-    }
-
-    // Event cuts against beam backgrounds
-    if (_pass and _ecalveto) {
-      if ( (njt>=1 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[0],jtphi[0]))!=0)
-        or (njt>=2 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[1],jtphi[1]))!=0) ) {
-        ++_ecalcounter_bad;
-        _pass = false;
-      } else {
-        ++_ecalcounter_good;
-        ++_cnt["05ecal"];
-      }
-    } // ecal veto
-
-    // Check rho
-    if (_pass) {
-      if (rho>40.) {
-        ++_rhocounter_bad;
-        _pass = false;
-        if (_jp_debug)
-          cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
-                      run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[0] :0.), metsumet, met) << flush;
-      } else {
-        ++_rhocounter_good;
-        ++_cnt["06rho"];
-      }
-    }
-
-    // Reset prescales (dynamic can change within run)
-    for (auto &scaleit : _prescales)
-      scaleit.second[run] = 0;
-
-    // Fill trigger information
-    _trigs.clear();
-
-    // Simulate other triggers for MC, if so wished
-    // (this is slow, though)
-    if (_jp_ismc) {
-      // Always insert the generic mc trigger
-      _trigs.insert("mc");
-      if (_jp_domctrigsim and njt>0) {
-        // Only add the greatest trigger present
-        for (int itrg = _jp_notrigs; itrg > 0; --itrg) {
-          if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
-            _trigs.insert(_jp_triggers[itrg-1]);
-            break; // Don't add lesser triggers
+            // check for non-zero PU weight
+            _pass = _pass and wtrue!=0;
+            if (_pass) ++_cnt["07puw"];
+            else return false; // Bad pu areas with zero weight excluded
           }
+          break; // Don't add lesser triggers
         }
-      } // _jp_domctrigsim
-    } // _jp_ismc
-
-    if (_jp_isdt) {
-      // For data, check trigger bits
-      if (_jp_debug) {
-        cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-        cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
-        cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
       }
-      assert(TriggerDecision_.size() == _availTrigs.size());
-
-      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
-        _wt[string(_jp_triggers[itrg])] = 1.0;
-
-      for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
-        auto &itrg = _goodTrigs[goodIdx];
-        if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
-        double iwgt = 0.0;
-        if (_jp_useversionlumi) iwgt = _goodWgts[goodIdx];
-
-        string trigname = _availTrigs[itrg];
-        if (_jp_debug and TriggerDecision_[itrg]>0)
-          cout << trigname << " " << TriggerDecision_[itrg]
-               << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
-
-        // Set prescale from event for now
-        if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) {
-          _prescales[trigname][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
-        } else {
-          cout << "Error for trigger " << trigname << " prescales: "
-                << "L1  =" << L1Prescale_[itrg]
-                << "HLT =" << HLTPrescale_[itrg] << endl;
-          _prescales[trigname][run] = 0;
-          if (_jp_debug) { // check prescale
-            double prescale = _prescales[trigname][run];
-            if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-              cout << "Trigger " << trigname << ", "
-              << "Prescale(txt file) = " << prescale << endl;
-              cout << "L1 = " << L1Prescale_[itrg] << ", "
-              << "HLT = " << HLTPrescale_[itrg] << endl;
-              assert(false);
-            }
-          } // debug
-        }
-
-        if (_prescales[trigname][run]!=0) {
-          // Set trigger only if prescale information is known
-          _trigs.insert(trigname);
-          if (_jp_useversionlumi) _wt[trigname] = iwgt;
-        } else {
-          // Make sure all info is good! This is crucial if there is something odd with the tuples
-          PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
-        }
-      } // for itrg (_goodTrigs)
-    }
-
-    ++_totcounter;
-    if (_pass) ++_evtcounter;
-    _pass = _pass and _trigs.size()>0;
-    if (_pass) {
-      ++_trgcounter;
-      if (_jp_isdt) ++_cnt["07trg"];
-    }
-
-    // Retrieve event weight. _w0 is static, _w is chanching with the trigger
-    _w0 = 1.0;
-    if (_jp_ismc) {
-      _w0 *= weight;
-      if (_jp_pthatbins)
-        _w0 *= _pthatweight;
-      assert(_w0>0);
-    }
-    _w = _w0;
-
-    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
-    // Calculate trigger PU weight
-    if (_jp_ismc) {
+      // Calculate trigger PU weight
       for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg) {
-        const char *trg_name = string(_jp_triggers[itrg]).c_str();
-        _wt[trg_name] = 1.;
-
-        // Reweight in-time pile-up
-        if (_jp_reweighPU) {
-          int k = _pudist[trg_name]->FindBin(trpu);
-          double wtrue = _pudist[trg_name]->GetBinContent(k);
-          _wt[trg_name] *= wtrue;
-
-          // check for non-zero PU weight
-          _pass = _pass and wtrue!=0;
-        }
       } // for itrg
-      _wt["mc"] = _wt[_jp_reftrig];
-      if (_pass) ++_cnt["07puw"];
-      else continue; // Fatal failure
-    }
-
-    // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
-
-    // load correct IOV for JEC
-    if (_jp_isdt and _jp_useIOV) {
-      bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
-      if (!setcorrection or !_JEC or !_L1RC or !_jecUnc) {
-        cout << "Issues while loading JEC; aborting..." << endl;
-        return;
-      }
-    }
-
-    if (_jp_debug) cout << "Entering JEC calculation!" << endl;
-    // REMOVED: "Oversmear MC to match data" (mex and mey definitions moved to later times)
-    // Calculate pT, eta, phi, y, E and uncorrected pT
-    for (int jetidx = 0; jetidx != njt; ++jetidx) {
-      p4.SetPxPyPzE(jtp4x[jetidx],jtp4y[jetidx],jtp4z[jetidx],jtp4t[jetidx]);
-      // Divide by the original JES
-      if (_jp_debug) cout << "Entering jet loop!" << endl;
-      if (_jp_undojes) p4 *= 1/jtjes[jetidx];
-
-      jtptu[jetidx] = p4.Pt();
-      jteu[jetidx] = p4.E();
-
-      if (_jp_debug) cout << "Recalculating JEC!" << endl;
-      // Recalculate JEC
-      _JEC->setRho(rho);
-      _JEC->setNPV(npvgood);
-      _JEC->setJetA(jta[jetidx]);
-      _JEC->setJetPt(jtptu[jetidx]);
-      _JEC->setJetE(jteu[jetidx]);
-      _JEC->setJetEta(p4.Eta());
-      jtjesnew[jetidx] = _JEC->getCorrection();
-
-      if (_jp_debug) cout << "Recalculating JEC (again)!" << endl;
-      // Recalculate JEC (again to get subcorrections)
-      _JEC->setRho(rho);
-      _JEC->setNPV(npvgood);
-      _JEC->setJetA(jta[jetidx]);
-      _JEC->setJetPt(jtptu[jetidx]);
-      _JEC->setJetE(jteu[jetidx]);
-      _JEC->setJetEta(p4.Eta());
-      //
-      vector<float> v = _JEC->getSubCorrections();
-      double jec_res = 1;
-      if (_jp_ismc or _jp_skipl2l3res) {
-        assert(v.size()==3);
-      } else {
-        assert(v.size()==4);
-        jec_res = v[3]/v[2];
-      }
-      double jec_l1 = v[0];
-      double jec_l2l3 = v[2]/v[0];
-      jtjes_l1[jetidx] = jec_l1;
-      jtjes_l2l3[jetidx] = jec_l2l3;
-      jtjes_res[jetidx] = jec_res;
-      assert(jtjesnew[jetidx] == v[v.size()-1]);
-
-      if (_jp_debug) cout << "Reapplying JEC!" << endl;
-      if (_jp_redojes) p4 *= jtjesnew[jetidx];
-
-      jte[jetidx] = p4.E();
-      jtpt[jetidx] = p4.Pt();
-      jteta[jetidx] = p4.Eta();
-      jtphi[jetidx] = p4.Phi();
-      jty[jetidx] = p4.Rapidity();
-
-      if (_jp_debug) cout << "Gen info!" << endl;
-      // Calculate gen level info
-      if (_jp_ismc) {
-        gp4.SetPxPyPzE(jtgenp4x[jetidx],jtgenp4y[jetidx],jtgenp4z[jetidx],jtgenp4t[jetidx]);
-        jtgenpt[jetidx] = gp4.Pt();
-        jtgeny[jetidx] = gp4.Rapidity();
-        jtgeneta[jetidx] = gp4.Eta();
-        jtgenphi[jetidx] = gp4.Phi();
-      }
-
-      if (_jp_debug) cout << "Jet " << jetidx << " corrected!" << endl;
-    } // for jetidx
-
-    if (_jp_debug) cout << "Leading jets information!" << endl;
-    // Find leading jets (residual JEC may change ordering)
-    // CAUTION: for less than 3 jets, we input -1 on the place of the index
-    // NOTE: Above this we only use the initial corrections. This serves as a good approximation,
-    // as the values before reapplying JEC are more like the ones we knew when collecting data.
-    for (int i = 0; i<3; ++i)
-      jt3leads[i] = -1;
-    for (int jetidx = 0; jetidx < njt; ++jetidx) {
-      if (jt3leads[0]==-1 or jtpt[jt3leads[0]]<jtpt[jetidx]) {
-        jt3leads[2] = jt3leads[1];
-        jt3leads[1] = jt3leads[0];
-        jt3leads[0] = jetidx;
-      } else if (jt3leads[1]==-1 or jtpt[jt3leads[1]]<jtpt[jetidx]) {
-        jt3leads[2] = jt3leads[1];
-        jt3leads[1] = jetidx;
-      } else if (jt3leads[2]==-1 or jtpt[jt3leads[2]]<jtpt[jetidx]) {
-        jt3leads[2] = jetidx;
-      }
-    }
-    int i0 = jt3leads[0];
-    int i1 = jt3leads[1];
-    int i2 = jt3leads[2];
-
+    } // _jp_domctrigsim
+    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
+    _wt["mc"] = _wt[_jp_reftrig];
+  } else if (_jp_isdt) {
+    // For data, check trigger bits
     if (_jp_debug) {
-      cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
-      cout << "Gen flav calculation!" << endl;
+      cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
+      cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
+      cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
     }
+    assert(TriggerDecision_.size() == _availTrigs.size());
+
+    for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
+      _wt[string(_jp_triggers[itrg])] = 1.0;
+
+    for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
+      auto &itrg = _goodTrigs[goodIdx];
+      if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
+
+      string trigname = _availTrigs[itrg];
+      if (_jp_debug and TriggerDecision_[itrg]>0)
+        cout << trigname << " " << TriggerDecision_[itrg]
+             << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
+
+      // Set prescale from event for now
+      if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) {
+        _prescales[trigname][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
+      } else {
+        cout << "Error for trigger " << trigname << " prescales: "
+              << "L1  =" << L1Prescale_[itrg]
+              << "HLT =" << HLTPrescale_[itrg] << endl;
+        _prescales[trigname][run] = 0;
+        if (_jp_debug) { // check prescale
+          double prescale = _prescales[trigname][run];
+          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
+            cout << "Trigger " << trigname << ", "
+            << "Prescale(txt file) = " << prescale << endl;
+            cout << "L1 = " << L1Prescale_[itrg] << ", "
+            << "HLT = " << HLTPrescale_[itrg] << endl;
+            assert(false);
+          }
+        } // debug
+      }
+
+      if (_prescales[trigname][run]>0) {
+        // Set trigger only if prescale information is known
+        _trigs.insert(trigname);
+        _wt[trigname] = _goodWgts[goodIdx];
+      } else {
+        // Make sure all info is good! This is crucial if there is something odd with the tuples
+        PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
+      }
+    } // for itrg (_goodTrigs)
+  }
+
+  ++_totcounter;
+  if (_pass) ++_evtcounter;
+  _pass = _pass and _trigs.size()>0;
+  if (_pass) {
+    ++_trgcounter;
+    if (_jp_isdt) ++_cnt["07trg"];
+  }
+
+  // Retrieve event weight. _w0 is static, _w is chanching with the trigger
+  _w0 = 1.0;
+  if (_jp_ismc) {
+    _w0 *= weight;
+    if (_jp_pthatbins)
+      _w0 *= _pthatweight;
+    assert(_w0>0);
+  }
+  _w = _w0;
+
+  // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
+
+  // load correct IOV for JEC
+  if (_jp_isdt and _jp_useIOV) {
+    bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
+    if (!setcorrection or !_JEC or !_L1RC or !_jecUnc) {
+      cout << "Issues while loading JEC; aborting..." << endl;
+      assert(false);
+    }
+  }
+
+  if (_jp_debug) cout << "JEC and MET calculation and leading jets info!" << endl;
+  // Calculate jec and propagate jec to MET 1 and MET 2
+  double mex = met * cos(metphi);
+  double mey = met * sin(metphi);
+  double ucx = mex;
+  double ucy = mey;
+  // Find leading jets (residual JEC may change ordering)
+  // CAUTION: for less than 3 jets, we input -1 on the place of the index
+  // NOTE: Above this we only use the initial corrections. This serves as a good approximation,
+  // as the values before reapplying JEC are more like the ones we knew when collecting data.
+  for (int i = 0; i<3; ++i)
+    jt3leads[i] = -1;
+  ///////////////
+  // Jet loop
+  ///////////////
+  for (int jetidx = 0; jetidx != njt; ++jetidx) {
+    p4.SetPxPyPzE(jtp4x[jetidx],jtp4y[jetidx],jtp4z[jetidx],jtp4t[jetidx]);
+    // Divide by the original JES
+    if (_jp_debug) cout << "Entering jet loop!" << endl;
+    if (_jp_undojes) p4 *= 1/jtjes[jetidx];
+
+    jtptu[jetidx] = p4.Pt();
+    jteu[jetidx] = p4.E();
+
+    if (_jp_debug) cout << "Recalculating JEC!" << endl;
+    // Recalculate JEC
+    _JEC->setRho(rho);
+    _JEC->setNPV(npvgood);
+    _JEC->setJetA(jta[jetidx]);
+    _JEC->setJetPt(jtptu[jetidx]);
+    _JEC->setJetE(jteu[jetidx]);
+    _JEC->setJetEta(p4.Eta());
+    jtjesnew[jetidx] = _JEC->getCorrection();
+
+    if (_jp_debug) cout << "Recalculating JEC (again)!" << endl;
+    // Recalculate JEC (again to get subcorrections)
+    _JEC->setRho(rho);
+    _JEC->setNPV(npvgood);
+    _JEC->setJetA(jta[jetidx]);
+    _JEC->setJetPt(jtptu[jetidx]);
+    _JEC->setJetE(jteu[jetidx]);
+    _JEC->setJetEta(p4.Eta());
+    //
+    vector<float> v = _JEC->getSubCorrections();
+    double jec_res = 1;
+    if (_jp_ismc or _jp_skipl2l3res) {
+      assert(v.size()==3);
+    } else {
+      assert(v.size()==4);
+      jec_res = v[3]/v[2];
+    }
+    double jec_l1 = v[0];
+    double jec_l2l3 = v[2]/v[0];
+    jtjes_l1[jetidx] = jec_l1;
+    jtjes_l2l3[jetidx] = jec_l2l3;
+    jtjes_res[jetidx] = jec_res;
+    assert(jtjesnew[jetidx] == v[v.size()-1]);
+
+    if (_jp_debug) cout << "Reapplying JEC!" << endl;
+    if (_jp_redojes) p4 *= jtjesnew[jetidx];
+
+    jte[jetidx] = p4.E();
+    jtpt[jetidx] = p4.Pt();
+    jteta[jetidx] = p4.Eta();
+    jtphi[jetidx] = p4.Phi();
+    jty[jetidx] = p4.Rapidity();
+
+    if (_jp_debug) cout << "Gen info!" << endl;
+    // Calculate gen level info
     if (_jp_ismc) {
-      for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
-        genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
-        gen_jtpt[gjetidx] = genp4.Pt();
-        gen_jteta[gjetidx] = genp4.Eta(); // for matching
-        gen_jtphi[gjetidx] = genp4.Phi(); // for matching
-        gen_jty[gjetidx] = genp4.Rapidity();
+      gp4.SetPxPyPzE(jtgenp4x[jetidx],jtgenp4y[jetidx],jtgenp4z[jetidx],jtgenp4t[jetidx]);
+      jtgenpt[jetidx] = gp4.Pt();
+      jtgeny[jetidx] = gp4.Rapidity();
+      jtgeneta[jetidx] = gp4.Eta();
+      jtgenphi[jetidx] = gp4.Phi();
+    }
 
-        // Ozlem: loop for finding partonflavor by matching genjets and jets
-        int ireco = -1;
-        for (int j = 0; j != njt && ireco == -1; ++j) {
-          p4.SetPxPyPzE(jtp4x[j],jtp4y[j],jtp4z[j],jtp4t[j]);
-          if (genp4.DeltaR(p4) < 0.4)
-            ireco = j;
-        } // for j
-        if (ireco!=-1)
-          gen_partonflavor[gjetidx] = Int_t(partonflavor[ireco]+0.25);
-        else
-          gen_partonflavor[gjetidx] = -1;
-      } // for gjetidx
-    } // MC
+    if (_jp_debug) cout << "Jet " << jetidx << " corrected!" << endl;
 
-    if (_jp_debug) cout << "MET calculation!" << endl;
-    double mex = met * cos(metphi);
-    double mey = met * sin(metphi);
-    double ucx = mex;
-    double ucy = mey;
-    // Propagate jec to MET 1 and MET 2
-    for (int jetidx = 0; jetidx != njt; ++jetidx) {
-      // Only use jets with corr. pT>25 GeV to equalize data and MC thresholds
-      if (jtpt[jetidx] > _jp_recopt and fabs(jteta[jetidx])<4.7) {
-        // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
-        // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
-        _L1RC->setRho(rho);
-        _L1RC->setJetA(jta[jetidx]);
-        _L1RC->setJetPt(jtptu[jetidx]);
-        _L1RC->setJetE(jteu[jetidx]);
-        _L1RC->setJetEta(jteta[jetidx]);
-        double l1corr = _L1RC->getCorrection();
-        double dpt = - jtpt[jetidx] + l1corr*jtptu[jetidx];
-        //double dpt = - jtpt[jetidx] + (l1chs - l1pf + l1corr)*jtptu[jetidx];
-        mex += dpt * cos(jtphi[jetidx]);
-        mey += dpt * sin(jtphi[jetidx]);
+    // Only use jets with corr. pT>recopt GeV to equalize data and MC thresholds
+    if (jtpt[jetidx] > _jp_recopt and fabs(jteta[jetidx])<4.7) {
+      // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
+      // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
+      _L1RC->setRho(rho);
+      _L1RC->setJetA(jta[jetidx]);
+      _L1RC->setJetPt(jtptu[jetidx]);
+      _L1RC->setJetE(jteu[jetidx]);
+      _L1RC->setJetEta(jteta[jetidx]);
+      double l1corr = _L1RC->getCorrection();
+      double dpt = - jtpt[jetidx] + l1corr*jtptu[jetidx];
+      //double dpt = - jtpt[jetidx] + (l1chs - l1pf + l1corr)*jtptu[jetidx];
+      mex += dpt * cos(jtphi[jetidx]);
+      mey += dpt * sin(jtphi[jetidx]);
 
-        // MET 2: record unclustered energy.
-        // Keep track of remaining pT in unclustered energy, add to MET l1corr jets, from which ue is substracted.
-        // Effectively this means substracting jets (without their PU and UE) from MET (=> homogeneous background).
-        double ue = 1.068 * jta[jetidx]; // CAUTION: One should check that the magical coefficient here is good.
-        double dptu = -ue + l1corr*jtptu[jetidx];
-        ucx += dptu * cos(jtphi[jetidx]);
-        ucy += dptu * sin(jtphi[jetidx]);
+      // MET 2: record unclustered energy.
+      // Keep track of remaining pT in unclustered energy, add to MET l1corr jets, from which ue is substracted.
+      // Effectively this means substracting jets (without their PU and UE) from MET (=> homogeneous background).
+      double ue = 1.068 * jta[jetidx]; // CAUTION: One should check that the magical coefficient here is good.
+      double dptu = -ue + l1corr*jtptu[jetidx];
+      ucx += dptu * cos(jtphi[jetidx]);
+      ucy += dptu * sin(jtphi[jetidx]);
+    }
+
+    if (jt3leads[0]==-1 or jtpt[jt3leads[0]]<jtpt[jetidx]) {
+      jt3leads[2] = jt3leads[1];
+      jt3leads[1] = jt3leads[0];
+      jt3leads[0] = jetidx;
+    } else if (jt3leads[1]==-1 or jtpt[jt3leads[1]]<jtpt[jetidx]) {
+      jt3leads[2] = jt3leads[1];
+      jt3leads[1] = jetidx;
+    } else if (jt3leads[2]==-1 or jtpt[jt3leads[2]]<jtpt[jetidx]) {
+      jt3leads[2] = jetidx;
+    }
+  } // for jetidx
+
+  // Type I MET (this is the best one we've got; works optimally if we keep T0Txy MET as the raw MET and apply here the newest JEC)
+  // met1 = -jtpt[jetidx]+l1corr*jtptu[jetidx]+metraw
+  met1 = tools::oplus(mex, mey);
+  metphi1 = atan2(mey, mex);
+
+  // Correct unclustered energy; jec for 10 GeV jets varies between 1.1-1.22 at |y|<2.5,
+  // 2.5-3.0 even goes up to 1.35 => assume 1.15  => try 1.5 => to 1.25 (high pT threshold on jets)
+  mex += 0.25*ucx;
+  mey += 0.25*ucy;
+  // Type II MET witch C = 1.25 (This is not recommended for pfJets.
+  // met2 = met1 - C*uncl.ptsum = met1 + 0.25*(l1corr*jtptu[jetidx]-ue[jetidx]) = 1.25*metraw + 1.25*l1corr*jtptu[jetidx] - jtpt[jetidx] - 0.25ue[jetidx]
+  met2 = tools::oplus(mex, mey);
+  metphi2 = atan2(mey, mex);
+
+  // The leading indices
+  int i0 = jt3leads[0];
+  int i1 = jt3leads[1];
+  int i2 = jt3leads[2];
+
+  if (_jp_debug) {
+    cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
+    cout << "Gen flav calculation!" << endl;
+  }
+  if (_jp_ismc) {
+    ///////////////
+    // Gen Jet loop
+    ///////////////
+    for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
+      genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
+      gen_jtpt[gjetidx] = genp4.Pt();
+      gen_jteta[gjetidx] = genp4.Eta(); // for matching
+      gen_jtphi[gjetidx] = genp4.Phi(); // for matching
+      gen_jty[gjetidx] = genp4.Rapidity();
+
+      // Ozlem: loop for finding partonflavor by matching genjets and jets
+      int ireco = -1;
+      for (int j = 0; j != njt && ireco == -1; ++j) {
+        p4.SetPxPyPzE(jtp4x[j],jtp4y[j],jtp4z[j],jtp4t[j]);
+        if (genp4.DeltaR(p4) < 0.4)
+          ireco = j;
+      } // for j
+      if (ireco!=-1)
+        gen_partonflavor[gjetidx] = Int_t(partonflavor[ireco]+0.25);
+      else
+        gen_partonflavor[gjetidx] = -1;
+    } // for gjetidx
+  } // MC
+
+  _jetids.resize(njt);
+  for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid)
+    _jetids[jetid] = true;
+  fillJetID(_jetids);
+
+  if (_jp_isdt and _jp_doVetoHCALHot and worryHCALHotExcl) {
+    bool good0 = jteta[i0] < rangesHCALHotExcl[0] or jteta[i0] > rangesHCALHotExcl[1] or
+                 jtphi[i0] < rangesHCALHotExcl[2] or jtphi[i0] > rangesHCALHotExcl[3];
+    bool good1 = jteta[i1] < rangesHCALHotExcl[0] or jteta[i1] > rangesHCALHotExcl[1] or
+                 jtphi[i1] < rangesHCALHotExcl[2] or jtphi[i1] > rangesHCALHotExcl[3];
+    _pass = _pass and good0 and good1;
+    if (_pass) ++_cnt["08etaphiexclHCAL"];
+  }
+
+  if (_jp_isdt and _jp_doVetoECALHot) {
+    // Abort if one of the leading jets is in a difficult zone
+    bool good0 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i0],jtphi[i0])) < 0;
+    bool good1 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i1],jtphi[i1])) < 0;
+    _pass = _pass and good0 and good1;
+    if (_pass) ++_cnt["08etaphiexclECAL"];
+  }
+
+  // We gather some data also from 0-jet events and events with a bad leading jet
+  if (i0>=0 and _pass) {
+    ++_cnt["09njt"];
+    if (_jetids[i0] and _pass) {
+      ++_cnt["10jtid"];
+      // Check if overweight PU event
+      if (_jp_ismc and _pass) {
+        if (jtpt[i0] < 1.5*jtgenpt[i0] or jtpt[i0] < 1.5*pthat) ++_cnt["11pthat"];
+        else _pass = false;
       }
-    } // for jetidx
-
-    // Type I MET (this is the best one we've got; works optimally if we keep T0Txy MET as the raw MET and apply here the newest JEC)
-    // met1 = -jtpt[jetidx]+l1corr*jtptu[jetidx]+metraw
-    met1 = tools::oplus(mex, mey);
-    metphi1 = atan2(mey, mex);
-
-    // Correct unclustered energy; jec for 10 GeV jets varies between 1.1-1.22 at |y|<2.5,
-    // 2.5-3.0 even goes up to 1.35 => assume 1.15  => try 1.5 => to 1.25 (high pT threshold on jets)
-    mex += 0.25*ucx;
-    mey += 0.25*ucy;
-    // Type II MET witch C = 1.25 (This is not recommended for pfJets.
-    // met2 = met1 - C*uncl.ptsum = met1 + 0.25*(l1corr*jtptu[jetidx]-ue[jetidx]) = 1.25*metraw + 1.25*l1corr*jtptu[jetidx] - jtpt[jetidx] - 0.25ue[jetidx]
-    met2 = tools::oplus(mex, mey);
-    metphi2 = atan2(mey, mex);
-
-    _jetids.resize(njt);
-    for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid)
-      _jetids[jetid] = true;
-    fillJetID(_jetids);
-
-    if (_jp_isdt and _jp_doVetoHCALHot and worryHCALHotExcl) {
-      bool good0 = jteta[i0] < rangesHCALHotExcl[0] or jteta[i0] > rangesHCALHotExcl[1] or
-                   jtphi[i0] < rangesHCALHotExcl[2] or jtphi[i0] > rangesHCALHotExcl[3];
-      bool good1 = jteta[i1] < rangesHCALHotExcl[0] or jteta[i1] > rangesHCALHotExcl[1] or
-                   jtphi[i1] < rangesHCALHotExcl[2] or jtphi[i1] > rangesHCALHotExcl[3];
-      _pass = _pass and good0 and good1;
-      if (_pass) ++_cnt["08etaphiexclHCAL"];
     }
+  }
 
-    if (_jp_isdt and _jp_doVetoECALHot) {
-      // Abort if one of the leading jets is in a difficult zone
-      bool good0 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i0],jtphi[i0])) < 0;
-      bool good1 = h2ECALHotExcl->GetBinContent(h2ECALHotExcl->FindBin(jteta[i1],jtphi[i1])) < 0;
-      _pass = _pass and good0 and good1;
-      if (_pass) ++_cnt["08etaphiexclECAL"];
-    }
+  // Equipped in fillBasics and fillRunHistos
+  _pass_qcdmet = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
 
-    // We gather some data also from 0-jet events and events with a bad leading jet
-    if (i0>=0 and _pass) {
-      ++_cnt["09njt"];
-      if (_jetids[i0] and _pass) {
-        ++_cnt["10jtid"];
-        // Check if overweight PU event
-        if (_jp_ismc and _pass) {
-          if (jtpt[i0] < 1.5*jtgenpt[i0] or jtpt[i0] < 1.5*pthat) ++_cnt["11pthat"];
-          else _pass = false;
-        }
-      }
-    }
-
-    // Equipped in fillBasics and fillRunHistos
-    _pass_qcdmet = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
-
-    if (_jp_debug) cout << "Histos initalization!" << endl;
-    // Here can categorize events into different triggers, epochs, topologies etc.
-    // Eta and pT binning are handled in the fillBasic class
-    if (_jp_doBasicHistos) {
-      fillBasics("Standard");
-    }
-
-    if (_jp_doEtaHistos and _pass) {
-      fillEtas("FullEta_Reco", jtpt, jteta, jtphi);
-      if (_jp_ismc and _jp_doEtaHistosMcResponse) {
-        fillEtas("FullEta_Gen", jtgenpt, jtgeneta, jtgenphi);
-        fillMcHistos("FullEta_RecoPerGen_vReco", jtpt, jtgenpt, jtpt,    jteta,    jtphi);
-        fillMcHistos("FullEta_RecoPerGen_vGen",  jtpt, jtgenpt, jtgenpt, jtgeneta, jtgenphi);
-      }
-    }
-
-    // Run quality checks
-    if (_jp_isdt and _jp_doRunHistos) {
-      fillRunHistos("Runs");
-      fillRunHistos("RunsBarrel");
-      fillRunHistos("RunsTransition");
-      fillRunHistos("RunsEndcap");
-    }
-
-    // Report memory usage to avoid malloc problems when writing file
-    if (jentry%1000000==0) {
-      PrintInfo( Form("Doing Loop(), %dM events:",int(jentry/1e6 + 0.5)) );
-      PrintMemInfo();
-    } // 1M report
-  } // for jentry
-  cout << endl;
-
-  // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("Finished processing %lld entries:",_nentries),true);
-  PrintMemInfo(true);
-
-  if (_jp_doRunHistos)   writeRunHistos();
-  if (_jp_doEtaHistos)   writeEtas();
-  if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) writeMcHistos();
-  if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
-
-  stop.Stop();
-  TDatime now;
-  cout << "Stopping at: ";
-  now.Print();
-  PrintInfo(Form("Processing used %f s CPU time (%f h)",stop.CpuTime(),stop.CpuTime()/3600.),true);
-  PrintInfo(Form("Processing used %f s real time (%f h)",stop.RealTime(),stop.RealTime()/3600.),true);
+  return true;
 }
 
 

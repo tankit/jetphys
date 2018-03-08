@@ -175,6 +175,24 @@ void histosCombine() {
   recurseFile(fin, fout, "pbetatp_vseta", false, true);
   recurseFile(fin, fout, "pbetastartp_vseta", false, true);
   recurseFile(fin, fout, "pbetaprimetp_vseta", false, true);
+  //
+  recurseFile(fin, fout, "pchfnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pnefnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pnhfnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pcefnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pmufnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetanegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetastarnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetaprimenegtp_vsphi", false, true);
+  //
+  recurseFile(fin, fout, "pchfpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pnefpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pnhfpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pcefpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pmufpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetapostp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetastarpostp_vsphi", false, true);
+  recurseFile(fin, fout, "pbetaprimepostp_vsphi", false, true);
 
   recurseFile(fin, fout, "ppt_probepertag");
 

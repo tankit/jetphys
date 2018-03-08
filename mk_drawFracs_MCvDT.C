@@ -13,7 +13,7 @@ void mk_drawFracs_MCvDT() {
 
     Fracs fracs(path,path,title,savedir,false,"MC","RunG",3);
     Fracs tfracs(path,path,title,savedir,true,"MC","RunG",3);
-    for (unsigned i = 0; i<4; ++i) {
+    for (unsigned i = 0; i<6; ++i) {
       fracs.drawFracs(i);
       tfracs.drawFracs(i);
     }

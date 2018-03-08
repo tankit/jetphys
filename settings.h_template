@@ -45,7 +45,7 @@ constexpr const char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 constexpr const char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-constexpr const char _jp_type[] = "MC";
+constexpr const char _jp_type[] = "DATA";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
 constexpr const char _jp_run[] = "RunB16_Eng";
 // Simple helper

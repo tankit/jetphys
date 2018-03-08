@@ -278,7 +278,6 @@ public :
     delete fChain->GetCurrentFile();
     delete ferr;
   }
-  Int_t Cut(Long64_t entry) { return 1;}
   Int_t GetEntry(Long64_t entry) {
     if (!fChain) return 0;
     return fChain->GetEntry(entry);
@@ -296,7 +295,8 @@ public :
   // Following lines added by hand and must come *after* auto-generated header
   /////////////////////////////////////////////////////////////////////////////
 
-  virtual void PreRun();
+  virtual bool PreRun();
+  virtual bool AcceptEvent();
   virtual void Report();
   virtual void PrintInfo(string info, bool printcout = false);
   virtual void PrintMemInfo(bool printcout = false);

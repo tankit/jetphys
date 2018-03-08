@@ -69,8 +69,12 @@ private:
   bool _vspu;
   bool _vsnpv;
   bool _vseta;
+  bool _vsphi;
+  bool _phipos;
 
   bool _pertrg;
+
+  string _sphi;
 
   string _plot_title;
   string savedir;
@@ -177,11 +181,11 @@ public:
     _fhb = new TF1("fhb","max(0.,[0]+[1]*pow(x,[2]))",10,3500);
     _fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
 
-    _modes = {"","_vstrpu","_vsnpv","_vseta"};
-    _rangemin = {37, 0.5, 0.5,-5};
-    _rangemax = {3450, 38.5, 40.5, 5};
-    _h2min = {-10+1e-5, -6+1e-5, -6+1e-5, -6+1e-5};
-    _h2max = { 10-1e-5, 16-1e-5, 16-1e-5, 16-1e-5};
+    _modes = {"","_vstrpu","_vsnpv","_vseta","_vsphi","_vsphi"};
+    _rangemin = {37, 0.5, 0.5,-5,-3.15,-3.15};
+    _rangemax = {3450, 38.5, 40.5, 5,3.15,3.15};
+    _h2min = {-10+1e-5, -6+1e-5, -6+1e-5, -6+1e-5, -6, -6};
+    _h2max = { 10-1e-5, 16-1e-5, 16-1e-5, 16-1e-5, 16, 16};
 
     _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
   }
