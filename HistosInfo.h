@@ -4,7 +4,7 @@
 // Created: April 19, 2010
 
 ////////////////////////////////////////////////////////////////////////
-// Notes:   Automatically created using TChain::MakeClass("histosFill")
+// Notes:   Automatically created using TChain::MakeClass("HistosFill")
 //          Keep variable declarations in the automatic order,
 //          update array maximum sizes!!
 ////////////////////////////////////////////////////////////////////////
@@ -208,13 +208,13 @@ public :
   vector<int> _goodNos;
   vector<int> _goodVNos;
 
-  bool loadJSON(const char* filename);
-  bool loadLumi(const char* filename);
-  bool loadPUProfiles(const char* datafile, const char* mcfile);
+  bool LoadJSON(const char* filename);
+  bool LoadLumi(const char* filename);
+  bool LoadPuProfiles(const char* datafile, const char* mcfile);
 
-  bool getTriggers();
+  bool GetTriggers();
 
-  inline double delta_phi(double phi1, double phi2) { // Return value between 0 and phi.
+  inline double DPhi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
   }
@@ -299,7 +299,7 @@ Long64_t histosInfo::LoadTree(Long64_t entry)
 
     if (_jp_isdt) {
       // Reload the triggers and print them
-      if (!getTriggers()) {
+      if (!GetTriggers()) {
         *ferr << "Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting..." << endl;
         return -4;
       }
@@ -369,4 +369,4 @@ Int_t histosInfo::Cut(Long64_t entry)
 {
   return 1;
 }
-#endif // #ifdef histosFill_cxx
+#endif // #ifdef HistosFill_cxx

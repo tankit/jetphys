@@ -1,9 +1,9 @@
 // Purpose: Plot PF energy fractions vs pT/PU/NPV (Run II cleaned code)
 // Author: mikko.voutilainen(at)nospam.cern.ch
 // Created: Dec 11, 2015
-#include "drawFracs.h"
+#include "DrawFracs.h"
 
-void Fracs::drawFracs(unsigned mode) {
+void Fracs::DrawFracs(unsigned mode) {
   setTDRStyle();
 
   // Bool flags for mode
@@ -78,7 +78,7 @@ void Fracs::drawFracs(unsigned mode) {
         makeProfile(mode, dmc, ddt, "", _etas[ieta].first, _etas[ieta].second);
     }
   }
-} // drawFracs
+} // DrawFracs
 
 
 void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double eta1, double eta2) {
@@ -326,7 +326,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   if (_vspt) gPad->SetLogx();
   gPad->RedrawAxis();
 
-  c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(), taguniq.c_str()));
+  c1->SaveAs(Form("%s/DrawFracs%s.pdf",_savedir.c_str(), taguniq.c_str()));
 
   if (_dofit) { // Estimate jet response slope by analyzing composition
     TLatex *tex = new TLatex();
@@ -379,6 +379,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
     h2->SetMaximum(+5);//+3.0);
     h2->SetMinimum(-5);//-1.5);
-    c1->SaveAs(Form("%s/drawFracs_WithFit%s.pdf",savedir.c_str(),taguniq.c_str()));
+    c1->SaveAs(Form("%s/DrawFracs_WithFit%s.pdf",savedir.c_str(),taguniq.c_str()));
   }
 }

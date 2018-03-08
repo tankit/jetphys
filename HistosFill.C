@@ -5,12 +5,12 @@
 // Updated: Aug 31, 2016
 // Further updates: see git log
 
-#define histosFill_cxx
-#include "histosFill.h"
+#define HistosFill_cxx
+#include "HistosFill.h"
 
 
 // Set the shortcuts for variables
-histosFill::histosFill(TChain *tree) :
+HistosFill::HistosFill(TChain *tree) :
   pthat(EvtHdr__mPthat),
   weight(EvtHdr__mWeight),
   run(EvtHdr__mRun),
@@ -40,7 +40,7 @@ histosFill::histosFill(TChain *tree) :
 
 
 // Print the same info on a file and conditionally to the output
-void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
+void HistosFill::PrintInfo(std::__cxx11::string info, bool printcout)
 {
   *ferr << info << endl << flush;
   if (printcout) cout << info << endl << flush;
@@ -48,7 +48,7 @@ void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
 
 
 // Report memory info
-void histosFill::PrintMemInfo(bool printcout)
+void HistosFill::PrintMemInfo(bool printcout)
 {
   gSystem->GetMemInfo(&_info);
   PrintInfo(Form("MemInfo(Tot:%d, Used:%d, Free:%d, Stot:%d, SUsed:%d, SFree:%d",
@@ -58,10 +58,10 @@ void histosFill::PrintMemInfo(bool printcout)
 
 
 // Mostly setting up the root tree and its branches
-void histosFill::Init(TTree *tree)
+void HistosFill::Init(TTree *tree)
 {
   if (!tree) return; // With no tree, Loop will be interrupted
-  ferr = new ofstream(Form("reports/histosFill-%s.log",_jp_type),ios::out);
+  ferr = new ofstream(Form("reports/HistosFill-%s.log",_jp_type),ios::out);
   _outfile = new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
 
   fChain = tree;
@@ -304,7 +304,7 @@ void histosFill::Init(TTree *tree)
 
 
 // Loop over events
-void histosFill::Loop()
+void HistosFill::Loop()
 {
   if (fChain == 0) return;
 
@@ -374,26 +374,26 @@ void histosFill::Loop()
 
     if (_jp_debug) cout << "Histos are being filled!" << endl;
     // Here can categorize events into different triggers, epochs, topologies etc.
-    // Eta and pT binning are handled in the fillBasic class
+    // Eta and pT binning are handled in the FillSingleBasic class
     if (_jp_doBasicHistos) {
-      fillBasics("Standard");
+      FillBasic("Standard");
     }
 
     if (_jp_doEtaHistos and _pass) {
-      fillEtas("FullEta_Reco", jtpt, jteta, jtphi);
+      FillEta("FullEta_Reco", jtpt, jteta, jtphi);
       if (_jp_ismc and _jp_doEtaHistosMcResponse) {
-        fillEtas("FullEta_Gen", jtgenpt, jtgeneta, jtgenphi);
-        fillMcHistos("FullEta_RecoPerGen_vReco", jtpt, jtgenpt, jtpt,    jteta,    jtphi);
-        fillMcHistos("FullEta_RecoPerGen_vGen",  jtpt, jtgenpt, jtgenpt, jtgeneta, jtgenphi);
+        FillEta("FullEta_Gen", jtgenpt, jtgeneta, jtgenphi);
+        FillMC("FullEta_RecoPerGen_vReco", jtpt, jtgenpt, jtpt,    jteta,    jtphi);
+        FillMC("FullEta_RecoPerGen_vGen",  jtpt, jtgenpt, jtgenpt, jtgeneta, jtgenphi);
       }
     }
 
     // Run quality checks
     if (_jp_isdt and _jp_doRunHistos) {
-      fillRunHistos("Runs");
-      fillRunHistos("RunsBarrel");
-      fillRunHistos("RunsTransition");
-      fillRunHistos("RunsEndcap");
+      FillRun("Runs");
+      FillRun("RunsBarrel");
+      FillRun("RunsTransition");
+      FillRun("RunsEndcap");
     }
   } // for jentry
   cout << endl;
@@ -402,10 +402,10 @@ void histosFill::Loop()
   PrintInfo(Form("Finished processing %lld entries:",_nentries),true);
   PrintMemInfo(true);
 
-  if (_jp_doRunHistos)   writeRunHistos();
-  if (_jp_doEtaHistos)   writeEtas();
-  if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) writeMcHistos();
-  if (_jp_doBasicHistos) writeBasics(); // this needs to be last, output file closed
+  if (_jp_doRunHistos)   WriteRun();
+  if (_jp_doEtaHistos)   WriteEta();
+  if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) WriteMC();
+  if (_jp_doBasicHistos) WriteBasic(); // this needs to be last, output file closed
 
   stop.Stop();
   TDatime now;
@@ -417,7 +417,7 @@ void histosFill::Loop()
 
 
 // Setup before event loop
-bool histosFill::PreRun()
+bool HistosFill::PreRun()
 {
   _nentries = fChain->GetEntriesFast();
   _ntot = fChain->GetEntries();
@@ -479,31 +479,31 @@ bool histosFill::PreRun()
   } // JEC redone
 
   // Load latest JSON selection
-  if (_jp_isdt and _jp_dojson and !loadJSON(_jp_json)) {
+  if (_jp_isdt and _jp_dojson and !LoadJSON(_jp_json)) {
     cout << "Issues loading the JSON file; aborting..." << endl;
     return false;
   }
 
   // Load PU profiles for MC reweighing
-  if (_jp_ismc and _jp_reweighPU and !loadPUProfiles(_jp_pudata, _jp_pumc)) {
+  if (_jp_ismc and _jp_reweighPU and !LoadPuProfiles(_jp_pudata, _jp_pumc)) {
     cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
     return false;
   }
 
   // Load prescale information to patch 76X
-  if (_jp_isdt and _jp_doprescale and !loadPrescales(_jp_prescalefile)) {
+  if (_jp_isdt and _jp_doprescale and !LoadPrescales(_jp_prescalefile)) {
     cout << "Issues loading the prescale information; aborting..." << endl;
     return false;
   }
 
   // load ECAL veto file for cleaning data
-  if (_jp_doVetoECAL and !loadECALveto(_jp_fECALVeto)) {
+  if (_jp_doVetoECAL and !LoadVetoECAL(_jp_fECALVeto)) {
     cout << "Issues loading the ECAL veto; aborting..." << endl;
     return false;
   }
 
   // load luminosity tables (prescales now stored in event)
-  if (_jp_isdt and _jp_dolumi and !loadLumi(_jp_lumifile)) {
+  if (_jp_isdt and _jp_dolumi and !LoadLumi(_jp_lumifile)) {
     cout << "Issues loading the Lumi file; aborting..." << endl;
     return false;
   }
@@ -514,16 +514,16 @@ bool histosFill::PreRun()
 
   // Initialize histograms for different epochs and DQM selections
   if (_jp_doBasicHistos) {
-    initBasics("Standard");
+    InitBasic("Standard");
   }
 
   if (_jp_doEtaHistos) {
-    initEtas("FullEta_Reco");
+    InitEta("FullEta_Reco");
     if (_jp_ismc) {
-      initEtas("FullEta_Gen");
+      InitEta("FullEta_Gen");
       if (_jp_doEtaHistosMcResponse) {
-        initMcHistos("FullEta_RecoPerGen_vReco");
-        initMcHistos("FullEta_RecoPerGen_vGen");
+        InitMC("FullEta_RecoPerGen_vReco");
+        InitMC("FullEta_RecoPerGen_vGen");
       }
     }
   }
@@ -538,10 +538,10 @@ bool histosFill::PreRun()
   }
 
   if (_jp_isdt and _jp_doRunHistos) {
-    initRunHistos("Runs",0.,3.);
-    initRunHistos("RunsBarrel",0.,1.);
-    initRunHistos("RunsTransition",1.,2.);
-    initRunHistos("RunsEndcap",2.,3.);
+    InitRun("Runs",0.,3.);
+    InitRun("RunsBarrel",0.,1.);
+    InitRun("RunsTransition",1.,2.);
+    InitRun("RunsEndcap",2.,3.);
   }
 
   if (_jp_doVetoECALHot) {
@@ -620,7 +620,7 @@ bool histosFill::PreRun()
 
 
 // Routines and selections before histograms are filled
-bool histosFill::AcceptEvent()
+bool HistosFill::AcceptEvent()
 {
   if (_jp_isdt) { // For DT fetch true pileup from the json or histogram info
     trpu = _avgpu[run][lbn];
@@ -1043,7 +1043,7 @@ bool histosFill::AcceptEvent()
   _jetids.resize(njt);
   for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid)
     _jetids[jetid] = true;
-  fillJetID(_jetids);
+  FillJetID(_jetids);
 
   if (_jp_isdt and _jp_doVetoHCALHot and worryHCALHotExcl) {
     bool good0 = jteta[i0] < rangesHCALHotExcl[0] or jteta[i0] > rangesHCALHotExcl[1] or
@@ -1075,7 +1075,7 @@ bool histosFill::AcceptEvent()
     }
   }
 
-  // Equipped in fillBasics and fillRunHistos
+  // Equipped in FillBasic and FillRun
   _pass_qcdmet = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
 
   return true;
@@ -1083,7 +1083,7 @@ bool histosFill::AcceptEvent()
 
 
 // Report event stuff
-void histosFill::Report()
+void HistosFill::Report()
 {
   // List bad runs
   PrintInfo(Form("Processed %d events in total",_totcounter));
@@ -1152,10 +1152,10 @@ void histosFill::Report()
 
 
 // Initialize basic histograms for trigger and eta bins
-void histosFill::initBasics(string name)
+void HistosFill::InitBasic(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initBasics(%s):",name.c_str()));
+  PrintInfo(Form("InitBasic(%s):",name.c_str()));
   PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
@@ -1226,7 +1226,7 @@ void histosFill::initBasics(string name)
 
         // Initialize and store
         assert(dir);
-        histosBasic *h = new histosBasic(dir, trg, etas[etaidx], etas[etaidx+1], pttrg[trg],
+        HistosBasic *h = new HistosBasic(dir, trg, etas[etaidx], etas[etaidx+1], pttrg[trg],
                                          pt[trg].first, pt[trg].second, triggers[j]=="mc");
         _histos[name].push_back(h);
       } // for j
@@ -1236,21 +1236,21 @@ void histosFill::initBasics(string name)
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initBasics(%s) finished:",name.c_str()));
+  PrintInfo(Form("InitBasic(%s) finished:",name.c_str()));
   PrintMemInfo();
 } // initBasic
 
 
 // Loop over basic histogram containers to fill all
-void histosFill::fillBasics(string name)
+void HistosFill::FillBasic(string name)
 {
   for (unsigned int histidx = 0; histidx != _histos[name].size(); ++histidx)
-    fillBasic(_histos[name][histidx]);
+    FillSingleBasic(_histos[name][histidx]);
 }
 
 
 // Fill basic histograms after applying pt, y cuts
-void histosFill::fillBasic(histosBasic *h)
+void HistosFill::FillSingleBasic(HistosBasic *h)
 {
   assert(h);
   h->hpttmp->Reset();
@@ -1340,7 +1340,7 @@ void histosFill::fillBasic(histosBasic *h)
       //{ Tag & probe hoods: Tag in barrel and fires trigger, probe in eta bin unbiased
       if (_jp_debug) cout << "Calculate and fill dijet balance" << endl << flush;
 
-      double dphi = delta_phi(jtphi[i0], jtphi[i1]);
+      double dphi = DPhi(jtphi[i0], jtphi[i1]);
 
       if (dphi > 2.7) { // Back-to-back condition
         double pt3 = ((i2>=0 and jtpt[i2]>_jp_recopt) ? jtpt[i2] : 0.);
@@ -1363,7 +1363,7 @@ void histosFill::fillBasic(histosBasic *h)
             if (_jp_do3dHistos) {
               double asymm = (ptprobe - pttag)/(2*ptave);
               double asymmtp = (ptprobe - pttag)/(2*pttag);
-              double mpf = met1*cos(delta_phi(metphi1,jtphi[itag]))/2;
+              double mpf = met1*cos(DPhi(metphi1,jtphi[itag]))/2;
               double mpftp = mpf/pttag;
               mpf /= ptave;
 
@@ -1377,7 +1377,7 @@ void histosFill::fillBasic(histosBasic *h)
 
             if (alphatp < 0.3) {
               //{ Composition vs pt tag pt
-              // Fractions vs pt: we do pt selection later in histosCombine
+              // Fractions vs pt: we do pt selection later in HistosCombine
               assert(h->pncandtp);    h->pncandtp->Fill(pttag, jtn[iprobe], _w);
               assert(h->pnchtp);      h->pnchtp->Fill(pttag, jtnch[iprobe], _w);
               assert(h->pnnetp);      h->pnnetp->Fill(pttag, jtnne[iprobe], _w);
@@ -1395,7 +1395,7 @@ void histosFill::fillBasic(histosBasic *h)
 
               assert(h->ppt_probepertag); h->ppt_probepertag->Fill(pttag,ptprobe/pttag,_w);
 
-              double metstuff = met1 * cos(delta_phi(metphi1, phiprobe));
+              double metstuff = met1 * cos(DPhi(metphi1, phiprobe));
               assert(h->pmpfz); h->pmpfz->Fill(ptave, 1 + metstuff / ptave, _w);
               if (ptave >= h->ptmin and ptave < h->ptmax) { // Ave fires trigger
                 assert(h->hmpfz); h->hmpfz->Fill(1 + metstuff / ptave, _w);
@@ -1498,7 +1498,7 @@ void histosFill::fillBasic(histosBasic *h)
   } // First leading jet
 
   // retrieve event-wide variables
-  double dphi = (i1>=0 ? delta_phi(jtphi[i0], jtphi[i1]) : 0.);
+  double dphi = (i1>=0 ? DPhi(jtphi[i0], jtphi[i1]) : 0.);
   double dpt = (i1>=0 ? fabs(jtpt[i0]-jtpt[i1])/(jtpt[i0]+jtpt[i1]) : 0.999);
 
   if (_jp_debug) cout << "Entering jet loop" << endl << flush;
@@ -1740,7 +1740,7 @@ void histosFill::fillBasic(histosBasic *h)
             h->hdpt->Fill(dpt, _w);
             h->hjet->Fill(pt / metsumet, _w);
             h->hmet->Fill(met / metsumet, _w);
-            h->hmetphi->Fill(delta_phi(metphi, phi), _w);
+            h->hmetphi->Fill(DPhi(metphi, phi), _w);
             // control plots for vertex
             h->hpvndof->Fill(pvndof);
             h->hpvx->Fill(pvx-bsx);
@@ -1749,9 +1749,9 @@ void histosFill::fillBasic(histosBasic *h)
             h->hpvr->Fill(tools::oplus(pvx-bsx, pvy-bsy));
             h->hpvrho->Fill(pvrho-tools::oplus(bsx, bsy));
             // closure plots for JEC
-            h->hmpf->Fill(1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
-            h->hmpf1->Fill(1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
-            h->hmpf2->Fill(1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
+            h->hmpf->Fill(1 + met * cos(DPhi(metphi, phi)) / pt, _w);
+            h->hmpf1->Fill(1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
+            h->hmpf2->Fill(1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
             // Component fractions
             h->hncand->Fill(jtn[jetidx], _w);
             h->hnch->Fill(jtnch[jetidx], _w);
@@ -1778,9 +1778,9 @@ void histosFill::fillBasic(histosBasic *h)
 
           // closure plots for JEC
           h->pdpt->Fill(pt, dpt, _w);
-          h->pmpf->Fill(pt, 1 + met * cos(delta_phi(metphi, phi)) / pt, _w);
-          h->pmpf1->Fill(pt, 1 + met1 * cos(delta_phi(metphi1, phi)) / pt, _w);
-          h->pmpf2->Fill(pt, 1 + met2 * cos(delta_phi(metphi2, phi)) / pt, _w);
+          h->pmpf->Fill(pt, 1 + met * cos(DPhi(metphi, phi)) / pt, _w);
+          h->pmpf1->Fill(pt, 1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
+          h->pmpf2->Fill(pt, 1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
 
           if (h->ismcdir and mcgendr) { // MC extras
             if (_jp_debug)
@@ -1873,20 +1873,20 @@ void histosFill::fillBasic(histosBasic *h)
       } // gen jet eta
     } // genjet loop
   } // MC
-} // fillBasic
+} // FillSingleBasic
 
 
 // Write and delete histograms
-void histosFill::writeBasics()
+void HistosFill::WriteBasic()
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeBasics():");
+  PrintInfo("WriteBasic():");
   PrintMemInfo();
 
   for (auto histit = _histos.begin(); histit != _histos.end(); ++histit) {
     for (auto histidx = 0u; histidx != histit->second.size(); ++histidx) {
       // Luminosity information
-      histosBasic *h = histit->second[histidx];
+      HistosBasic *h = histit->second[histidx];
       for (int j = 0; j != h->hlumi->GetNbinsX()+1; ++j) {
         h->hlumi->SetBinContent(j, _jp_isdt ? h->lumsum : 1. );
         h->hlumi2->SetBinContent(j, _jp_isdt ? h->lumsum2 : 1. );
@@ -1905,10 +1905,10 @@ void histosFill::writeBasics()
 
 
 // Initialize eta histograms for trigger bins
-void histosFill::initEtas(string name)
+void HistosFill::InitEta(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initEtas(%s):",name.c_str()));
+  PrintInfo(Form("InitEta(%s):",name.c_str()));
   PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
@@ -1959,28 +1959,28 @@ void histosFill::initEtas(string name)
 
     // Initialize and store
     assert(dir);
-    histosEta *h = new histosEta(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second, triggers[j]=="mc");
+    HistosEta *h = new HistosEta(dir, trg,pttrg[trg],pt[trg].first, pt[trg].second, triggers[j]=="mc");
     _etahistos[name].push_back(h);
   } // for j
 
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initEtas(%s) finished:",name.c_str()));
+  PrintInfo(Form("InitEta(%s) finished:",name.c_str()));
   PrintMemInfo();
-} // initEtas
+} // InitEta
 
 
 // Loop over basic histogram containers to fill all
-void histosFill::fillEtas(string name, Float_t* _pt, Float_t* _eta, Float_t* _phi)
+void HistosFill::FillEta(string name, Float_t* _pt, Float_t* _eta, Float_t* _phi)
 {
   for (auto histidx = 0u; histidx != _etahistos[name].size(); ++histidx)
-    fillEta(_etahistos[name][histidx], _pt, _eta, _phi);
+    FillSingleEta(_etahistos[name][histidx], _pt, _eta, _phi);
 }
 
 
 // Fill basic histograms after applying pt, y cuts
-void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
+void HistosFill::FillSingleEta(HistosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _phi)
 {
   assert(h);
 
@@ -2006,7 +2006,7 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
   if (_pass_qcdmet and i0>=0 and _jetids[i0] and jtpt[i0]>_jp_recopt and i1>=0 and _jetids[i1] and jtpt[i1]>_jp_recopt) { // Leading jets
-    double dphi = delta_phi(jtphi[i0], jtphi[i1]);
+    double dphi = DPhi(jtphi[i0], jtphi[i1]);
     if (dphi > 2.7) { // Back-to-back condition
       double pt3 = ((i2>=0 and jtpt[i2]>_jp_recopt) ? jtpt[i2] : 0.);
       double ptave = 0.5 * (jtpt[i0] + jtpt[i1]);
@@ -2024,8 +2024,8 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
           if (_jp_do3dHistos) {
             double asymm = (ptprobe - pttag)/(2*ptave);
 //             double asymmtp = (ptprobe - pttag)/(2*pttag);
-            double mpf = met1*cos(delta_phi(metphi1,_phi[itag]))/(2*ptave);
-//             double mpftp = met2*cos(delta_phi(metphi2,_phi[itag]))/(2*pttag);
+            double mpf = met1*cos(DPhi(metphi1,_phi[itag]))/(2*ptave);
+//             double mpftp = met2*cos(DPhi(metphi2,_phi[itag]))/(2*pttag);
             for (auto alphaidx = 0u; alphaidx < h->alpharange.size(); ++alphaidx) {
               float alphasel = h->alpharange[alphaidx];
               if (alpha<alphasel) {
@@ -2082,34 +2082,34 @@ void histosFill::fillEta(histosEta *h, Float_t* _pt, Float_t* _eta, Float_t* _ph
       } // pt visible
     } // for jetidx
   } // if MC
-} // fillEta
+} // FillSingleEta
 
 
 // Write and delete histograms
-void histosFill::writeEtas()
+void HistosFill::WriteEta()
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeEtas():");
+  PrintInfo("WriteEta():");
   PrintMemInfo();
 
   for (auto histit : _etahistos) {
     for (unsigned int histidx = 0; histidx != histit.second.size(); ++histidx) {
-      histosEta *h = histit.second[histidx];
+      HistosEta *h = histit.second[histidx];
       delete h;
     } // for histidx
   } // for histit
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeEtas() finished:");
+  PrintInfo("WriteEta() finished:");
   PrintMemInfo();
-} // writeEtas
+} // WriteEta
 
 
 // Initialize eta histograms for trigger bins
-void histosFill::initMcHistos(string name)
+void HistosFill::InitMC(string name)
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("initMcHistos(%s):",name.c_str());
+  PrintInfo("InitMC(%s):",name.c_str());
   PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
@@ -2161,29 +2161,29 @@ void histosFill::initMcHistos(string name)
 
     // Initialize and store
     assert(dir);
-    histosMC *h = new histosMC(dir, trg);
+    HistosMC *h = new HistosMC(dir, trg);
     _mchistos[name].push_back(h);
   } // for j
 
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initMcHistos(%s) finished:",name.c_str()));
+  PrintInfo(Form("InitMC(%s) finished:",name.c_str()));
   PrintMemInfo();
-} // initMcHistos
+} // InitMC
 
 
 // Loop over basic histogram containers to fill all
-void histosFill::fillMcHistos(string name,  Float_t* _recopt, Float_t* _genpt,
+void HistosFill::FillMC(string name,  Float_t* _recopt, Float_t* _genpt,
                               Float_t* _pt, Float_t* _eta,    Float_t* _phi)
 {
   for (auto histidx = 0u; histidx != _mchistos[name].size(); ++histidx)
-    fillMcHisto(_mchistos[name][histidx], _recopt, _genpt, _pt, _eta, _phi);
+    FillSingleMC(_mchistos[name][histidx], _recopt, _genpt, _pt, _eta, _phi);
 }
 
 
 // Fill basic histograms after applying pt, y cuts
-void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
+void HistosFill::FillSingleMC(HistosMC *h,  Float_t* _recopt,  Float_t* _genpt,
                              Float_t* _pt, Float_t* _eta,     Float_t* _phi)
 {
   assert(h);
@@ -2210,7 +2210,7 @@ void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
   if (_pass_qcdmet and i0>=0 and _jetids[i0] and jtpt[i0]>_jp_recopt and i1>=0 and _jetids[i1] and jtpt[i1]>_jp_recopt) { // Leading jets
-    double dphi = delta_phi(jtphi[i0], jtphi[i1]);
+    double dphi = DPhi(jtphi[i0], jtphi[i1]);
     if (dphi > 2.7) { // Back-to-back condition
       double pt3 = ((i2>=0 and jtpt[i2]>_jp_recopt) ? jtpt[i2] : 0.);
       double ptave = 0.5 * (jtpt[i0] + jtpt[i1]);
@@ -2248,34 +2248,34 @@ void histosFill::fillMcHisto(histosMC *h,  Float_t* _recopt,  Float_t* _genpt,
       } // itag
     } // dphi > 2.7
   } // two or more jets, phase space
-} // fillEta
+} // FillSingleEta
 
 
 // Write and delete histograms
-void histosFill::writeMcHistos()
+void HistosFill::WriteMC()
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeMcHistos():");
+  PrintInfo("WriteMC():");
   PrintMemInfo();
 
   for (auto histit : _mchistos) {
     for (auto histidx = 0u; histidx != histit.second.size(); ++histidx) {
-      histosMC *h = histit.second[histidx];
+      HistosMC *h = histit.second[histidx];
       delete h;
     } // for histidx
   } // for histit
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeMcHistos() finished:");
+  PrintInfo("WriteMC() finished:");
   PrintMemInfo();
-} // writeMcHistos
+} // WriteMC
 
 
 // Initialize basic histograms for trigger and eta bins
-void histosFill::initRunHistos(string name, double etamin, double etamax) {
+void HistosFill::InitRun(string name, double etamin, double etamax) {
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo(Form("initRunHistos(%s):",name.c_str()));
+  PrintInfo(Form("InitRun(%s):",name.c_str()));
   PrintMemInfo();
 
   TDirectory *curdir = gDirectory;
@@ -2287,21 +2287,21 @@ void histosFill::initRunHistos(string name, double etamin, double etamax) {
   TDirectory *dir = f->GetDirectory(name.c_str()); assert(dir);
   dir->cd();
 
-  histosRun *h = new histosRun(dir, etamin, etamax);
+  HistosRun *h = new HistosRun(dir, etamin, etamax);
   _runhistos[name] = h;
 
   curdir->cd();
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("initRunHistos() finished:");
+  PrintInfo("InitRun() finished:");
   PrintMemInfo();
-} // initRunHistos
+} // InitRun
 
 
 // Fill run histograms
-void histosFill::fillRunHistos(string name)
+void HistosFill::FillRun(string name)
 {
-  histosRun *h = _runhistos[name];
+  HistosRun *h = _runhistos[name];
   assert(h);
 
   // Luminosity information
@@ -2361,7 +2361,7 @@ void histosFill::fillRunHistos(string name)
   int i0 = jt3leads[0];
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
-  double dphi = (njt>=2 ? delta_phi(jtphi[i0], jtphi[i1]) : 0.);
+  double dphi = (njt>=2 ? DPhi(jtphi[i0], jtphi[i1]) : 0.);
   double pt3 = (njt>=3 ? jtpt[i2] : 0.);
 
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
@@ -2403,30 +2403,30 @@ void histosFill::fillRunHistos(string name)
       } // for trgit
     } // conditions
   } // for jetidx
-} // fillRunHistos
+} // FillRun
 
 
 // Write and delete histograms
-void histosFill::writeRunHistos()
+void HistosFill::WriteRun()
 {
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeRunHistos():");
+  PrintInfo("WriteRun():");
   PrintMemInfo();
 
   for (auto histit = _runhistos.begin(); histit != _runhistos.end(); ++histit) {
-    histosRun *h = histit->second;
+    HistosRun *h = histit->second;
     delete h;
   } // for histit
 
-  PrintInfo(Form("\nOutput (histosRun) stored in %s",_outfile->GetName()),true);
+  PrintInfo(Form("\nOutput (HistosRun) stored in %s",_outfile->GetName()),true);
 
   // Report memory usage to avoid malloc problems when writing file
-  PrintInfo("writeRunHistos() finished:");
+  PrintInfo("WriteRun() finished:");
   PrintMemInfo();
-} // writeRunHistos
+} // WriteRun
 
 
-void histosFill::fillJetID(vector<bool> &id)
+void HistosFill::FillJetID(vector<bool> &id)
 {
   assert(int(id.size())==njt);
 
@@ -2439,13 +2439,13 @@ void histosFill::fillJetID(vector<bool> &id)
       id[jetidx] = (id[jetidx] and _ecalveto->GetBinContent(ibin)==0);
     }
   }
-} // fillJetID
+} // FillJetID
 
 
 // Load good run and LS information
-bool histosFill::loadJSON(const char* filename)
+bool HistosFill::LoadJSON(const char* filename)
 {
-  cout << "Processing loadJSON(\"" << filename << "\"..." << endl;
+  cout << "Processing LoadJSON(\"" << filename << "\"..." << endl;
   ifstream file(filename, ios::in);
   if (!file.is_open()) return false;
   char c;
@@ -2488,17 +2488,17 @@ bool histosFill::loadJSON(const char* filename)
   } // while run
   if (s2!="]}") { cout<<"s3: "<<s2<<endl<<flush; return false; }
 
-  cout << "Called loadJSON(\"" << filename << "\"):" << endl;
+  cout << "Called LoadJSON(\"" << filename << "\"):" << endl;
   cout << "Loaded " << nrun << " good runs and " << nls
        << " good lumi sections" << endl;
   return true;
-} // loadJSON
+} // LoadJSON
 
 
 // Load luminosity information
-bool histosFill::loadLumi(const char* filename)
+bool HistosFill::LoadLumi(const char* filename)
 {
-  cout << "Processing loadLumi(\"" << filename << "\")..." << endl;
+  cout << "Processing LoadLumi(\"" << filename << "\")..." << endl;
 
   // Check lumi against the list of good runs
   const int a_goodruns[] = {};
@@ -2574,7 +2574,7 @@ bool histosFill::loadLumi(const char* filename)
     if (nls>100000000) return false;
   }
 
-  cout << "Called loadLumi(\"" << filename << "\"):" << endl;
+  cout << "Called LoadLumi(\"" << filename << "\"):" << endl;
   cout << "Loaded " << _lums.size() << " runs with "
        << nls << " lumi sections containing "
        << lumsum << " pb-1 of data,\n of which "
@@ -2608,12 +2608,12 @@ bool histosFill::loadLumi(const char* filename)
     cout << endl;
   } // nolums
   return true;
-} // loadLumi
+} // LoadLumi
 
 
-bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
+bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
 {
-  cout << "Processing loadPUProfiles(\"" << datafile << "\",\"" << mcfile << "\")..." << endl;
+  cout << "Processing LoadPuProfiles(\"" << datafile << "\",\"" << mcfile << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
 
@@ -2684,12 +2684,12 @@ bool histosFill::loadPUProfiles(const char *datafile, const char *mcfile)
 
   curdir->cd();
   return true;
-} // loadPUProfiles
+} // LoadPuProfiles
 
 
-bool histosFill::loadPrescales(const char *prescalefile)
+bool HistosFill::LoadPrescales(const char *prescalefile)
 {
-  cout << "Processing loadPrescales(\"" << prescalefile << "\")..." << endl;
+  cout << "Processing LoadPrescales(\"" << prescalefile << "\")..." << endl;
   fstream fin(prescalefile);
 
   const int ns = 1024;
@@ -2720,12 +2720,12 @@ bool histosFill::loadPrescales(const char *prescalefile)
     if (_jp_debug) cout << endl;
   }
   return true;
-} // loadPrescales
+} // LoadPrescales
 
 
-bool histosFill::loadECALveto(const char *file)
+bool HistosFill::LoadVetoECAL(const char *file)
 {
-  cout << "Processing loadECALveto(\"" << file << "\")..." << endl;
+  cout << "Processing LoadVetoECAL(\"" << file << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
 
@@ -2737,11 +2737,11 @@ bool histosFill::loadECALveto(const char *file)
 
   curdir->cd();
   return true;
-} // loadECALveto
+} // LoadVetoECAL
 
 
 // Check that the correct tree is open in the chain
-Long64_t histosFill::LoadTree(Long64_t entry)
+Long64_t HistosFill::LoadTree(Long64_t entry)
 {
   if (!fChain)
     return -5;
@@ -2757,7 +2757,7 @@ Long64_t histosFill::LoadTree(Long64_t entry)
 
     if (_jp_isdt) {
       // Reload the triggers and print them
-      if (!getTriggers()) {
+      if (!GetTriggers()) {
         PrintInfo("Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting...");
         return -4;
       }
@@ -2809,7 +2809,7 @@ Long64_t histosFill::LoadTree(Long64_t entry)
 
 
 // Update the available trigger types for each new tree
-bool histosFill::getTriggers()
+bool HistosFill::GetTriggers()
 {
   TH1F *triggers = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerNames")); assert(triggers);
   TAxis *xax = triggers->GetXaxis();
@@ -2870,4 +2870,4 @@ bool histosFill::getTriggers()
   }
 
   return _availTrigs.size()>0;
-} // getTriggers
+} // GetTriggers

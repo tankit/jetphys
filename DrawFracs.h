@@ -27,7 +27,7 @@ public:
    *  1 - trpu
    *  2 - npv
    *  3 - eta */
-  void drawFracs(unsigned mode);
+  void DrawFracs(unsigned mode);
 
 private:
   TDirectory *_dmc;

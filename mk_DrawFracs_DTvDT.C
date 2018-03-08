@@ -1,7 +1,7 @@
-#include "drawFracs.h"
-R__LOAD_LIBRARY(drawFracs.C+g)
+#include "DrawFracs.h"
+R__LOAD_LIBRARY(DrawFracs.C+g)
 
-void mk_drawFracs_DTvDT() {
+void mk_DrawFracs_DTvDT() {
   const char *path1="./";
   const char *path2="./";
   const char *savedir="pdf";
@@ -14,7 +14,7 @@ void mk_drawFracs_DTvDT() {
   Fracs tfracs(path1,path2,title,savedir,true,name1,name2);
 
   for (unsigned i = 0; i<4; ++i) {
-    fracs.drawFracs(i);
-    tfracs.drawFracs(i);
+    fracs.DrawFracs(i);
+    tfracs.DrawFracs(i);
   }
 }

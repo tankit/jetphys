@@ -2,9 +2,9 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#include "histosMC.h"
+#include "HistosMC.h"
 
-histosMC::histosMC(TDirectory *dir, string trigname) {
+HistosMC::HistosMC(TDirectory *dir, string trigname) {
 
   TDirectory *curdir = gDirectory;
   bool enter = dir->cd();
@@ -67,12 +67,12 @@ histosMC::histosMC(TDirectory *dir, string trigname) {
   curdir->cd();
 }
 
-void histosMC::Write() {
+void HistosMC::Write() {
   dir->cd();
   dir->Write();
 }
 
 
-histosMC::~histosMC() {
+HistosMC::~HistosMC() {
   Write();
 };

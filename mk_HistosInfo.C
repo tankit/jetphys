@@ -15,10 +15,10 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include "tools.h"
-#include "histosRun.h"
-#include "histosBasic.h"
-#include "histosEta.h"
-#include "histosMC.h"
+#include "HistosRun.h"
+#include "HistosBasic.h"
+#include "HistosEta.h"
+#include "HistosMC.h"
 
 #include "histosInfo.h"
 
@@ -32,10 +32,10 @@ R__LOAD_LIBRARY(tools.C+g)
 R__LOAD_LIBRARY(histosInfo.C+g)
 #else
 R__LOAD_LIBRARY(tools.C+)
-R__LOAD_LIBRARY(histosRun.C+)
-R__LOAD_LIBRARY(histosBasic.C+)
-R__LOAD_LIBRARY(histosEta.C+)
-R__LOAD_LIBRARY(histosMC.C+)
+R__LOAD_LIBRARY(HistosRun.C+)
+R__LOAD_LIBRARY(HistosBasic.C+)
+R__LOAD_LIBRARY(HistosEta.C+)
+R__LOAD_LIBRARY(HistosMC.C+)
 R__LOAD_LIBRARY(histosInfo.C+)
 #endif // USEASSERT or not?
 

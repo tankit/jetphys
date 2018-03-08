@@ -50,19 +50,19 @@ void histosInfo::Loop()
   } // quick/slow
 
   // Load latest JSON selection
-  if (_jp_isdt and _jp_dojson and !loadJSON(_jp_json)) {
+  if (_jp_isdt and _jp_dojson and !LoadJSON(_jp_json)) {
     cout << "Issues loading the JSON file; aborting..." << endl;
     return;
   }
 
   // Load PU profiles for MC reweighing
-  if (_jp_ismc and _jp_reweighPU and !loadPUProfiles(_jp_pudata, _jp_pumc)) {
+  if (_jp_ismc and _jp_reweighPU and !LoadPuProfiles(_jp_pudata, _jp_pumc)) {
     cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
     return;
   }
 
   // load luminosity tables (prescales now stored in event)
-  if (_jp_isdt and _jp_dolumi and !loadLumi(_jp_lumifile)) {
+  if (_jp_isdt and _jp_dolumi and !LoadLumi(_jp_lumifile)) {
     cout << "Issues loading the Lumi file; aborting..." << endl;
     return;
   }
@@ -281,7 +281,7 @@ void histosInfo::Loop()
       else continue; // Fatal failure
     }
 
-    // Equipped in fillBasics and fillRunHistos
+    // Equipped in FillBasic and FillRun
     _pass_qcdmet = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
 
     if (_pass and _pass_qcdmet) {
@@ -308,9 +308,9 @@ void histosInfo::Loop()
 }
 
 // Load good run and LS information
-bool histosInfo::loadJSON(const char* filename)
+bool histosInfo::LoadJSON(const char* filename)
 {
-  cout << "Processing loadJSON(\"" << filename << "\"..." << endl;
+  cout << "Processing LoadJSON(\"" << filename << "\"..." << endl;
   ifstream file(filename, ios::in);
   if (!file.is_open()) return false;
   char c;
@@ -353,17 +353,17 @@ bool histosInfo::loadJSON(const char* filename)
   } // while run
   if (s2!="]}") { cout<<"s3: "<<s2<<endl<<flush; return false; }
 
-  cout << "Called loadJSON(\"" << filename << "\"):" << endl;
+  cout << "Called LoadJSON(\"" << filename << "\"):" << endl;
   cout << "Loaded " << nrun << " good runs and " << nls
        << " good lumi sections" << endl;
   return true;
-} // loadJSON
+} // LoadJSON
 
 
 // Load luminosity information
-bool histosInfo::loadLumi(const char* filename)
+bool histosInfo::LoadLumi(const char* filename)
 {
-  cout << "Processing loadLumi(\"" << filename << "\")..." << endl;
+  cout << "Processing LoadLumi(\"" << filename << "\")..." << endl;
 
   // Check lumi against the list of good runs
   const int a_goodruns[] = {};
@@ -438,7 +438,7 @@ bool histosInfo::loadLumi(const char* filename)
     if (nls>100000000) return false;
   }
 
-  cout << "Called loadLumi(\"" << filename << "\"):" << endl;
+  cout << "Called LoadLumi(\"" << filename << "\"):" << endl;
   cout << "Loaded " << _lums.size() << " runs with "
        << nls << " lumi sections containing "
        << lumsum << " pb-1 of data,\n of which "
@@ -472,12 +472,12 @@ bool histosInfo::loadLumi(const char* filename)
     cout << endl;
   } // nolums
   return true;
-} // loadLumi
+} // LoadLumi
 
 
-bool histosInfo::loadPUProfiles(const char *datafile, const char *mcfile)
+bool histosInfo::LoadPuProfiles(const char *datafile, const char *mcfile)
 {
-  cout << "Processing loadPUProfiles(\"" << datafile << "\",\"" << mcfile << "\")..." << endl;
+  cout << "Processing LoadPuProfiles(\"" << datafile << "\",\"" << mcfile << "\")..." << endl;
 
   TDirectory *curdir = gDirectory;
 
@@ -530,12 +530,12 @@ bool histosInfo::loadPUProfiles(const char *datafile, const char *mcfile)
 
   curdir->cd();
   return true;
-} // loadPUProfiles
+} // LoadPuProfiles
 
 
 
 // Update the available trigger types for each new tree
-bool histosInfo::getTriggers()
+bool histosInfo::GetTriggers()
 {
   TH1F *triggers = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerNames")); assert(triggers);
   TAxis *xax = triggers->GetXaxis();
@@ -605,4 +605,4 @@ bool histosInfo::getTriggers()
   }
 
   return _availTrigs.size()>0;
-} // getTriggers
+} // GetTriggers

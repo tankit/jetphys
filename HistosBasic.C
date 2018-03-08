@@ -3,7 +3,7 @@
 // Author:   mikko.voutilainen@cern.ch
 // Created:  March 20, 2010
 // Updated:  June 8, 2015
-#include "histosBasic.h"
+#include "HistosBasic.h"
 #include "settings.h"
 
 #include "TMath.h"
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-histosBasic::histosBasic(TDirectory *dir, string trigname, double etamin, double etamax,
+HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double etamax,
                          double pttrg, double ptmin, double ptmax, bool ismcdir) {
   lumsum = 0;
   lumsum2 = 0;
@@ -402,11 +402,11 @@ histosBasic::histosBasic(TDirectory *dir, string trigname, double etamin, double
   curdir->cd();
 }
 
-void histosBasic::Write() {
+void HistosBasic::Write() {
   dir->cd();
   dir->Write();
 }
 
-histosBasic::~histosBasic() {
+HistosBasic::~HistosBasic() {
   Write();
 };

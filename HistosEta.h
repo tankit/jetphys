@@ -2,8 +2,8 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#ifndef __histosEta_h__
-#define __histosEta_h__
+#ifndef __HistosEta_h__
+#define __HistosEta_h__
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -24,7 +24,7 @@
 using std::string;
 using std::vector;
 
-class histosEta {
+class HistosEta {
   public:
   // phase space
   string trigname;
@@ -69,9 +69,9 @@ class histosEta {
 
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 
-  histosEta() {}
-  histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir = false);
-  ~histosEta();
+  HistosEta() {}
+  HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir = false);
+  ~HistosEta();
 
   void Write();
 
@@ -79,4 +79,4 @@ class histosEta {
   TDirectory *dir;
 };
 
-#endif // __histosEta_h__
+#endif // __HistosEta_h__

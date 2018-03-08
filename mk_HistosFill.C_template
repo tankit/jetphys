@@ -15,12 +15,12 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 #include "tools.h"
-#include "histosRun.h"
-#include "histosBasic.h"
-#include "histosEta.h"
-#include "histosMC.h"
+#include "HistosRun.h"
+#include "HistosBasic.h"
+#include "HistosEta.h"
+#include "HistosMC.h"
 
-#include "histosFill.h"
+#include "HistosFill.h"
 
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
@@ -29,21 +29,21 @@ R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
 #ifdef USEASSERT
 R__LOAD_LIBRARY(tools.C+g)
-R__LOAD_LIBRARY(histosRun.C+g)
-R__LOAD_LIBRARY(histosBasic.C+g)
-R__LOAD_LIBRARY(histosEta.C+g)
-R__LOAD_LIBRARY(histosMC.C+g)
-R__LOAD_LIBRARY(histosFill.C+g)
+R__LOAD_LIBRARY(HistosRun.C+g)
+R__LOAD_LIBRARY(HistosBasic.C+g)
+R__LOAD_LIBRARY(HistosEta.C+g)
+R__LOAD_LIBRARY(HistosMC.C+g)
+R__LOAD_LIBRARY(HistosFill.C+g)
 #else
 R__LOAD_LIBRARY(tools.C+)
-R__LOAD_LIBRARY(histosRun.C+)
-R__LOAD_LIBRARY(histosBasic.C+)
-R__LOAD_LIBRARY(histosEta.C+)
-R__LOAD_LIBRARY(histosMC.C+)
-R__LOAD_LIBRARY(histosFill.C+)
+R__LOAD_LIBRARY(HistosRun.C+)
+R__LOAD_LIBRARY(HistosBasic.C+)
+R__LOAD_LIBRARY(HistosEta.C+)
+R__LOAD_LIBRARY(HistosMC.C+)
+R__LOAD_LIBRARY(HistosFill.C+)
 #endif // USEASSERT or not?
 
-void mk_histosFill() {
+void mk_HistosFill() {
 
   string algo = "ak4";
   if (strings_equal(_jp_algo,"AK8")) algo = "ak8";
@@ -101,6 +101,19 @@ void mk_histosFill() {
       files.push_back(Form("%s%sRunH16_07Aug17_3.root",p,ps));
       files.push_back(Form("%s%sRunH16_07Aug17_4.root",p,ps));
       files.push_back(Form("%s%sRunH16_07Aug17_5.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFearly16_Gold")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunFearly16_07Aug17_Gold_0.root",p,ps));
+      files.push_back(Form("%s%sRunFearly16_07Aug17_Gold_1.root",p,ps));
+      files.push_back(Form("%s%sRunFearly16_07Aug17_Gold_2.root",p,ps));
+      files.push_back(Form("%s%sRunFearly16_07Aug17_Gold_3.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunFlate16_HanNew")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunFlate16_07Aug17_New_0.root",p,ps));
+      files.push_back(Form("%s%sRunFlate16_07Aug17_New_1.root",p,ps));
+    } else if (strings_equal(_jp_run,"RunG16_HanNew")) {
+      const char* ps = "Data/2016/";
+      files.push_back(Form("%s%sRunH16_07Aug17_New_0.root",p,ps));
     } else if (strings_equal(_jp_run,"RunH16_HanNew")) {
       const char* ps = "Data/2016/";
       files.push_back(Form("%s%sRunH16_07Aug17_New_0.root",p,ps));
@@ -250,7 +263,7 @@ void mk_histosFill() {
   cout << "Got " << centries << " entries" << endl;
 
   if (centries > 0) {
-    histosFill filler(c);
+    HistosFill filler(c);
 	filler.Loop();
   } else {
     cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;

@@ -2,8 +2,8 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#ifndef __histosMC_h__
-#define __histosMC_h__
+#ifndef __HistosMC_h__
+#define __HistosMC_h__
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -24,7 +24,7 @@
 using std::string;
 using std::vector;
 
-class histosMC {
+class HistosMC {
  public:
   // phase space
   string trigname;
@@ -39,9 +39,9 @@ class histosMC {
 
   const vector<float> alpharange = {0.05,0.10,0.15,0.20,0.25,0.30};
 
-  histosMC() {}
-  histosMC(TDirectory *dir, string trigname);
-  ~histosMC();
+  HistosMC() {}
+  HistosMC(TDirectory *dir, string trigname);
+  ~HistosMC();
 
   void Write();
 
@@ -49,4 +49,4 @@ class histosMC {
   TDirectory *dir;
 };
 
-#endif // __histosMC_h__
+#endif // __HistosMC_h__

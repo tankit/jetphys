@@ -2,9 +2,9 @@
 // Author:   hannu.siikonen@cern.ch
 // Created:  April 3, 2017
 
-#include "histosEta.h"
+#include "HistosEta.h"
 
-histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir) {
+HistosEta::HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmin, double ptmax, bool ismcdir) {
 
   TDirectory *curdir = gDirectory;
   bool enter = dir->cd();
@@ -99,11 +99,11 @@ histosEta::histosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   curdir->cd();
 }
 
-void histosEta::Write() {
+void HistosEta::Write() {
   dir->cd();
   dir->Write();
 }
 
-histosEta::~histosEta() {
+HistosEta::~HistosEta() {
   Write();
 };

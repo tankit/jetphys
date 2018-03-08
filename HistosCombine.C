@@ -38,7 +38,7 @@ vector<string> _ignoretrgs;
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
 
-void histosCombine() {
+void HistosCombine() {
   TDirectory *curdir = gDirectory;
 
   TFile *fin = new TFile(Form("output-%s-2a.root",_jp_type),"READ");
@@ -48,7 +48,7 @@ void histosCombine() {
   TFile *fout = new TFile(Form("output-%s-2b.root",_jp_type),"RECREATE");
   assert(fout and !fout->IsZombie());
 
-  cout << "Calling histosCombine("<<_jp_type<<");" << endl;
+  cout << "Calling HistosCombine("<<_jp_type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
@@ -282,7 +282,7 @@ void histosCombine() {
   fin->Close();
   fin->Delete();
   cout << "Input file closed" << endl;
-} // histosNormalize
+} // HistosNormalize
 
 inline void binCp(TH1 *_hpt, TH1 *hpt, int bin) {
   _hpt->SetBinContent(bin, hpt->GetBinContent(bin));

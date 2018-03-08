@@ -2,8 +2,8 @@
 // Author:   mikko.voutilainen@cern.ch
 // Created:  March 20, 2010
 // Updated:  June 9, 2015
-#ifndef __histosBasic_h__
-#define __histosBasic_h__
+#ifndef __HistosBasic_h__
+#define __HistosBasic_h__
 
 #include "TH1D.h"
 #include "TH2D.h"
@@ -17,7 +17,7 @@
 #include <map>
 #include <vector>
 
-class histosBasic {
+class HistosBasic {
 
  public:
 
@@ -269,7 +269,7 @@ class histosBasic {
   TProfile *pbetanegtp_vsphi;
   TProfile *pbetastarnegtp_vsphi;
   TProfile *pbetaprimenegtp_vsphi;
-  
+
   // control plots for topology (JEC)
   TH1D *hselpt;
   TH1D *hy;
@@ -400,9 +400,9 @@ class histosBasic {
   TProfile2D *pdy_r;
   TProfile2D *pdy_g;
 
-  histosBasic(TDirectory *dir, string trigname, double etamin = 0., double etamax = 2.0,
+  HistosBasic(TDirectory *dir, string trigname, double etamin = 0., double etamax = 2.0,
               double pttrg = 10., double ptmin = 10., double ptmax = 50., bool ismcdir = false);
-  ~histosBasic();
+  ~HistosBasic();
 
   void Write();
 
@@ -410,4 +410,4 @@ class histosBasic {
   TDirectory *dir;
 };
 
-#endif // __histosBasic_h__
+#endif // __HistosBasic_h__

@@ -4,7 +4,7 @@
 // Created: April 19, 2010
 
 ////////////////////////////////////////////////////////////////////////
-// Notes:   Automatically created using TChain::MakeClass("histosFill")
+// Notes:   Automatically created using TChain::MakeClass("HistosFill")
 //          Keep variable declarations in the automatic order,
 //          update array maximum sizes!!
 ////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,8 @@
 // from TTree ProcessedTree/ProcessedTree
 //////////////////////////////////////////////////////////
 
-#ifndef histosFill_h
-#define histosFill_h
+#ifndef HistosFill_h
+#define HistosFill_h
 
 #include "TROOT.h"
 #include "TChain.h"
@@ -35,10 +35,10 @@
 #include "TRandom3.h"
 
 #include "settings.h"
-#include "histosBasic.h"
-#include "histosEta.h"
-#include "histosMC.h"
-#include "histosRun.h"
+#include "HistosBasic.h"
+#include "HistosEta.h"
+#include "HistosMC.h"
+#include "HistosRun.h"
 #include "tools.h"
 #include "IOV.h"
 
@@ -46,7 +46,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
-class histosFill {
+class HistosFill {
 public :
   TTree          *fChain;   //!pointer to the analyzed TTree or TChain
   Int_t           fCurrent; //!current Tree number in a TChain
@@ -268,69 +268,64 @@ public :
   TBranch        *b_events_genFlavourHadron_;   //!
 
   /////////////////////////////////////////////////////////////////////////////
-  // To the built-in functions some slight modifications have been made
+  // Following lines added by hand and must come *after* auto-generated header
   /////////////////////////////////////////////////////////////////////////////
 
-  histosFill(TChain *tree);
-  // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
-  ~histosFill() {
-    if (!fChain) return;
-    delete fChain->GetCurrentFile();
-    delete ferr;
-  }
   Int_t GetEntry(Long64_t entry) {
     if (!fChain) return 0;
     return fChain->GetEntry(entry);
   }
-  virtual Long64_t LoadTree(Long64_t entry);
-  virtual void     Init(TTree *tree); // custom
-  virtual void     Loop();
-  virtual Bool_t   Notify() { return kTRUE; }
   virtual void     Show(Long64_t entry = -1) {
     if (!fChain) return;
     fChain->Show(entry);
   }
+  virtual Long64_t LoadTree(Long64_t entry);
+  virtual void     PrintInfo(string info, bool printcout = false);
+  virtual void     PrintMemInfo(bool printcout = false);
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Following lines added by hand and must come *after* auto-generated header
-  /////////////////////////////////////////////////////////////////////////////
+  // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
+  ~HistosFill() {
+    if (!fChain) return;
+    delete fChain->GetCurrentFile();
+    delete ferr;
+  }
+  HistosFill(TChain *tree);
+  virtual void     Init(TTree *tree); // custom
 
-  virtual bool PreRun();
-  virtual bool AcceptEvent();
-  virtual void Report();
-  virtual void PrintInfo(string info, bool printcout = false);
-  virtual void PrintMemInfo(bool printcout = false);
+  virtual void     Loop();
+  virtual bool     PreRun();
+  virtual bool     AcceptEvent();
+  virtual void     Report();
 
-  bool loadJSON(const char* filename);
-  bool loadLumi(const char* filename);
-  bool loadPUProfiles(const char* datafile, const char* mcfile);
-  bool loadPrescales(const char* prescalefilename);
-  bool loadECALveto(const char* filename);
+  void             FillJetID(vector<bool> &id);
+  bool             GetTriggers();
 
-  void initBasics(string name);
-  void fillBasics(string name);
-  void fillBasic(histosBasic *h);
-  void writeBasics();
+  bool             LoadJSON(const char* filename);
+  bool             LoadLumi(const char* filename);
+  bool             LoadPuProfiles(const char* datafile, const char* mcfile);
+  bool             LoadPrescales(const char* prescalefilename);
+  bool             LoadVetoECAL(const char* filename);
 
-  void initEtas(string name);
-  void fillEtas(string name, Float_t *pt, Float_t *eta, Float_t *phi);
-  void fillEta(histosEta *h, Float_t *pt, Float_t *eta, Float_t *phi);
-  void writeEtas();
+  void             InitBasic(string name);
+  void             FillBasic(string name);
+  void             FillSingleBasic(HistosBasic *h);
+  void             WriteBasic();
 
-  void initMcHistos(string name);
-  void fillMcHistos(string name, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
-  void fillMcHisto(histosMC *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
-  void writeMcHistos();
+  void             InitEta(string name);
+  void             FillEta(string name, Float_t *pt, Float_t *eta, Float_t *phi);
+  void             FillSingleEta(HistosEta *h, Float_t *pt, Float_t *eta, Float_t *phi);
+  void             WriteEta();
 
-  void initRunHistos(string name, double etamin, double etamax);
-  void fillRunHistos(string name);
-  void writeRunHistos();
+  void             InitMC(string name);
+  void             FillMC(string name, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
+  void             FillSingleMC(HistosMC *h, Float_t *recopt, Float_t *genpt, Float_t *pt, Float_t *eta, Float_t *phi);
+  void             WriteMC();
 
-  void fillJetID(vector<bool> &id);
+  void             InitRun(string name, double etamin, double etamax);
+  void             FillRun(string name);
+  void             WriteRun();
 
-  bool getTriggers();
-
-  inline double delta_phi(double phi1, double phi2) { // Return value between 0 and phi.
+  inline double DPhi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
   }
@@ -384,10 +379,10 @@ private:
   map<int, map<int, float> > _lums;
   map<int, map<int, float> > _lums2;
   map<string, double> _wt; // Trigger pileup and trigger weights
-  map<string, vector<histosBasic*> > _histos;
-  map<string, vector<histosEta*> > _etahistos;
-  map<string, vector<histosMC*> > _mchistos;
-  map<string, histosRun*> _runhistos;
+  map<string, vector<HistosBasic*> > _histos;
+  map<string, vector<HistosEta*> > _etahistos;
+  map<string, vector<HistosMC*> > _mchistos;
+  map<string, HistosRun*> _runhistos;
   map<string, TH1D*> _pudist;
   map<string, int> _cnt; // efficiency counters
 

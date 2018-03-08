@@ -65,7 +65,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 double _lumiscale = 1.00;
 std::map<std::string, double> triglumi;
 
-void histosNormalize() {
+void HistosNormalize() {
   TFile *fin = new TFile(Form("output-%s-1.root",_jp_type),"READ");
   assert(fin && !fin->IsZombie());
 
@@ -86,7 +86,7 @@ void histosNormalize() {
     if (_jp_ismc) triglumi["mc"] = _jp_triglumi[_jp_notrigs-1]/1e6;
   }
 
-  cout << "Calling histosNormalize("<<_jp_type<<");" << endl;
+  cout << "Calling HistosNormalize("<<_jp_type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursive loop. This may take a minute" << endl << flush;
@@ -104,7 +104,7 @@ void histosNormalize() {
 
   fin->Close();
   fin->Delete();
-} // histosNormalize
+} // HistosNormalize
 
 
 void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double etamid, int lvl) {

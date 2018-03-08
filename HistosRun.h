@@ -4,8 +4,8 @@
 // Created:  June 4, 2010
 // Updated:  June 4, 2010
 
-#ifndef __histosRun_h__
-#define __histosRun_h__
+#ifndef __HistosRun_h__
+#define __HistosRun_h__
 
 #include "TH1I.h"
 #include "TH1D.h"
@@ -19,7 +19,7 @@
 
 #include "settings.h"
 
-class histosRun {
+class HistosRun {
 
  public:
 
@@ -65,11 +65,11 @@ class histosRun {
 
   // Other non-lumi checks
 
-  histosRun(TDirectory *dir, double etamin = 0., double etamax = 3.);
-  ~histosRun();
+  HistosRun(TDirectory *dir, double etamin = 0., double etamax = 3.);
+  ~HistosRun();
 
  private:
   TDirectory *dir;
 };
 
-#endif // __histosRun_h__
+#endif // __HistosRun_h__
