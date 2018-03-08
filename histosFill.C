@@ -8,6 +8,8 @@
 #define histosFill_cxx
 #include "histosFill.h"
 
+
+// Set the shortcuts for variables
 histosFill::histosFill(TChain *tree) :
   pthat(EvtHdr__mPthat),
   weight(EvtHdr__mWeight),
@@ -37,6 +39,7 @@ histosFill::histosFill(TChain *tree) :
 }
 
 
+// Print the same info on a file and conditionally to the output
 void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
 {
   *ferr << info << endl << flush;
@@ -44,6 +47,7 @@ void histosFill::PrintInfo(std::__cxx11::string info, bool printcout)
 }
 
 
+// Report memory info
 void histosFill::PrintMemInfo(bool printcout)
 {
   gSystem->GetMemInfo(&_info);
@@ -299,6 +303,7 @@ void histosFill::Init(TTree *tree)
 }
 
 
+// Loop over events
 void histosFill::Loop()
 {
   if (fChain == 0) return;
@@ -317,37 +322,32 @@ void histosFill::Loop()
   stop.Start();
   TDatime bgn;
 
-  vector<Long64_t> infojentrys = {5000,10000,50000,100000,500000,1000000,5000000,
-                                  10000000,20000000,30000000,40000000,50000000,60000000,70000000,80000000,90000000,
-                                  100000000,200000000,300000000,400000000,500000000,600000000,700000000,800000000,900000000,1000000000};
   ///////////////
   // Event loop
   ///////////////
   Long64_t nbytes = 0, nb = 0;
+  Long64_t hopval = 1000000;
+  Long64_t repval = 100001;
   for (Long64_t djentry=0; djentry<_nentries;djentry+=1+_jp_skim) { // Event loop
-    Long64_t jentry = djentry+_nskip;
-    Long64_t ientry = LoadTree(jentry);
-    if (ientry < 0) break;
-    nb = fChain->GetEntry(jentry);   nbytes += nb;
+    _jentry = djentry+_nskip; // Add a shift from beginning
+    if (LoadTree(_jentry) < 0) break;
+    nb = fChain->GetEntry(_jentry);   nbytes += nb;
 
-    if (jentry%50000==0) cout << "." << flush;
-
-    // How long is it going to take?
-    auto infoplace = std::find(infojentrys.begin(),infojentrys.end(),djentry);
-    if (infoplace!=infojentrys.end()) {
-      cout << endl << Form("Processed %ld events (%1.1f%%) in %1.0f sec.",
-                      (long int)jentry, 100.*djentry/_nentries, stop.RealTime()) << endl;
+    if (_jentry%hopval==repval) { // 1M report (first report timed to be early)
+      // Report memory usage to avoid malloc problems when writing file
+      PrintInfo( Form("Doing Loop(), %dM events:",int(_jentry/1e6 + 0.5)) );
+      PrintMemInfo();
+      cout << endl << Form("Processed %lld events (%1.1f%%) in %1.0f sec.",
+                           _jentry-1, 100.*djentry/_nentries, stop.RealTime()) << endl;
       cout << "BGN: ";
       bgn.Print();
       TDatime now;
       cout << "NOW: ";
       now.Print();
-      if (++infoplace!=infojentrys.end()) {
-        TDatime nxt;
-        nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>((*infoplace))/static_cast<Double_t>(djentry)-1.0)));
-        cout << "NXT: ";
-        nxt.Print();
-      }
+      TDatime nxt;
+      nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(hopval)/static_cast<Double_t>(djentry))));
+      cout << "NXT: ";
+      nxt.Print();
       now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(_nentries)/static_cast<Double_t>(djentry)-1.0)));
       cout << "ETA: ";
       now.Print();
@@ -356,16 +356,16 @@ void histosFill::Loop()
         for (auto &manyhists : _histos)
           for (auto &onehist : manyhists.second)
             onehist->Write();
-        if (_jp_doEtaHistos) {
-          for (auto &manyhists : _etahistos)
-            for (auto & onehist : manyhists.second)
-              onehist->Write();
-          if (_jp_doEtaHistosMcResponse) {
-            for (auto &manyhists : _mchistos)
+          if (_jp_doEtaHistos) {
+            for (auto &manyhists : _etahistos)
               for (auto & onehist : manyhists.second)
                 onehist->Write();
+              if (_jp_doEtaHistosMcResponse) {
+                for (auto &manyhists : _mchistos)
+                  for (auto & onehist : manyhists.second)
+                    onehist->Write();
+              }
           }
-        }
       }
       stop.Continue();
     }
@@ -395,12 +395,6 @@ void histosFill::Loop()
       fillRunHistos("RunsTransition");
       fillRunHistos("RunsEndcap");
     }
-
-    // Report memory usage to avoid malloc problems when writing file
-    if (jentry%1000000==0) {
-      PrintInfo( Form("Doing Loop(), %dM events:",int(jentry/1e6 + 0.5)) );
-      PrintMemInfo();
-    } // 1M report
   } // for jentry
   cout << endl;
 
@@ -422,6 +416,7 @@ void histosFill::Loop()
 }
 
 
+// Setup before event loop
 bool histosFill::PreRun()
 {
   _nentries = fChain->GetEntriesFast();
@@ -624,6 +619,7 @@ bool histosFill::PreRun()
 }
 
 
+// Routines and selections before histograms are filled
 bool histosFill::AcceptEvent()
 {
   if (_jp_isdt) { // For DT fetch true pileup from the json or histogram info
@@ -649,7 +645,7 @@ bool histosFill::AcceptEvent()
 
   if (_jp_debug) {
     cout << endl << flush;
-    Show(jentry);
+    Show(_jentry);
     cout << endl << endl << flush;
 
     cout << "***Checking basic event variables are read out:" << endl;

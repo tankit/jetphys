@@ -355,6 +355,7 @@ private:
   int _trgcounter;
   int _evtcounter;
   int _totcounter;
+  Long64_t _jentry;
   Long64_t _nentries;
   Long64_t _ntot ;
   Long64_t _nskip;;
