@@ -24,33 +24,6 @@
 
 \begin{document}
 
-\begin{centering}
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-{. }\\
-PFJet composition distributions
-\today\\
-Mikko Voutilainen, U. Helsinki and HIP\\
-Hannu Siikonen, HIP\\
-\end{centering}
-
-\newpage
-
-\begin{itemize}
-\item Data from single jet triggers in the $>99$\% efficient $p_T$ range, binned by jet rapidity ($|y|\approx |\eta|$, exact relation for $m_{\rm jet}=0$)
-\item Event selection requires back-to-back dijet events with no hard additional jets (cut values to be checked)
-\item No phi cleaning applied for these plots; effects visible in EC
-\item No ECAL hole veto applied for these plots; explains peak at high CHF?
-\item Labelling: $h^{\pm}$ (PF charged hadrons), $K^{0}_{had}$ and $h_{had}$ (PF neutral hadrons inside/outside tracker coverage), $\pi^{0}+K^{0}_{EM}$ and $\pi^{0}+h_{EM}$ (PF photons inside/outside tracker coverage)
-\item ``tag-and-probe'' is \verb|h2d->Fill(pt_tag, f_probe);|, ``probe only'' is \verb|h2d->Fill(pt_probe, f_probe);|. Both have same events, just migrating between $p_T$ bins. The ``probe only'' is sensitive to upward JER tails, but the effect is limited in MC (difference between histogram line and edge shading)
-\end{itemize}
-
-\newpage
-
 Plots with one trigger ($p_T$ bin) per page. Flip back and forth to see PFcomposition evolve in $p_T$.
 
 \newpage
