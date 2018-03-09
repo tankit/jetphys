@@ -19,6 +19,7 @@ void pu() {
   assert(fd && !fd->IsZombie());
 
   curdir->cd();
+  gSystem->MakeDirectory("pdf");
 
   //////////////////////
   // Plotter settings //
