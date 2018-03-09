@@ -3,6 +3,7 @@
 #include "TCanvas.h"
 #include "TMath.h"
 #include "tdrstyle_mod18.C"
+#include "TError.h"
 
 // Draw 2D plot of jet rates in (eta,phi) to spot issues
 void dataquality() {
@@ -320,6 +321,7 @@ void dataquality() {
       h2hotHCAL->DrawClone("SAMEBOX");
       h2hotm->DrawClone("SAMEBOX");
       gPad->Update();
+      gErrorIgnoreLevel = kWarning;
       c1->SaveAs(Form("pdf/%squality_njet_%s.pdf",nametag.c_str(),ctrg));
 
       TCanvas *c2a = new TCanvas("c2a","c2a",600,600);

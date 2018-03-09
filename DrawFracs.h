@@ -9,6 +9,7 @@
 #include "TLatex.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TError.h"
 
 #include "tdrstyle_mod18.C"
 #include "settings.h"

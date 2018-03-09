@@ -84,7 +84,7 @@ void Fracs::DrawFracs(unsigned mode) {
 void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string trg, double eta1, double eta2) {
   // List of differences
   string taguniq = string(_vseta?"_vseta":"") + string(_vsnpv?"_vsNPV":"") + string(_vspu?"_vsTRPU":"") + string(_vsphi?"_vsphi":"") + _sphi
-                 + string(_shiftJES ? "_shiftJES" : "") + (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%1.1f-%1.1f", eta1, eta2));
+                 + string(_shiftJES ? "_shiftJES" : "") + (_pertrg?"_"+trg:"") + string(_vseta?"":Form("_%.0f-%.0f", 10*eta1, 10*eta2));
   map<string, TH1D*> mdf;
 
   THStack *hsdt = new THStack(Form("hsdt%s",taguniq.c_str()),"stacked histograms");
@@ -326,7 +326,9 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   if (_vspt) gPad->SetLogx();
   gPad->RedrawAxis();
 
-  c1->SaveAs(Form("%s/DrawFracs%s.pdf",_savedir.c_str(), taguniq.c_str()));
+  gErrorIgnoreLevel = kWarning;
+  c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(),taguniq.c_str()));
+  cout << Form("\\includegraphics[width=0.30\\textwidth]{../%s/drawFracs%s.pdf}",_savedir.c_str(),taguniq.c_str()) << endl;
 
   if (_dofit) { // Estimate jet response slope by analyzing composition
     TLatex *tex = new TLatex();
