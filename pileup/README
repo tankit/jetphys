@@ -88,3 +88,6 @@ from within the SMP jet tuples.
 For the pthat sliced tuples one can utilize the code pufromslices.C
 The pufromslices shows the pileup profiles also for each slice separately,
 but the slices are mostly very similar to each other.
+
+If dealing with a new MC campaign, remember to run GetSliceEvts.C and update
+the slice information in settings.h before running pufromslices.C.

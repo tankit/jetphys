@@ -407,6 +407,8 @@ void HistosFill::Loop()
   if (_jp_ismc and _jp_doEtaHistos and _jp_doEtaHistosMcResponse) WriteMC();
   if (_jp_doBasicHistos) WriteBasic(); // this needs to be last, output file closed
 
+  Report();
+
   stop.Stop();
   TDatime now;
   cout << "Stopping at: ";
@@ -767,12 +769,13 @@ bool HistosFill::AcceptEvent()
   // (this is slow, though)
   if (_jp_ismc) {
     // Always insert the generic mc trigger
-    _trigs.insert("mc");
+    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
     if (_jp_domctrigsim and njt>0) {
       // Only add the greatest trigger present
+      // Calculate trigger PU weight
       for (int itrg = _jp_notrigs-1; itrg >= 0; --itrg) {
         if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
-          const char *trg_name = string(_jp_triggers[itrg]).c_str();
+          const char *trg_name = _jp_triggers[itrg];
           _trigs.insert(trg_name);
           _wt[trg_name] = 1.;
 
@@ -790,12 +793,13 @@ bool HistosFill::AcceptEvent()
           break; // Don't add lesser triggers
         }
       }
-      // Calculate trigger PU weight
-      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg) {
-      } // for itrg
     } // _jp_domctrigsim
-    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
-    _wt["mc"] = _wt[_jp_reftrig];
+    _trigs.insert("mc");
+    _wt["mc"] = 1.0;
+    if (_jp_reweighPU) {
+      int k = _pudist[_jp_reftrig]->FindBin(trpu);
+      _wt["mc"] *= _pudist[_jp_reftrig]->GetBinContent(k);
+    }
   } else if (_jp_isdt) {
     // For data, check trigger bits
     if (_jp_debug) {
@@ -1261,7 +1265,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
   }
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w>0);
+  if (_w <= 0) return;
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
@@ -1985,7 +1989,7 @@ void HistosFill::FillSingleEta(HistosEta *h, Float_t* _pt, Float_t* _eta, Float_
   assert(h);
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w>0);
+  if (_w <= 0) return;
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
@@ -2189,7 +2193,7 @@ void HistosFill::FillSingleMC(HistosMC *h,  Float_t* _recopt,  Float_t* _genpt,
   assert(h);
 
   _w = _w0 * _wt[h->trigname];
-  assert(_w>0);
+  if (_w <= 0) return;
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
 
@@ -2526,7 +2530,7 @@ bool HistosFill::LoadLumi(const char* filename)
   cout << endl << "string: " << s << " !" << endl << flush;
 
   // HOX: the lumi file format has been changing. Change the conditions when needed.
-  if (s!="#Data tag : v1 , Norm tag: None") return false;
+  if (s!="#Data tag : v2 , Norm tag: None") return false;
 
   bool getsuccess2 = static_cast<bool>(getline(f, s, '\n'));
   if (!getsuccess2) return false;
@@ -2633,8 +2637,8 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
     _pumc->SetBinContent(bin,0.0);
   for (int bin = upmclim+1; bin <= _pumc->GetNbinsX(); ++bin)
     _pumc->SetBinContent(bin,0.0);
-  PrintInfo(Form("Discarding mc pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)));
-  PrintInfo(Form("Maximum mc bin: %d",maxmcbin));
+  PrintInfo(Form("Maximum bin: %d for MC",maxmcbin),true);
+  PrintInfo(Form("Discarding pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)),true);
   // Normalize
   int nbinsmc = _pumc->GetNbinsX();
   int kmc = _pumc->FindBin(33); // Check that pu=33 occurs at the same place as for data
@@ -2666,8 +2670,8 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
       ++tailcount;
       _pudist[t]->SetBinContent(bin,0.0);
     }
-    PrintInfo(Form("Discarding dt pu below & above: %f, %f",_pudist[t]->GetBinLowEdge(lodtlim),_pudist[t]->GetBinLowEdge(updtlim+1)));
-    PrintInfo(Form("Maximum dt bin: %d",maxdtbin));
+    PrintInfo(Form("Maximum bin: %d for DT trg %s",maxdtbin,t.c_str()),true);
+    PrintInfo(Form("Discarding pu below & above: %f, %f",_pudist[t]->GetBinLowEdge(lodtlim),_pudist[t]->GetBinLowEdge(updtlim+1)),true);
     _pudist[t]->Divide(_pumc);
     double maxvaldt = _pudist[t]->GetBinContent(maxdtbin);
 
