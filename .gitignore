@@ -16,4 +16,7 @@ CondFormats
 mk_histosFill.C
 settings.h
 pileup/Run*
+pileup/RR*
+pileup/LRR*
+.fuse*
 rootfiles
