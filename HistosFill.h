@@ -480,11 +480,16 @@ private:
   Int_t           *jtnne;//[_maxnjt];   //[njt]
   Int_t           *jtnce;//[_maxnjt];   //[njt]
   Int_t           *jtnmu;//[_maxnjt];   //[njt]
+  Int_t           *jtnhh;//[_maxnjt];   //[njt]
+  Int_t           *jtnhe;//[_maxnjt];   //[njt]
+
   Float_t         *jtchf;//[_maxnjt];   //[njt]
   Float_t         *jtnhf;//[_maxnjt];   //[njt]
   Float_t         *jtnef;//[_maxnjt];   //[njt]
   Float_t         *jtcef;//[_maxnjt];   //[njt]
   Float_t         *jtmuf;//[_maxnjt];   //[njt]
+  Float_t         *jthhf;//[_maxnjt];   //[njt]
+  Float_t         *jthef;//[_maxnjt];   //[njt]
 
   Int_t           &gen_njt;
   Double_t        *gen_jtp4x;//[_maxnjt];   //[njt]

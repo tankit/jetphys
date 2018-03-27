@@ -66,6 +66,8 @@ double _lumiscale = 1.00;
 std::map<std::string, double> triglumi;
 
 void HistosNormalize() {
+  TH1::SetDefaultSumw2(kTRUE);
+
   TFile *fin = new TFile(Form("output-%s-1.root",_jp_type),"READ");
   assert(fin && !fin->IsZombie());
 

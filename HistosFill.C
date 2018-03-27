@@ -152,13 +152,13 @@ void HistosFill::Init(TTree *tree)
   fChain->SetBranchAddress(Form("PFJets%s_.muf_",_jp_chs), PFJetsCHS__muf_, &b_PFJetsCHS__muf_);
   fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",_jp_chs), PFJetsCHS__hf_hf_, &b_PFJetsCHS__hf_hf_);
   fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",_jp_chs), PFJetsCHS__hf_phf_, &b_PFJetsCHS__hf_phf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",_jp_chs), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",_jp_chs), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
   fChain->SetBranchAddress(Form("PFJets%s_.chm_",_jp_chs), PFJetsCHS__chm_, &b_PFJetsCHS__chm_);
   fChain->SetBranchAddress(Form("PFJets%s_.nhm_",_jp_chs), PFJetsCHS__nhm_, &b_PFJetsCHS__nhm_);
   fChain->SetBranchAddress(Form("PFJets%s_.phm_",_jp_chs), PFJetsCHS__phm_, &b_PFJetsCHS__phm_);
   fChain->SetBranchAddress(Form("PFJets%s_.elm_",_jp_chs), PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
   fChain->SetBranchAddress(Form("PFJets%s_.mum_",_jp_chs), PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",_jp_chs), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",_jp_chs), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
   fChain->SetBranchAddress(Form("PFJets%s_.ncand_",_jp_chs), PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
   //fChain->SetBranchAddress("PFJets%s_.cm_",_jp_chs), PFJetsCHS__cm_, &b_PFJetsCHS__cm_);
   fChain->SetBranchAddress(Form("PFJets%s_.beta_",_jp_chs), PFJetsCHS__beta_, &b_PFJetsCHS__beta_);
@@ -205,12 +205,12 @@ void HistosFill::Init(TTree *tree)
 
     // Component fractions
     fChain->SetBranchStatus(Form("PFJets%s_.chf_",_jp_chs),1); // jtchf
-    //fChain->SetBranchStatus(Form("PFJets%s_.phf_",_jp_chs),1); // jtnef
     fChain->SetBranchStatus(Form("PFJets%s_.nemf_",_jp_chs),1); // jtnef
     fChain->SetBranchStatus(Form("PFJets%s_.nhf_",_jp_chs),1); // jtnhf
-    //fChain->SetBranchStatus(Form("PFJets%s_.elf_",_jp_chs),1); // jtcef !!
     fChain->SetBranchStatus(Form("PFJets%s_.cemf_",_jp_chs),1); // jtcef !!
     fChain->SetBranchStatus(Form("PFJets%s_.muf_",_jp_chs),1); // jtmuf !!
+    fChain->SetBranchStatus(Form("PFJets%s_.hf_hf_",_jp_chs),1); // jtmuf !!
+    fChain->SetBranchStatus(Form("PFJets%s_.hf_phf_",_jp_chs),1); // jtmuf !!
     fChain->SetBranchStatus(Form("PFJets%s_.ncand_",_jp_chs),1); // jtn
     fChain->SetBranchStatus(Form("PFJets%s_.beta_",_jp_chs),1); // jtbeta
     fChain->SetBranchStatus(Form("PFJets%s_.betaStar_",_jp_chs),1); // jtbetastar
@@ -288,14 +288,17 @@ void HistosFill::Init(TTree *tree)
   jtnne = &PFJetsCHS__phm_[0];
   jtnce = &PFJetsCHS__elm_[0];
   jtnmu = &PFJetsCHS__mum_[0];
+  jtnhh = &PFJetsCHS__hf_hm_[0];
+  jtnhe = &PFJetsCHS__hf_phm_[0];
+
   jtchf = &PFJetsCHS__chf_[0];
   jtnhf = &PFJetsCHS__nhf_[0];
-  //jtnef = &PFJetsCHS__phf_[0];
   jtnef = &PFJetsCHS__nemf_[0];
-  //jtcef = &PFJetsCHS__elf_[0];
   jtcef = &PFJetsCHS__cemf_[0];
   jtmuf = &PFJetsCHS__muf_[0];
-  //
+  jthhf = &PFJetsCHS__hf_hf_[0];
+  jthef = &PFJetsCHS__hf_phf_[0];
+
   gen_jtp4x = &GenJets__fCoordinates_fX[0];
   gen_jtp4y = &GenJets__fCoordinates_fY[0];
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
@@ -617,6 +620,7 @@ bool HistosFill::PreRun()
       } // for ipt
     } // for ieta
   }
+  PrintInfo("Finished pre-run processing!",true);
   return true;
 }
 
@@ -731,146 +735,6 @@ bool HistosFill::AcceptEvent()
       ++_cnt["04bsc"];
     }
   }
-
-  // Event cuts against beam backgrounds
-  if (_pass and _ecalveto) {
-    if ( (njt>=1 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[0],jtphi[0]))!=0)
-      or (njt>=2 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[1],jtphi[1]))!=0) ) {
-      ++_ecalcounter_bad;
-      _pass = false;
-    } else {
-      ++_ecalcounter_good;
-      ++_cnt["05ecal"];
-    }
-  } // ecal veto
-
-  // Check rho
-  if (_pass) {
-    if (rho>40.) {
-      ++_rhocounter_bad;
-      _pass = false;
-      if (_jp_debug)
-        cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
-                    run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[0] :0.), metsumet, met) << flush;
-    } else {
-      ++_rhocounter_good;
-      ++_cnt["06rho"];
-    }
-  }
-
-  // Reset prescales (dynamic can change within run)
-  for (auto &scaleit : _prescales)
-    scaleit.second[run] = 0;
-
-  // Fill trigger information
-  _trigs.clear();
-
-  // Simulate other triggers for MC, if so wished
-  // (this is slow, though)
-  if (_jp_ismc) {
-    // Always insert the generic mc trigger
-    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
-    if (_jp_domctrigsim and njt>0) {
-      // Only add the greatest trigger present
-      // Calculate trigger PU weight
-      for (int itrg = _jp_notrigs-1; itrg >= 0; --itrg) {
-        if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
-          const char *trg_name = _jp_triggers[itrg];
-          _trigs.insert(trg_name);
-          _wt[trg_name] = 1.;
-
-          // Reweight in-time pile-up
-          if (_jp_reweighPU) {
-            int k = _pudist[trg_name]->FindBin(trpu);
-            double wtrue = _pudist[trg_name]->GetBinContent(k);
-            _wt[trg_name] *= wtrue;
-
-            // check for non-zero PU weight
-            _pass = _pass and wtrue!=0;
-            if (_pass) ++_cnt["07puw"];
-            else return false; // Bad pu areas with zero weight excluded
-          }
-          break; // Don't add lesser triggers
-        }
-      }
-    } // _jp_domctrigsim
-    _trigs.insert("mc");
-    _wt["mc"] = 1.0;
-    if (_jp_reweighPU) {
-      int k = _pudist[_jp_reftrig]->FindBin(trpu);
-      _wt["mc"] *= _pudist[_jp_reftrig]->GetBinContent(k);
-    }
-  } else if (_jp_isdt) {
-    // For data, check trigger bits
-    if (_jp_debug) {
-      cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-      cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
-      cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
-    }
-    assert(TriggerDecision_.size() == _availTrigs.size());
-
-    for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
-      _wt[string(_jp_triggers[itrg])] = 1.0;
-
-    for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
-      auto &itrg = _goodTrigs[goodIdx];
-      if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
-
-      string trigname = _availTrigs[itrg];
-      if (_jp_debug and TriggerDecision_[itrg]>0)
-        cout << trigname << " " << TriggerDecision_[itrg]
-             << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
-
-      // Set prescale from event for now
-      if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) {
-        _prescales[trigname][run] = L1Prescale_[itrg] * HLTPrescale_[itrg];
-      } else {
-        cout << "Error for trigger " << trigname << " prescales: "
-              << "L1  =" << L1Prescale_[itrg]
-              << "HLT =" << HLTPrescale_[itrg] << endl;
-        _prescales[trigname][run] = 0;
-        if (_jp_debug) { // check prescale
-          double prescale = _prescales[trigname][run];
-          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-            cout << "Trigger " << trigname << ", "
-            << "Prescale(txt file) = " << prescale << endl;
-            cout << "L1 = " << L1Prescale_[itrg] << ", "
-            << "HLT = " << HLTPrescale_[itrg] << endl;
-            assert(false);
-          }
-        } // debug
-      }
-
-      if (_prescales[trigname][run]>0) {
-        // Set trigger only if prescale information is known
-        _trigs.insert(trigname);
-        _wt[trigname] = _goodWgts[goodIdx];
-      } else {
-        // Make sure all info is good! This is crucial if there is something odd with the tuples
-        PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
-      }
-    } // for itrg (_goodTrigs)
-  }
-
-  ++_totcounter;
-  if (_pass) ++_evtcounter;
-  _pass = _pass and _trigs.size()>0;
-  if (_pass) {
-    ++_trgcounter;
-    if (_jp_isdt) ++_cnt["07trg"];
-  }
-
-  // Retrieve event weight. _w0 is static, _w is chanching with the trigger
-  _w0 = 1.0;
-  if (_jp_ismc) {
-    _w0 *= weight;
-    if (_jp_pthatbins)
-      _w0 *= _pthatweight;
-    assert(_w0>0);
-  }
-  _w = _w0;
-
-  // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 
   // load correct IOV for JEC
   if (_jp_isdt and _jp_useIOV) {
@@ -1019,6 +883,156 @@ bool HistosFill::AcceptEvent()
     cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
     cout << "Gen flav calculation!" << endl;
   }
+
+  // Event cuts against beam backgrounds
+  if (_pass and _ecalveto) {
+    if ( (njt>=1 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[i0],jtphi[i0]))!=0)
+      or (njt>=2 and _ecalveto->GetBinContent(_ecalveto->FindBin(jteta[i1],jtphi[i1]))!=0) ) {
+      ++_ecalcounter_bad;
+      _pass = false;
+    } else {
+      ++_ecalcounter_good;
+      ++_cnt["05ecal"];
+    }
+  } // ecal veto
+
+  // Check rho
+  if (_pass) {
+    if (rho>40.) {
+      ++_rhocounter_bad;
+      _pass = false;
+      if (_jp_debug)
+        cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
+                    run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[i0] :0.), metsumet, met) << flush;
+    } else {
+      ++_rhocounter_good;
+      ++_cnt["06rho"];
+    }
+  }
+
+  // Reset prescales (dynamic can change within run)
+  for (auto &scaleit : _prescales)
+    scaleit.second[run] = 0;
+
+  // Fill trigger information
+  _trigs.clear();
+
+  // Simulate other triggers for MC, if so wished
+  // (this is slow, though)
+  if (_jp_ismc) {
+    // Always insert the generic mc trigger
+    if (_jp_debug) cout << "Entering PU weight calculation!" << endl;
+    if (_jp_domctrigsim and njt>0) {
+      // Only add the greatest trigger present
+      // Calculate trigger PU weight
+      bool found = false;
+      for (int itrg = _jp_notrigs-1; itrg >= 0; --itrg) {
+        if (jtpt[i0]>_jp_trigranges[itrg][0]) {
+          string trg_name = _jp_triggers[itrg];
+          _trigs.insert(trg_name);
+          _wt[trg_name] = 1.;
+
+          // Reweight in-time pile-up
+          if (_jp_reweighPU) {
+            int k = _pudist[trg_name]->FindBin(trpu);
+            double wtrue = _pudist[trg_name]->GetBinContent(k);
+            _wt[trg_name] *= wtrue;
+
+            // check for non-zero PU weight
+            _pass = _pass and wtrue!=0;
+            if (_pass) ++_cnt["07puw"];
+            else return false; // Bad pu areas with zero weight excluded
+          }
+          found = true;
+          break; // Don't add lesser triggers
+        }
+      }
+      _pass = _pass and found;
+      if (_pass) ++_cnt["07mctrg"];
+      else return false; // Leading jet is weak
+    } // _jp_domctrigsim
+    _trigs.insert("mc");
+    _wt["mc"] = 1.0;
+    if (_jp_reweighPU) {
+      int k = _pudist[_jp_reftrig]->FindBin(trpu);
+      _wt["mc"] *= _pudist[_jp_reftrig]->GetBinContent(k);
+    }
+  } else if (_jp_isdt) {
+    // For data, check trigger bits
+    if (_jp_debug) {
+      cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
+      cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
+      cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
+    }
+    assert(TriggerDecision_.size() == _availTrigs.size());
+
+    for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
+      _wt[_jp_triggers[itrg]] = 1.0;
+
+    for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
+      auto &itrg = _goodTrigs[goodIdx];
+      if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
+
+      string trigname = _availTrigs[itrg];
+      if (_jp_debug and TriggerDecision_[itrg]>0)
+        cout << trigname << " " << TriggerDecision_[itrg]
+             << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
+
+      // Set prescale from event for now
+      //if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) { There's trouble in 2017 L1, so we let it pass
+      if (HLTPrescale_[itrg]>0) {
+        double l1 = L1Prescale_[itrg];
+        if (l1==0) l1 = 1;
+        _prescales[trigname][run] = l1 * HLTPrescale_[itrg];
+      } else {
+        cout << "Error for trigger " << trigname << " prescales: "
+              << "L1  =" << L1Prescale_[itrg]
+              << "HLT =" << HLTPrescale_[itrg] << endl;
+        _prescales[trigname][run] = 0;
+        if (_jp_debug) { // check prescale
+          double prescale = _prescales[trigname][run];
+          if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
+            cout << "Trigger " << trigname << ", "
+            << "Prescale(txt file) = " << prescale << endl;
+            cout << "L1 = " << L1Prescale_[itrg] << ", "
+            << "HLT = " << HLTPrescale_[itrg] << endl;
+            assert(false);
+          }
+        } // debug
+      }
+
+      if (_prescales[trigname][run]>0) {
+        // Set trigger only if prescale information is known
+        _trigs.insert(trigname);
+        _wt[trigname] = _goodWgts[goodIdx];
+      } else {
+        // Make sure all info is good! This is crucial if there is something odd with the tuples
+        PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
+      }
+    } // for itrg (_goodTrigs)
+
+  }
+
+  ++_totcounter;
+  if (_pass) ++_evtcounter;
+  _pass = _pass and _trigs.size()>0;
+  if (_pass) {
+    ++_trgcounter;
+    if (_jp_isdt) ++_cnt["07trg"];
+  }
+
+  // Retrieve event weight. _w0 is static, _w is chanching with the trigger
+  _w0 = 1.0;
+  if (_jp_ismc) {
+    _w0 *= weight;
+    if (_jp_pthatbins)
+      _w0 *= _pthatweight;
+    assert(_w0>0);
+  }
+  _w = _w0;
+
+  // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
+
   if (_jp_ismc) {
     ///////////////
     // Gen Jet loop
@@ -1384,15 +1398,18 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
               // Fractions vs pt: we do pt selection later in HistosCombine
               assert(h->pncandtp);    h->pncandtp->Fill(pttag, jtn[iprobe], _w);
               assert(h->pnchtp);      h->pnchtp->Fill(pttag, jtnch[iprobe], _w);
-              assert(h->pnnetp);      h->pnnetp->Fill(pttag, jtnne[iprobe], _w);
-              assert(h->pnnhtp);      h->pnnhtp->Fill(pttag, jtnnh[iprobe], _w);
+              assert(h->pnnetp);      h->pnnetp->Fill(pttag, jtnne[iprobe]-jtnhe[iprobe], _w);
+              assert(h->pnnhtp);      h->pnnhtp->Fill(pttag, jtnnh[iprobe]-jtnhh[iprobe], _w);
               assert(h->pncetp);      h->pncetp->Fill(pttag, jtnce[iprobe], _w);
               assert(h->pnmutp);      h->pnmutp->Fill(pttag, jtnmu[iprobe], _w);
+
               assert(h->pchftp);      h->pchftp->Fill(pttag, jtchf[iprobe], _w);
-              assert(h->pneftp);      h->pneftp->Fill(pttag, jtnef[iprobe], _w);
-              assert(h->pnhftp);      h->pnhftp->Fill(pttag, jtnhf[iprobe], _w);
+              assert(h->pneftp);      h->pneftp->Fill(pttag, (jtnef[iprobe]-jthef[iprobe]), _w);
+              assert(h->pnhftp);      h->pnhftp->Fill(pttag, (jtnhf[iprobe]-jthhf[iprobe]), _w);
               assert(h->pceftp);      h->pceftp->Fill(pttag, jtcef[iprobe], _w);
               assert(h->pmuftp);      h->pmuftp->Fill(pttag, jtmuf[iprobe], _w);
+              assert(h->phhftp);      h->phhftp->Fill(pttag, jthhf[iprobe], _w);
+              assert(h->pheftp);      h->pheftp->Fill(pttag, jthef[iprobe], _w);
               assert(h->pbetatp);     h->pbetatp->Fill(pttag, jtbeta[iprobe], _w);
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
               assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
@@ -1415,13 +1432,13 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 // The distributions of event counts per fraction
                 assert(h->hncandtp);    h->hncandtp->Fill(jtn[iprobe], _w);
                 assert(h->hnchtp);      h->hnchtp->Fill(jtnch[iprobe], _w);
-                assert(h->hnnetp);      h->hnnetp->Fill(jtnne[iprobe], _w);
-                assert(h->hnnhtp);      h->hnnhtp->Fill(jtnnh[iprobe], _w);
+                assert(h->hnnetp);      h->hnnetp->Fill(jtnne[iprobe]-jtnhe[iprobe], _w);
+                assert(h->hnnhtp);      h->hnnhtp->Fill(jtnnh[iprobe]-jtnhh[iprobe], _w);
                 assert(h->hncetp);      h->hncetp->Fill(jtnce[iprobe], _w);
                 assert(h->hnmutp);      h->hnmutp->Fill(jtnmu[iprobe], _w);
                 assert(h->hchftp);      h->hchftp->Fill(jtchf[iprobe], _w);
-                assert(h->hneftp);      h->hneftp->Fill(jtnef[iprobe], _w);
-                assert(h->hnhftp);      h->hnhftp->Fill(jtnhf[iprobe], _w);
+                assert(h->hneftp);      h->hneftp->Fill((jtnef[iprobe]-jthef[iprobe]), _w);
+                assert(h->hnhftp);      h->hnhftp->Fill((jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->hceftp);      h->hceftp->Fill(jtcef[iprobe], _w);
                 assert(h->hmuftp);      h->hmuftp->Fill(jtmuf[iprobe], _w);
                 assert(h->hbetatp);     h->hbetatp->Fill(jtbeta[iprobe], _w);
@@ -1431,13 +1448,13 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 // Fractions vs number of primary vertices
                 assert(h->pncandtp_vsnpv);    h->pncandtp_vsnpv->Fill(npvgood, jtn[iprobe], _w);
                 assert(h->pnchtp_vsnpv);      h->pnchtp_vsnpv->Fill(npvgood, jtnch[iprobe], _w);
-                assert(h->pnnetp_vsnpv);      h->pnnetp_vsnpv->Fill(npvgood, jtnne[iprobe], _w);
-                assert(h->pnnhtp_vsnpv);      h->pnnhtp_vsnpv->Fill(npvgood, jtnnh[iprobe], _w);
+                assert(h->pnnetp_vsnpv);      h->pnnetp_vsnpv->Fill(npvgood, jtnne[iprobe]-jtnhe[iprobe], _w);
+                assert(h->pnnhtp_vsnpv);      h->pnnhtp_vsnpv->Fill(npvgood, jtnnh[iprobe]-jtnhh[iprobe], _w);
                 assert(h->pncetp_vsnpv);      h->pncetp_vsnpv->Fill(npvgood, jtnce[iprobe], _w);
                 assert(h->pnmutp_vsnpv);      h->pnmutp_vsnpv->Fill(npvgood, jtnmu[iprobe], _w);
                 assert(h->pchftp_vsnpv);      h->pchftp_vsnpv->Fill(npvgood, jtchf[iprobe], _w);
-                assert(h->pneftp_vsnpv);      h->pneftp_vsnpv->Fill(npvgood, jtnef[iprobe], _w);
-                assert(h->pnhftp_vsnpv);      h->pnhftp_vsnpv->Fill(npvgood, jtnhf[iprobe], _w);
+                assert(h->pneftp_vsnpv);      h->pneftp_vsnpv->Fill(npvgood, (jtnef[iprobe]-jthef[iprobe]), _w);
+                assert(h->pnhftp_vsnpv);      h->pnhftp_vsnpv->Fill(npvgood, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->pceftp_vsnpv);      h->pceftp_vsnpv->Fill(npvgood, jtcef[iprobe], _w);
                 assert(h->pmuftp_vsnpv);      h->pmuftp_vsnpv->Fill(npvgood, jtmuf[iprobe], _w);
                 assert(h->pbetatp_vsnpv);     h->pbetatp_vsnpv->Fill(npvgood, jtbeta[iprobe], _w);
@@ -1446,8 +1463,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
 
                 // Fractions vs true pileup
                 assert(h->pchftp_vstrpu);      h->pchftp_vstrpu->Fill(trpu, jtchf[iprobe], _w);
-                assert(h->pneftp_vstrpu);      h->pneftp_vstrpu->Fill(trpu, jtnef[iprobe], _w);
-                assert(h->pnhftp_vstrpu);      h->pnhftp_vstrpu->Fill(trpu, jtnhf[iprobe], _w);
+                assert(h->pneftp_vstrpu);      h->pneftp_vstrpu->Fill(trpu, (jtnef[iprobe]-jthef[iprobe]), _w);
+                assert(h->pnhftp_vstrpu);      h->pnhftp_vstrpu->Fill(trpu, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->pceftp_vstrpu);      h->pceftp_vstrpu->Fill(trpu, jtcef[iprobe], _w);
                 assert(h->pmuftp_vstrpu);      h->pmuftp_vstrpu->Fill(trpu, jtmuf[iprobe], _w);
                 assert(h->pbetatp_vstrpu);     h->pbetatp_vstrpu->Fill(trpu, jtbeta[iprobe], _w);
@@ -1457,8 +1474,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 if (_jp_doPhiHistos) {
                   if (etaprobe>0) {
                     assert(h->pchfpostp_vsphi);      h->pchfpostp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
-                    assert(h->pnefpostp_vsphi);      h->pnefpostp_vsphi->Fill(phiprobe, jtnef[iprobe], _w);
-                    assert(h->pnhfpostp_vsphi);      h->pnhfpostp_vsphi->Fill(phiprobe, jtnhf[iprobe], _w);
+                    assert(h->pnefpostp_vsphi);      h->pnefpostp_vsphi->Fill(phiprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
+                    assert(h->pnhfpostp_vsphi);      h->pnhfpostp_vsphi->Fill(phiprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                     assert(h->pcefpostp_vsphi);      h->pcefpostp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
                     assert(h->pmufpostp_vsphi);      h->pmufpostp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
                     assert(h->pbetapostp_vsphi);     h->pbetapostp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
@@ -1466,8 +1483,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->pbetaprimepostp_vsphi); h->pbetaprimepostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
                   } else {
                     assert(h->pchfnegtp_vsphi);      h->pchfnegtp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
-                    assert(h->pnefnegtp_vsphi);      h->pnefnegtp_vsphi->Fill(phiprobe, jtnef[iprobe], _w);
-                    assert(h->pnhfnegtp_vsphi);      h->pnhfnegtp_vsphi->Fill(phiprobe, jtnhf[iprobe], _w);
+                    assert(h->pnefnegtp_vsphi);      h->pnefnegtp_vsphi->Fill(phiprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
+                    assert(h->pnhfnegtp_vsphi);      h->pnhfnegtp_vsphi->Fill(phiprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                     assert(h->pcefnegtp_vsphi);      h->pcefnegtp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
                     assert(h->pmufnegtp_vsphi);      h->pmufnegtp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
                     assert(h->pbetanegtp_vsphi);     h->pbetanegtp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
@@ -1687,14 +1704,14 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           // Composition stuff without T&P (according to triggers)
           assert(h->pncand); h->pncand->Fill(pt, jtn[jetidx], _w);
           assert(h->pnch); h->pnch->Fill(pt, jtnch[jetidx], _w);
-          assert(h->pnne); h->pnne->Fill(pt, jtnne[jetidx], _w);
-          assert(h->pnnh); h->pnnh->Fill(pt, jtnnh[jetidx], _w);
+          assert(h->pnne); h->pnne->Fill(pt, jtnne[jetidx]-jtnhe[jetidx], _w);
+          assert(h->pnnh); h->pnnh->Fill(pt, jtnnh[jetidx]-jtnhh[jetidx], _w);
           assert(h->pnce); h->pnce->Fill(pt, jtnce[jetidx], _w);
           assert(h->pnmu); h->pnmu->Fill(pt, jtnmu[jetidx], _w);
           //
           assert(h->pchf); h->pchf->Fill(pt, jtchf[jetidx], _w);
-          assert(h->pnef); h->pnef->Fill(pt, jtnef[jetidx], _w);
-          assert(h->pnhf); h->pnhf->Fill(pt, jtnhf[jetidx], _w);
+          assert(h->pnef); h->pnef->Fill(pt, (jtnef[jetidx]-jthef[jetidx]), _w);
+          assert(h->pnhf); h->pnhf->Fill(pt, (jtnhf[jetidx]-jthhf[jetidx]), _w);
           assert(h->pcef); h->pcef->Fill(pt, jtcef[jetidx], _w);
           assert(h->pmuf); h->pmuf->Fill(pt, jtmuf[jetidx], _w);
           assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
@@ -1759,14 +1776,14 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             // Component fractions
             h->hncand->Fill(jtn[jetidx], _w);
             h->hnch->Fill(jtnch[jetidx], _w);
-            h->hnne->Fill(jtnne[jetidx], _w);
-            h->hnnh->Fill(jtnnh[jetidx], _w);
+            h->hnne->Fill(jtnne[jetidx]-jtnhe[jetidx], _w);
+            h->hnnh->Fill(jtnnh[jetidx]-jtnhh[jetidx], _w);
             h->hnce->Fill(jtnce[jetidx], _w);
             h->hnmu->Fill(jtnmu[jetidx], _w);
             //
             h->hchf->Fill(jtchf[jetidx], _w);
-            h->hnef->Fill(jtnef[jetidx], _w);
-            h->hnhf->Fill(jtnhf[jetidx], _w);
+            h->hnef->Fill((jtnef[jetidx]-jthef[jetidx]), _w);
+            h->hnhf->Fill((jtnhf[jetidx]-jthhf[jetidx]), _w);
             h->hcef->Fill(jtcef[jetidx], _w);
             h->hmuf->Fill(jtmuf[jetidx], _w);
             h->hbeta->Fill(jtbeta[jetidx], _w);
@@ -2051,10 +2068,12 @@ void HistosFill::FillSingleEta(HistosEta *h, Float_t* _pt, Float_t* _eta, Float_
           // for composition vs eta (Ozlem) || jetidx is the probe
           if (alphatp < 0.3 and pttag > h->ptmin and pttag < h->ptmax) { // Alpha and trigger
             assert(h->pchftp_vseta); h->pchftp_vseta->Fill(etaprobe, jtchf[iprobe], _w);
-            assert(h->pneftp_vseta); h->pneftp_vseta->Fill(etaprobe, jtnef[iprobe], _w);
-            assert(h->pnhftp_vseta); h->pnhftp_vseta->Fill(etaprobe, jtnhf[iprobe], _w);
+            assert(h->pneftp_vseta); h->pneftp_vseta->Fill(etaprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
+            assert(h->pnhftp_vseta); h->pnhftp_vseta->Fill(etaprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
             assert(h->pceftp_vseta); h->pceftp_vseta->Fill(etaprobe, jtcef[iprobe], _w);
             assert(h->pmuftp_vseta); h->pmuftp_vseta->Fill(etaprobe, jtmuf[iprobe], _w);
+            assert(h->phhftp_vseta); h->phhftp_vseta->Fill(etaprobe, jthhf[iprobe], _w);
+            assert(h->pheftp_vseta); h->pheftp_vseta->Fill(etaprobe, jthef[iprobe], _w);
             assert(h->pbetatp_vseta); h->pbetatp_vseta->Fill(etaprobe, jtbeta[iprobe], _w);
             assert(h->pbetastartp_vseta); h->pbetastartp_vseta->Fill(etaprobe, jtbetastar[iprobe], _w);
             assert(h->pbetaprimetp_vseta); h->pbetaprimetp_vseta->Fill(etaprobe, jtbetaprime[iprobe], _w);
@@ -2383,8 +2402,8 @@ void HistosFill::FillRun(string name)
           h->npv_trg[t][run] += npv;
           h->npvgood_trg[t][run] += npvgood;
           h->c_chf[t][run] += jtchf[jetidx];
-          h->c_nef[t][run] += jtnef[jetidx];
-          h->c_nhf[t][run] += jtnhf[jetidx];
+          h->c_nef[t][run] += (jtnef[jetidx]-jthef[jetidx]);
+          h->c_nhf[t][run] += (jtnhf[jetidx]-jthhf[jetidx]);
           h->c_betastar[t][run] += jtbetastar[jetidx];
           h->c_betaprime[t][run] += jtbetaprime[jetidx];
         }
@@ -2394,8 +2413,8 @@ void HistosFill::FillRun(string name)
             jtpt[itag] > h->pt[t] and _jetids[itag]) {
           ++h->t_trgtp[t][run];
           h->c_chftp[t][run] += jtchf[jetidx];
-          h->c_neftp[t][run] += jtnef[jetidx];
-          h->c_nhftp[t][run] += jtnhf[jetidx];
+          h->c_neftp[t][run] += (jtnef[jetidx]-jthef[jetidx]);
+          h->c_nhftp[t][run] += (jtnhf[jetidx]-jthhf[jetidx]);
           h->c_betastartp[t][run] += jtbetastar[jetidx];
           h->c_betaprimetp[t][run] += jtbetaprime[jetidx];
         }
@@ -2630,22 +2649,17 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
   _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
   if (!_pumc) return false;
   double maxmcpu = _pumc->GetMaximum();
-  int lomclim = _pumc->FindFirstBinAbove(maxmcpu/100.0);
-  int upmclim = _pumc->FindLastBinAbove(maxmcpu/100.0);
+  int lomclim = _pumc->FindFirstBinAbove(maxmcpu/1000.0);
+  int upmclim = _pumc->FindLastBinAbove(maxmcpu/1000.0);
   int maxmcbin = _pumc->FindFirstBinAbove(0.999*maxmcpu);
-  for (int bin = 0; bin < lomclim; ++bin)
-    _pumc->SetBinContent(bin,0.0);
-  for (int bin = upmclim+1; bin <= _pumc->GetNbinsX(); ++bin)
-    _pumc->SetBinContent(bin,0.0);
   PrintInfo(Form("Maximum bin: %d for MC",maxmcbin),true);
-  PrintInfo(Form("Discarding pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)),true);
-  // Normalize
+  PrintInfo(Form("Hazardous pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)),true);
   int nbinsmc = _pumc->GetNbinsX();
   int kmc = _pumc->FindBin(33); // Check that pu=33 occurs at the same place as for data
 
   // For data, load each trigger separately
   for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
-    string t = string(_jp_triggers[itrg]);
+    string t = _jp_triggers[itrg];
     _pudist[t] = dynamic_cast<TH1D*>(f_pudist->Get(t.c_str()));
     if (!_pudist[t]) return false;
     int nbinsdt = _pudist[t]->GetNbinsX();
@@ -2657,34 +2671,17 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
       return false;
     }
     double maxdtpu = _pudist[t]->GetMaximum();
-    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
-    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/100.0);
+    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/1000.0);
+    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/1000.0);
     int maxdtbin = _pudist[t]->FindFirstBinAbove(0.999*maxdtpu);
 
-    int tailcount = 0;
-    for (int bin = 0; bin < lodtlim; ++bin) { // Set fore-tail to zero
-      ++tailcount;
+    for (int bin = 0; bin < lomclim; ++bin) // Set fore-tail to zero
       _pudist[t]->SetBinContent(bin,0.0);
-    }
-    for (int bin = updtlim+1; bin <= _pudist[t]->GetNbinsX(); ++bin) { // Set aft-tail to zero
-      ++tailcount;
-      _pudist[t]->SetBinContent(bin,0.0);
-    }
     PrintInfo(Form("Maximum bin: %d for DT trg %s",maxdtbin,t.c_str()),true);
-    PrintInfo(Form("Discarding pu below & above: %f, %f",_pudist[t]->GetBinLowEdge(lodtlim),_pudist[t]->GetBinLowEdge(updtlim+1)),true);
+    PrintInfo(Form("Hazardous pu below & above: %f, %f",_pudist[t]->GetBinLowEdge(lodtlim),_pudist[t]->GetBinLowEdge(updtlim+1)),true);
     _pudist[t]->Divide(_pumc);
-    double maxvaldt = _pudist[t]->GetBinContent(maxdtbin);
-
-    int abovecount = 0;
-    for (int bin = 1; bin <= _pudist[t]->GetNbinsX(); ++bin) { // Set divergent values to zero
-      if (_pudist[t]->GetBinContent(bin)/maxvaldt>10.0) {
-        ++abovecount;
-        _pudist[t]->SetBinContent(bin,0.0);
-      }
-    }
-    PrintInfo(Form("Discarded %d entries from tails and %d from too high values.",tailcount,abovecount));
   }
-  // REMOVED: "data with only one histo:"
+  PrintInfo("Finished processing pileup histos!",true);
 
   curdir->cd();
   return true;
@@ -2847,7 +2844,7 @@ bool HistosFill::GetTriggers()
               }
               found = true;
               if (thrplace < _jp_notrigs+1)
-                _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]);
+                _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]/_jp_trigwgts[_jp_notrigIDs][thrplace]);
               else {
                 cerr << "Error searching the trigger weight! Aborting..." << endl;
                 return false;
@@ -2860,7 +2857,7 @@ bool HistosFill::GetTriggers()
           _goodWgts.push_back(0.0);
         }
       } else {
-        _goodWgts.push_back(_jp_triglumi[_jp_notrigs-1]/_jp_triglumi[thrplace]);
+        _goodWgts.push_back(1.0);//_jp_triglumi[_jp_notrigs-1]/_jp_triglumi[thrplace]);
       }
     } else if (std::regex_match(trgName,ak8)) {
       trigger=std::regex_replace(trgName, ak8, "ak8jt$1", std::regex_constants::format_no_copy);

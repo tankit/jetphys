@@ -39,6 +39,8 @@ vector<string> _ignoretrgs;
 TDirectory *_top = 0;
 
 void HistosCombine() {
+  TH1::SetDefaultSumw2(kTRUE);
+
   TDirectory *curdir = gDirectory;
 
   TFile *fin = new TFile(Form("output-%s-2a.root",_jp_type),"READ");

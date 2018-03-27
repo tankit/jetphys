@@ -44,13 +44,13 @@ class HistosEta {
   TProfile *pnmutp_vseta;
   TProfile *pnhhtp_vseta;
   TProfile *pnhetp_vseta;
-  TProfile *phhftp_vseta;
-  TProfile *pheftp_vseta;
   TProfile *pchftp_vseta;
   TProfile *pneftp_vseta;
   TProfile *pnhftp_vseta;
   TProfile *pceftp_vseta;
   TProfile *pmuftp_vseta;
+  TProfile *phhftp_vseta;
+  TProfile *pheftp_vseta;
   TProfile *pbetatp_vseta;
   TProfile *pbetastartp_vseta;
   TProfile *pbetaprimetp_vseta;

@@ -187,11 +187,14 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pnnhtp = new TProfile("pnnhtp","",_jp_npts,&_jp_ptrange[0]);
   pncetp = new TProfile("pncetp","",_jp_npts,&_jp_ptrange[0]);
   pnmutp = new TProfile("pnmutp","",_jp_npts,&_jp_ptrange[0]);
+
   pchftp = new TProfile("pchftp","",_jp_npts,&_jp_ptrange[0]);
   pneftp = new TProfile("pneftp","",_jp_npts,&_jp_ptrange[0]);
   pnhftp = new TProfile("pnhftp","",_jp_npts,&_jp_ptrange[0]);
   pceftp = new TProfile("pceftp","",_jp_npts,&_jp_ptrange[0]);
   pmuftp = new TProfile("pmuftp","",_jp_npts,&_jp_ptrange[0]);
+  phhftp = new TProfile("phhftp","",_jp_npts,&_jp_ptrange[0]);
+  pheftp = new TProfile("pheftp","",_jp_npts,&_jp_ptrange[0]);
   pbetatp = new TProfile("pbetatp","",_jp_npts,&_jp_ptrange[0]);
   pbetastartp = new TProfile("pbetastartp","",_jp_npts,&_jp_ptrange[0]);
   pbetaprimetp = new TProfile("pbetaprimetp","",_jp_npts,&_jp_ptrange[0]);
@@ -208,6 +211,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   hnnhtp = new TH1D("hnnhtp","",300,-0.5,299.5);
   hncetp = new TH1D("hncetp","",300,-0.5,299.5);
   hnmutp = new TH1D("hnmutp","",300,-0.5,299.5);
+
   hchftp = new TH1D("hchftp","",110,0.,1.1);
   hneftp = new TH1D("hneftp","",110,0.,1.1);
   hnhftp = new TH1D("hnhftp","",110,0.,1.1);
