@@ -39,8 +39,6 @@ vector<string> _ignoretrgs;
 TDirectory *_top = 0;
 
 void HistosCombine() {
-  TH1::SetDefaultSumw2(kTRUE);
-
   TDirectory *curdir = gDirectory;
 
   TFile *fin = new TFile(Form("output-%s-2a.root",_jp_type),"READ");
@@ -286,21 +284,16 @@ void HistosCombine() {
   cout << "Input file closed" << endl;
 } // HistosNormalize
 
-inline void binCp(TH1 *_hpt, TH1 *hpt, int bin) {
+inline void binCp(TH1 *_hpt, TH1 *hpt, int bin) { // Copying a TH1 bin is simple
   _hpt->SetBinContent(bin, hpt->GetBinContent(bin));
   _hpt->SetBinError(bin, hpt->GetBinError(bin));
 }
 
-inline void binCp(TProfile *_hpt, TProfile *hpt, int bin) {
-  _hpt->SetBinEntries(bin, hpt->GetBinEntries(bin));
-  (*_hpt)[bin] = (*hpt)[bin];
-  (*_hpt->GetSumw2())[bin] =  (*hpt->GetSumw2())[bin];
-  _hpt->SetBinEntries(bin, hpt->GetBinEntries(bin) );
-  if (hpt->GetBinSumw2()->fN > bin) {
-    _hpt->Sumw2(kFALSE);
-    _hpt->Sumw2();
-    (*_hpt->GetBinSumw2())[bin] = (*hpt->GetBinSumw2())[bin];
-  }
+inline void binCp(TProfile *_hpt, TProfile *hpt, int bin) { // Copying a TProfile bin is complicated
+  (*_hpt)[bin] += (*hpt)[bin]; // GetW
+  (*_hpt->GetSumw2())[bin] += (*hpt->GetSumw2())[bin]; // GetW2
+  _hpt->SetBinEntries(bin, hpt->GetBinEntries(bin)+_hpt->GetBinEntries(bin)); // GetB
+  (*_hpt->GetBinSumw2())[bin] = (*hpt->GetBinSumw2())[bin]; // GetB2
 }
 
 template<typename T>
@@ -325,7 +318,7 @@ inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSele
     for (int i = 1; i != hpt->GetNbinsX()+1; ++i) {
       double pt = hpt->GetXaxis()->GetBinCenter(i);
       if (pt > ptmin and pt < ptmax) { // TODO: We could do better than a linear search!
-        if (isth23) {
+        if (isth23) { // TH2 and TH3
           for (int j = 1; j != _hpt->GetNbinsY()+1; ++j) {
             if (isth3) {
               for (int k = 1; k != _hpt->GetNbinsZ()+1; ++k) {
@@ -337,7 +330,7 @@ inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSele
               _hpt->SetBinError(i,j, hpt->GetBinError(i,j));
             }
           } // for j
-        } else {
+        } else { // TH1 and TProfile
           binCp(_hpt,hpt,i);
         }
       } // in ptrange
@@ -349,8 +342,8 @@ inline void fillHisto(T *hpt, TDirectory *outdir, TDirectory *indir, bool ptSele
 }
 
 
-void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSelect, bool othProf, int lvl, double etamid) {
-
+void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSelect, bool othProf, int lvl, double etamid)
+{
   TDirectory *curdir = gDirectory;
   // Automatically go through the list of keys (directories)
   TObject *obj = 0;

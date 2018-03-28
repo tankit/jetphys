@@ -14,7 +14,7 @@ CondFormats
 *tmp*
 *pdf
 mk_histosFill.C
-settings.h
+settings.h*
 pileup/Run*
 pileup/RR*
 pileup/LRR*
