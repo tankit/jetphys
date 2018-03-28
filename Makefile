@@ -9,3 +9,6 @@ distclean:
 	rm -f reports/*.log
 	rm -f reports/*.json
 	rm -f ./*.txt
+	rm -rf doc/latex/*
+	rm -rf doc/html/*
+	rm -f ./*.root
