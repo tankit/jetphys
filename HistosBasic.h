@@ -196,14 +196,6 @@ class HistosBasic {
   TProfile *pbetastartp;
   TProfile *pbetaprimetp;
   //
-  TProfile *pchftp2;
-  TProfile *pneftp2;
-  TProfile *pnhftp2;
-  TProfile *pceftp2;
-  TProfile *pmuftp2;
-  TProfile *phhftp2;
-  TProfile *pheftp2;
-  //
   TH1D *hncandtp;
   TH1D *hnchtp;
   TH1D *hnnetp;
@@ -222,7 +214,7 @@ class HistosBasic {
   TH1D *hbetatp;
   TH1D *hbetastartp;
   TH1D *hbetaprimetp;
-  //
+  // Npv
   TProfile *pncandtp_vsnpv;
   TProfile *pnchtp_vsnpv;
   TProfile *pnnetp_vsnpv;
@@ -241,14 +233,14 @@ class HistosBasic {
   TProfile *pbetatp_vsnpv;
   TProfile *pbetastartp_vsnpv;
   TProfile *pbetaprimetp_vsnpv;
-  //
+  // Pileup
   TProfile *pchftp_vstrpu;
   TProfile *pneftp_vstrpu;
   TProfile *pnhftp_vstrpu;
   TProfile *pceftp_vstrpu;
   TProfile *pmuftp_vstrpu;
-  //TProfile *phhftp_vstrpu;
-  //TProfile *pheftp_vstrpu;
+  TProfile *phhftp_vstrpu;
+  TProfile *pheftp_vstrpu;
   TProfile *pbetatp_vstrpu;
   TProfile *pbetastartp_vstrpu;
   TProfile *pbetaprimetp_vstrpu;
@@ -258,6 +250,8 @@ class HistosBasic {
   TProfile *pnhfpostp_vsphi;
   TProfile *pcefpostp_vsphi;
   TProfile *pmufpostp_vsphi;
+  TProfile *phhfpostp_vsphi;
+  TProfile *phefpostp_vsphi;
   TProfile *pbetapostp_vsphi;
   TProfile *pbetastarpostp_vsphi;
   TProfile *pbetaprimepostp_vsphi;
@@ -266,6 +260,8 @@ class HistosBasic {
   TProfile *pnhfnegtp_vsphi;
   TProfile *pcefnegtp_vsphi;
   TProfile *pmufnegtp_vsphi;
+  TProfile *phhfnegtp_vsphi;
+  TProfile *phefnegtp_vsphi;
   TProfile *pbetanegtp_vsphi;
   TProfile *pbetastarnegtp_vsphi;
   TProfile *pbetaprimenegtp_vsphi;

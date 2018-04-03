@@ -5,6 +5,7 @@
 
 void Fracs::DrawFracs(unsigned mode) {
   setTDRStyle();
+  TH1::SetDefaultSumw2(kTRUE);
 
   // Bool flags for mode
   _vspt = false;
@@ -106,8 +107,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     h->SetXTitle("N_{PV,good}");
     h2->SetXTitle("N_{PV,good}");
   } else if (_vseta) {
-    h->SetXTitle("Eta");
-    h2->SetXTitle("Eta");
+    h->SetXTitle("#eta");
+    h2->SetXTitle("#eta");
   }
   h->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
   h2->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
@@ -120,46 +121,57 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   TCanvas *c1 = tdrDiCanvas(Form("c1%s",taguniq.c_str()),h,h2,4,0);
 
   c1->cd(1);
-  TLegend *leg = 0;
+
+  double xLo = 0.0, xHi = 0.0, yLo = 0.0, yHi = 0.0;
   if (_order==0) {
-    if (_vseta)
-      leg = tdrLeg(0.38,0.1,0.58,0.4);
-    else if (_vspt)
-      leg = tdrLeg(0.20,0.18,0.50,0.48);
-    else
-      leg = tdrLeg(0.20,0.18,0.50,0.48);
+    if (_vseta) {
+      xLo = 0.38; yLo = 0.1; xHi = 0.58; yHi = 0.4;
+    } else if (_vspt) {
+      xLo = 0.20; yLo = 0.18; xHi = 0.50; yHi = 0.48;
+    } else {
+      xLo = 0.20; yLo = 0.18; xHi = 0.50; yHi = 0.48;
+    }
   } else if (_order==1) {
-    if (_vseta)
-      leg = tdrLeg(0.38,0.45,0.58,0.75);
-    else if (_vspt)
-      leg = tdrLeg(0.20,0.45,0.50,0.75);
-    else
-      leg = tdrLeg(0.20,0.5,0.50,0.8);
+    if (_vseta) {
+      xLo = 0.38; yLo = 0.45; xHi = 0.58; yHi = 0.75;
+    } else if (_vspt) {
+      xLo = 0.20; yLo = 0.45; xHi = 0.50; yHi = 0.75;
+    } else {
+      xLo = 0.20; yLo = 0.5; xHi = 0.50; yHi = 0.8;
+    }
   } else if (_order==2) {
-    if (_vseta)
-      leg = tdrLeg(0.38,0.1,0.58,0.4);
-    else if (_vspt)
-      leg = tdrLeg(0.20,0.25,0.50,0.55);
-    else
-      leg = tdrLeg(0.20,0.18,0.50,0.48);
+    if (_vseta) {
+      xLo = 0.38; yLo = 0.1; xHi = 0.58; yHi = 0.4;
+    } else if (_vspt) {
+      xLo = 0.20; yLo = 0.25; xHi = 0.50; yHi = 0.55;
+    } else {
+      xLo = 0.20; yLo = 0.18; xHi = 0.50; yHi = 0.48;
+    }
   } else if (_order==3) {
-    if (_vseta)
-      leg = tdrLeg(0.38,0.1,0.58,0.4);
-    else if (_vspt)
-      leg = tdrLeg(0.20,0.18,0.50,0.48);
-    else
-      leg = tdrLeg(0.20,0.18,0.50,0.48);
+    if (_vseta) {
+      xLo = 0.36; yLo = 0.15; xHi = 0.56; yHi = 0.45;
+    } else if (_vspt) {
+      if (eta2 != 3.0) {
+        xLo = 0.18; yLo = 0.18; xHi = 0.48; yHi = 0.48;
+      } else {
+        xLo = 0.18; yLo = 0.14; xHi = 0.48; yHi = 0.44;
+      }
+    } else {
+      xLo = 0.20; yLo = 0.18; xHi = 0.50; yHi = 0.48;
+    }
   }
+  TLegend *leg = tdrLeg(xLo,yLo,xHi,yHi);
 
   const char *dirname = Form("Eta_%1.1f-%1.1f%s",eta1,eta2,_pertrg?("/"+trg).c_str():"");
 
-  TH1D *href = new TH1D("href","", _x.size()-1, &_x[0]);
   map<string,TH1D*> mcHistos;
   map<string,TH1D*> dtHistos;
   for (auto &frc : _fracs) {
     const char *hname0 = Form("p%s%s%s%s",frc.c_str(),_sphi.c_str(),_tp.c_str(),_modes[mode].c_str());
-    if (!_vseta) { bool enterdtdir = ddt->cd(dirname); assert(enterdtdir); }
-    else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
+    if (!_vseta) {
+      if (!_vspt and (frc=="hef" or frc=="hhf")) continue;
+      bool enterdtdir = ddt->cd(dirname); assert(enterdtdir);
+    } else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
     else { bool enterdtdir = ddt->cd(); assert(enterdtdir); }
     TProfile *pdt = dynamic_cast<TProfile*>(gDirectory->Get(hname0));
     if (!pdt) {
@@ -169,7 +181,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
     pdt->SetName(Form("%s_dt",pdt->GetName()));
     if (_vspt or _vseta) {
-      pdt->Sumw2(kFALSE);
       TProfile *pdtmp = dynamic_cast<TProfile*>(pdt->Rebin(_x.size()-1,Form("%s_rb",pdt->GetName()),&_x[0]));
       pdt->Delete(); pdt = 0;
       pdt = pdtmp;
@@ -188,7 +199,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
     pmc->SetName(Form("%s_mc",pmc->GetName()));
     if (_vspt or _vseta) {
-      pmc->Sumw2(kFALSE);
       TProfile *pmcmp = dynamic_cast<TProfile*>(pmc->Rebin(_x.size()-1,Form("%s_rb",pmc->GetName()),&_x[0]));
       pmc->Delete(); pdt = 0;
       pmc = pmcmp;
@@ -196,15 +206,20 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     mcHistos[frc] = pmc->ProjectionX(Form("%s_px",pmc->GetName()));
     pmc->Delete();
   } // for frc in _fracs
-  href->Delete();
 
   vector<pair<TH1D*,string>> hdts;
   for (auto &frc : _fracs) {
     if (!_dobeta and frc=="beta") continue;
     else if (frc=="muf") continue;
+    else if (!_vseta and (!_vspt or eta2<3.0)) {
+        if (frc=="hef" or frc=="hhf") continue;
+    }
 
     TH1D *hmc = dynamic_cast<TH1D*>(mcHistos[frc]->Clone(Form("%sc",mcHistos[frc]->GetName()))); assert(hmc);
     TH1D *hdt = dynamic_cast<TH1D*>(dtHistos[frc]->Clone(Form("%sc",dtHistos[frc]->GetName()))); assert(hmc);
+    hmc->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
+    hdt->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
+    TH1D *hdf = dynamic_cast<TH1D*>(hdt->Clone(Form("hdf%s",taguniq.c_str()))); assert(hdf);
 
     // Scale data by response to MC-equivalent energy fractions
     if (_shiftJES) {
@@ -222,7 +237,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       TH1D *hdt2 = dtHistos["muf"]; assert(hdt2);
       for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
         hdt->SetBinContent(i, hdt->GetBinContent(i)+hdt2->GetBinContent(i));  // cef -> cef + muf
-    } else if (frc=="betastar") { // For betastar, multiply by chf
+    } else if (frc=="betaprime") { // For betastar, multiply by chf
       TH1D *hmc2 = mcHistos["chf"]; assert(hmc2);
       for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
         hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));  // betastar -> chf * betastar
@@ -239,13 +254,14 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
         hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));  // beta -> chf * beta
     } else if (frc=="chf") { // For chf, multiply by (1-beta-betastar)
+      hdf->Add(hdt, hmc, 100, -100);
       TH1D *hmc2 = mcHistos["beta"]; assert(hmc2);
-      TH1D *hmc3 = mcHistos["betastar"]; assert(hmc3);
+      TH1D *hmc3 = mcHistos["betaprime"]; assert(hmc3);
       for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
         hmc->SetBinContent(i, hmc->GetBinContent(i) * (1 - (_dobeta ? hmc2->GetBinContent(i) : 0) - hmc3->GetBinContent(i)));  // chf -> chf*(1-beta-betastar)
 
       TH1D *hdt2 = dtHistos["beta"]; assert(hdt2);
-      TH1D *hdt3 = dtHistos["betastar"]; assert(hdt3);
+      TH1D *hdt3 = dtHistos["betaprime"]; assert(hdt3);
       for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
         hdt->SetBinContent(i, hdt->GetBinContent(i) * (1 - (_dobeta ? hdt2->GetBinContent(i) : 0) - hdt3->GetBinContent(i)));  // chf -> chf*(1-beta-betastar)
     } // others we do not touch
@@ -265,18 +281,17 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     hsdt->Add(hdt, "SAME P");
 
     // Then, do the difference
-    TH1D *hdf = dynamic_cast<TH1D*>(hdt->Clone(Form("hdf%s",taguniq.c_str()))); assert(hdt);
-    hdf->Add(hdt, hmc, 100, -100);
+    if (frc!="chf") hdf->Add(hdt, hmc, 100, -100);
     hdf->SetLineColor(_style[frc].first + 1);
     hdf->SetMarkerColor(_style[frc].first + 1);
     hdf->SetMarkerStyle(_style[frc].second);
     hdf->SetLineWidth(2);
     hdf->SetMarkerSize(frc=="nhf" or (frc=="chf" and _dobeta) ? 1.8 : 1.3);
-    hsdf->Add(hdf, "SAME P");
+    hsdf->Add(hdf,"SAME P");
 
     c1->cd(2);
 
-    hdf->Draw("SAME");
+    hdf->Draw("SAME P");
     mdf[frc] = hdf;
     hdts.push_back(std::make_pair(hdt,_name[frc]));
   } // for frc
@@ -285,7 +300,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   TLatex *tex = new TLatex();
   tex->SetNDC();
   tex->SetTextSize(h2->GetYaxis()->GetLabelSize());
-  tex->DrawLatex(0.17,0.80,Form("Anti-k_{T} R=0.4%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=%s",trg.c_str()):""));
+  tex->DrawLatex(0.17,0.80,Form("Anti-k_{T} R=0.4%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=PFJet%s",trg.substr(2).c_str()):""));
 
   for (auto rhdti = hdts.rbegin(); rhdti != hdts.rend(); ++rhdti)
     leg->AddEntry(rhdti->first, rhdti->second.c_str(),"PF");
@@ -295,7 +310,27 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   hsmc->Draw("SAME");
   hsdt->Draw("SAME");
   leg->Draw("SAME"); // redraw
-  if (_pertrg) {
+  tex->SetTextSize(leg->GetTextSize());
+  if (!_pertrg) {
+    tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
+    if (_vspt) {
+      if (eta2 <= 2.5) {
+        tex->DrawLatex(xLo,0.85,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
+        tex->DrawLatex(xLo,0.80,Form("%s: marker",_dt_type.c_str()));
+        tex->DrawLatex(xLo,0.76,Form("%s: color",_mc_type.c_str()));
+      } else {
+        tex->DrawLatex(xLo,0.75,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
+        tex->DrawLatex(xLo,0.70,Form("%s: marker",_dt_type.c_str()));
+        tex->DrawLatex(xLo,0.66,Form("%s: color",_mc_type.c_str()));
+      }
+    } else if (_vseta) {
+      tex->DrawLatex(xLo,0.81,Form("%s: marker",_dt_type.c_str()));
+      tex->DrawLatex(xLo,0.77,Form("%s: color",_mc_type.c_str()));
+    } else {
+      tex->DrawLatex(xLo,0.81,Form("%s: marker",_dt_type.c_str()));
+      tex->DrawLatex(xLo,0.77,Form("%s: color",_mc_type.c_str()));
+    }
+  } else {
     auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_notrigs,trg)-_jp_triggers;
     tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
     if (_order==0) {
@@ -314,10 +349,23 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       else
         tex->DrawLatex(0.38,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
     } else if (_order==3) {
-      if (_vspt)
-        tex->DrawLatex(0.2,0.75,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-      else
-        tex->DrawLatex(0.38,0.75,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+      if (_vspt) {
+        if (eta2 <= 2.5) {
+          tex->DrawLatex(xLo,0.85,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
+          tex->DrawLatex(xLo,0.80,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+          tex->DrawLatex(xLo,0.75,Form("%s: marker",_dt_type.c_str()));
+          tex->DrawLatex(xLo,0.71,Form("%s: color",_mc_type.c_str()));
+        } else {
+          tex->DrawLatex(xLo,0.75,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
+          tex->DrawLatex(xLo,0.70,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+          tex->DrawLatex(xLo,0.65,Form("%s: marker",_dt_type.c_str()));
+          tex->DrawLatex(xLo,0.61,Form("%s: color",_mc_type.c_str()));
+        }
+      } else {
+        tex->DrawLatex(xLo,0.85,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
+        tex->DrawLatex(xLo,0.80,Form("%s: marker",_dt_type.c_str()));
+        tex->DrawLatex(xLo,0.76,Form("%s: color",_mc_type.c_str()));
+      }
     }
   }
   gPad->RedrawAxis();
@@ -338,7 +386,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       fchf->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
       TH1D *hchfa = dynamic_cast<TH1D*>(mdf["beta"]->Clone("hcfha")); assert(hchfa);
       hchfa->Add(mdf["chf"]);
-      hchfa->Add(mdf["betastar"]);
+      hchfa->Add(mdf["betaprime"]);
       hchfa->Fit(fchf,"QRN");
       fchf->SetLineColor(kRed+3);
       fchf->Draw("SAME");
@@ -372,7 +420,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
     TH1D *hall = dynamic_cast<TH1D*>(mdf["chf"]->Clone("hall")); assert(hall);
     if (_dobeta) hall->Add(mdf["beta"]);
-    hall->Add(mdf["betastar"]);
+    hall->Add(mdf["betaprime"]);
     hall->Add(mdf["nef"]);
     hall->Add(mdf["nhf"]);
     hall->Add(mdf["cef"]);

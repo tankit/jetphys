@@ -35,7 +35,7 @@ HistosFill::HistosFill(TChain *tree) :
   metsumet(PFMet__sumEt_)
 {
   assert(tree);
-  Init(tree);
+  _initsuccess = Init(tree);
 }
 
 
@@ -58,11 +58,19 @@ void HistosFill::PrintMemInfo(bool printcout)
 
 
 // Mostly setting up the root tree and its branches
-void HistosFill::Init(TTree *tree)
+bool HistosFill::Init(TTree *tree)
 {
-  if (!tree) return; // With no tree, Loop will be interrupted
   ferr = new ofstream(Form("reports/HistosFill-%s.log",_jp_type),ios::out);
-  _outfile = new TFile(Form("output-%s-1.root",_jp_type), "RECREATE");
+
+  if (!tree) {
+    PrintInfo("No tree given, processing makes no sense.",true);
+    return false; // With no tree, Loop will be interrupted
+  }
+  _outfile = new TFile(Form("output-%s-1.root",_jp_type), "NEW");
+  if (!_outfile or _outfile->IsZombie()) {
+    PrintInfo(Form("Opening the output file output-%s-1.root failed. Check if the file already exists.",_jp_type),false);
+    return false;
+  }
 
   fChain = tree;
   fCurrent = -1;
@@ -220,6 +228,8 @@ void HistosFill::Init(TTree *tree)
     fChain->SetBranchStatus(Form("PFJets%s_.nhm_",_jp_chs),1); // jtnnh
     fChain->SetBranchStatus(Form("PFJets%s_.elm_",_jp_chs),1); // jtnce !!
     fChain->SetBranchStatus(Form("PFJets%s_.mum_",_jp_chs),1); // jtnmu !!
+    fChain->SetBranchStatus(Form("PFJets%s_.hf_hm_",_jp_chs),1); // jtnmu !!
+    fChain->SetBranchStatus(Form("PFJets%s_.hf_phm_",_jp_chs),1); // jtnmu !!
     fChain->SetBranchStatus(Form("PFJets%s_.tightID_",_jp_chs),1); // jtidtight
     fChain->SetBranchStatus(Form("PFJets%s_.looseID_",_jp_chs),1); // jtidloose
 
@@ -303,13 +313,15 @@ void HistosFill::Init(TTree *tree)
   gen_jtp4y = &GenJets__fCoordinates_fY[0];
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
+
+  return true;
 }
 
 
 // Loop over events
 void HistosFill::Loop()
 {
-  if (fChain == 0) return;
+  if (!_initsuccess) return;
 
   // Report memory usage to avoid malloc problems when writing file
   PrintInfo("Starting Loop() initialization:");
@@ -336,7 +348,10 @@ void HistosFill::Loop()
     if (LoadTree(_jentry) < 0) break;
     nb = fChain->GetEntry(_jentry);   nbytes += nb;
 
-    if (_jentry%hopval==repval) { // 1M report (first report timed to be early)
+    int testval = djentry;
+    if (_jp_skim>0) testval /= 1+_jp_skim;
+
+    if (testval%hopval==repval) { // 1M report (first report timed to be early)
       // Report memory usage to avoid malloc problems when writing file
       PrintInfo( Form("Doing Loop(), %dM events:",int(_jentry/1e6 + 0.5)) );
       PrintMemInfo();
@@ -348,7 +363,7 @@ void HistosFill::Loop()
       cout << "NOW: ";
       now.Print();
       TDatime nxt;
-      nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(hopval)/static_cast<Double_t>(djentry))));
+      nxt.Set(nxt.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(hopval)/static_cast<Double_t>(testval))));
       cout << "NXT: ";
       nxt.Print();
       now.Set(now.Convert()+static_cast<UInt_t>(stop.RealTime()*(static_cast<Double_t>(_nentries)/static_cast<Double_t>(djentry)-1.0)));
@@ -363,11 +378,11 @@ void HistosFill::Loop()
             for (auto &manyhists : _etahistos)
               for (auto & onehist : manyhists.second)
                 onehist->Write();
-              if (_jp_doEtaHistosMcResponse) {
-                for (auto &manyhists : _mchistos)
-                  for (auto & onehist : manyhists.second)
-                    onehist->Write();
-              }
+            if (_jp_doEtaHistosMcResponse) {
+              for (auto &manyhists : _mchistos)
+                for (auto & onehist : manyhists.second)
+                  onehist->Write();
+            }
           }
       }
       stop.Continue();
@@ -696,6 +711,7 @@ bool HistosFill::AcceptEvent()
         ++_nbadevts_run;
         return false;
       }
+
       // Do we have the LS listed in the .csv file?
       auto ils = irun->second.find(lbn);
       if (ils==irun->second.end()) {
@@ -703,6 +719,7 @@ bool HistosFill::AcceptEvent()
         ++_nbadevts_ls;
         return false;
       }
+
       // Does the .csv file list a non-zero luminosity?
       if (ils->second==0) {
         _nolums.insert(pair<int, int>(run, lbn));
@@ -879,6 +896,11 @@ bool HistosFill::AcceptEvent()
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
 
+  // Zero jets not sensible
+  _pass = _pass and i0>=0;
+  if (_pass) ++_cnt["04njt"];
+  else _pass = false;
+
   if (_jp_debug) {
     cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
     cout << "Gen flav calculation!" << endl;
@@ -926,6 +948,7 @@ bool HistosFill::AcceptEvent()
       // Only add the greatest trigger present
       // Calculate trigger PU weight
       bool found = false;
+      double wtrue = 1.0;
       for (int itrg = _jp_notrigs-1; itrg >= 0; --itrg) {
         if (jtpt[i0]>_jp_trigranges[itrg][0]) {
           string trg_name = _jp_triggers[itrg];
@@ -935,13 +958,8 @@ bool HistosFill::AcceptEvent()
           // Reweight in-time pile-up
           if (_jp_reweighPU) {
             int k = _pudist[trg_name]->FindBin(trpu);
-            double wtrue = _pudist[trg_name]->GetBinContent(k);
+            wtrue = _pudist[trg_name]->GetBinContent(k);
             _wt[trg_name] *= wtrue;
-
-            // check for non-zero PU weight
-            _pass = _pass and wtrue!=0;
-            if (_pass) ++_cnt["07puw"];
-            else return false; // Bad pu areas with zero weight excluded
           }
           found = true;
           break; // Don't add lesser triggers
@@ -950,6 +968,11 @@ bool HistosFill::AcceptEvent()
       _pass = _pass and found;
       if (_pass) ++_cnt["07mctrg"];
       else return false; // Leading jet is weak
+
+      // check for non-zero PU weight
+      _pass = _pass and wtrue!=0;
+      if (_pass) ++_cnt["07puw"];
+      else return false; // Bad pu areas with zero weight excluded
     } // _jp_domctrigsim
     _trigs.insert("mc");
     _wt["mc"] = 1.0;
@@ -1080,17 +1103,23 @@ bool HistosFill::AcceptEvent()
     if (_pass) ++_cnt["08etaphiexclECAL"];
   }
 
-  // We gather some data also from 0-jet events and events with a bad leading jet
-  if (i0>=0 and _pass) {
-    ++_cnt["09njt"];
-    if (_jetids[i0] and _pass) {
-      ++_cnt["10jtid"];
-      // Check if overweight PU event
-      if (_jp_ismc and _pass) {
-        if (jtpt[i0] < 1.5*jtgenpt[i0] or jtpt[i0] < 1.5*pthat) ++_cnt["11pthat"];
-        else _pass = false;
+  if (_jetids[i0] and _pass) {
+    // Check if overweight PU event
+    if (_jp_ismc and _pass) {
+      if (jtpt[i0] < 1.5*jtgenpt[i0]) ++_cnt["09ptgenlim"];
+      else _pass = false;
+
+      if (_pass) {
+        if (_jp_pthatbins) {
+          if (jtpt[i0] < _pthatuplim) ++_cnt["10pthatlim"];
+          else _pass = false;
+        } else { // Flat case
+          if (jtpt[i0] < 1.5*pthat) ++_cnt["10pthatlim"];
+          else _pass = false;
+        }
       }
     }
+    if (_pass) ++_cnt["11jtid"]; // Non-restrictive
   }
 
   // Equipped in FillBasic and FillRun
@@ -1436,11 +1465,15 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->hnnhtp);      h->hnnhtp->Fill(jtnnh[iprobe]-jtnhh[iprobe], _w);
                 assert(h->hncetp);      h->hncetp->Fill(jtnce[iprobe], _w);
                 assert(h->hnmutp);      h->hnmutp->Fill(jtnmu[iprobe], _w);
+                assert(h->hnhhtp);      h->hnhhtp->Fill(jtnhh[iprobe], _w);
+                assert(h->hnhetp);      h->hnhetp->Fill(jtnhe[iprobe], _w);
                 assert(h->hchftp);      h->hchftp->Fill(jtchf[iprobe], _w);
                 assert(h->hneftp);      h->hneftp->Fill((jtnef[iprobe]-jthef[iprobe]), _w);
                 assert(h->hnhftp);      h->hnhftp->Fill((jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->hceftp);      h->hceftp->Fill(jtcef[iprobe], _w);
                 assert(h->hmuftp);      h->hmuftp->Fill(jtmuf[iprobe], _w);
+                assert(h->hhhftp);      h->hhhftp->Fill(jthhf[iprobe], _w);
+                assert(h->hheftp);      h->hheftp->Fill(jthef[iprobe], _w);
                 assert(h->hbetatp);     h->hbetatp->Fill(jtbeta[iprobe], _w);
                 assert(h->hbetastartp); h->hbetastartp->Fill(jtbetastar[iprobe], _w);
                 assert(h->hbetaprimetp); h->hbetaprimetp->Fill(jtbetaprime[iprobe], _w);
@@ -1452,11 +1485,15 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pnnhtp_vsnpv);      h->pnnhtp_vsnpv->Fill(npvgood, jtnnh[iprobe]-jtnhh[iprobe], _w);
                 assert(h->pncetp_vsnpv);      h->pncetp_vsnpv->Fill(npvgood, jtnce[iprobe], _w);
                 assert(h->pnmutp_vsnpv);      h->pnmutp_vsnpv->Fill(npvgood, jtnmu[iprobe], _w);
+                assert(h->pnhhtp_vsnpv);      h->pnhhtp_vsnpv->Fill(npvgood, jtnhh[iprobe], _w);
+                assert(h->pnhetp_vsnpv);      h->pnhetp_vsnpv->Fill(npvgood, jtnhe[iprobe], _w);
                 assert(h->pchftp_vsnpv);      h->pchftp_vsnpv->Fill(npvgood, jtchf[iprobe], _w);
                 assert(h->pneftp_vsnpv);      h->pneftp_vsnpv->Fill(npvgood, (jtnef[iprobe]-jthef[iprobe]), _w);
                 assert(h->pnhftp_vsnpv);      h->pnhftp_vsnpv->Fill(npvgood, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->pceftp_vsnpv);      h->pceftp_vsnpv->Fill(npvgood, jtcef[iprobe], _w);
                 assert(h->pmuftp_vsnpv);      h->pmuftp_vsnpv->Fill(npvgood, jtmuf[iprobe], _w);
+                assert(h->phhftp_vsnpv);      h->phhftp_vsnpv->Fill(npvgood, jthhf[iprobe], _w);
+                assert(h->pheftp_vsnpv);      h->pheftp_vsnpv->Fill(npvgood, jthef[iprobe], _w);
                 assert(h->pbetatp_vsnpv);     h->pbetatp_vsnpv->Fill(npvgood, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vsnpv); h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[iprobe], _w);
                 assert(h->pbetaprimetp_vsnpv); h->pbetaprimetp_vsnpv->Fill(npvgood, jtbetaprime[iprobe], _w);
@@ -1467,6 +1504,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pnhftp_vstrpu);      h->pnhftp_vstrpu->Fill(trpu, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                 assert(h->pceftp_vstrpu);      h->pceftp_vstrpu->Fill(trpu, jtcef[iprobe], _w);
                 assert(h->pmuftp_vstrpu);      h->pmuftp_vstrpu->Fill(trpu, jtmuf[iprobe], _w);
+                assert(h->phhftp_vstrpu);      h->phhftp_vstrpu->Fill(trpu, jthhf[iprobe], _w);
+                assert(h->pheftp_vstrpu);      h->pheftp_vstrpu->Fill(trpu, jthef[iprobe], _w);
                 assert(h->pbetatp_vstrpu);     h->pbetatp_vstrpu->Fill(trpu, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vstrpu); h->pbetastartp_vstrpu->Fill(trpu, jtbetastar[iprobe], _w);
                 assert(h->pbetaprimetp_vstrpu); h->pbetaprimetp_vstrpu->Fill(trpu, jtbetaprime[iprobe], _w);
@@ -1478,6 +1517,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->pnhfpostp_vsphi);      h->pnhfpostp_vsphi->Fill(phiprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                     assert(h->pcefpostp_vsphi);      h->pcefpostp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
                     assert(h->pmufpostp_vsphi);      h->pmufpostp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
+                    assert(h->phhfpostp_vsphi);      h->phhfpostp_vsphi->Fill(phiprobe, jthhf[iprobe], _w);
+                    assert(h->phefpostp_vsphi);      h->phefpostp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
                     assert(h->pbetapostp_vsphi);     h->pbetapostp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
                     assert(h->pbetastarpostp_vsphi); h->pbetastarpostp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
                     assert(h->pbetaprimepostp_vsphi); h->pbetaprimepostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
@@ -1487,6 +1528,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->pnhfnegtp_vsphi);      h->pnhfnegtp_vsphi->Fill(phiprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
                     assert(h->pcefnegtp_vsphi);      h->pcefnegtp_vsphi->Fill(phiprobe, jtcef[iprobe], _w);
                     assert(h->pmufnegtp_vsphi);      h->pmufnegtp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
+                    assert(h->phhfnegtp_vsphi);      h->phhfnegtp_vsphi->Fill(phiprobe, jthhf[iprobe], _w);
+                    assert(h->phefnegtp_vsphi);      h->phefnegtp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
                     assert(h->pbetanegtp_vsphi);     h->pbetanegtp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
                     assert(h->pbetastarnegtp_vsphi); h->pbetastarnegtp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
                     assert(h->pbetaprimenegtp_vsphi); h->pbetaprimenegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
@@ -1708,12 +1751,16 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           assert(h->pnnh); h->pnnh->Fill(pt, jtnnh[jetidx]-jtnhh[jetidx], _w);
           assert(h->pnce); h->pnce->Fill(pt, jtnce[jetidx], _w);
           assert(h->pnmu); h->pnmu->Fill(pt, jtnmu[jetidx], _w);
+          assert(h->pnhh); h->pnhh->Fill(pt, jtnhh[jetidx], _w);
+          assert(h->pnhe); h->pnhe->Fill(pt, jtnhe[jetidx], _w);
           //
           assert(h->pchf); h->pchf->Fill(pt, jtchf[jetidx], _w);
           assert(h->pnef); h->pnef->Fill(pt, (jtnef[jetidx]-jthef[jetidx]), _w);
           assert(h->pnhf); h->pnhf->Fill(pt, (jtnhf[jetidx]-jthhf[jetidx]), _w);
           assert(h->pcef); h->pcef->Fill(pt, jtcef[jetidx], _w);
           assert(h->pmuf); h->pmuf->Fill(pt, jtmuf[jetidx], _w);
+          assert(h->phhf); h->phhf->Fill(pt, jthhf[jetidx], _w);
+          assert(h->phhf); h->phef->Fill(pt, jthef[jetidx], _w);
           assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
           assert(h->pbetastar); h->pbetastar->Fill(pt, jtbetastar[jetidx], _w);
           assert(h->pbetaprime); h->pbetaprime->Fill(pt, jtbetaprime[jetidx], _w);
@@ -1786,6 +1833,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             h->hnhf->Fill((jtnhf[jetidx]-jthhf[jetidx]), _w);
             h->hcef->Fill(jtcef[jetidx], _w);
             h->hmuf->Fill(jtmuf[jetidx], _w);
+            h->hhhf->Fill(jthhf[jetidx], _w);
+            h->hhef->Fill(jthef[jetidx], _w);
             h->hbeta->Fill(jtbeta[jetidx], _w);
             h->hbetastar->Fill(jtbetastar[jetidx], _w);
             h->hbetaprime->Fill(jtbetaprime[jetidx], _w);
@@ -2799,9 +2848,10 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
         return -3;
       }
       _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
-      _pthatweight /= _jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]; // Normalize
-      PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f",
-                     currFile,fChain->GetCurrentFile()->GetName(),_jp_pthatranges[currFile],_jp_pthatranges[currFile+1],_pthatweight));;
+      _pthatweight /= (_jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]); // Normalize
+      _pthatuplim = _jp_pthatuplims[currFile];
+      PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f & uplim: %f",
+                     currFile,fChain->GetCurrentFile()->GetName(),_jp_pthatranges[currFile],_jp_pthatranges[currFile+1],_pthatweight,_pthatuplim));;
     }
     // slices with pthat bins
   }

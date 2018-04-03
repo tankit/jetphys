@@ -9,11 +9,12 @@ void mk_DrawFracs_MCvDT() {
     const char *path="./";
     const char *savedir="pypdf";
     //const char *savedir="hwpdf";
-    string title="RunG";
+    string title="RunFlGH";
 
-    Fracs fracs(path,path,title,savedir,false,"MC","RunG",3);
-    Fracs tfracs(path,path,title,savedir,true,"MC","RunG",3);
-    for (unsigned i = 0; i<6; ++i) {
+    Fracs fracs(path,path,title,savedir,false,"MC","DT",3);
+    Fracs tfracs(path,path,title,savedir,true,"MC","DT",3);
+    vector<unsigned int> order = {0,3,1,2,4,5};
+    for (auto &i : order) {
       fracs.DrawFracs(i);
       tfracs.DrawFracs(i);
     }

@@ -108,13 +108,17 @@ public:
     _order = order;
     // This decides the ordering from bottom to top. Beta and muf are ignored.
     if (order==0)
-      _fracs = {"betastar","beta","chf","nef","nhf","cef","muf"};
+      _fracs = {"betaprime","beta","chf","nef","nhf","cef","muf","hhf","hef"};
+      //_fracs = {"betastar","beta","chf","nef","nhf","cef","muf"};
     else if (order==1)
-      _fracs = {"cef","muf","nef","betastar","beta","chf","nhf"};
+      _fracs = {"cef","muf","nef","betaprime","beta","chf","nhf","hhf","hef"};
+      //_fracs = {"cef","muf","nef","betastar","beta","chf","nhf"};
     else if (order==2)
-      _fracs = {"nhf","betastar","beta","chf","nef","cef","muf"};
+      _fracs = {"nhf","betaprime","beta","chf","nef","cef","muf","hhf","hef"};
+      //_fracs = {"nhf","betastar","beta","chf","nef","cef","muf"};
     else if (order==3)
-      _fracs = {"betastar","beta","chf","nhf","nef","cef","muf"};
+      _fracs = {"betaprime","beta","chf","nhf","nef","cef","muf","hhf","hef"};
+      //_fracs = {"betastar","beta","chf","nhf","nef","cef","muf"};
 
     gSystem->MakeDirectory(_savedir.c_str());
 
@@ -159,22 +163,29 @@ public:
     _etas.push_back(make_pair<double, double>(3.0, 3.2));
     _etas.push_back(make_pair<double, double>(3.2, 4.7));
 
-    _style["betastar"] = make_pair<int, int>(kRed+2, kOpenCircle);
+    _style["betaprime"] = make_pair<int, int>(kRed+2, kOpenCircle);
+    //_style["betastar"] = make_pair<int, int>(kRed+2, kOpenCircle);
     _style["chf"] = make_pair<int, int>(_dobeta ? kRed+1 : kRed, _dobeta ? kOpenDiamond : kFullCircle);
     _style["beta"] = make_pair<int, int>(kRed, kFullCircle);
     _style["nef"] = make_pair<int, int>(kBlue, kFullSquare);
     _style["nhf"] = make_pair<int, int>(kGreen+1, kFullDiamond);
     _style["cef"] = make_pair<int, int>(kCyan+1, kOpenTriangleUp);
     _style["muf"] = make_pair<int, int>(kMagenta+1, kOpenTriangleDown);
+    _style["hhf"] = make_pair<int, int>(kViolet+2, kOpenDiamond);
+    _style["hef"] = make_pair<int, int>(kOrange+2, kOpenSquare);
 
-    _name["betastar"] = "Charged pile-up";
+    _name["betaprime"] = "Charged pileup*";
+    //_name["betastar"] = "Charged pile-up";
     _name["chf"] = (_dobeta ? "Charged unassoc." : "Charged hadrons");
     _name["beta"] = "Charged hadrons";
     _name["nef"] = "Photons";
     _name["nhf"] = "Neutral hadrons";
     //_name["cef"] = "Electrons";
     _name["muf"] = "Muons";
-    _name["cef"] = "Electrons+muons";
+    _name["cef"] = "Electrons,muons";
+    _name["hhf"] = "Forward hadrons";
+    _name["hef"] = "Forward photons";
+
 
     _fjes = new TF1("fjes","([0]+[1]*100./3.*(max(0.,1.03091-0.051154*pow(max(150.,min(340.,x)),-0.154227))-max(0.,1.03091-0.051154*pow(208.,-0.154227))) )",10,4000);
     _fjes->SetParameters( 0.9881, 0.2440 ); // Fall15_25nsV2
@@ -183,10 +194,10 @@ public:
     _fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
 
     _modes = {"","_vstrpu","_vsnpv","_vseta","_vsphi","_vsphi"};
-    _rangemin = {37, 0.5, 0.5,-5,-3.15,-3.15};
+    _rangemin = {28, 0.5, 0.5,-5,-3.15,-3.15};
     _rangemax = {3450, 38.5, 40.5, 5,3.15,3.15};
-    _h2min = {-10+1e-5, -6+1e-5, -6+1e-5, -6+1e-5, -6, -6};
-    _h2max = { 10-1e-5, 16-1e-5, 16-1e-5, 16-1e-5, 16, 16};
+    _h2min = {-4+1e-5, -4.5+1e-5, -6+1e-5, -5+1e-5, -4.5, -4.5};
+    _h2max = { 4-1e-5, 4.5-1e-5, 16-1e-5, 5-1e-5, 4.5, 4.5};
 
     _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
   }

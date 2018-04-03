@@ -15,7 +15,7 @@
 using namespace std;
 
 namespace jec {
-  
+
   struct IOVdata {
     vector<string> names;
     int low;
@@ -57,7 +57,7 @@ namespace jec {
 
     const char *tmps;
     const char *path = "CondFormats/JetMETObjects/data/";
-    string jectmp = string(_jp_jecgt) + id + string(_jp_jecvers) + (_jp_ismc ? "_MC_" : "_DATA_"); 
+    string jectmp = string(_jp_jecgt) + id + (_jp_ismc ? string(_jp_jecversmc) : string(_jp_jecversdt)) + (_jp_ismc ? string("_MC_") : string("_DATA_"));
     const char *jecname = jectmp.c_str();
 
     vector<JetCorrectorParameters> vpar;

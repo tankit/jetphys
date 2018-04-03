@@ -139,11 +139,14 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnnhtp");
   recurseFile(fin, fout, "pncetp");
   recurseFile(fin, fout, "pnmutp");
+
   recurseFile(fin, fout, "pchftp");
   recurseFile(fin, fout, "pneftp");
   recurseFile(fin, fout, "pnhftp");
   recurseFile(fin, fout, "pceftp");
   recurseFile(fin, fout, "pmuftp");
+  recurseFile(fin, fout, "phhftp");
+  recurseFile(fin, fout, "pheftp");
   recurseFile(fin, fout, "pbetatp");
   recurseFile(fin, fout, "pbetastartp");
   recurseFile(fin, fout, "pbetaprimetp");
@@ -154,6 +157,8 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnhftp_vsnpv", false, true);
   recurseFile(fin, fout, "pceftp_vsnpv", false, true);
   recurseFile(fin, fout, "pmuftp_vsnpv", false, true);
+  recurseFile(fin, fout, "phhftp_vsnpv", false, true);
+  recurseFile(fin, fout, "pheftp_vsnpv", false, true);
   recurseFile(fin, fout, "pbetatp_vsnpv", false, true);
   recurseFile(fin, fout, "pbetastartp_vsnpv", false, true);
   recurseFile(fin, fout, "pbetaprimetp_vsnpv", false, true);
@@ -163,6 +168,8 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnhftp_vstrpu", false, true);
   recurseFile(fin, fout, "pceftp_vstrpu", false, true);
   recurseFile(fin, fout, "pmuftp_vstrpu", false, true);
+  recurseFile(fin, fout, "phhftp_vstrpu", false, true);
+  recurseFile(fin, fout, "pheftp_vstrpu", false, true);
   recurseFile(fin, fout, "pbetatp_vstrpu", false, true);
   recurseFile(fin, fout, "pbetastartp_vstrpu", false, true);
   recurseFile(fin, fout, "pbetaprimetp_vstrpu", false, true);
@@ -172,6 +179,8 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnhftp_vseta", false, true);
   recurseFile(fin, fout, "pceftp_vseta", false, true);
   recurseFile(fin, fout, "pmuftp_vseta", false, true);
+  recurseFile(fin, fout, "phhftp_vseta", false, true);
+  recurseFile(fin, fout, "pheftp_vseta", false, true);
   recurseFile(fin, fout, "pbetatp_vseta", false, true);
   recurseFile(fin, fout, "pbetastartp_vseta", false, true);
   recurseFile(fin, fout, "pbetaprimetp_vseta", false, true);
@@ -181,6 +190,8 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnhfnegtp_vsphi", false, true);
   recurseFile(fin, fout, "pcefnegtp_vsphi", false, true);
   recurseFile(fin, fout, "pmufnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "phhfnegtp_vsphi", false, true);
+  recurseFile(fin, fout, "phefnegtp_vsphi", false, true);
   recurseFile(fin, fout, "pbetanegtp_vsphi", false, true);
   recurseFile(fin, fout, "pbetastarnegtp_vsphi", false, true);
   recurseFile(fin, fout, "pbetaprimenegtp_vsphi", false, true);
@@ -190,6 +201,8 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnhfpostp_vsphi", false, true);
   recurseFile(fin, fout, "pcefpostp_vsphi", false, true);
   recurseFile(fin, fout, "pmufpostp_vsphi", false, true);
+  recurseFile(fin, fout, "phhfpostp_vsphi", false, true);
+  recurseFile(fin, fout, "phefpostp_vsphi", false, true);
   recurseFile(fin, fout, "pbetapostp_vsphi", false, true);
   recurseFile(fin, fout, "pbetastarpostp_vsphi", false, true);
   recurseFile(fin, fout, "pbetaprimepostp_vsphi", false, true);

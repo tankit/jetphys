@@ -54,6 +54,8 @@ public :
   static const Int_t kMaxGenJets_   = 100;
   static const Int_t kMaxPFJetsCHS_ = 100;
 
+  bool _initsuccess;
+
   // Declaration of leaf types
   //QCDEvent        *events;
   vector<vector<int> > filterIdList_;
@@ -285,12 +287,10 @@ public :
 
   // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
   ~HistosFill() {
-    if (!fChain) return;
-    delete fChain->GetCurrentFile();
-    delete ferr;
+    if (ferr) delete ferr;
   }
   HistosFill(TChain *tree);
-  virtual void     Init(TTree *tree); // custom
+  virtual bool     Init(TTree *tree); // custom
 
   virtual void     Loop();
   virtual bool     PreRun();
@@ -357,6 +357,7 @@ private:
   double _xsecMinBias;
   double _w, _w0;
   double _pthatweight;
+  double _pthatuplim;
 
   double rangesHCALHotExcl[4];
   vector<string> _availTrigs;
