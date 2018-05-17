@@ -369,6 +369,12 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
   }
   gPad->RedrawAxis();
+  if (_vspt and !_pertrg) {
+    l->SetLineColor(kGray+2);
+    for (auto i = 0u; i < _jp_notrigs-1; ++i) {
+      l->DrawLine(_jp_trigranges[i][1],0.0,_jp_trigranges[i][1],1.0);
+    }
+  }
 
   c1->cd(2);
   if (_vspt) gPad->SetLogx();

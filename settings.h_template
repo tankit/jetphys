@@ -37,7 +37,7 @@ constexpr bool strings_equal(char const * a, char const * b) {
 // Debugging info
 constexpr bool _jp_debug = false;
 // Will assert be used in the programs?
-#define USEASSERT // CAUTION: this is an expert option - comment this if you are certain that no problems occur. More than 1/3 off the run time.
+//#define USEASSERT // CAUTION: this is an expert option - comment this if you are certain that no problems occur. More than 1/3 off the run time.
 
 //{ BEGIN fundamental file settings
 // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -45,9 +45,9 @@ constexpr const char _jp_chs[] = "CHS";
 // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
 constexpr const char _jp_algo[] = "AK4PFchs";
 // Data type ("DATA", "MC", or "HW")
-constexpr const char _jp_type[] = "DATA";
+constexpr const char _jp_type[] = "HW";
 // In case of DATA, choose run ("RunB/C/D/E/Fearly/Flate/G/H")
-constexpr const char _jp_run[] = "RunB16_Eng";
+constexpr const char _jp_run[] = "RunB17";
 // Simple helper
 constexpr bool _jp_isdt = strings_equal(_jp_type,"DATA");
 constexpr bool _jp_ismc = !_jp_isdt;
@@ -66,6 +66,7 @@ constexpr Long64_t _jp_nentries =
 //10000; // shorter test run
 //100000; // short test run
 //1000000; // shortish test run
+//2500000; // shortish test run
 //100000000;
 // Number of events to skip from the beginning (for debugging)
 constexpr Long64_t _jp_nskip = 0;
@@ -108,13 +109,13 @@ constexpr bool _jp_skipl2l3res = false;
 
 // Reapply json selection based on the latest one (check lumicalc if false!).
 constexpr bool _jp_dojson = true;
-constexpr const char _jp_json[] = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
-//const constexpr char _jp_json[] = "lumicalc/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt";
+//constexpr const char _jp_json[] = "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt";
+const constexpr char _jp_json[] = "lumicalc/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt";
 
 // Calculate luminosity on the fly based on .csv file and take only events with non-zero luminosity.
 constexpr bool _jp_dolumi = true;
-constexpr const char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls16.csv";
-//const constexpr char _jp_lumifile[] = "lumicalc/brilcalc_lumibyls17.csv";
+//constexpr const char _jp_lumifile[] = "lumicalc/lumibyls16.csv";
+const constexpr char _jp_lumifile[] = "lumicalc/lumibyls17.csv";
 
 // Add prescale information from a file
 constexpr bool _jp_doprescale = false; // CAUTION, this shouldn't be nowadays necessary
@@ -125,22 +126,22 @@ constexpr const char _jp_trpufile[] = "pileup/MUperLSvsRUN_MB.root";
 
 // Decide whether or not to simulate triggers from MC (this is slow)
 constexpr bool _jp_domctrigsim = true;
-// Use "mc" trigger for whole pT range instead of stiching triggers together in histosCombine (false requires trigsim)
+// Use "mc" trigger for whole pT range instead of stiching triggers together in HistosCombine (false requires trigsim)
 constexpr bool _jp_usemctrig = false;
 
 // This is the 13 TeV 25 ns list of triggers (Run2016BCDEFG)
 // Check the recommended settings from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy
 constexpr const char* _jp_triggers[] = // CAUTION: In 2016 jt450 is unprescaled but in 2017 it is not (jt500 and jt550!)
-  {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450"}; // "jt500"};
+  {"jt40",    "jt60",    "jt80",   "jt140",   "jt200",   "jt260",   "jt320",   "jt400",  "jt450", "jt500"};
 constexpr unsigned int _jp_notrigs = sizeof(_jp_triggers)/sizeof(_jp_triggers[0]);
 // reference trigger for PU profile in the mc folder and for trigger lumi weighting
-constexpr const char _jp_reftrig[] = "jt450"; // "jt500";
+constexpr const char _jp_reftrig[] = "jt500";
 // Thresholds for the corresponding triggers (same as in trigger name)
 constexpr const double _jp_trigthr[] =
-  {40,        60,        80,       140,       200,       260,       320,       400,      450}; // 500};
+  {40,        60,        80,       140,       200,       260,       320,       400,      450,  500};
 // Trigger ranges (differ from thresholds)
 constexpr const double _jp_trigranges[][2] = {
-  {0,84}, {84,114}, {114,196}, {196,272}, {272,330}, {330,395}, {395,468}, {468,548}, {548,6500}
+  {28,84}, {84,114}, {114,196}, {196,272}, {272,330}, {330,395}, {395,468}, {468,548}, {548,686}, {686,6500}
 }; // V[5,6], AK4
 
 
@@ -148,9 +149,9 @@ constexpr const double _jp_trigranges[][2] = {
 constexpr bool _jp_usetriglumi = true; // use luminosity numbers below, in /ub
 constexpr const double _jp_triglumi[] = // in /ub
 // 2016 final: brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/ReReco/Final/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt --byls --normtag=$PWD/../../../Normtags/normtag_DATACERT.json --minBiasXsec 80000 --hltpath="HLT_PFJet*" -o brilcalc_lumibyls16.csv
-  {264821.835,718829.826,2733420.74,23966019.286,102854094.409,587728815.19,1753996573.885,5141160409.826,35860066023.522};
+//  {264821.835,718829.826,2733420.74,23966019.286,102854094.409,587728815.19,1753996573.885,5141160409.826,35860066023.522};
 // 2017 final: brilcalc lumi -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Final/Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt --byls --normtag=/eos/user/h/hsiikone/Normtags/normtag_BRIL.json --minBiasXsec 80000 --hltpath="HLT_PFJet*" -o brilcalc_lumibyls17.csv
-// {480907.381,1135408.863,4300901.657,39784735.913,218494113.161,553531633.649,1402704877.698,4201460774.775,10434425834.42,41366526620.215};
+ {480907.381,1135408.863,4300901.657,39784735.913,218494113.161,553531633.649,1402704877.698,4201460774.775,10434425834.42,41366526620.215};
 // Unprescaled luminosity for plots
 constexpr double _jp_lumi = _jp_triglumi[_jp_notrigs-1]/1000000000.0; // in /fb
 // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
@@ -159,22 +160,22 @@ constexpr bool _jp_useversionlumi = true;
 // In the version treatment we give the weights directly to induce better comparability
 constexpr const double _jp_trigwgts[][_jp_notrigs+1] = {
 // 2016 values: (jt40-jt450; jt500)
-  {143355.7346, 38736.1730,  3686.8700,  695.0398, 154.0182, 36.7479, 11.2671, 4.6109, 1.0000, 1.0000}, // ID = 0, relwgt = 1.0
-  {119853.8204, 41465.1988, 13160.4227, 1287.5050, 261.4051, 55.0337, 19.0746, 6.2291, 1.0000, 1.0000}, // ID = 1, relwgt = 5.39
-  {154096.5599, 61326.3781, 21207.7739, 2097.7643, 632.5377, 73.5695, 24.3681, 8.2197, 1.0000, 1.0000}, // ID = 2, relwgt = 3.46
-  {145927.3361, 65350.8352, 21577.5503, 2240.3264, 676.3622, 77.2779, 25.7789, 8.7586, 1.0000, 1.0000}, // ID = 3, relwgt = 3.11
-  {135412.0442, 49886.7252, 13119.1168, 1496.2880, 348.6499, 61.0146, 20.4448, 6.9751, 1.0000, 1.0000}  // ID = 4, relwgt = 12.97 (all)
+//  {143355.7346, 38736.1730,  3686.8700,  695.0398, 154.0182, 36.7479, 11.2671, 4.6109, 1.0000, 1.0000}, // ID = 0, relwgt = 1.0,  used in Run B
+//  {119853.8204, 41465.1988, 13160.4227, 1287.5050, 261.4051, 55.0337, 19.0746, 6.2291, 1.0000, 1.0000}, // ID = 1, relwgt = 5.39, used in Run B, C, D, E, Fearly
+//  {154096.5599, 61326.3781, 21207.7739, 2097.7643, 632.5377, 73.5695, 24.3681, 8.2197, 1.0000, 1.0000}, // ID = 2, relwgt = 3.46, used in Run Fearly, Flate, G
+//  {145927.3361, 65350.8352, 21577.5503, 2240.3264, 676.3622, 77.2779, 25.7789, 8.7586, 1.0000, 1.0000}, // ID = 3, relwgt = 3.11, used in Run H
+//  {135412.0442, 49886.7252, 13119.1168, 1496.2880, 348.6499, 61.0146, 20.4448, 6.9751, 1.0000, 1.0000}  // ID = 4, relwgt = 12.97 (all)
 // 2017 values: (jt40-jt500; jt550)
-//   { 33987.8463, 180033.5913, 24589.5675,  293.1822,  32.9817, 52.5539, 20.9513,  5.2989, 1.0390, 1.0000, 1.0000}, // ID = 0, relwgt = 3.43
-//   {176155.5860, 180125.1062, 26367.3106,  730.7412, 155.4138, 60.4216, 23.8383,  6.2582, 1.1547, 1.0000, 1.0000}, // ID = 1, relwgt = 2.19
-//   {175046.8066,  57831.7848, 15004.4781, 1159.0313, 287.4614, 78.6458, 31.0582, 10.5627, 6.0010, 1.0000, 1.0000}, // ID = 2, relwgt = 1.47
-//   {196572.1671,  57551.1125, 16693.6441, 1277.4314, 306.0167, 82.3878, 33.8413, 11.4001, 6.4202, 1.0000, 1.0000}, // ID = 3, relwgt = 5.78
-//   {136013.1519,  28134.9096,  1874.0816, 1316.3058, 311.1567, 58.5666, 22.9324,  7.4752, 4.4639, 1.0000, 1.0000}, // ID = 4, relwgt = 4.00
-//   { 16079.7095,   9852.0623,  6955.8940,  961.2579, 255.4068, 57.8961, 22.7200,  8.4749, 4.5904, 1.0000, 1.0000}, // ID = 5, relwgt = 3.34
-//   {158460.4298,  39504.0196, 16367.6216, 1505.6297, 353.8755, 87.3505, 34.4524, 12.5236, 6.9509, 1.0000, 1.0000}, // ID = 6, relwgt = 23.96
-//   {181374.8038,  50159.3910, 14633.4188, 1157.6916, 210.2565, 76.1716, 28.2483,  9.8028, 5.3040, 1.0000, 1.0000}, // ID = 7, relwgt = 3.25
-//   {182659.7240,  51593.9726, 14865.8622, 1181.8289, 218.2535, 68.4878, 27.6038,  9.9540, 5.3705, 1.0000, 1.0000}, // ID = 8, relwgt = 1.00
-//   { 86017.6580,  36433.1546,  9618.1057, 1039.7587, 189.3256, 71.5339, 29.4905,  9.8457, 3.9644, 1.0000, 1.0000}  // ID = 9, relwgt = 48.42 (all)
+   { 33987.8463, 180033.5913, 24589.5675,  293.1822,  32.9817, 52.5539, 20.9513,  5.2989, 1.0390, 1.0000, 1.0000}, // ID = 0, relwgt = 3.43,  used in Run B
+   {176155.5860, 180125.1062, 26367.3106,  730.7412, 155.4138, 60.4216, 23.8383,  6.2582, 1.1547, 1.0000, 1.0000}, // ID = 1, relwgt = 2.19,  used in Run B
+   {175046.8066,  57831.7848, 15004.4781, 1159.0313, 287.4614, 78.6458, 31.0582, 10.5627, 6.0010, 1.0000, 1.0000}, // ID = 2, relwgt = 1.47,  used in Run C
+   {196572.1671,  57551.1125, 16693.6441, 1277.4314, 306.0167, 82.3878, 33.8413, 11.4001, 6.4202, 1.0000, 1.0000}, // ID = 3, relwgt = 5.78,  used in Run C
+   {136013.1519,  28134.9096,  1874.0816, 1316.3058, 311.1567, 58.5666, 22.9324,  7.4752, 4.4639, 1.0000, 1.0000}, // ID = 4, relwgt = 4.00,  used in Run C
+   { 16079.7095,   9852.0623,  6955.8940,  961.2579, 255.4068, 57.8961, 22.7200,  8.4749, 4.5904, 1.0000, 1.0000}, // ID = 5, relwgt = 3.34,  used in Run C, D
+   {158460.4298,  39504.0196, 16367.6216, 1505.6297, 353.8755, 87.3505, 34.4524, 12.5236, 6.9509, 1.0000, 1.0000}, // ID = 6, relwgt = 23.96, used in Run D, E, F
+   {181374.8038,  50159.3910, 14633.4188, 1157.6916, 210.2565, 76.1716, 28.2483,  9.8028, 5.3040, 1.0000, 1.0000}, // ID = 7, relwgt = 3.25,  used in Run F
+   {182659.7240,  51593.9726, 14865.8622, 1181.8289, 218.2535, 68.4878, 27.6038,  9.9540, 5.3705, 1.0000, 1.0000}, // ID = 8, relwgt = 1.00,  used in Run F
+   { 86017.6580,  36433.1546,  9618.1057, 1039.7587, 189.3256, 71.5339, 29.4905,  9.8457, 3.9644, 1.0000, 1.0000}  // ID = 9, relwgt = 48.42  (all combined)
 };
 constexpr const unsigned int _jp_notrigIDs = sizeof(_jp_trigwgts)/sizeof(_jp_trigwgts[0])-1; // Excluding all
 
@@ -182,38 +183,40 @@ constexpr const unsigned int _jp_notrigIDs = sizeof(_jp_trigwgts)/sizeof(_jp_tri
 // The last ID is not shown here, as it is a summary of all the version functioning together.
 const vector< vector<regex> > _jp_trigtags = {
 // 2016 values:
-  {regex("(40|60|80|140|200|260|320|400|450|500)_4")},                    // ID = 0
-  {regex("(40|60|80|140|200|260|320|400|450|500)_5"),regex("(40|60)_6")}, // ID = 1
-  {regex("(80|140|200)_6"),regex("(40|60|260|320|400|450|500)_7")},       // ID = 2
-  {regex("(80|140|200)_8"),regex("(40|60|260|320|400|450|500)_9")}        // ID = 3
+//  {regex("(40|60|80|140|200|260|320|400|450|500)_4")},                    // ID = 0
+//  {regex("(40|60|80|140|200|260|320|400|450|500)_5"),regex("(40|60)_6")}, // ID = 1
+//  {regex("(80|140|200)_6"),regex("(40|60|260|320|400|450|500)_7")},       // ID = 2
+//  {regex("(80|140|200)_8"),regex("(40|60|260|320|400|450|500)_9")}        // ID = 3
   // 2017 values:
-//   {regex("(40|60|450|500)_(10|11)"),regex("80_(9|10)",regex("(140|200)_9"),regex("(260|320|400)_10"),regex("550_1")}, // ID = 0
-//   {regex("(40|60|450|500)_12"),regex("(80|260|320|400)_11"),regex("(140|200)_10"),regex("550_2")},                    // ID = 1
-//   {regex("(40|60|450|500)_13"),regex("(80|260|320|400)_12"),regex("(140|200)_11"),regex("550_3")},                    // ID = 2
-//   {regex("(40|60|450|500)_14"),regex("(80|260|320|400)_13"),regex("(140|200)_12"),regex("550_4")},                    // ID = 3
-//   {regex("(40|60|450|500)_15"),regex("(80|260|320|400)_14"),regex("(140|200)_13"),regex("550_5")},                    // ID = 4
-//   {regex("(40|60|450|500)_16"),regex("(80|260|320|400)_15"),regex("(140|200)_14"),regex("550_6")},                    // ID = 5
-//   {regex("(40|60|450|500)_17"),regex("(80|260|320|400)_16"),regex("(140|200)_15"),regex("550_7")},                    // ID = 6
-//   {regex("(40|60|450|500)_18"),regex("(80|260|320|400)_17"),regex("(140|200)_16"),regex("550_8")},                    // ID = 7
-//   {regex("(40|60|450|500)_19"),regex("(80|260|320|400)_18"),regex("(140|200)_17"),regex("550_9")}                     // ID = 8
+   {regex("(40|60|450|500)_(10|11)"),regex("80_(9|10)"),regex("(140|200)_9"),regex("(260|320|400)_10"),regex("550_1")}, // ID = 0
+   {regex("(40|60|450|500)_12"),regex("(80|260|320|400)_11"),regex("(140|200)_10"),regex("550_2")},                    // ID = 1
+   {regex("(40|60|450|500)_13"),regex("(80|260|320|400)_12"),regex("(140|200)_11"),regex("550_3")},                    // ID = 2
+   {regex("(40|60|450|500)_14"),regex("(80|260|320|400)_13"),regex("(140|200)_12"),regex("550_4")},                    // ID = 3
+   {regex("(40|60|450|500)_15"),regex("(80|260|320|400)_14"),regex("(140|200)_13"),regex("550_5")},                    // ID = 4
+   {regex("(40|60|450|500)_16"),regex("(80|260|320|400)_15"),regex("(140|200)_14"),regex("550_6")},                    // ID = 5
+   {regex("(40|60|450|500)_17"),regex("(80|260|320|400)_16"),regex("(140|200)_15"),regex("550_7")},                    // ID = 6
+   {regex("(40|60|450|500)_18"),regex("(80|260|320|400)_17"),regex("(140|200)_16"),regex("550_8")},                    // ID = 7
+   {regex("(40|60|450|500)_19"),regex("(80|260|320|400)_18"),regex("(140|200)_17"),regex("550_9")}                     // ID = 8
 };
 //} END Switches and their settings
 
 //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
 // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
-// Summer16_03Feb2017G_V7_DATA.tar.gz [BCD, EF, G, H]
-const constexpr char _jp_jecgt[] = "Summer16_07Aug2017";//"Summer16_03Feb2017";////BCD_";//"Summer15_50ns";// "Summer16_23Sep2016";
-const constexpr char _jp_jecvers[] = "_V5";//"_V9";////"V4"; // Summer16_03Feb // "V6"; // Summer16_23Sep // "V2" ; // Spring16
+const constexpr char _jp_jecgt[] = "Fall17_17Nov2017";
+const constexpr char _jp_jecversdt[] = "_V8"; // 16
+const constexpr char _jp_jecversmc[] = "_V8"; // 16
 
 // Use Intervals-Of-Validity for JEC
 constexpr const bool _jp_useIOV = true ;//false
 constexpr const char* _jp_IOVnames[] =
 //  {"BCD",    "EF",    "G",   "H"};
-  {"BCD",    "EF",    "GH"};
+//  {"BCD",    "EF",    "GH"};
+  {"B","C","D","E","F"};
 constexpr const int _jp_nIOV = sizeof(_jp_IOVnames)/sizeof(_jp_IOVnames[0]);
 // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
 const constexpr int _jp_IOVranges[][2] =
-  { {1,276811}, {276831,278801}, {278802,400000} }; // Summer16_23Sep2016
+  {{297020,299329}, {299337,302029}, {302030,303434}, {303435,304826}, {304911,306460}};
+//  { {1,276811}, {276831,278801}, {278802,400000} }; // Summer16_23Sep2016
 //  { {1,276811}, {276831,278801}, {278802,280385}, {280919,400000} }; // Spring/Summer16_23Sep2016
 //} END JES and JEC
 
@@ -222,6 +225,7 @@ const constexpr int _jp_IOVranges[][2] =
 constexpr bool _jp_reweighPU = true;
 constexpr const char _jp_pudata[] = "pileup/curr/pileup_DT.root";
 constexpr const char _jp_pumc[]   = "pileup/curr/pileup_MC.root";
+constexpr const char _jp_puhw[]   = "pileup/curr/pileup_HW.root";
 constexpr const double _jp_maxpu = 80.0;
 //} END PU profiles
 
@@ -229,34 +233,133 @@ constexpr const double _jp_maxpu = 80.0;
 //{ BEGIN MC: Process pThatbins instead of flat sample
 // All the following values need to be updated, if other source tuples are used.
 // These can be obtained using getSliceEvts.C
-constexpr bool _jp_pthatbins = true;//false;
+constexpr bool _jp_pthatbins = false;
 // The corresponding ranges, the last number is ~inf
-const vector<double> _jp_pthatranges =
-  {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
+const vector<double> _jp_pthatranges = {
+  15,  // 0
+  30,  // 0,1
+  50,  // 1
+  80,  // 1
+  120, // 1,2
+  170, // 2
+  300, // 2,3
+  470, // 3
+  600, // 3,4
+  800, // 4
+  1000,// 4
+  1400,// 4
+  1800,// 4
+  2400,// 4
+  3200,// 4
+  20000// 4
+};
+  //Engin: {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
+const vector<double> _jp_pthatuplims = {
+  50,   // 0
+  80,   // 1
+  120,  // 1
+  170,  // 1
+  300,  // 2
+  470,  // 2
+  600,  // 3
+  800,  // 3
+  1000, // 4
+  1400, // 4
+  1800, // 4
+  2400, // 4
+  3200, // 4
+  20000,// 4
+  20000 // 4
+};
 // Number of pthat bins
 const unsigned int _jp_npthatbins = _jp_pthatranges.size()-1;
-// The corresponding lumis in an arbitrary scale
-const vector<double> _jp_pthatsigmas =
-  {140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-  //{140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-const vector<double> _jp_pthatnevts =
-  {9699558,9948791,7742665,5748730,7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
-// The filenames need to be given here and in mk_histosFill, since ROOT is exceedingly stupid
+// The corresponding lumis in picobarns (current values for CUETP8M1). These need to be fetched from McM
+const vector<double> _jp_pthatsigmas = {
+  1837410000, // 0
+  140932000,  // 1
+  19204300,   // 1
+  2762530,    // 1
+  471100,     // 2
+  117276,     // 2
+  7823,       // 3
+  648.2,      // 3
+  186.9,      // 4
+  32.293,     // 4
+  9.4183,     // 4
+  0.84265,    // 4
+  0.114943,   // 4
+  0.00682981, // 4
+  0.000165445 // 4
+};
+  //Engin: {140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+const vector<double> _jp_pthatnevts = {
+  19972000, // 0
+  19945892, // 1
+  19242252, // 1
+  28752620, // 1
+  26789534, // 2
+  29727346, // 2
+  53407317, // 3
+  25949792, // 3
+  64371703, // 4
+  35897868, // 4
+  18280778, // 4
+  5127374,  // 4
+  2553432,  // 4
+  1601509,  // 4
+  609460,   // 4
+  //39879090, // 0
+  //9967899,  // 1
+  //9929377,  // 1
+  //14677532, // 1
+  //12562967, // 2
+  //14729966, // 2
+  //22268956, // 3
+  //3884796,  // 3
+  //3779261,  // 4
+  //3806979,  // 4
+  //2802350,  // 4
+  //2462449,  // 4
+  //347405,   // 4
+  //832157,   // 4
+  //164877    // 4
+};
+
+const double _jp_pthatsigmanorm = 0.000165445;
+const double _jp_pthatevtnorm   = 164877;
+  //{39879090,9967899,9929377,14677532,12562967,14729966,22268956,3884796,3779261,3806979,2802350,358528,347405,832157,164877};
+  //Engin: {9699558,9948791, 7742665,5748730, 7838066,11701816,3959986,9628335,11915305,6992746,2477018,1584378,596904,391735};
+// The filenames need to be given here and in mk_HistosFill, since ROOT is exceedingly stupid
 const vector<string> _jp_pthatfiles = {
-    "QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
-    "QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
+    "Pthat_15to30.root",    // 0
+    "Pthat_30to50.root",    // 1
+    "Pthat_50to80.root",    // 1
+    "Pthat_80to120.root",   // 1
+    "Pthat_120to170.root",  // 2
+    "Pthat_170to300.root",  // 2
+    "Pthat_300to470.root",  // 3
+    "Pthat_470to600.root",  // 3
+    "Pthat_600to800.root",  // 4
+    "Pthat_800to1000.root", // 4
+    "Pthat_1000to1400.root",// 4
+    "Pthat_1400to1800.root",// 4
+    "Pthat_1800to2400.root",// 4
+    "Pthat_2400to3200.root",// 4
+    "Pthat_3200toInf.root", // 4
+    // Engin: "QCD_Pt_30to50_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_50to80_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_80to120_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_120to170_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_170to300_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_300to470_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_470to600_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_600to800_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_800to1000_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_1000to1400_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_1400to1800_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_1800to2400_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_2400to3200_TuneCUETP8M_13TeV_pythia8.root",
+    // Engin: "QCD_Pt_3200toInf_TuneCUETP8M_13TeV_pythia8.root",
 };
 //} END pthatbins stuff
 
@@ -268,7 +371,7 @@ constexpr double _jp_recopt = 15; // Min observed jet pt
 constexpr double _jp_xsecMinBias = 7.126E+10;
 //} END Run2
 
-//{ BEGIN Special histosFill analyses that are not typically needed
+//{ BEGIN Special HistosFill analyses that are not typically needed
 // Veto jets near ECAL boundaries in JetID (an older routine, kept as a reference)
 constexpr bool _jp_doVetoECAL = false;//true;
 const constexpr char _jp_fECALVeto[] = "lumicalc/ecalveto.root";
@@ -278,7 +381,7 @@ constexpr bool _jp_doVetoECALHot = false;
 const constexpr char _jp_ECALHotType[] = "m"; // h2hotr (Robert) or h2hotm (Mikko)
 
 // Eta phi exclusion due to hot HCAL regions (taken from
-constexpr bool _jp_doVetoHCALHot = true;
+constexpr bool _jp_doVetoHCALHot = false;
 constexpr const char* _jp_HCALHotRuns[] = {
   "RunB16",
   "RunC16",
@@ -295,14 +398,14 @@ constexpr const double _jp_HCALHotRanges[][4] =  {// eta{min,max}, phi(min,max}
 constexpr bool _jp_checkduplicates = false;
 //} END Special analyses that are not typically needed
 
-//{ BEGIN histosNormalize (leave these off if not interested on details)
+//{ BEGIN HistosNormalize (leave these off if not interested on details)
 // Correct for trigger efficiency based on MC
 constexpr bool _jp_dotrigeff = false; // CAUTION: Requires output-MC-1.root file
 // Correct pT<114 GeV only, if above _jp_dotrigeff=true
 constexpr bool _jp_dotrigefflowptonly = false; // CAUTION: Not needed
 // Correct for time-dependence (prescales) in data
 constexpr bool _jp_dotimedep = false; // CAUTION: Unknown consequences
-//} END histosNormalize
+//} END HistosNormalize
 
 //{ BEGIN drawSummary
 // Center uncertainties around ansatz (true) or data (false)
@@ -316,7 +419,7 @@ constexpr bool _jp_herapdf = false;
 constexpr bool _jp_pdf = true;
 //} END drawSummary
 
-//{ BEGIN limits for histosNormalize, dagostini, drawSummary, drawRunHistos
+//{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
 // Minimum and maximum pT range to be plotted and fitted
 constexpr double _jp_fitptmin = 114;//43;
 // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
@@ -337,21 +440,13 @@ constexpr const double _jp_ptrange[] = {
 };
 constexpr const unsigned int _jp_npts = sizeof(_jp_ptrange)/sizeof(_jp_ptrange[0])-1;
 
-// A wide binning for pt
+// A wide binning for pt: these should agree with trigger turn-on places
 constexpr const double _jp_wptrange[] = {
-   1, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 245, 300, 395, 468, 548,
+   1, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 272, 330, 395, 468, 548,
    686, 846, 1032, 1248, 1588, 2000, 2500, 3103, 3450, 3637, 3832,
    4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000
 };
 constexpr const int _jp_nwpts = sizeof(_jp_wptrange)/sizeof(_jp_wptrange[0])-1;
-
-// Even wider version of the binning for less statistical scatter for b-jets
-constexpr const double _jp_wwptrange[] = {
-   1, 5, 15, 24, 37, 56, 84, 114, 153, 196, 245, 330, 430, 548, 686, 846,
-   1032, 1248, 1497, 1784, 2116, 2500, 2941, 3450, 3637,
-   4252, 4961, 5777, 6717, 7000
-};
-constexpr const int _jp_nwwpts = sizeof(_jp_wwptrange)/sizeof(_jp_wwptrange[0])-1;
 
 // Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
 // Using NLOxNP theory fit as input when available
