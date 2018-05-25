@@ -92,8 +92,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   THStack *hsmc = new THStack(Form("hsmc%s",taguniq.c_str()),"stacked histograms");
   THStack *hsdf = new THStack(Form("hsdf%s",taguniq.c_str()),"differences");
 
-  TH1D *h = new TH1D(Form("h%s",taguniq.c_str()),Form(";p_{T%s} (GeV);PF energy fractions",_tp=="tp"?",tag":""),_x.size()-1,&_x[0]);
-  TH1D *h2 = new TH1D(Form("h2%s",taguniq.c_str()),Form(";p_{T%s} (GeV);%s-%s (%%)",_tp=="tp"?",tag":"",_dt_type.c_str(),_mc_type.c_str()),_x.size()-1,&_x[0]);
+  TH1D *h = new TH1D(Form("h%s",taguniq.c_str()),Form(";p_{T}^{%s} (GeV);PF energy fractions",_tp=="tp"?"tag":""),_x.size()-1,&_x[0]);
+  TH1D *h2 = new TH1D(Form("h2%s",taguniq.c_str()),Form(";p_{T}^{%s} (GeV);%s-%s #scale[1.15]{(}10^{-2}#scale[1.15]{)}",_tp=="tp"?"tag":"",_dt_typeverb.c_str(),_mc_type.c_str()),_x.size()-1,&_x[0]);
 
   if (_vspt) {
     h->GetXaxis()->SetMoreLogLabels();
@@ -161,6 +161,9 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     }
   }
   TLegend *leg = tdrLeg(xLo,yLo,xHi,yHi);
+  double scalefac = min(gPad->XtoPixel(gPad->GetX2()),gPad->YtoPixel(gPad->GetY1()));
+  leg->SetTextFont(63);
+  leg->SetTextSize(leg->GetTextSize()*scalefac);
 
   const char *dirname = Form("Eta_%1.1f-%1.1f%s",eta1,eta2,_pertrg?("/"+trg).c_str():"");
 
@@ -237,14 +240,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       TH1D *hdt2 = dtHistos["muf"]; assert(hdt2);
       for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
         hdt->SetBinContent(i, hdt->GetBinContent(i)+hdt2->GetBinContent(i));  // cef -> cef + muf
-    } else if (frc=="betaprime") { // For betastar, multiply by chf
-      TH1D *hmc2 = mcHistos["chf"]; assert(hmc2);
-      for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
-        hmc->SetBinContent(i, hmc->GetBinContent(i)*hmc2->GetBinContent(i));  // betastar -> chf * betastar
-
-      TH1D *hdt2 = dtHistos["chf"]; assert(hdt2);
-      for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
-        hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));  // betastar -> chf * betastar
     } else if (frc=="beta") { // For beta, multiply by chf
       TH1D *hmc2 = mcHistos["chf"]; assert(hmc2);
       for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
@@ -256,14 +251,14 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     } else if (frc=="chf") { // For chf, multiply by (1-beta-betastar)
       hdf->Add(hdt, hmc, 100, -100);
       TH1D *hmc2 = mcHistos["beta"]; assert(hmc2);
-      TH1D *hmc3 = mcHistos["betaprime"]; assert(hmc3);
+      TH1D *hmc3 = mcHistos["puf"]; assert(hmc3);
       for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
-        hmc->SetBinContent(i, hmc->GetBinContent(i) * (1 - (_dobeta ? hmc2->GetBinContent(i) : 0) - hmc3->GetBinContent(i)));  // chf -> chf*(1-beta-betastar)
+        hmc->SetBinContent(i, hmc->GetBinContent(i) * (1 - (_dobeta ? hmc2->GetBinContent(i) : 0)) - hmc3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
 
       TH1D *hdt2 = dtHistos["beta"]; assert(hdt2);
-      TH1D *hdt3 = dtHistos["betaprime"]; assert(hdt3);
+      TH1D *hdt3 = dtHistos["puf"]; assert(hdt3);
       for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
-        hdt->SetBinContent(i, hdt->GetBinContent(i) * (1 - (_dobeta ? hdt2->GetBinContent(i) : 0) - hdt3->GetBinContent(i)));  // chf -> chf*(1-beta-betastar)
+        hdt->SetBinContent(i, hdt->GetBinContent(i) * (1 - (_dobeta ? hdt2->GetBinContent(i) : 0)) - hdt3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
     } // others we do not touch
 
     hmc->SetMarkerStyle(kNone);
@@ -297,10 +292,15 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   } // for frc
   TLine *l = new TLine();
   l->DrawLine(_rangemin[mode], 0,_rangemax[mode], 0);
+  c1->cd(2);
   TLatex *tex = new TLatex();
   tex->SetNDC();
-  tex->SetTextSize(h2->GetYaxis()->GetLabelSize());
-  tex->DrawLatex(0.17,0.80,Form("Anti-k_{T} R=0.4%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=PFJet%s",trg.substr(2).c_str()):""));
+  tex->SetTextFont(63);
+  tex->SetTextSize(leg->GetTextSize());
+  //tex->DrawLatex(0.15,0.306,Form("Anti-k_{T} R=0.4 PF+CHS%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=PFJet%s",trg.substr(2).c_str()):""));
+  int trigidx = _pertrg ? int(std::find(_jp_triggers,_jp_triggers+_jp_notrigs,trg)-_jp_triggers) : 0;
+  if (_pertrg) tex->DrawLatex(0.164,0.33,Form("%s",Form("Trg=PFJet%s, %1.1f#leq p_{T}[GeV]<%1.1f",trg.substr(2).c_str(),_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1])));
+  tex->DrawLatex(0.164,0.83,Form("Anti-k_{T} R=0.4 PF+CHS"));
 
   for (auto rhdti = hdts.rbegin(); rhdti != hdts.rend(); ++rhdti)
     leg->AddEntry(rhdti->first, rhdti->second.c_str(),"PF");
@@ -310,66 +310,35 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   hsmc->Draw("SAME");
   hsdt->Draw("SAME");
   leg->Draw("SAME"); // redraw
-  tex->SetTextSize(leg->GetTextSize());
-  if (!_pertrg) {
-    tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
-    if (_vspt) {
-      if (eta2 <= 2.5) {
-        tex->DrawLatex(xLo,0.85,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
-        tex->DrawLatex(xLo,0.80,Form("%s: marker",_dt_type.c_str()));
-        tex->DrawLatex(xLo,0.76,Form("%s: color",_mc_type.c_str()));
-      } else {
-        tex->DrawLatex(xLo,0.75,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
-        tex->DrawLatex(xLo,0.70,Form("%s: marker",_dt_type.c_str()));
-        tex->DrawLatex(xLo,0.66,Form("%s: color",_mc_type.c_str()));
-      }
-    } else if (_vseta) {
-      tex->DrawLatex(xLo,0.81,Form("%s: marker",_dt_type.c_str()));
-      tex->DrawLatex(xLo,0.77,Form("%s: color",_mc_type.c_str()));
+
+  double yD = 0.06;
+  double yP = 0.85;
+  if (_vspt) {
+    if (eta2 <= 2.5) {
+      if (eta1 == 0.0) {
+        yP = 0.83;
+        tex->DrawLatex(xLo,yP,Form("|#eta^{%s}|<%1.1f",_tp=="tp"?"probe":"",eta2));
+      } else
+        tex->DrawLatex(xLo,yP,Form("%1.1f#leq |#eta^{%s}|<%1.1f",eta1,_tp=="tp"?"probe":"",eta2));
+      tex->DrawLatex(xLo,yP-yD,Form("%s: markers",_dt_typeverb.c_str()));
+      tex->DrawLatex(xLo,yP-2*yD,Form("%s: histograms",_mc_typeverb.c_str()));
     } else {
-      tex->DrawLatex(xLo,0.81,Form("%s: marker",_dt_type.c_str()));
-      tex->DrawLatex(xLo,0.77,Form("%s: color",_mc_type.c_str()));
+      yP = 0.75;
+      tex->DrawLatex(xLo,yP,Form("%1.1f#leq |#eta^{%s}|<%1.1f",eta1,_tp=="tp"?"probe":"",eta2));
+      tex->DrawLatex(xLo,yP-yD,Form("%s: markers",_dt_typeverb.c_str()));
+      tex->DrawLatex(xLo,yP-2*yD,Form("%s: histograms",_mc_typeverb.c_str()));
     }
+  } else if (_vseta) {
+    yP = 0.81;
+    tex->DrawLatex(xLo,yP,Form("%s: markers",_dt_typeverb.c_str()));
+    tex->DrawLatex(xLo,yP-yD,Form("%s: histograms",_mc_typeverb.c_str()));
   } else {
-    auto trigidx = std::find(_jp_triggers,_jp_triggers+_jp_notrigs,trg)-_jp_triggers;
-    tex->SetTextSize(h2->GetYaxis()->GetLabelSize()/3.0);
-    if (_order==0) {
-      if (_vspt)
-        tex->DrawLatex(0.2,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-      else
-        tex->DrawLatex(0.38,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-    } else if (_order==1) {
-      if (_vspt)
-        tex->DrawLatex(0.2,0.1,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-      else
-        tex->DrawLatex(0.38,0.1,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-    } else if (_order==2) {
-      if (_vspt)
-        tex->DrawLatex(0.2,0.80,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-      else
-        tex->DrawLatex(0.38,0.65,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-    } else if (_order==3) {
-      if (_vspt) {
-        if (eta2 <= 2.5) {
-          tex->DrawLatex(xLo,0.85,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
-          tex->DrawLatex(xLo,0.80,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-          tex->DrawLatex(xLo,0.75,Form("%s: marker",_dt_type.c_str()));
-          tex->DrawLatex(xLo,0.71,Form("%s: color",_mc_type.c_str()));
-        } else {
-          tex->DrawLatex(xLo,0.75,Form("|#eta_{%s}| #in [%1.1f,%1.1f]",_tp=="tp"?"probe":"",eta1,eta2));
-          tex->DrawLatex(xLo,0.70,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",",trg",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-          tex->DrawLatex(xLo,0.65,Form("%s: marker",_dt_type.c_str()));
-          tex->DrawLatex(xLo,0.61,Form("%s: color",_mc_type.c_str()));
-        }
-      } else {
-        tex->DrawLatex(xLo,0.85,Form("p_{T%s} #in [%1.1f,%1.1f] GeV",_tp=="tp"?",tag":"",_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1]));
-        tex->DrawLatex(xLo,0.80,Form("%s: marker",_dt_type.c_str()));
-        tex->DrawLatex(xLo,0.76,Form("%s: color",_mc_type.c_str()));
-      }
-    }
+    yP = 0.81;
+    tex->DrawLatex(xLo,yP,Form("%s: markers",_dt_typeverb.c_str()));
+    tex->DrawLatex(xLo,yP-yD,Form("%s: histograms",_mc_typeverb.c_str()));
   }
   gPad->RedrawAxis();
-  if (_vspt and !_pertrg) {
+  if (_usetriglines and _vspt and !_pertrg) {
     l->SetLineColor(kGray+2);
     for (auto i = 0u; i < _jp_notrigs-1; ++i) {
       l->DrawLine(_jp_trigranges[i][1],0.0,_jp_trigranges[i][1],1.0);
@@ -383,58 +352,4 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   gErrorIgnoreLevel = kWarning;
   c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(),taguniq.c_str()));
   cout << Form("\\includegraphics[width=0.30\\textwidth]{../%s/drawFracs%s.pdf}",_savedir.c_str(),taguniq.c_str()) << endl;
-
-  if (_dofit) { // Estimate jet response slope by analyzing composition
-    TLatex *tex = new TLatex();
-    tex->SetNDC(); tex->SetTextSize(h2->GetYaxis()->GetLabelSize()*0.7);
-    if (_dobeta) {
-      TF1 *fchf = new TF1("fchf",[this](Double_t *x, Double_t *p){return jesFit(x,p,_fhb);},40,3000,2);
-      fchf->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
-      TH1D *hchfa = dynamic_cast<TH1D*>(mdf["beta"]->Clone("hcfha")); assert(hchfa);
-      hchfa->Add(mdf["chf"]);
-      hchfa->Add(mdf["betaprime"]);
-      hchfa->Fit(fchf,"QRN");
-      fchf->SetLineColor(kRed+3);
-      fchf->Draw("SAME");
-      hchfa->SetMarkerStyle(kFullStar);
-      hchfa->SetMarkerColor(kRed+3);
-      hchfa->SetLineColor(kRed+3);
-      hchfa->Draw("SAMEP");
-    } else {
-      TF1 *fchf = new TF1("fchf",[this](Double_t *x, Double_t *p){return jesFit(x,p,_fhb);},40,3000,2);
-      fchf->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
-      mdf["chf"]->Fit(fchf,"QRN");
-      fchf->SetLineColor(kRed+2);
-      fchf->Draw("SAME");
-
-      tex->SetTextColor(kRed);
-      tex->DrawLatex(0.17,0.40,Form("%1.2f#pm%1.2f%%, #chi^2/NDF=%1.1f/%d", fchf->GetParameter(0),
-                                    fchf->GetParError(0), fchf->GetChisquare(), fchf->GetNDF()));
-    }
-
-    TF1 *fnhf = new TF1("fnhf",[this](Double_t *x, Double_t *p){return jesFit(x,p,_fhb);},40,3000,2);
-    fnhf->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
-    mdf["nhf"]->Fit(fnhf,"QRN");
-    fnhf->SetLineColor(kGreen+2);
-    fnhf->Draw("SAME");
-
-    TF1 *fnef = new TF1("fnef",[this](Double_t *x, Double_t *p){return jesFit(x,p,_fhb);},40,3000,2);
-    fnef->SetParameters( 0.9881-1, 0.2440 ); // Fall15_25nsV2
-    mdf["nef"]->Fit(fnef,"QRN");
-    fnef->SetLineColor(kBlue+1);
-    fnef->Draw("SAME");
-
-    TH1D *hall = dynamic_cast<TH1D*>(mdf["chf"]->Clone("hall")); assert(hall);
-    if (_dobeta) hall->Add(mdf["beta"]);
-    hall->Add(mdf["betaprime"]);
-    hall->Add(mdf["nef"]);
-    hall->Add(mdf["nhf"]);
-    hall->Add(mdf["cef"]);
-    hall->SetMarkerStyle(kFullCross);
-    hall->SetMarkerColor(kBlack);
-
-    h2->SetMaximum(+5);//+3.0);
-    h2->SetMinimum(-5);//-1.5);
-    c1->SaveAs(Form("%s/DrawFracs_WithFit%s.pdf",savedir.c_str(),taguniq.c_str()));
-  }
 }

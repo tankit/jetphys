@@ -396,7 +396,7 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
         latex.SetTextSize(extraTextSize*t);
         latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText);
         if (extraText2!="") // For Simulation Preliminary
-          latex.DrawLatex(posX_, posY_-relExtraDY*cmsTextSize*t,relExtraDY*extraTextSize*t, extraText2);
+          latex.DrawLatex(posX_, posY_-relExtraDY*cmsTextSize*t,extraText2);
       }
     }
   } else if( writeExtraText ) {
