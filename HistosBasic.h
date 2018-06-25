@@ -157,7 +157,7 @@ class HistosBasic {
   TProfile *phef;
   TProfile *pbeta;
   TProfile *pbetastar;
-  TProfile *pbetaprime;
+  TProfile *ppuf;
   TH1D *hncand;
   TH1D *hnch;
   TH1D *hnne;
@@ -175,7 +175,7 @@ class HistosBasic {
   TH1D *hhef;
   TH1D *hbeta;
   TH1D *hbetastar;
-  TH1D *hbetaprime;
+  TH1D *hpuf;
   // control plots of components (JEC tag-and-probe)
   TProfile *pncandtp;
   TProfile *pnchtp;
@@ -194,7 +194,7 @@ class HistosBasic {
   TProfile *pheftp;
   TProfile *pbetatp;
   TProfile *pbetastartp;
-  TProfile *pbetaprimetp;
+  TProfile *ppuftp;
   //
   TH1D *hncandtp;
   TH1D *hnchtp;
@@ -213,7 +213,7 @@ class HistosBasic {
   TH1D *hheftp;
   TH1D *hbetatp;
   TH1D *hbetastartp;
-  TH1D *hbetaprimetp;
+  TH1D *hpuftp;
   // Npv
   TProfile *pncandtp_vsnpv;
   TProfile *pnchtp_vsnpv;
@@ -232,7 +232,7 @@ class HistosBasic {
   TProfile *pheftp_vsnpv;
   TProfile *pbetatp_vsnpv;
   TProfile *pbetastartp_vsnpv;
-  TProfile *pbetaprimetp_vsnpv;
+  TProfile *ppuftp_vsnpv;
   // Pileup
   TProfile *pchftp_vstrpu;
   TProfile *pneftp_vstrpu;
@@ -243,7 +243,7 @@ class HistosBasic {
   TProfile *pheftp_vstrpu;
   TProfile *pbetatp_vstrpu;
   TProfile *pbetastartp_vstrpu;
-  TProfile *pbetaprimetp_vstrpu;
+  TProfile *ppuftp_vstrpu;
   // control plots vs phi ("pos" and "neg" for positive and negative eta values)
   TProfile *pchfpostp_vsphi;
   TProfile *pnefpostp_vsphi;
@@ -254,7 +254,7 @@ class HistosBasic {
   TProfile *phefpostp_vsphi;
   TProfile *pbetapostp_vsphi;
   TProfile *pbetastarpostp_vsphi;
-  TProfile *pbetaprimepostp_vsphi;
+  TProfile *ppufpostp_vsphi;
   TProfile *pchfnegtp_vsphi;
   TProfile *pnefnegtp_vsphi;
   TProfile *pnhfnegtp_vsphi;
@@ -264,7 +264,7 @@ class HistosBasic {
   TProfile *phefnegtp_vsphi;
   TProfile *pbetanegtp_vsphi;
   TProfile *pbetastarnegtp_vsphi;
-  TProfile *pbetaprimenegtp_vsphi;
+  TProfile *ppufnegtp_vsphi;
 
   // control plots for topology (JEC)
   TH1D *hselpt;

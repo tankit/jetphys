@@ -7,7 +7,7 @@
 
 // Draw 2D plot of jet rates in (eta,phi) to spot issues
 void dataquality() {
-  const char *eras = "C";
+  const char *eras = "B";
   const double maxgoodsig = 2.; // How many rms values away is a good signal
   const double minsig = 3.;
   const double maxsig = 8.5;

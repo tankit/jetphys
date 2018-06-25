@@ -88,7 +88,7 @@ HistosEta::HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   pheftp_vseta = new TProfile("pheftp_vseta","",_jp_netas,_jp_etarange);
   pbetatp_vseta = new TProfile("pbetatp_vseta","",_jp_netas,_jp_etarange);
   pbetastartp_vseta = new TProfile("pbetastartp_vseta","",_jp_netas,_jp_etarange);
-  pbetaprimetp_vseta = new TProfile("pbetaprimetp_vseta","",_jp_netas,_jp_etarange);
+  ppuftp_vseta = new TProfile("ppuftp_vseta","",_jp_netas,_jp_etarange);
 
   if (this->ismcdir) {
     // response closure

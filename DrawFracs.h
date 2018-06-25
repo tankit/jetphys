@@ -79,6 +79,7 @@ private:
   string _sphi;
 
   string _plot_title;
+  string _lumi_title;
   string savedir;
   string _mc_type;
   string _dt_type;
@@ -104,8 +105,9 @@ public:
   * order:
   *  0 standard
   *  1 reshuffled */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
     _plot_title = plot_title;
+    _lumi_title = lumi_title;
     _savedir = savedir;
     assert(order==0 or order==1 or order==2 or order==3);
     _order = order;

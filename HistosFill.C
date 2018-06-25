@@ -505,7 +505,7 @@ bool HistosFill::PreRun()
   }
 
   // Load PU profiles for MC reweighing
-  if (_jp_ismc and _jp_reweighPU and !LoadPuProfiles(_jp_pudata, _jp_pumc)) {
+  if (_jp_ismc and _jp_reweighPU and !LoadPuProfiles(_jp_pudata, (_jp_ispy ? _jp_pumc : _jp_puhw))) {
     cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
     return false;
   }
@@ -1110,16 +1110,12 @@ bool HistosFill::AcceptEvent()
       else _pass = false;
 
       if (_pass) {
-        if (_jp_pthatbins) {
-          if (jtpt[i0] < _pthatuplim) ++_cnt["10pthatlim"];
-          else _pass = false;
-        } else { // Flat case
-          if (jtpt[i0] < 1.5*pthat) ++_cnt["10pthatlim"];
-          else _pass = false;
-        }
+        double lim = (pthat < 100) ? 2.0 : 1.5;
+        if (jtpt[i0] < lim*pthat) ++_cnt["10pthatlim"];
+        else _pass = false;
       }
     }
-    if (_pass) ++_cnt["11jtid"]; // Non-restrictive
+    if (_pass) ++_cnt["12jtid"]; // Non-restrictive
   }
 
   // Equipped in FillBasic and FillRun
@@ -1441,7 +1437,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
               assert(h->pheftp);      h->pheftp->Fill(pttag, jthef[iprobe], _w);
               assert(h->pbetatp);     h->pbetatp->Fill(pttag, jtbeta[iprobe], _w);
               assert(h->pbetastartp); h->pbetastartp->Fill(pttag, jtbetastar[iprobe], _w);
-              assert(h->pbetaprimetp); h->pbetaprimetp->Fill(pttag, jtbetaprime[iprobe], _w);
+              assert(h->ppuftp); h->ppuftp->Fill(pttag, jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
               assert(h->ppt_probepertag); h->ppt_probepertag->Fill(pttag,ptprobe/pttag,_w);
 
@@ -1476,7 +1472,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->hheftp);      h->hheftp->Fill(jthef[iprobe], _w);
                 assert(h->hbetatp);     h->hbetatp->Fill(jtbeta[iprobe], _w);
                 assert(h->hbetastartp); h->hbetastartp->Fill(jtbetastar[iprobe], _w);
-                assert(h->hbetaprimetp); h->hbetaprimetp->Fill(jtbetaprime[iprobe], _w);
+                assert(h->hpuftp); h->hpuftp->Fill(jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 // Fractions vs number of primary vertices
                 assert(h->pncandtp_vsnpv);    h->pncandtp_vsnpv->Fill(npvgood, jtn[iprobe], _w);
@@ -1496,7 +1492,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pheftp_vsnpv);      h->pheftp_vsnpv->Fill(npvgood, jthef[iprobe], _w);
                 assert(h->pbetatp_vsnpv);     h->pbetatp_vsnpv->Fill(npvgood, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vsnpv); h->pbetastartp_vsnpv->Fill(npvgood, jtbetastar[iprobe], _w);
-                assert(h->pbetaprimetp_vsnpv); h->pbetaprimetp_vsnpv->Fill(npvgood, jtbetaprime[iprobe], _w);
+                assert(h->ppuftp_vsnpv); h->ppuftp_vsnpv->Fill(npvgood, jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 // Fractions vs true pileup
                 assert(h->pchftp_vstrpu);      h->pchftp_vstrpu->Fill(trpu, jtchf[iprobe], _w);
@@ -1508,7 +1504,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pheftp_vstrpu);      h->pheftp_vstrpu->Fill(trpu, jthef[iprobe], _w);
                 assert(h->pbetatp_vstrpu);     h->pbetatp_vstrpu->Fill(trpu, jtbeta[iprobe], _w);
                 assert(h->pbetastartp_vstrpu); h->pbetastartp_vstrpu->Fill(trpu, jtbetastar[iprobe], _w);
-                assert(h->pbetaprimetp_vstrpu); h->pbetaprimetp_vstrpu->Fill(trpu, jtbetaprime[iprobe], _w);
+                assert(h->ppuftp_vstrpu); h->ppuftp_vstrpu->Fill(trpu, jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 if (_jp_doPhiHistos) {
                   if (etaprobe>0) {
@@ -1521,7 +1517,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->phefpostp_vsphi);      h->phefpostp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
                     assert(h->pbetapostp_vsphi);     h->pbetapostp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
                     assert(h->pbetastarpostp_vsphi); h->pbetastarpostp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
-                    assert(h->pbetaprimepostp_vsphi); h->pbetaprimepostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
+                    assert(h->ppufpostp_vsphi); h->ppufpostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
                   } else {
                     assert(h->pchfnegtp_vsphi);      h->pchfnegtp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
                     assert(h->pnefnegtp_vsphi);      h->pnefnegtp_vsphi->Fill(phiprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
@@ -1532,7 +1528,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->phefnegtp_vsphi);      h->phefnegtp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
                     assert(h->pbetanegtp_vsphi);     h->pbetanegtp_vsphi->Fill(phiprobe, jtbeta[iprobe], _w);
                     assert(h->pbetastarnegtp_vsphi); h->pbetastarnegtp_vsphi->Fill(phiprobe, jtbetastar[iprobe], _w);
-                    assert(h->pbetaprimenegtp_vsphi); h->pbetaprimenegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe], _w);
+                    assert(h->ppufnegtp_vsphi); h->ppufnegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
                   }
                 }
               } // Tag fires trigger
@@ -1704,7 +1700,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           assert(h->hpt); h->hpt->Fill(pt,_w);
           assert(h->hpt_tmp); h->hpt_tmp->Fill(pt); // Event statistics
           assert(h->hpt_pre);
-          if (_jp_isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run]);
+          if (_jp_isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run] / _wt[h->trigname]);
           if (_jp_ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
           assert(h->hpt0); h->hpt0->Fill(pt, _w);
           // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
@@ -1763,7 +1759,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           assert(h->phhf); h->phef->Fill(pt, jthef[jetidx], _w);
           assert(h->pbeta); h->pbeta->Fill(pt, jtbeta[jetidx], _w);
           assert(h->pbetastar); h->pbetastar->Fill(pt, jtbetastar[jetidx], _w);
-          assert(h->pbetaprime); h->pbetaprime->Fill(pt, jtbetaprime[jetidx], _w);
+          assert(h->ppuf); h->ppuf->Fill(pt, jtbetaprime[jetidx]*jtchf[jetidx], _w);
 
           // control plots for topology (JEC)
           h->pa->Fill(pt, jta[jetidx], _w);
@@ -1837,7 +1833,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             h->hhef->Fill(jthef[jetidx], _w);
             h->hbeta->Fill(jtbeta[jetidx], _w);
             h->hbetastar->Fill(jtbetastar[jetidx], _w);
-            h->hbetaprime->Fill(jtbetaprime[jetidx], _w);
+            h->hpuf->Fill(jtbetaprime[jetidx]*jtchf[jetidx], _w);
 
             h->hyeta->Fill(TMath::Sign(y-eta,y), _w);
             h->hyeta2->Fill(y-eta, _w);
@@ -2115,7 +2111,7 @@ void HistosFill::FillSingleEta(HistosEta *h, Float_t* _pt, Float_t* _eta, Float_
           }
 
           // for composition vs eta (Ozlem) || jetidx is the probe
-          if (alphatp < 0.3 and pttag > h->ptmin and pttag < h->ptmax) { // Alpha and trigger
+          if (alphatp < 0.3 and pttag >= h->ptmin and pttag < h->ptmax) { // Alpha and trigger
             assert(h->pchftp_vseta); h->pchftp_vseta->Fill(etaprobe, jtchf[iprobe], _w);
             assert(h->pneftp_vseta); h->pneftp_vseta->Fill(etaprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
             assert(h->pnhftp_vseta); h->pnhftp_vseta->Fill(etaprobe, (jtnhf[iprobe]-jthhf[iprobe]), _w);
@@ -2125,7 +2121,7 @@ void HistosFill::FillSingleEta(HistosEta *h, Float_t* _pt, Float_t* _eta, Float_
             assert(h->pheftp_vseta); h->pheftp_vseta->Fill(etaprobe, jthef[iprobe], _w);
             assert(h->pbetatp_vseta); h->pbetatp_vseta->Fill(etaprobe, jtbeta[iprobe], _w);
             assert(h->pbetastartp_vseta); h->pbetastartp_vseta->Fill(etaprobe, jtbetastar[iprobe], _w);
-            assert(h->pbetaprimetp_vseta); h->pbetaprimetp_vseta->Fill(etaprobe, jtbetaprime[iprobe], _w);
+            assert(h->ppuftp_vseta); h->ppuftp_vseta->Fill(etaprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
           } // select pt bin for profiles vseta
         } // etatag < 1.3
       } // tag & probe
@@ -2848,7 +2844,7 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
         return -3;
       }
       _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
-      _pthatweight /= (_jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]); // Normalize
+      _pthatweight /= (_jp_pthatsigmanorm/_jp_pthatevtnorm); // Normalize
       _pthatuplim = _jp_pthatuplims[currFile];
       PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f & uplim: %f",
                      currFile,fChain->GetCurrentFile()->GetName(),_jp_pthatranges[currFile],_jp_pthatranges[currFile+1],_pthatweight,_pthatuplim));;
@@ -2864,6 +2860,16 @@ bool HistosFill::GetTriggers()
 {
   TH1F *triggers = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerNames")); assert(triggers);
   TAxis *xax = triggers->GetXaxis();
+  TH1F *usedtrigs = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerPass")); assert(usedtrigs);
+  TAxis *uxax = usedtrigs->GetXaxis();
+
+  // List triggers with actual contents
+  map<string,unsigned int> utrigs;
+  for (int trgidx = uxax->GetFirst(); trgidx <= uxax->GetLast(); ++trgidx) {
+    string trgName = uxax->GetBinLabel(trgidx);
+    if (trgName=="") continue;
+    utrigs[trgName] = usedtrigs->GetBinContent(trgidx);
+  }
 
   regex pfjet("HLT_PFJet([0-9]*)_v([0-9]*)");
   regex ak8("HLT_AK8PFJet([0-9]*)_v[0-9]*");
@@ -2873,41 +2879,47 @@ bool HistosFill::GetTriggers()
   _goodTrigs.clear();
   _goodWgts.clear();
   for (int trgidx = xax->GetFirst(); trgidx <= xax->GetLast(); ++trgidx) {
-//     cout << trgidx << " " << xax->GetLast() << endl;
     string trgName = xax->GetBinLabel(trgidx);
     if (trgName.compare("")==0) continue; // Ignore empty places on x-axis
     string trigger = "x"; // HLT_PFJet are given non-empty trigger names
     if (std::regex_match(trgName,pfjet)) {
       trigger=std::regex_replace(trgName, pfjet, "jt$1", std::regex_constants::format_no_copy);
-      _goodTrigs.push_back(_availTrigs.size());
-      double trigthr = std::stod(std::regex_replace(trgName, pfjet, "$1", std::regex_constants::format_no_copy));
-      unsigned int thrplace = std::find(_jp_trigthr,_jp_trigthr+_jp_notrigs,trigthr)-_jp_trigthr;
-      if (_jp_useversionlumi) {
-        string trgdummy = std::regex_replace(trgName, pfjet, "$1_$2", std::regex_constants::format_no_copy);
-        bool found = false;
-        for (auto IDidx = 0u; IDidx < _jp_notrigIDs; ++IDidx) {
-          for (auto &currTag : _jp_trigtags[IDidx]) {
-            if (std::regex_match(trgdummy,currTag)) {
-              if (found) {
-                cerr << "Double match for " << trgName << ", check trigger naming in _jp_trigtags. Aborting..." << endl;
-                return false;
-              }
-              found = true;
-              if (thrplace < _jp_notrigs+1)
-                _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]/_jp_trigwgts[_jp_notrigIDs][thrplace]);
-              else {
-                cerr << "Error searching the trigger weight! Aborting..." << endl;
-                return false;
+      if (utrigs.find(trgName) != utrigs.end()) {
+        _goodTrigs.push_back(_availTrigs.size());
+        if (_jp_useversionlumi) {
+          // Get a weight for the current trig version normalized with the average of all triggers
+          string trgdummy = std::regex_replace(trgName, pfjet, "$1_$2", std::regex_constants::format_no_copy);
+          double trigthr = std::stod(std::regex_replace(trgName, pfjet, "$1", std::regex_constants::format_no_copy));
+          unsigned int thrplace = std::find(_jp_trigthr,_jp_trigthr+_jp_notrigs,trigthr)-_jp_trigthr;
+          bool found = false;
+          for (auto IDidx = 0u; IDidx < _jp_notrigIDs; ++IDidx) {
+            for (auto &currTag : _jp_trigtags[IDidx]) {
+              if (std::regex_match(trgdummy,currTag)) {
+                if (found) {
+                  PrintInfo(Form("Double match for %s, check trigger naming in _jp_trigtags. Aborting...",trgName.c_str()),true);
+                  return false;
+                }
+                found = true;
+                if (thrplace < _jp_notrigs+1)
+                  _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]/_jp_trigwgts[_jp_notrigIDs][thrplace]);
+                else {
+                  PrintInfo("Error searching the trigger weight! Aborting...",true);
+                  return false;
+                }
               }
             }
           }
+          if (!found) {
+            //
+            PrintInfo(Form("No info for %s in _jp_trigtag. Could be a dummy trigger in the tuple.",trgName.c_str()),true);
+            _goodWgts.push_back(0.0);
+          } else {
+            PrintInfo(Form("Trigger %s responding loud and clear with %u events and relative weight %f!",trgName.c_str(),utrigs[trgName],_goodWgts.back()),true);
+          }
+        } else {
+          // goodWgts needs a dummy value when the trigger version weighting is not in use
+          _goodWgts.push_back(1.0);
         }
-        if (!found) {
-          cerr << "No info for " << trgName << " in _jp_trigtag. Could be a dummy trigger in the tuple." << endl;
-          _goodWgts.push_back(0.0);
-        }
-      } else {
-        _goodWgts.push_back(1.0);//_jp_triglumi[_jp_notrigs-1]/_jp_triglumi[thrplace]);
       }
     } else if (std::regex_match(trgName,ak8)) {
       trigger=std::regex_replace(trgName, ak8, "ak8jt$1", std::regex_constants::format_no_copy);

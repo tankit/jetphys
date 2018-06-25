@@ -117,8 +117,9 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   h2->SetMinimum(_h2min[mode]);
   h2->SetMaximum(_h2max[mode]);
 
-  lumi_13TeV = _plot_title;
-  TCanvas *c1 = tdrDiCanvas(Form("c1%s",taguniq.c_str()),h,h2,4,0);
+  lumi_13TeV = _lumi_title;
+  lumi_bonus = _plot_title;
+  TCanvas *c1 = tdrDiCanvas(Form("c1%s",taguniq.c_str()),h,h2,4,33);
 
   c1->cd(1);
 
@@ -328,6 +329,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       tex->DrawLatex(xLo,yP-yD,Form("%s: markers",_dt_typeverb.c_str()));
       tex->DrawLatex(xLo,yP-2*yD,Form("%s: histograms",_mc_typeverb.c_str()));
     }
+    //tex->DrawLatex(0.75,yP,"19.7 fb^{-1}");
   } else if (_vseta) {
     yP = 0.81;
     tex->DrawLatex(xLo,yP,Form("%s: markers",_dt_typeverb.c_str()));
@@ -344,6 +346,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
       l->DrawLine(_jp_trigranges[i][1],0.0,_jp_trigranges[i][1],1.0);
     }
   }
+  c1->cd(1);
+  CMS_lumi( (TCanvas*)gPad, 4, 33 );
 
   c1->cd(2);
   if (_vspt) gPad->SetLogx();

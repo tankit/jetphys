@@ -13,10 +13,11 @@ void mk_DrawFracs() {
     //const char *savedir="hwpdf";
     //const char *mctype="HW";
     //string title="RunFlGH";
-    string title="Late '16, 16.5 fb^{-1}";
+    string title="Run2016GH";
+    string lumit="16.5 fb^{-1}";
 
-    Fracs fracs(mcpath,dtpath,title,savedir,false,mctype,"DT",3);
-    Fracs tfracs(mcpath,dtpath,title,savedir,true,mctype,"DT",3);
+    Fracs fracs(mcpath,dtpath,title,lumit,savedir,false,mctype,"DT",3);
+    Fracs tfracs(mcpath,dtpath,title,lumit,savedir,true,mctype,"DT",3);
     vector<unsigned int> order = {0,3};//,1,2,4,5};
     for (auto &i : order) {
       fracs.DrawFracs(i);

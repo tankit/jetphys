@@ -29,15 +29,26 @@
 
 #include "../../../settings.h"
 
-void Pufromflat() {
-  TString filename="/work/jet_tuples/MC/2017/P8M1/Flat.root";
-  TFile *output = new TFile("pileup_MC.root","RECREATE");
+void Pthatfromflat() {
+  int bins = 100;
+  int max = 6000;
+  TString filename="/work/jet_tuples/MC/2017/HS1/Flat.root";
+  TFile *output = new TFile("pthat.root","RECREATE");
   TFile *f = new TFile((filename).Data());
   TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
-  TH1D *hist = new TH1D("pileupmc","",_jp_maxpu,0,_jp_maxpu);
-  t->Draw("EvtHdr_.mTrPu>>pileupmc");
+  TH1D *hist1 = new TH1D("pthat","",bins,0,max);
+  TH1D *hist2 = new TH1D("pthat_wgt","",bins,0,max);
+  TH1D *hist3 = new TH1D("pileup","",80,0,80);
+  TH1D *hist4 = new TH1D("pileup_wgt","",80,0,80);
+  t->Draw("EvtHdr_.mPthat>>pthat");
+  t->Draw("EvtHdr_.mPthat>>pthat_wgt","EvtHdr_.mWeight");
+  t->Draw("EvtHdr_.mTrPu>>pileup");
+  t->Draw("EvtHdr_.mTrPu>>pileup_wgt","EvtHdr_.mWeight");
   output->cd();
-  hist->Write();
+  hist1->Write();
+  hist2->Write();
+  hist3->Write();
+  hist4->Write();
   output->Close();
   output->Delete();
 }

@@ -7,7 +7,6 @@ CERTIFICATE=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13T
 PILEUP=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt
 NORMTAG=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json
 MAXPU=80
-MINBIAS=69200
 
 for loc in ${FOLDERS[@]}; do 
     cd $loc
@@ -18,11 +17,11 @@ for loc in ${FOLDERS[@]}; do
     for trg in ${TRIGGERS[@]}; do
         echo "Trigger "${trg}
         TAG=clumis_${trg}
-        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}_v*" --byls --minBiasXsec ${MINBIAS} -o ${TAG}.csv
+        brilcalc lumi --normtag $NORMTAG -i clumis.json --hltpath "${trg}_v*" --byls --minBiasXsec 69200 -o ${TAG}.csv
         wait
         pileupReCalc_HLTpaths.py -i ${TAG}.csv --inputLumiJSON $PILEUP -o ${TAG}_pileup.txt --runperiod Run2
         wait
-        pileupCalc.py -i clumis.json --inputLumiJSON ${TAG}_pileup.txt  --calcMode true --minBiasXsec ${MINBIAS} --maxPileupBin ${MAXPU} --numPileupBins ${MAXPU} ${trg}.root
+        pileupCalc.py -i clumis.json --inputLumiJSON ${TAG}_pileup.txt  --calcMode true --minBiasXsec 69200 --maxPileupBin ${MAXPU} --numPileupBins ${MAXPU} ${trg}.root
         wait
         rm ${TAG}*
         wait
@@ -30,6 +29,8 @@ for loc in ${FOLDERS[@]}; do
     rm clumis.json
     root -l -b -q ../puhist_combine.C
     wait
+    #rm HLT_*.root
+    #wait
 
     echo "Finished! folder "$loc
     cd ..

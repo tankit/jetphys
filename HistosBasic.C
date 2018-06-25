@@ -169,7 +169,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   phef = new TProfile("phef","",_jp_npts,&_jp_ptrange[0]);
   pbeta = new TProfile("pbeta","",_jp_npts,&_jp_ptrange[0]);
   pbetastar = new TProfile("pbetastar","",_jp_npts,&_jp_ptrange[0]);
-  pbetaprime = new TProfile("pbetaprime","",_jp_npts,&_jp_ptrange[0]);
+  ppuf = new TProfile("ppuf","",_jp_npts,&_jp_ptrange[0]);
 
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
@@ -188,7 +188,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   hhef = new TH1D("hhef","",110,0.,1.1);
   hbeta = new TH1D("hbeta","",110,0.,1.1);
   hbetastar = new TH1D("hbetastar","",110,0.,1.1);
-  hbetaprime = new TH1D("hbetaprime","",110,0.,1.1);
+  hpuf = new TH1D("hpuf","",110,0.,1.1);
   // control plots of components (JEC tag-and-probe)
   pncandtp = new TProfile("pncandtp","",_jp_npts,&_jp_ptrange[0]);
   pnchtp = new TProfile("pnchtp","",_jp_npts,&_jp_ptrange[0]);
@@ -206,7 +206,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pheftp = new TProfile("pheftp","",_jp_npts,&_jp_ptrange[0]);
   pbetatp = new TProfile("pbetatp","",_jp_npts,&_jp_ptrange[0]);
   pbetastartp = new TProfile("pbetastartp","",_jp_npts,&_jp_ptrange[0]);
-  pbetaprimetp = new TProfile("pbetaprimetp","",_jp_npts,&_jp_ptrange[0]);
+  ppuftp = new TProfile("ppuftp","",_jp_npts,&_jp_ptrange[0]);
   //
   hncandtp = new TH1D("hncandtp","",300,-0.5,299.5);
   hnchtp = new TH1D("hnchtp","",300,-0.5,299.5);
@@ -226,7 +226,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   hheftp = new TH1D("hheftp","",110,0.,1.1);
   hbetatp = new TH1D("hbetatp","",110,0.,1.1);
   hbetastartp = new TH1D("hbetastartp","",110,0.,1.1);
-  hbetaprimetp = new TH1D("hbetaprimetp","",110,0.,1.1);
+  hpuftp = new TH1D("hpuftp","",110,0.,1.1);
   // control plots vs NPV
   pncandtp_vsnpv = new TProfile("pncandtp_vsnpv","",_jp_npvs,_jp_pvrange);
   pnchtp_vsnpv = new TProfile("pnchtp_vsnpv","",_jp_npvs,_jp_pvrange);
@@ -245,7 +245,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pheftp_vsnpv = new TProfile("pheftp_vsnpv","",_jp_npvs,_jp_pvrange);
   pbetatp_vsnpv = new TProfile("pbetatp_vsnpv","",_jp_npvs,_jp_pvrange);
   pbetastartp_vsnpv = new TProfile("pbetastartp_vsnpv","",_jp_npvs,_jp_pvrange);
-  pbetaprimetp_vsnpv = new TProfile("pbetaprimetp_vsnpv","",_jp_npvs,_jp_pvrange);
+  ppuftp_vsnpv = new TProfile("ppuftp_vsnpv","",_jp_npvs,_jp_pvrange);
   //
   pchftp_vstrpu = new TProfile("pchftp_vstrpu","",_jp_npvs,_jp_pvrange);
   pneftp_vstrpu = new TProfile("pneftp_vstrpu","",_jp_npvs,_jp_pvrange);
@@ -256,7 +256,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pheftp_vstrpu = new TProfile("pheftp_vstrpu","",_jp_npvs,_jp_pvrange);
   pbetatp_vstrpu = new TProfile("pbetatp_vstrpu","",_jp_npvs,_jp_pvrange);
   pbetastartp_vstrpu = new TProfile("pbetastartp_vstrpu","",_jp_npvs,_jp_pvrange);
-  pbetaprimetp_vstrpu = new TProfile("pbetaprimetp_vstrpu","",_jp_npvs,_jp_pvrange);
+  ppuftp_vstrpu = new TProfile("ppuftp_vstrpu","",_jp_npvs,_jp_pvrange);
   //
   if (_jp_doPhiHistos) {
     pchfpostp_vsphi = new TProfile("pchfpostp_vsphi","",_jp_nwphis,_jp_wphirange);
@@ -268,7 +268,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
     phefpostp_vsphi = new TProfile("phefpostp_vsphi","",_jp_nwphis,_jp_wphirange);
     pbetapostp_vsphi = new TProfile("pbetapostp_vsphi","",_jp_nwphis,_jp_wphirange);
     pbetastarpostp_vsphi = new TProfile("pbetastarpostp_vsphi","",_jp_nwphis,_jp_wphirange);
-    pbetaprimepostp_vsphi = new TProfile("pbetaprimepostp_vsphi","",_jp_nwphis,_jp_wphirange);
+    ppufpostp_vsphi = new TProfile("ppufpostp_vsphi","",_jp_nwphis,_jp_wphirange);
     pchfnegtp_vsphi = new TProfile("pchfnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
     pnefnegtp_vsphi = new TProfile("pnefnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
     pnhfnegtp_vsphi = new TProfile("pnhfnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
@@ -278,7 +278,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
     phefnegtp_vsphi = new TProfile("phefnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
     pbetanegtp_vsphi = new TProfile("pbetanegtp_vsphi","",_jp_nwphis,_jp_wphirange);
     pbetastarnegtp_vsphi = new TProfile("pbetastarnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
-    pbetaprimenegtp_vsphi = new TProfile("pbetaprimenegtp_vsphi","",_jp_nwphis,_jp_wphirange);
+    ppufnegtp_vsphi = new TProfile("ppufnegtp_vsphi","",_jp_nwphis,_jp_wphirange);
   }
 
   // control plots for topology (JEC)

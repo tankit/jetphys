@@ -53,7 +53,7 @@ class HistosEta {
   TProfile *pheftp_vseta;
   TProfile *pbetatp_vseta;
   TProfile *pbetastartp_vseta;
-  TProfile *pbetaprimetp_vseta;
+  TProfile *ppuftp_vseta;
 
   // Control plots of resolutions in the pt-eta plane
   // tp: tag-probe (tag), pt: probe-tag (probe)
