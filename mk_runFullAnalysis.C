@@ -8,7 +8,7 @@
   // NB: more detailed instructions are at the end
   // * Provide output JSON file or get the golden JSON from lxplus:
   //      /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/
-  //   => settings.h : _jp_json
+  //   => settings.h : jp::json
   //
   // * Produce brilcalc_lumibyls.csv on lxplus:
   //   [http://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html]
@@ -17,17 +17,17 @@
   //       brilcalc lumi -b "STABLE BEAMS" --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json -i [JSON] -u /fb
   //       brilcalc lumi -i [JSON] -b "STABLE BEAMS" -o brilcalc_lumibyls.csv --byls --normtag=/afs/cern.ch/user/l/lumipro/public/normtag_file/normtag_DATACERT.json  --minBiasXsec 69000
   //   [could add --hltpath to calculate luminosity per path]
-  //   => settings.h : _jp_lumifile
+  //   => settings.h : jp::lumifile
   //
   // * Produce pileup reweighing files for data and MC
   //   MC: ProcessedTree->Draw("EvtHdr_.TrPu>>pileupmc(500,0,50)");
   //   Data: use brilcalc_lumibyls.csv [need code for this]
-  //   => settings.h : _jp_pudata , _jp_pumc
+  //   => settings.h : jp::pudata , jp::pumc
   //
   // * Run duplicate checker with new data files, but turn of later (slow)
-  //   => settings.h : _jp_checkduplicates
+  //   => settings.h : jp::checkduplicates
   //
-  // * Point mk_HistosFill.C to correct data/MC files, 
+  // * Point mk_HistosFill.C to correct data/MC files,
   //   mk_theory.C to correct theory, and HistosFill.C to correct JSON etc.
   //   [tbd: make these all configurable]
   // * Optimize bins for given luminosity (optimizeBins.C, HistosBasic.C)
@@ -46,14 +46,14 @@
   // cp -p pflow_*_LUM.pdf ../latex/figs/
   // cd ../latex; sh copy_anplots.sh; pdflatex inclbpfjets.tex
 
-  
+
   // Setup directories
   gROOT->ProcessLine(".! mkdir pdf");
 
   // Load settings
   #include "settings.h"
 
-  
+
 // Step 1:  - make histograms of measured jet properties (pt, dijet mass)
 //          - make histograms of correction factors (JEC, JER)
 //         (- for MC include generator truth information for analysis closure)
@@ -103,7 +103,7 @@
 
 // Step 4:  - produce systematics:
 //            (i) vary JEC
-//            (ii) vary JER 
+//            (ii) vary JER
 //            (iii) vary JID
 //            (iv) vary lumi
 //            for all of these, use parameterized sources
@@ -145,14 +145,14 @@
   gROOT->ProcessLine(".x mk_drawComparison.C");
   cout << "...skip obsolete code, is now run in drawSummary.C" << endl;
 
-  if (_jp_isdt) {
+  if (jp::isdt) {
     cout << "\nStep 9b: Draw run quality checks"
 	 << "\n================================\n";
-    gROOT->ProcessLine(".x mk_drawRunHistos.C");  
+    gROOT->ProcessLine(".x mk_drawRunHistos.C");
     cout << "\nStep 9c: Draw JEC checks"
 	 << "\n================================\n";
-    gROOT->ProcessLine(".x mk_jecChecks.C+g");  
-    gROOT->ProcessLine(".x mk_drawJEC.C");  
+    gROOT->ProcessLine(".x mk_jecChecks.C+g");
+    gROOT->ProcessLine(".x mk_drawJEC.C");
   }
 
 
@@ -306,7 +306,7 @@
   // - add hltfiles*.txt to hltfiles.txt
   // - add triggers to mk_prescales.C if needed
   // - root -l -b -q mk_prescales.C
-  
+
 
 
   // Step eXtras: only to be run every now and then, and best by hand

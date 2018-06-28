@@ -39,7 +39,7 @@ using namespace std;
 // Resolution function
 int _jk = 0; // global variable
 bool _jet = false; // global variable
-                                  
+
 Double_t fPtRes(Double_t *x, Double_t *p) {
 
   return ptresolution(x[0], p[0]);
@@ -61,7 +61,7 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   double res = ptresolution(pt, eta+1e-3) * pt;
   const double s = TMath::Gaus(ptmeas, pt, res, kTRUE);
   const double f = p[2] * exp(p[3]/pt) * pow(pt, p[4])
-    * pow(1 - pt*cosh(eta) / _jp_emax, p[5]);
+    * pow(1 - pt*cosh(eta) / jp::emax, p[5]);
 
   return (f * s);
 }
@@ -76,15 +76,15 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   //const double eta = 0.0;
 
   if (!_kernel) _kernel = new TF1("_kernel", smearedAnsatzKernel,
-				  1., _jp_emax/cosh(eta), nk+2);
-  
+				  1., jp::emax/cosh(eta), nk+2);
+
   double res = ptresolution(pt, eta+1e-3) * pt;
   const double sigma = max(0.10, min(res/pt, 0.30));
   double ptmin = pt / (1. + 4.*sigma); // xmin*(1+4*sigma)=x
   ptmin = max(1.,ptmin); // safety check
   double ptmax = pt / (1. - 3.*sigma); // xmax*(1-3*sigma)=x
   cout << Form("1pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
-  ptmax = min(_jp_emax/cosh(eta), ptmax); // safety check
+  ptmax = min(jp::emax/cosh(eta), ptmax); // safety check
   cout << Form("2pt %10.5f sigma %10.5f ptmin %10.5f ptmax %10.5f eta %10.5f",pt, sigma, ptmin, ptmax, eta) << endl << flush;
 
 
@@ -92,8 +92,8 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   _kernel->SetParameters(&par[0]);
 
   // Set pT bin limits needed in smearing matrix generation
-  if (p[5]>0 && p[5]<_jp_emax/cosh(eta)) ptmin = p[5];
-  if (p[6]>0 && p[6]<_jp_emax/cosh(eta)) ptmax = p[6];
+  if (p[5]>0 && p[5]<jp::emax/cosh(eta)) ptmin = p[5];
+  if (p[6]>0 && p[6]<jp::emax/cosh(eta)) ptmax = p[6];
 
   return ( _kernel->Integral(ptmin, ptmax, _epsilon) );
   //  return ( 1.0); // integral fails due to nan ptmin ptmax
@@ -118,9 +118,9 @@ void dagostiniUnfold(string type) {
   TFile *fout = new TFile(Form("output-%s-3.root",type.c_str()),"RECREATE");
   assert(fout && !fout->IsZombie());
 
-  _ak7 = (string(_jp_algo)=="AK7");
+  _ak7 = (string(jp::algo)=="AK7");
   if (_ak7) cout << "Using AK7 JER" << endl << flush;
-  bool ismc = _jp_ismc;
+  bool ismc = jp::ismc;
 
   recurseFile(fin, fin2, fout, ismc);
 
@@ -150,7 +150,7 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
     // Found a subdirectory: copy it to output and go deeper
     if (obj->InheritsFrom("TDirectory")) {
 
-      if (_jp_debug) cout << key->GetName() << endl;
+      if (jp::debug) cout << key->GetName() << endl;
 
       assert(outdir->mkdir(obj->GetName()));
       outdir->mkdir(obj->GetName());
@@ -184,7 +184,7 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
 	 string(obj->GetName())=="hpt_jk9" ||
 	 string(obj->GetName())=="hpt_jk10"
 	 )) {
-      
+
       cout << "+" << flush;
 
       _jk = 0;
@@ -192,12 +192,12 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
 	assert( sscanf(obj->GetName(), "hpt_jk%d", &_jk) == 1);
       }
       _jet = TString(obj->GetName()).Contains("hpt_jet");
-      
+
       TH1D *hpt = (TH1D*)obj;
       TH1D *hpt2 = (TH1D*)indir2->Get("hnlo"); assert(hpt2);
       if (hpt2)
         dagostiniUnfold_histo(hpt, hpt2, outdir, ismc);
-    } // hpt                  
+    } // hpt
 
     // Try to process friends similarly
     /*
@@ -214,9 +214,9 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
     } // hpt
     */
   } // while key
-  
+
   curdir->cd();
-} // recurseFile    
+} // recurseFile
 
 
 void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
@@ -227,18 +227,18 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   const char *c = id.c_str();
   if (_jk) c = Form("_jk%d",_jk);
   if (_jet) c = "_jet";
-  
+
   _ismcjer = ismc;
 
   // initial fit of the NLO curve to a histogram
   TF1 *fnlo = new TF1(Form("fus%s",c),
                       "[0]*exp([1]/x)*pow(x,[2])"
                       "*pow(1-x*cosh([4])/[5],[3])", //10., 1000.);
-		      _jp_xmin, min(_jp_xmax, _jp_emax/cosh(y1)));
-  //fnlo->SetParameters(2e14,-18,-5.2,8.9,y1,_jp_emax);
-  fnlo->SetParameters(2e14*2e-10,-18,-5,10,y1,_jp_emax);
+		      jp::xmin, min(jp::xmax, jp::emax/cosh(y1)));
+  //fnlo->SetParameters(2e14,-18,-5.2,8.9,y1,jp::emax);
+  fnlo->SetParameters(2e14*2e-10,-18,-5,10,y1,jp::emax);
   fnlo->FixParameter(4,y1);
-  fnlo->FixParameter(5,_jp_emax);
+  fnlo->FixParameter(5,jp::emax);
 
   //hnlo->Fit(fnlo,"QRN");
   hnlo->Scale(2e-10); // TEMP PATCH
@@ -268,7 +268,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   // Second fit to properly centered graph
   //gnlo2->Fit(fnlo,"QRN");
   gnlo2->Fit(fnlo,"RN");
-  
+
   // Bin-centered data points
   TGraphErrors *gpt = new TGraphErrors(0);
   gpt->SetName(Form("gpt%s",c));
@@ -283,17 +283,17 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     if (ym>0) {
       tools::SetPoint(gpt, gpt->GetN(), x, ym, 0., ym_err);
     }
-  } // for i                                                 
+  } // for i
 
   // Create smeared theory curve
-  double maxpt = _jp_emax/cosh(y1);
+  double maxpt = jp::emax/cosh(y1);
   cout << "y1 "<< y1 << " c "<< c <<endl<<flush;
-  TF1 *fnlos = new TF1(Form("fs%s",c),smearedAnsatz,_jp_xmin,maxpt,nk+3);
+  TF1 *fnlos = new TF1(Form("fs%s",c),smearedAnsatz,jp::xmin,maxpt,nk+3);
   fnlos->SetParameters(y1, fnlo->GetParameter(0), fnlo->GetParameter(1),
                        fnlo->GetParameter(2), fnlo->GetParameter(3), 0, 0);
   cout << "par0 "<< fnlos->GetParameter(0) << "y1 "<< y1<<endl<<flush; //WEIRD: Does not give back y1!!?? FIXME
-  
- if (_jp_debug)
+
+ if (jp::debug)
     cout << "Calculate forward smearing and unfold hpt" << endl << flush;
 
   TGraphErrors *gfold_fwd = new TGraphErrors(0);
@@ -319,7 +319,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
 
   // Calculate smearing matrix
-  if (_jp_debug) 
+  if (jp::debug)
     cout << "Generating smearing matrix T..." << flush;
   double tmp_eps = _epsilon;
   _epsilon = 1e-6; // speed up calculations with acceptable loss of precision
@@ -337,17 +337,17 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     double x2 = hpt->GetBinLowEdge(i+1);
     double y = hpt->GetBinContent(i);
 
-    if (x>=_jp_recopt && y>0) {
+    if (x>=jp::recopt && y>0) {
       if (vx.size()==0) vx.push_back(x1);
       vx.push_back(x2);
     }
 
-    if (x>=_jp_fitptmin && y>0) {
+    if (x>=jp::fitptmin && y>0) {
       if (vy.size()==0) vy.push_back(x1);
       vy.push_back(x2);
     }
   } // for i
-  
+
   // copy over relevant part of hpt
   TH1D *hreco = new TH1D(Form("hreco%s",c),";p_{T,reco} (GeV)",
 			 vy.size()-1,&vy[0]);
@@ -378,7 +378,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   // From http://hepunx.rl.ac.uk/~adye/software/unfold/RooUnfold.html
   // For 1-dimensional true and measured distribution bins Tj and Mi,
   // the response matrix element Rij gives the fraction of events
-  // from bin Tj that end up measured in bin Mi. 
+  // from bin Tj that end up measured in bin Mi.
 
   for (int i = 1; i != mt->GetNbinsX()+1; ++i) {
 
@@ -386,13 +386,13 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     double ptreco2 = mt->GetXaxis()->GetBinLowEdge(i+1);
     double yreco = fnlo->Integral(ptreco1, ptreco2) / (ptreco2 - ptreco1);
     double ptreco = fnlo->GetX(yreco, ptreco1, ptreco2);
-    
+
     for (int j = 1; j != mt->GetNbinsY()+1; ++j) {
 
-      double ptgen1 = min(_jp_emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j));
-      double ptgen2 = min(_jp_emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j+1));
+      double ptgen1 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j));
+      double ptgen2 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j+1));
 
-      if (ptgen1>_jp_recopt && ptreco>_jp_recopt && ptgen1*cosh(y1)<_jp_emax) {
+      if (ptgen1>jp::recopt && ptreco>jp::recopt && ptgen1*cosh(y1)<jp::emax) {
 
         fnlos->SetParameter(5, ptgen1);
         fnlos->SetParameter(6, ptgen2);
@@ -406,12 +406,12 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
   for (int j = 1; j != mt->GetNbinsY()+1; ++j) {
 
-    double ptgen1 = min(_jp_emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j));
-    double ptgen2 = min(_jp_emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j+1));
+    double ptgen1 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j));
+    double ptgen2 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j+1));
     double ygen = fnlo->Integral(ptgen1, ptgen2);
     mx->SetBinContent(j, ygen);
   }
-  
+
   for (int i = 1; i != mt->GetNbinsX()+1; ++i) {
 
     double yreco(0);
@@ -420,7 +420,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     }
     my->SetBinContent(i, yreco);
   } // for i
-  
+
   TH2D *mtu = (TH2D*)mt->Clone(Form("mtu%s",c));
   for (int i = 1; i != mt->GetNbinsX()+1; ++i) {
     for (int j = 1; j != mt->GetNbinsY()+1; ++j) {
@@ -464,7 +464,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 
 
   _epsilon = tmp_eps;
-  if (_jp_debug) 
+  if (jp::debug)
     cout << "done." << endl << flush;
 
   /*
@@ -479,7 +479,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   */
 
   // Now to actual unfolding business with the d'Agostini method
-  if (_jp_debug)
+  if (jp::debug)
     cout << "Unfolding..." << flush;
 
   // RooUnfoldResponse constructor - create from already-filled histograms
@@ -502,7 +502,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   //                 const char* name= 0, const char* title= 0);
   RooUnfoldBayes *uBayes = new RooUnfoldBayes(uResp, hreco, 4);
 
-  if (_jp_debug)
+  if (jp::debug)
     uBayes->Print();
 
   TH1D *hTrueBayes = (TH1D*)uBayes->Hreco(RooUnfold::kCovariance);
@@ -545,12 +545,12 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     hcorrpt_bin = (TH1D*)hpt->Clone(Form("hcorrpt_bin%s",c));
     hcorrpt_bin->Reset();
     for (int i = 1; i != hTrueBin->GetNbinsX()+1; ++i) {
-      
+
       int j = hpt->FindBin(hTrueBin->GetBinCenter(i));
       hcorrpt_bin->SetBinContent(j, hTrueBin->GetBinContent(i));
       hcorrpt_bin->SetBinError(j, hTrueBin->GetBinError(i));
     }
-    
+
     bool _svd = true;
     if (_svd) {
       int kreg = int(vy.size()/2);
@@ -560,11 +560,11 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       assert(hTrueSVD);
       hcorrpt_svd = (TH1D*)hTrueSVD->Clone(Form("hcorrpt_svd%s",c));
       delete uSVD; // ensure static members get destroyed before next instance
-      
+
       hcorrpt_svd = (TH1D*)hpt->Clone(Form("hcorrpt_svd%s",c));
       hcorrpt_svd->Reset();
       for (int i = 1; i != hTrueSVD->GetNbinsX()+1; ++i) {
-	
+
 	int j = hpt->FindBin(hTrueSVD->GetBinCenter(i));
 	hcorrpt_svd->SetBinContent(j, hTrueSVD->GetBinContent(i));
 	hcorrpt_svd->SetBinError(j, hTrueSVD->GetBinError(i));
@@ -575,8 +575,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       hcorrpt_svd->Reset();
     }
   } // !_jk
-  
-  if (_jp_debug)
+
+  if (jp::debug)
     cout << "done." << endl << flush;
 
 
@@ -646,21 +646,21 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   if (!_jk && !_jet) {
 
     for (int i = 0; i != gpt->GetN(); ++i) {
-      
+
       double x, y, ex, ey;
       tools::GetPoint(gpt, i, x, y, ex, ey);
-      
+
       int j = hcorrpt_bin->FindBin(x);
       double ycorr_bin = hcorrpt_bin->GetBinContent(j);
       double eycorr_bin = hcorrpt_bin->GetBinError(j);
       double ycorr_svd = hcorrpt_svd->GetBinContent(j);
       double eycorr_svd = hcorrpt_svd->GetBinError(j);
-      
+
       double k_bin = (ycorr_bin && y ? ycorr_bin / y : 1.);
       double k_svd = (ycorr_svd && y ? ycorr_svd / y : 1.);
-      
+
       if (!TMath::IsNaN(k_bin)) {
-	
+
 	double dk = 0;
 	//if (eycorr_bin/ycorr_bin > ey/y)
 	dk = eycorr_bin/ycorr_bin*k_bin;
@@ -670,7 +670,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       }
 
       if (!TMath::IsNaN(k_svd)) {
-	
+
 	double dk = 0;
 	//if (eycorr_svd/ycorr_svd > ey/y)
 	dk = eycorr_svd/ycorr_svd*k_svd;
@@ -678,14 +678,14 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 	tools::SetPoint(gcorrpt_svd, gcorrpt_svd->GetN(),
 			x, ycorr_svd, ex, eycorr_svd);
       }
-      
+
     } // for i
   } // !_jk
 
   outdir->cd();
 
   // Save resolution function
-  TF1 *fres = new TF1(Form("fres%s",c), fPtRes, _jp_xmin, _jp_xmax, 1);
+  TF1 *fres = new TF1(Form("fres%s",c), fPtRes, jp::xmin, jp::xmax, 1);
   fres->SetParameter(0, y1);
 
   // Store NLO ratio to (unsmeared) fit
@@ -730,7 +730,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     fnlo->Write();
     // Calculating points for fs is taking significant time,
     // and even got stuck at some point when too far out of the range
-    fnlos->SetRange(_jp_xmin, min(_jp_xmax, _jp_emax/cosh(y1)));
+    fnlos->SetRange(jp::xmin, min(jp::xmax, jp::emax/cosh(y1)));
     fnlos->SetNpx(1000); // otherwise ugly on log x-axis after write
     fnlos->Write();
     fres->Write();
@@ -760,7 +760,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     hcorrpt_fwd->Write();
     hcorrpt_bin->Write();
     hcorrpt_svd->Write();
-    
+
     // Unfolding covariance matrix
     hCov->Write();
   }
@@ -778,7 +778,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     //gcorrpt->Write();
     hcorrpt_dag->Write("hcorrpt");
   }
-  
+
 } // dagostiniUnfold_histo
 
 
@@ -794,7 +794,7 @@ void drawDagostini(string type) {
   f->cd("Standard");
   TDirectory *din = f->GetDirectory("Standard"); assert(din);
   curdir->cd();
-    
+
   TCanvas *c1 = new TCanvas("c1","c1",1200,800);
   //c1->SetTopMargin(0.20);
   c1->Divide(3,2);//,0.1,0.00);
@@ -810,7 +810,7 @@ void drawDagostini(string type) {
   c3->Divide(3,2,-1,-1);
 
   TH1D *h = new TH1D("h",";p_{T} (GeV);Unfolding correction",
-		     int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+		     int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.45);
   h->SetMaximum(1.15);
   h->GetXaxis()->SetMoreLogLabels();
@@ -899,12 +899,12 @@ void drawDagostini(string type) {
       h2->GetYaxis()->SetTitleOffset(1.5);
       h2->GetZaxis()->SetRangeUser(1e-3,0.9999);
 
-      h2->GetXaxis()->SetRangeUser(_jp_fitptmin,_jp_xmax);//1327.);
-      h2->GetYaxis()->SetRangeUser(_jp_recopt,_jp_xmax);
+      h2->GetXaxis()->SetRangeUser(jp::fitptmin,jp::xmax);//1327.);
+      h2->GetYaxis()->SetRangeUser(jp::recopt,jp::xmax);
       //h2resp->Draw("SAME COLZ");
 
       //tex->DrawLatex(0.8, 0.15, _algo=="AK7" ?
-      tex->DrawLatex(0.8, 0.20, string(_jp_algo)=="AK7" ?
+      tex->DrawLatex(0.8, 0.20, string(jp::algo)=="AK7" ?
 		     "Anti-k_{T} R=0.7, |y|<0.5" :
 		     "Anti-k_{T} R=0.5, |y|<0.5");
       //cmsPrel(_lumi);
@@ -919,13 +919,13 @@ void drawDagostini(string type) {
     h->SetXTitle(iy==ny-1 ? "p_{T} (GeV)" : "");
     h->SetYTitle(iy==0 ? "Unfolding correction" : "");
     h->DrawClone("AXIS");
-    
+
     TLine *l = new TLine();
     l->SetLineStyle(kDotted);
     l->DrawLine(ptmin,0.45,ptmin,1.15);
     l->SetLineStyle(kDashed);
     //l->DrawLine(56,0.45,56,1.15); // v2
-    l->DrawLine(_jp_xminpas,0.45,_jp_xminpas,1.15);
+    l->DrawLine(jp::xminpas,0.45,jp::xminpas,1.15);
 
     gfwd->SetName("gfwd");
     gfwd->SetLineWidth(2);
@@ -974,7 +974,7 @@ void drawDagostini(string type) {
     l->DrawLine(ptmin,0.9,ptmin,1.1);
     l->SetLineStyle(kDashed);
     //l->DrawLine(56,0.9,56,1.1); // v2
-    l->DrawLine(_jp_xminpas,0.9,_jp_xminpas,1.1);
+    l->DrawLine(jp::xminpas,0.9,jp::xminpas,1.1);
 
     TGraphErrors *grfwd = tools::ratioGraphs(gfwd, gfwd);
     grfwd->Draw("SAMEL");
@@ -991,7 +991,7 @@ void drawDagostini(string type) {
 
   }
 
-  const char *a = string(_jp_algo).c_str();
+  const char *a = string(jp::algo).c_str();
   const char *t = type.c_str();
 
   c1->cd(3);
@@ -1007,14 +1007,14 @@ void drawDagostini(string type) {
   tex->SetTextSize(0.053);
   tex->DrawLatex(0.50, 0.85, Form("%s %s",t,a));
   c2->cd(0);
-  //cmsPrel(type=="DATA" ? _jp_lumi : 0, true);
+  //cmsPrel(type=="DATA" ? jp::lumi : 0, true);
   c2->SaveAs(Form("pdf/roounfold_comparison_%s_%s.pdf",a,t));
 
   c3->cd(2);
   tex->DrawLatex(0.50, 0.85, Form("%s %s",t,a));
   c3->cd(0);
-  //cmsPrel(type=="DATA" ? _jp_lumi : 0, true);
+  //cmsPrel(type=="DATA" ? jp::lumi : 0, true);
   c3->SaveAs(Form("pdf/roounfold_ratiotofwd_%s_%s.pdf",a,t));
-  
+
 
 } // drawDagostini

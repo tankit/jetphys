@@ -155,8 +155,6 @@ class HistosBasic {
   TProfile *pmuf;
   TProfile *phhf;
   TProfile *phef;
-  TProfile *pbeta;
-  TProfile *pbetastar;
   TProfile *ppuf;
   TH1D *hncand;
   TH1D *hnch;
@@ -173,8 +171,6 @@ class HistosBasic {
   TH1D *hmuf;
   TH1D *hhhf;
   TH1D *hhef;
-  TH1D *hbeta;
-  TH1D *hbetastar;
   TH1D *hpuf;
   // control plots of components (JEC tag-and-probe)
   TProfile *pncandtp;
@@ -192,8 +188,6 @@ class HistosBasic {
   TProfile *pmuftp;
   TProfile *phhftp;
   TProfile *pheftp;
-  TProfile *pbetatp;
-  TProfile *pbetastartp;
   TProfile *ppuftp;
   //
   TH1D *hncandtp;
@@ -211,8 +205,6 @@ class HistosBasic {
   TH1D *hmuftp;
   TH1D *hhhftp;
   TH1D *hheftp;
-  TH1D *hbetatp;
-  TH1D *hbetastartp;
   TH1D *hpuftp;
   // Npv
   TProfile *pncandtp_vsnpv;
@@ -230,8 +222,6 @@ class HistosBasic {
   TProfile *pmuftp_vsnpv;
   TProfile *phhftp_vsnpv;
   TProfile *pheftp_vsnpv;
-  TProfile *pbetatp_vsnpv;
-  TProfile *pbetastartp_vsnpv;
   TProfile *ppuftp_vsnpv;
   // Pileup
   TProfile *pchftp_vstrpu;
@@ -241,8 +231,6 @@ class HistosBasic {
   TProfile *pmuftp_vstrpu;
   TProfile *phhftp_vstrpu;
   TProfile *pheftp_vstrpu;
-  TProfile *pbetatp_vstrpu;
-  TProfile *pbetastartp_vstrpu;
   TProfile *ppuftp_vstrpu;
   // control plots vs phi ("pos" and "neg" for positive and negative eta values)
   TProfile *pchfpostp_vsphi;
@@ -252,8 +240,6 @@ class HistosBasic {
   TProfile *pmufpostp_vsphi;
   TProfile *phhfpostp_vsphi;
   TProfile *phefpostp_vsphi;
-  TProfile *pbetapostp_vsphi;
-  TProfile *pbetastarpostp_vsphi;
   TProfile *ppufpostp_vsphi;
   TProfile *pchfnegtp_vsphi;
   TProfile *pnefnegtp_vsphi;
@@ -262,8 +248,6 @@ class HistosBasic {
   TProfile *pmufnegtp_vsphi;
   TProfile *phhfnegtp_vsphi;
   TProfile *phefnegtp_vsphi;
-  TProfile *pbetanegtp_vsphi;
-  TProfile *pbetastarnegtp_vsphi;
   TProfile *ppufnegtp_vsphi;
 
   // control plots for topology (JEC)
@@ -319,8 +303,6 @@ class HistosBasic {
 
   TH1D *hyeta;
   TH1D *hyeta2;
-  TH2D *hbetabetastar;
-  TH2D *hbetabetaprime;
   TH2D *hetaphi;
 
   // MC checks

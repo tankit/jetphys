@@ -14,7 +14,7 @@ void combine() {
     g.cd();
     TH1D* handle = dynamic_cast<TH1D*>(gROOT->FindObject("pileup"));
     if (handle) {
-      handle->Scale(_jp_triglumi[tags.size()-1]/_jp_triglumi[tags.size()-1-i]);
+      handle->Scale(jp::triglumi[tags.size()-1]/jp::triglumi[tags.size()-1-i]);
       f.cd();
       handle->SetName(name.Data());
       handle->SetTitle(name.Data());

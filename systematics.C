@@ -29,7 +29,7 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   const double res = ptresolution(pt, eta+1e-3) * pt * (1. + p[6]);
   const double s = TMath::Gaus(p[0], pt, res, kTRUE);
   const double f = p[1] * exp(p[2]/pt) * pow(pt, p[3])
-    * pow(1 - pt*cosh(eta)/_jp_emax., p[4]);
+    * pow(1 - pt*cosh(eta)/jp::emax., p[4]);
 
   return (f * s);
 }
@@ -48,7 +48,7 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   double xmin = pt / (1. + 4.*sigma); // xmin*(1+4*sigma)=x
   xmin = max(1.,xmin); // safety check
   double xmax = pt / (1. - 2.*sigma); // xmax*(1-2*sigma)=x
-  xmax = min(_jp_emax/cosh(eta),xmax); // safety check
+  xmax = min(jp::emax/cosh(eta),xmax); // safety check
   const double par[7] = {pt, p[0], p[1], p[2], p[3], p[4], p[5]};
   _kernel->SetParameters(&par[0]);
 
@@ -85,7 +85,7 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 void jec_shifts(TDirectory *dzr, TDirectory *dout, string type,
 		string algo = "jpt");
 
-sysc *jer_systematics(TDirectory *dzr, TDirectory *dout, 
+sysc *jer_systematics(TDirectory *dzr, TDirectory *dout,
 		      string type, string jectype="inc");
 
 sysc *lum_systematics(TDirectory *dzr, TDirectory *dout);
@@ -146,7 +146,7 @@ void systematics(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")) {
 
@@ -162,7 +162,7 @@ void systematics(string type) {
       dout0->mkdir(obj->GetName());
       assert(dout0->cd(obj->GetName()));
       TDirectory *dout = gDirectory;
-      
+
       // Process subdirectory
       sysc *cjec  = jec_systematics(dzr,dunc,dpl,dmn, dout, type, "tot");
       if(cjec);
@@ -201,8 +201,8 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 
   // Load the uncertainty
   TH1D *hunc = (TH1D*)dunc->Get("punc"); assert(hunc);
-  //JetCorrectionUncertainty *func = new JetCorrectionUncertainty(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_Uncertainty_%sPF.txt",_jp_algo));
-  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", _jp_jecgt, _jp_type, _jp_algo);
+  //JetCorrectionUncertainty *func = new JetCorrectionUncertainty(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_Uncertainty_%sPF.txt",jp::algo));
+  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", jp::jecgt, jp::type, jp::algo);
   cout << s << endl << flush;
   JetCorrectionUncertainty *func = new JetCorrectionUncertainty(s.c_str());
   const char *jt = jectype.c_str();
@@ -214,12 +214,12 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 
   // make sure new histograms get created in the output file
   dout->cd();
-  
+
   // inclusive jets
   TF1 *fpt0 = (TF1*)dzr->Get("fus"); assert(fpt0); fpt0->SetName("fpt0");
   TF1 *fpt = new TF1("fpt1","[0]*exp([1]/(x*(1-[6])))*pow(x*(1-[6]),[2])"
 		     "*pow(1-x*(1-[6])*cosh([4])/[5], [3])",
-		     _jp_recopt, _jp_emax/cosh(etamin));
+		     jp::recopt, jp::emax/cosh(etamin));
   fpt->SetParameters(fpt0->GetParameter(0), fpt0->GetParameter(1),
 		     fpt0->GetParameter(2), fpt0->GetParameter(3),
 		     fpt0->GetParameter(4), fpt0->GetParameter(5),
@@ -244,10 +244,10 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
       double mn = hjmn0->GetBinContent(i)-1;
       double emn = hjmn0->GetBinError(i);
       hjmn0->SetBinContent(i, mn);
-    
+
       // Average error should be weighted by statistics
       double av = (epl&&emn ? (pl+mn*epl*epl/(emn*emn)) / (1+(epl*epl)/(emn*emn))
-		   : 0.); 
+		   : 0.);
       double eav = (epl&&emn ? epl / sqrt(1.+epl*epl/(emn*emn)) : 0.);
       hjav0->SetBinContent(i, av);
       hjav0->SetBinError(i, eav);
@@ -263,7 +263,7 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
   hjav->Reset();
 
   string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt",
-                  _jp_jecgt, _jp_type, _jp_algo);
+                  jp::jecgt, jp::type, jp::algo);
   cout << s << endl << flush;
   JetCorrectionUncertainty *rjet = new JetCorrectionUncertainty(s.c_str());
 
@@ -273,7 +273,7 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 
 	double xmin = hzr->GetBinLowEdge(i);
 	double xmax = hzr->GetBinLowEdge(i+1);
-	
+
 	double unc = hunc->GetBinContent(i);
 	{
 	  double eta = 0.5*(etamin+etamax);
@@ -306,18 +306,18 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 	double djec0 = djec;
 	double djec1 = djec;
 	if (type==""); // suppress warning
-	
+
 	assert(xmax!=xmin);
 	double ypl = fpt->Integral(xmin/(1+djec0), xmax/(1+djec1)) / (xmax-xmin);
 	double ymn = fpt->Integral(xmin*(1+djec0), xmax*(1+djec1)) / (xmax-xmin);
 	double yzr = fpt->Integral(xmin, xmax) / (xmax-xmin);
-	
+
 	// sanity checks
 	//cout << Form("xmin %1.3g xmax %1.3g", xmin, xmax) << endl;
 	//cout << Form("ymin %1.3g ymax %1.3g yzr %1.3g",
 	//	 fpt->Eval(xmin), fpt->Eval(xmax), yzr) << endl;
 	if (yzr > fpt->Eval(xmin) || yzr < fpt->Eval(xmax)) {
-	  
+
 	  double ymin = fpt->Eval(xmin);
 	  double ymax = fpt->Eval(xmax);
 	  if (ymin < ymax)
@@ -328,15 +328,15 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 			 xmin, xmax);
 	  cerr << Form(" yzr=%1.3g, ymin=%1.3g, ymax=%1.3g",yzr,ymin,ymax)<<endl;
 	}
-	
+
 	if (TMath::IsNaN(yzr) || yzr<0) yzr = 0;
 	hjpl->SetBinContent(i, yzr ? ypl / yzr - 1 : 0.);
 	hjmn->SetBinContent(i, yzr ? ymn / yzr - 1 : 0.);
 	hjav->SetBinContent(i, yzr ? 0.5*(fabs(ypl/yzr-1)+fabs(ymn/yzr-1)) : 0.);
     }
   } // for i
-      
-      
+
+
   dzr->cd();
 
   return ( new sysc(hjpl, hjmn, hjav) );
@@ -398,12 +398,12 @@ const double p_ak5jpt[8][5] =
 
   // make sure new histograms get created in the output file
   dout->cd();
-  
+
   // inclusive jets
   TF1 *fpt0 = (TF1*)dzr->Get("fus"); assert(fpt0); fpt0->SetName("fpt0");
   TF1 *fpt = new TF1("fpt1","[0]*exp([1]/(x*(1-[6])))*pow(x*(1-[6]),[2])"
 		     "*pow(1-x*(1-[6])*cosh([4])/[5], [3])",
-		     _jp_recopt, _jp_emax);
+		     jp::recopt, jp::emax);
   fpt->SetParameters(fpt0->GetParameter(0), fpt0->GetParameter(1),
 		     fpt0->GetParameter(2), fpt0->GetParameter(3),
 		     fpt0->GetParameter(4), fpt0->GetParameter(5),
@@ -480,36 +480,36 @@ sysc *jer_systematics(TDirectory *din, TDirectory *dout,
 
       double y = fpt->Integral(ptmin, ptmax) / (ptmax - ptmin);
       double x = fpt->GetX(y, ptmin, ptmax);
-      
+
       // sanity checks
       //cout << Form("xmin %1.0f xmax %1.0f x %1.0f", xmin, xmax, x) << endl;
       //if (x < xmin || x > xmax) {
-      
+
       //cerr << Form("bin center x=%1.3f not in bin [%1.3g,%1.3g]"
       //	   ", reverting to bin midpoint", x, xmin, xmax) << endl;
       //x = 0.5*(xmin + xmax);
       assert(x >= ptmin);
       assert(x <= ptmax);
       //}
-      
+
       // Estimate the JER uncertainty
       double djer = 0.;//0.10;//0.20;
       if (jertype=="inc") djer = (_ismc ? 0.05 : 0.10);
       // above overridden later
-      
+
       // Over-ride with Jet Algorithm group's recommendations (interpolated)
       if (jertype=="inc" && !_ismc) {
 	int iy = min(int((etamin+0.001)/0.5),5);
 	djer = kpar[iy][1];
       }
-      
+
       fs->SetParameter(5, +djer);
       double ypl = fs->Eval(x);
       fs->SetParameter(5, -djer);
       double ymn = fs->Eval(x);
       fs->SetParameter(5, 0.);
       double yzr = fs->Eval(x);
-      
+
       hspl->SetBinContent(i, yzr ? max(ypl / yzr - 1, 0.) : 0.);
       hsmn->SetBinContent(i, yzr ? min(ymn / yzr - 1, 0.) : 0.);
       hsav->SetBinContent(i, yzr && ypl && ymn ?
@@ -535,12 +535,12 @@ sysc *lum_systematics(TDirectory *din, TDirectory *dout) {
   TH1D *hlav = (TH1D*)hzr->Clone("hlum_av"); hlav->Reset();
 
   for (int i = 1; i != hzr->GetNbinsX()+1; ++i) {
-    
+
     double lumsys = (_ismc ? 0. : 0.022);
     if (hzr->GetBinContent(i)!=0) {
       hlpl->SetBinContent(i, +lumsys);
-      hlmn->SetBinContent(i, -lumsys); 
-      hlav->SetBinContent(i, lumsys); 
+      hlmn->SetBinContent(i, -lumsys);
+      hlav->SetBinContent(i, lumsys);
     }
   }
 
@@ -578,7 +578,7 @@ void tot_systematics(TDirectory *din, TDirectory *dout,
   TH1D *htav = (TH1D*)cjec1->av->Clone(Form("htot%s_av",s)); htav->Reset();
 
   for (int i = 1; i != cjec1->av->GetNbinsX()+1; ++i) {
-    
+
     double jec1_pl = cjec1->plus->GetBinContent(i);
     double jec1_mn = cjec1->minus->GetBinContent(i);
     double jec2_pl = cjec2->plus->GetBinContent(i);
@@ -598,8 +598,8 @@ void tot_systematics(TDirectory *din, TDirectory *dout,
     double tot_av = 0.5*(tot_pl + tot_mn);
 
     if (hpt->GetBinContent(i)!=0) {
-      htpl->SetBinContent(i, tot_pl); 
-      htmn->SetBinContent(i, -tot_mn); 
+      htpl->SetBinContent(i, tot_pl);
+      htmn->SetBinContent(i, -tot_mn);
       htav->SetBinContent(i, tot_av);
     }
 
@@ -618,14 +618,14 @@ void tot_systematics(TDirectory *din, TDirectory *dout,
 
   dout->Add(gpt_stat);
   dout->Add(gpt_syst);
-  
+
   curdir->cd();
 } // tot_systematics
 
 
 void statistics(TDirectory *din, TDirectory *dout) {
 
-  TH1D *hzr = (TH1D*)din->Get("hpt"); assert(hzr);  
+  TH1D *hzr = (TH1D*)din->Get("hpt"); assert(hzr);
 
   // make sure new histograms get created in the output file
   dout->cd();
@@ -633,12 +633,12 @@ void statistics(TDirectory *din, TDirectory *dout) {
   TF1 *fpt0 = (TF1*)din->Get("fus"); assert(fpt0); fpt0->SetName("fpt0");
   TF1 *fpt = new TF1("fpt3","[0]*exp([1]/x)*pow(x,[2])"
 		     "*pow(1-x*cosh([4])/[5],[3])",
-		     _jp_recopt, _jp_emax);
+		     jp::recopt, jp::emax);
   fpt->SetParameters(fpt0->GetParameter(0), fpt0->GetParameter(1),
 		     fpt0->GetParameter(2), fpt0->GetParameter(3),
 		     fpt0->GetParameter(4), fpt0->GetParameter(5));
 
-  TF1 *fs = new TF1("fs3",smearedAnsatz, _jp_recopt, _jp_emax, 6);
+  TF1 *fs = new TF1("fs3",smearedAnsatz, jp::recopt, jp::emax, 6);
   fs->SetParameters(fpt->GetParameter(0), fpt->GetParameter(1),
 		    fpt->GetParameter(2), fpt->GetParameter(3),
 		    fpt->GetParameter(4), 0.);
@@ -664,7 +664,7 @@ void statistics(TDirectory *din, TDirectory *dout) {
     double stat_mub = 1./sqrt(nd*0.0001);
     double stat_nb  = 1./sqrt(nd*0.01);
     double stat_pb  = 1./sqrt(nd*1.);
-    
+
     if (stat_mub<1.) hmub->SetBinContent(i, stat_mub);
     if (stat_nb<1.) hnb->SetBinContent(i, stat_nb);
     if (stat_pb<1.) hpb->SetBinContent(i, stat_pb);
@@ -676,7 +676,7 @@ void statistics(TDirectory *din, TDirectory *dout) {
 
 
 void sources(string type = "DATA") {
-  
+
   assert(type=="DATA" || type=="MC" || type=="HW");
   const char *t = type.c_str();
 
@@ -686,13 +686,13 @@ void sources(string type = "DATA") {
   // NLO theory prediction with NP corrections as baseline
   TFile *fth = new TFile(Form("output-%s-5.root",t),"READ");
   assert(fth && !fth->IsZombie());
-  
+
   assert(fth->cd("Standard"));
   TDirectory *dth0 = gDirectory;
-  
+
   TFile *fout = new TFile(Form("output-%s-4.root",t), "UPDATE");
   assert(fout && !fout->IsZombie());
-  
+
   fout->mkdir("Standard");
   assert(fout->cd("Standard"));
   TDirectory *dout0 = gDirectory;
@@ -701,30 +701,30 @@ void sources(string type = "DATA") {
   TList *keys = dth0->GetListOfKeys();
   TListIter itkey(keys);
   TObject *key, *obj;
-  
+
   while ( (key = itkey.Next()) ) {
-    
+
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")) {
-      
+
       assert(dth0->cd(obj->GetName()));
       TDirectory *dth = gDirectory;
-      
+
       dout0->mkdir(obj->GetName());
       assert(dout0->cd(obj->GetName()));
       TDirectory *dout = gDirectory;
-      
+
       sourceBin(dth, dout);
     } // inherits TDirectory
   } // while
-  
+
   cout << "Output stored in " << fout->GetName() << endl;
   fout->Write();
   fout->Close();
   fout->Delete();
-  
+
   fth->Close();
   fth->Delete();
 } // systematics
@@ -740,7 +740,7 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
   TF1 *fnlo0 = (TF1*)dth->Get("fnlo"); assert(fnlo0); fnlo0->SetName("fnlo0");
   TF1 *fnlo = new TF1("fnlo","[0]*exp([1]/x)*pow(x,[2])"
 		     "*pow(1-x*cosh([4])/[5], [3])",
-		      _jp_recopt, _jp_emax);
+		      jp::recopt, jp::emax);
   fnlo->SetParameters(fnlo0->GetParameter(0), fnlo0->GetParameter(1),
 		      fnlo0->GetParameter(2), fnlo0->GetParameter(3),
 		      fnlo0->GetParameter(4), fnlo0->GetParamater(5));
@@ -761,9 +761,9 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
   TH1D *horig0 = (TH1D*)hnlo->Clone("orig"); horig0->Reset();
 
   for (int isrc = 0; isrc != nsrc; ++isrc) {
-    
+
     string s = Form("CondFormats/JetMETObjects/data/%s_%s_UncertaintySources_%sPF.txt",
-                    _jp_jecgt, _jp_type, _jp_algo);
+                    jp::jecgt, jp::type, jp::algo);
     cout << s << endl << flush;
     JetCorrectorParameters *p = new JetCorrectorParameters(s.c_str(),
 							   srcnames[isrc]);
@@ -776,14 +776,14 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
     hup->SetTitle(srcnames[isrc].c_str());
     hdw->SetTitle(srcnames[isrc].c_str());
     horig->SetTitle(srcnames[isrc].c_str());
-    
+
     for (int i = 1; i != hnlo->GetNbinsX()+1; ++i) {
 
       if (hnlo->GetBinContent(i)!=0) {
-	
+
 	double xmin = hnlo->GetBinLowEdge(i);
 	double xmax = hnlo->GetBinLowEdge(i+1);
-	
+
 	double pt = 0.5*(xmin+xmax);
 	double eta = 0.5*(etamin+etamax);
 	unc->setJetPt(pt);
@@ -796,12 +796,12 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
 
 	double djec0 = djec;
 	double djec1 = djec;
-	
+
 	assert(xmax!=xmin);
 	double ypl = fnlo->Integral(xmin/(1+djec0), xmax/(1+djec1))/(xmax-xmin);
 	double ymn = fnlo->Integral(xmin*(1+djec0), xmax*(1+djec1))/(xmax-xmin);
 	double yzr = fnlo->Integral(xmin, xmax) / (xmax-xmin);
-	
+
 	// sanity checks
 	double ymin = fnlo->Eval(xmin);
 	double ymax = fnlo->Eval(xmax);
@@ -811,7 +811,7 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
 	  yzr = 0;
 	}
 	else if (yzr > ymin || yzr < ymax) {
-	  
+
 	  if (ymin < ymax)
 	    cerr << Form("Warning: range [%3.3g, %3.3g] is not falling,",
 			 xmin, xmax);
@@ -821,7 +821,7 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
 	  cerr << Form(" yzr=%1.3g, ymin=%1.3g, ymax=%1.3g",
 		       yzr, ymin, ymax) << endl;
 	}
-	
+
 	hup->SetBinContent(i, yzr ? ypl / yzr - 1 : 0.);
 	hdw->SetBinContent(i, yzr ? ymn / yzr - 1 : 0.);
 	horig->SetBinContent(i, djec);

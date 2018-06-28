@@ -42,22 +42,22 @@ HistosEta::HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
     // Fill all histo types with a corresponding histogram
     hdjasymm.push_back(  new TH3D((string("hdjasymm_a")+number).c_str(),
                               ";p_{T,ave};#eta;Asymmetry",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),
                               ";p_{T,tag};#eta;Asymmetry",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjasymmpt.push_back(new TH3D((string("hdjasymmpt_a")+number).c_str(),
                               ";p_{T,probe};#eta;Asymmetry",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjmpf.push_back(    new TH3D((string("hdjmpf_a")+number).c_str(),
                               ";p_{T,ave};#eta;MPF",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjmpftp.push_back(  new TH3D((string("hdjmpftp_a")+number).c_str(),
                               ";p_{T,tag};#eta;MPF",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjmpfpt.push_back(  new TH3D((string("hdjmpfpt_a")+number).c_str(),
                               ";p_{T,probe};#eta;MPF",
-                              _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
   }
 
   // Weights:
@@ -71,29 +71,29 @@ HistosEta::HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
   }
 
   // components vs eta (Ozlem)
-  pncandtp_vseta = new TProfile("pcandtp_vseta","",_jp_netas,_jp_etarange);
-  pnchtp_vseta = new TProfile("pnchtp_vseta","",_jp_netas,_jp_etarange);
-  pnnetp_vseta = new TProfile("pnnetp_vseta","",_jp_netas,_jp_etarange);
-  pnnhtp_vseta = new TProfile("pnnhtp_vseta","",_jp_netas,_jp_etarange);
-  pncetp_vseta = new TProfile("pncetp_vseta","",_jp_netas,_jp_etarange);
-  pnmutp_vseta = new TProfile("pnmutp_vseta","",_jp_netas,_jp_etarange);
-  pnhhtp_vseta = new TProfile("pnhhtp_vseta","",_jp_netas,_jp_etarange);
-  pnhetp_vseta = new TProfile("pnhetp_vseta","",_jp_netas,_jp_etarange);
-  pchftp_vseta = new TProfile("pchftp_vseta","",_jp_netas,_jp_etarange);
-  pneftp_vseta = new TProfile("pneftp_vseta","",_jp_netas,_jp_etarange);
-  pnhftp_vseta = new TProfile("pnhftp_vseta","",_jp_netas,_jp_etarange);
-  pceftp_vseta = new TProfile("pceftp_vseta","",_jp_netas,_jp_etarange);
-  pmuftp_vseta = new TProfile("pmuftp_vseta","",_jp_netas,_jp_etarange);
-  phhftp_vseta = new TProfile("phhftp_vseta","",_jp_netas,_jp_etarange);
-  pheftp_vseta = new TProfile("pheftp_vseta","",_jp_netas,_jp_etarange);
-  pbetatp_vseta = new TProfile("pbetatp_vseta","",_jp_netas,_jp_etarange);
-  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",_jp_netas,_jp_etarange);
-  ppuftp_vseta = new TProfile("ppuftp_vseta","",_jp_netas,_jp_etarange);
+  pncandtp_vseta = new TProfile("pcandtp_vseta","",jp::netas,jp::etarange);
+  pnchtp_vseta = new TProfile("pnchtp_vseta","",jp::netas,jp::etarange);
+  pnnetp_vseta = new TProfile("pnnetp_vseta","",jp::netas,jp::etarange);
+  pnnhtp_vseta = new TProfile("pnnhtp_vseta","",jp::netas,jp::etarange);
+  pncetp_vseta = new TProfile("pncetp_vseta","",jp::netas,jp::etarange);
+  pnmutp_vseta = new TProfile("pnmutp_vseta","",jp::netas,jp::etarange);
+  pnhhtp_vseta = new TProfile("pnhhtp_vseta","",jp::netas,jp::etarange);
+  pnhetp_vseta = new TProfile("pnhetp_vseta","",jp::netas,jp::etarange);
+  pchftp_vseta = new TProfile("pchftp_vseta","",jp::netas,jp::etarange);
+  pneftp_vseta = new TProfile("pneftp_vseta","",jp::netas,jp::etarange);
+  pnhftp_vseta = new TProfile("pnhftp_vseta","",jp::netas,jp::etarange);
+  pceftp_vseta = new TProfile("pceftp_vseta","",jp::netas,jp::etarange);
+  pmuftp_vseta = new TProfile("pmuftp_vseta","",jp::netas,jp::etarange);
+  phhftp_vseta = new TProfile("phhftp_vseta","",jp::netas,jp::etarange);
+  pheftp_vseta = new TProfile("pheftp_vseta","",jp::netas,jp::etarange);
+  pbetatp_vseta = new TProfile("pbetatp_vseta","",jp::netas,jp::etarange);
+  pbetastartp_vseta = new TProfile("pbetastartp_vseta","",jp::netas,jp::etarange);
+  ppuftp_vseta = new TProfile("ppuftp_vseta","",jp::netas,jp::etarange);
 
   if (this->ismcdir) {
     // response closure
-    p3rvsnpv = new TProfile3D("p3rvsnpv","",_jp_npts,&_jp_ptrange[0],_jp_netas,&_jp_etarange[0],_jp_npvs,&_jp_pvrange[0]);
-    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",_jp_nwpts,&_jp_wptrange[0],_jp_nposetas,&_jp_posetarange[0],_jp_npvs,&_jp_pvrange[0]);
+    p3rvsnpv = new TProfile3D("p3rvsnpv","",jp::npts,&jp::ptrange[0],jp::netas,&jp::etarange[0],jp::npvs,&jp::pvrange[0]);
+    p3rvsnpvW = new TProfile3D("p3rvsnpvW","",jp::nwpts,&jp::wptrange[0],jp::nposetas,&jp::posetarange[0],jp::npvs,&jp::pvrange[0]);
   }
 
   curdir->cd();

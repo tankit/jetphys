@@ -27,13 +27,13 @@
   //delete cfg;
 
   #include "settings.h"
-  
-  systematics(_jp_type);
+
+  systematics(jp::type);
   //systematics(type, true); // 38X JEC; always run after 36X
   //jec_systematics();
   //jer_systematics();
   //jid_systematics();
   //lum_systematics();
 
-  sources(_jp_type);
+  sources(jp::type);
 }

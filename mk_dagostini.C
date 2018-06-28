@@ -25,6 +25,6 @@
 
   #include "settings.h"
 
-  dagostiniUnfold(_jp_type);
-  drawDagostini(_jp_type);
+  dagostiniUnfold(jp::type);
+  drawDagostini(jp::type);
 }

@@ -32,7 +32,7 @@ using namespace std;
 void recurseFile(TDirectory *indir, TDirectory *outdir, string hname = "hpt", bool ptSelect = true,
                  int lvl = -1, double etamid = 0);
 
-map<string,string> _friends = {{"jt60","jt40"},{"jt80","jt60"},{"jt140","jt80"},{"jt200","jt140"},{"jt260","jt200"},{"jt320","jt260"},{"jt400","jt320"},{"jt450","jt400"},{"jt500","jt450"}};
+map<string,string> _friends = {{"jt40","jt0"},{"jt60","jt40"},{"jt80","jt60"},{"jt140","jt80"},{"jt200","jt140"},{"jt260","jt200"},{"jt320","jt260"},{"jt400","jt320"},{"jt450","jt400"},{"jt500","jt450"}};
 
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
@@ -40,14 +40,14 @@ TDirectory *_top = 0;
 void TrgTurnon() {
   TDirectory *curdir = gDirectory;
 
-  TFile *fin = new TFile(Form("output-%s-2a.root",_jp_type),"READ");
+  TFile *fin = new TFile(Form("output-%s-2a.root",jp::type),"READ");
   assert(fin and !fin->IsZombie());
   _top = gDirectory;
 
-  TFile *fout = new TFile(Form("trgeff-%s.root",_jp_type),"RECREATE");
+  TFile *fout = new TFile(Form("trgeff-%s.root",jp::type),"RECREATE");
   assert(fout and !fout->IsZombie());
 
-  cout << "Calling TrgEff ("<<_jp_type<<");" << endl;
+  cout << "Calling TrgEff ("<<jp::type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursions. These may take a few seconds" << endl << flush;
@@ -117,9 +117,9 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
           assert(enterkeydir);
           outdir2 = outdir->GetDirectory(kname.c_str()); assert(outdir2);
           outdir2->cd();
-          if (_jp_debug) cout << kname.c_str() << endl;
+          if (jp::debug) cout << kname.c_str() << endl;
         } else {
-          if (_jp_debug) cout << kname.c_str() << " (at bottom)" << endl;
+          if (jp::debug) cout << kname.c_str() << " (at bottom)" << endl;
           loclvl++; // Increase the level by one when we enter e.g. jt40
         }
         outdir2->cd();
@@ -127,7 +127,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
         float etamin, etamax;
         if (loclvl==0 and (sscanf(indir2->GetName(),"Eta_%f-%f",&etamin,&etamax)==2) and (etamax>etamin) ) {
 
-          TObject *inobj = indir2->Get(Form("%s/%s",_jp_isdt ? _jp_reftrig : "mc",hname.c_str()));
+          TObject *inobj = indir2->Get(Form("%s/%s",jp::isdt ? jp::reftrig : "mc",hname.c_str()));
           if (inobj) {
             cout << "[" << etamin << "," << etamax << "]";
             TH1 *hpt = dynamic_cast<TH1*>(inobj->Clone(hname.c_str()));
@@ -144,7 +144,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, string hname, bool ptSel
           if (loclvl>0 and (sid=="Eta_0.0-1.3" or (TString(sid).Contains("FullEta") and sid!="FullEta_Gen"))) {
             if (string(indir2->GetName())=="jt40" or string(indir2->GetName())=="mc") cout << " ";
             cout << indir2->GetName();
-            if (string(indir2->GetName())!=_jp_reftrig) cout << ",";
+            if (string(indir2->GetName())!=jp::reftrig) cout << ",";
           }
           recurseFile(indir2, outdir2, hname, ptSelect, loclvl, etamid);
         }

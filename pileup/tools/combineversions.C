@@ -49,21 +49,21 @@ void combineversions() {
           string vnumber = match[2];
           TString name;
           name.Form("jt%s", tnumber.c_str());
-          unsigned int thrplace = std::find(_jp_trigthr,_jp_trigthr+_jp_notrigs,stoi(tnumber))-_jp_trigthr;
+          unsigned int thrplace = std::find(jp::trigthr,jp::trigthr+jp::notrigs,stoi(tnumber))-jp::trigthr;
 
           double wgt = 1.0;
           string trgdummy = Form("%s_%s",tnumber.c_str(),vnumber.c_str());
           bool found = false;
-          for (auto IDidx = 0u; IDidx < _jp_notrigIDs; ++IDidx) {
-            for (auto &currTag : _jp_trigtags[IDidx]) {
+          for (auto IDidx = 0u; IDidx < jp::notrigIDs; ++IDidx) {
+            for (auto &currTag : jp::trigtags[IDidx]) {
               if (std::regex_match(trgdummy,currTag)) {
                 if (found) {
-                  cout << "Double match for " << trgdummy << ", check trigger naming in _jp_trigtags. Aborting..." << endl;
+                  cout << "Double match for " << trgdummy << ", check trigger naming in jp::trigtags. Aborting..." << endl;
                   continue;
                 }
                 found = true;
-                if (thrplace < _jp_notrigs+1)
-                  wgt = _jp_trigwgts[IDidx][thrplace];
+                if (thrplace < jp::notrigs+1)
+                  wgt = jp::trigwgts[IDidx][thrplace];
                 else {
                   cout << "Error searching the trigger weight! Aborting..." << endl;
                   continue;

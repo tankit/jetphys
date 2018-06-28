@@ -54,13 +54,9 @@ public :
   static const Int_t kMaxGenJets_   = 100;
   static const Int_t kMaxPFJetsCHS_ = 100;
 
-  bool _initsuccess;
-
   // Declaration of leaf types
   //QCDEvent        *events;
-  vector<vector<int> > filterIdList_;
   Bool_t          EvtHdr__mIsPVgood;
-  Bool_t          EvtHdr__mHCALNoise;
   Bool_t          EvtHdr__mHCALNoiseNoMinZ;
   Int_t           EvtHdr__mRun;
   UInt_t          EvtHdr__mEvent; // Int_t -> UInt_t
@@ -97,11 +93,8 @@ public :
   Float_t         MvaMet__sumEt_;
   Float_t         MvaMet__phi_;
   vector<int>     TriggerDecision_;
-  vector<string>  triggerList_;
   vector<int>     L1Prescale_;
   vector<int>     HLTPrescale_;
-  //vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > > HLTObj_;
-  //vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > > L1Obj_;
   Int_t           GenJets__;
   Double_t        GenJets__fCoordinates_fX[kMaxGenJets_];   //[GenJets__]
   Double_t        GenJets__fCoordinates_fY[kMaxGenJets_];   //[GenJets__]
@@ -112,10 +105,6 @@ public :
   Double_t        PFJetsCHS__P4__fCoordinates_fY[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__P4__fCoordinates_fZ[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__P4__fCoordinates_fT[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Double_t        PFJetsCHS__genP4__fCoordinates_fX[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Double_t        PFJetsCHS__genP4__fCoordinates_fY[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Double_t        PFJetsCHS__genP4__fCoordinates_fZ[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Double_t        PFJetsCHS__genP4__fCoordinates_fT[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__genR_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__cor_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   vector<double>  PFJetsCHS__jecLabels_[kMaxPFJetsCHS_];
@@ -124,17 +113,8 @@ public :
   Float_t         PFJetsCHS__area_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Bool_t          PFJetsCHS__looseID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Bool_t          PFJetsCHS__tightID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__CSVpfPositive_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__CSVpfNegative_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__boosted_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__QGtagger_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend1_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend2_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend3_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__pfCombinedCvsL_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__pfCombinedCvsB_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__chf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nhf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nemf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -150,24 +130,17 @@ public :
   Int_t           PFJetsCHS__elm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mum_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__ncand_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Int_t           PFJetsCHS__cm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__beta_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__betaStar_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__betaPrime_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mpuTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mlvTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mjtTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__hof_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__pujid_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__calojetpt_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__calojetef_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   vector<float>   genFlavour_;
   vector<float>   genFlavourHadron_;
 
   // List of branches
-  TBranch        *b_events_filterIdList_;   //!
   TBranch        *b_events_EvtHdr__mIsPVgood;   //!
-  TBranch        *b_events_EvtHdr__mHCALNoise;   //!
   TBranch        *b_events_EvtHdr__mHCALNoiseNoMinZ;   //!
   TBranch        *b_events_EvtHdr__mRun;   //!
   TBranch        *b_events_EvtHdr__mEvent;   //!
@@ -191,20 +164,10 @@ public :
   TBranch        *b_events_EvtHdr__mWeight;   //!
   TBranch        *b_events_EvtHdr__mCaloRho;   //!
   TBranch        *b_events_EvtHdr__mPFRho;   //!
-  TBranch        *b_events_CaloMet__et_;   //!
-  TBranch        *b_events_CaloMet__CaloMetPt_;   //!
-  TBranch        *b_events_CaloMet__sumEt_;   //!
-  TBranch        *b_events_CaloMet__phi_;   //!
   TBranch        *b_events_PFMet__et_;   //!
-  TBranch        *b_events_PFMet__CaloMetPt_;   //!
   TBranch        *b_events_PFMet__sumEt_;   //!
   TBranch        *b_events_PFMet__phi_;   //!
-  TBranch        *b_events_MvaMet__et_;   //!
-  TBranch        *b_events_MvaMet__CaloMetPt_;   //!
-  TBranch        *b_events_MvaMet__sumEt_;   //!
-  TBranch        *b_events_MvaMet__phi_;   //!
   TBranch        *b_events_TriggerDecision_;   //!
-  TBranch        *b_events_triggerList_;   //!
   TBranch        *b_events_L1Prescale_;   //!
   TBranch        *b_events_HLTPrescale_;   //!
   TBranch        *b_events_GenJets__;   //!
@@ -217,10 +180,6 @@ public :
   TBranch        *b_PFJetsCHS__P4__fCoordinates_fY;   //!
   TBranch        *b_PFJetsCHS__P4__fCoordinates_fZ;   //!
   TBranch        *b_PFJetsCHS__P4__fCoordinates_fT;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fX;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fY;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fZ;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fT;   //!
   TBranch        *b_PFJetsCHS__genR_;   //!
   TBranch        *b_PFJetsCHS__cor_;   //!
   TBranch        *b_PFJetsCHS__jecLabels_;   //!
@@ -229,17 +188,8 @@ public :
   TBranch        *b_PFJetsCHS__area_;   //!
   TBranch        *b_PFJetsCHS__looseID_;   //!
   TBranch        *b_PFJetsCHS__tightID_;   //!
-  TBranch        *b_PFJetsCHS__CSVpfPositive_;   //!
-  TBranch        *b_PFJetsCHS__CSVpfNegative_;   //!
-  //TBranch        *b_PFJetsCHS__boosted_;   //!
-  TBranch        *b_PFJetsCHS__QGtagger_;   //!
   TBranch        *b_PFJetsCHS__partonFlavour_;   //!
   TBranch        *b_PFJetsCHS__hadronFlavour_;   //!
-  TBranch        *b_PFJetsCHS__recommend1_;   //!
-  TBranch        *b_PFJetsCHS__recommend2_;   //!
-  TBranch        *b_PFJetsCHS__recommend3_;   //!
-  //TBranch        *b_PFJetsCHS__pfCombinedCvsL_;   //!
-  //TBranch        *b_PFJetsCHS__pfCombinedCvsB_;   //!
   TBranch        *b_PFJetsCHS__chf_;   //!
   TBranch        *b_PFJetsCHS__nhf_;   //!
   TBranch        *b_PFJetsCHS__nemf_;   //!
@@ -255,17 +205,12 @@ public :
   TBranch        *b_PFJetsCHS__elm_;   //!
   TBranch        *b_PFJetsCHS__mum_;   //!
   TBranch        *b_PFJetsCHS__ncand_;   //!
-  //TBranch        *b_PFJetsCHS__cm_;   //!
-  TBranch        *b_PFJetsCHS__beta_;   //!
-  TBranch        *b_PFJetsCHS__betaStar_;   //!
   TBranch        *b_PFJetsCHS__betaPrime_;   //!
   TBranch        *b_PFJetsCHS__mpuTrk_;   //!
   TBranch        *b_PFJetsCHS__mlvTrk_;   //!
   TBranch        *b_PFJetsCHS__mjtTrk_;   //!
   TBranch        *b_PFJetsCHS__hof_;   //!
   TBranch        *b_PFJetsCHS__pujid_;   //!
-  TBranch        *b_PFJetsCHS__calojetpt_;   //!
-  TBranch        *b_PFJetsCHS__calojetef_;   //!
   TBranch        *b_events_genFlavour_;   //!
   TBranch        *b_events_genFlavourHadron_;   //!
 
@@ -287,7 +232,7 @@ public :
 
   // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
   ~HistosFill() {
-    if (ferr) delete ferr;
+    //if (ferr) delete ferr;
   }
   HistosFill(TChain *tree);
   virtual bool     Init(TTree *tree); // custom
@@ -303,8 +248,6 @@ public :
   bool             LoadJSON(const char* filename);
   bool             LoadLumi(const char* filename);
   bool             LoadPuProfiles(const char* datafile, const char* mcfile);
-  bool             LoadPrescales(const char* prescalefilename);
-  bool             LoadVetoECAL(const char* filename);
 
   void             InitBasic(string name);
   void             FillBasic(string name);
@@ -331,10 +274,11 @@ public :
   }
 
 private:
-  bool worryHCALHotExcl;
   bool   _pass;
   bool   _pass_qcdmet;
+  bool   _initsuccess;
 
+  int _eraIdx;
   int _nbadevts_dup;
   int _nbadevts_run;
   int _nbadevts_ls;
@@ -343,8 +287,6 @@ private:
   int _nbadevts_veto;
   int _bscounter_bad;
   int _bscounter_good;
-  int _ecalcounter_bad;
-  int _ecalcounter_good;
   int _rhocounter_bad;
   int _rhocounter_good;
   int _trgcounter;
@@ -357,9 +299,7 @@ private:
   double _xsecMinBias;
   double _w, _w0;
   double _pthatweight;
-  double _pthatuplim;
 
-  double rangesHCALHotExcl[4];
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
   vector<double> _goodWgts;
@@ -389,13 +329,12 @@ private:
 
   TH1D *_pumc;
   TH1D *hmcweight;
-  TH2D *h2ECALHotExcl;
-  TH2F *_ecalveto;
+  TH2D *h2HotExcl;
   TH2F *_h2mu = 0;
   TH3D *_h3probg;
 
   TFile *_outfile;
-  TFile *fECALHotExcl;
+  TFile *fHotExcl;
 
   TLorentzVector p4, gp4, genp4, _j1, _j2;
   jec::IOV _iov;
@@ -408,7 +347,6 @@ private:
   /////////////////////////////////////////////////////////////////////////////
   // Auxiliary variables (declare after TTree variables only)
   /////////////////////////////////////////////////////////////////////////////
-
   Float_t         trpu;
   Float_t         pvrho;
 
@@ -441,17 +379,13 @@ private:
   Double_t        *jtp4t;//[_maxnjt];   //[njt]
   Float_t         jte[_maxnjt];   //[njt]
   Float_t         jtpt[_maxnjt];   //[njt]
-  //Float_t         jtptuchs[_maxnjt];   //EXTRA
   Float_t         jtptu[_maxnjt];   //EXTRA
-  //Float_t         jteuchs[_maxnjt];   //EXTRA
   Float_t         jteu[_maxnjt];   //EXTRA
   Float_t         jteta[_maxnjt];   //[njt]
   Float_t         jtphi[_maxnjt];   //[njt]
   Float_t         jty[_maxnjt];   //[njt]
   Float_t         *jta;//[_maxnjt];   //[njt]
   Float_t         *jtjes;//[_maxnjt];   //[njt]
-  Float_t         *jtbeta;
-  Float_t         *jtbetastar;
   Float_t         *jtbetaprime;
   Float_t         jtjesnew[_maxnjt];   //[njt]
   Float_t         jtjes_l1[_maxnjt];   //[njt]
@@ -460,8 +394,6 @@ private:
   Bool_t          *jtidloose;//[_maxnjt];   //[njt]
   Bool_t          *jtidtight;//[_maxnjt];   //[njt]
 
-  //Short_t         jtgenid[_maxnjt];   //[njt]
-  //Short_t         jtgenflv[_maxnjt];   //[njt]
   Float_t         *jtgenr;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4x;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4y;//[_maxnjt];   //[njt]
@@ -497,7 +429,6 @@ private:
   Double_t        *gen_jtp4y;//[_maxnjt];   //[njt]
   Double_t        *gen_jtp4z;//[_maxnjt];   //[njt]
   Double_t        *gen_jtp4t;//[_maxnjt];   //[njt]
-  //Float_t         gen_jte[_maxnjt];   //[njt]
   Float_t         gen_jtpt[_maxnjt];   //[njt]
   Float_t         gen_jteta[_maxnjt];   //[njt]
   Float_t         gen_jtphi[_maxnjt];   //[njt]

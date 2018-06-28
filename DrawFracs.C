@@ -36,15 +36,15 @@ void Fracs::DrawFracs(unsigned mode) {
   // Build appropriate wide binning
   _x.clear();
   if (_vspt) {
-    for (auto &ptwi : _jp_wptrange) _x.push_back(ptwi);
+    for (auto &ptwi : jp::wptrange) _x.push_back(ptwi);
   } else if (_vspu) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vsnpv) {
     for (int i = 0; i <= 25; ++i) _x.push_back(-0.5+2*i);
   } else if (_vseta) {
-    for (auto &ewi : _jp_wetarange) _x.push_back(ewi);
+    for (auto &ewi : jp::wetarange) _x.push_back(ewi);
   } else if (_vsphi) {
-    for (auto &phidx : _jp_phirange) _x.push_back(phidx);
+    for (auto &phidx : jp::phirange) _x.push_back(phidx);
   }
 
   assert(mode<_modes.size()+1);
@@ -59,8 +59,8 @@ void Fracs::DrawFracs(unsigned mode) {
     dmc->cd("../FullEta_Reco"); dmc = gDirectory;
     ddt->cd("../FullEta_Reco"); ddt = gDirectory;
     if (_pertrg) {
-      for (unsigned itrg = 0; itrg < _jp_notrigs; ++itrg) {
-        auto ctrg = _jp_triggers[itrg];
+      for (unsigned itrg = 0; itrg < jp::notrigs; ++itrg) {
+        auto ctrg = jp::triggers[itrg];
         makeProfile(mode, dmc, ddt, ctrg);
       }
     } else {
@@ -69,8 +69,8 @@ void Fracs::DrawFracs(unsigned mode) {
   } else {
     if (_pertrg) {
       for (unsigned int ieta = 0; ieta != _etas.size(); ++ieta) {
-        for (unsigned itrg = 0; itrg < _jp_notrigs; ++itrg) {
-          auto ctrg = _jp_triggers[itrg];
+        for (unsigned itrg = 0; itrg < jp::notrigs; ++itrg) {
+          auto ctrg = jp::triggers[itrg];
           makeProfile(mode, dmc, ddt, ctrg, _etas[ieta].first, _etas[ieta].second);
         }
       }
@@ -299,8 +299,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   tex->SetTextFont(63);
   tex->SetTextSize(leg->GetTextSize());
   //tex->DrawLatex(0.15,0.306,Form("Anti-k_{T} R=0.4 PF+CHS%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=PFJet%s",trg.substr(2).c_str()):""));
-  int trigidx = _pertrg ? int(std::find(_jp_triggers,_jp_triggers+_jp_notrigs,trg)-_jp_triggers) : 0;
-  if (_pertrg) tex->DrawLatex(0.164,0.33,Form("%s",Form("Trg=PFJet%s, %1.1f#leq p_{T}[GeV]<%1.1f",trg.substr(2).c_str(),_jp_trigranges[trigidx][0],_jp_trigranges[trigidx][1])));
+  int trigidx = _pertrg ? int(std::find(jp::triggers,jp::triggers+jp::notrigs,trg)-jp::triggers) : 0;
+  if (_pertrg) tex->DrawLatex(0.164,0.33,Form("%s",Form("Trg=PFJet%s, %1.1f#leq p_{T}[GeV]<%1.1f",trg.substr(2).c_str(),jp::trigranges[trigidx][0],jp::trigranges[trigidx][1])));
   tex->DrawLatex(0.164,0.83,Form("Anti-k_{T} R=0.4 PF+CHS"));
 
   for (auto rhdti = hdts.rbegin(); rhdti != hdts.rend(); ++rhdti)
@@ -342,8 +342,8 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   gPad->RedrawAxis();
   if (_usetriglines and _vspt and !_pertrg) {
     l->SetLineColor(kGray+2);
-    for (auto i = 0u; i < _jp_notrigs-1; ++i) {
-      l->DrawLine(_jp_trigranges[i][1],0.0,_jp_trigranges[i][1],1.0);
+    for (auto i = 0u; i < jp::notrigs-1; ++i) {
+      l->DrawLine(jp::trigranges[i][1],0.0,jp::trigranges[i][1],1.0);
     }
   }
   c1->cd(1);

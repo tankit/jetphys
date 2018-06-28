@@ -17,7 +17,7 @@
 
   #include "settings.h"
 
-    drawEtaSpectra(_jp_type);
+    drawEtaSpectra(jp::type);
   //drawDataTheoryRatio();
   //drawDataTheoryRatioLog(); // graphs for pasPlots
   //drawDataTheoryRatio3x2(false, false); // AK5 36X
@@ -34,8 +34,8 @@
   //drawNPCorr(type);
 
     /*
-  if (_jp_ismc)
-    drawClosure(_jp_type,false); // Incl jet (PF in 36x)
+  if (jp::ismc)
+    drawClosure(jp::type,false); // Incl jet (PF in 36x)
     */
   //drawClosure("HW",false); // Incl jet (PF in 36x)
   //drawClosure("MC",false,"PFAK7"); // Incl jet

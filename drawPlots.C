@@ -79,7 +79,7 @@ void drawJetID(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")) {
 
@@ -87,7 +87,7 @@ void drawJetID(string type) {
       TDirectory *din0 = gDirectory;
       assert(dtop1->cd(obj->GetName()));
       TDirectory *din1 = gDirectory;
-      
+
       // Process subdirectory
       drawJetIDBin(din0, din1, ibin++, type);
     } // inherits TDirectory
@@ -99,7 +99,7 @@ void drawJetID(string type) {
 void drawJetIDBin(TDirectory *did, TDirectory *dnd, int ibin, string type) {
 
   gStyle->SetOptStat(0);
-  
+
   float etamin, etamax;
   assert(sscanf(did->GetName(),"Eta_%f-%f",&etamin,&etamax)==2);
   const char* seta = (etamin==0 ? Form("|y| #leq %1.2g",etamax) :
@@ -112,7 +112,7 @@ void drawJetIDBin(TDirectory *did, TDirectory *dnd, int ibin, string type) {
   //TH1D *hnd = (TH1D*)dnd->Get("hpt"); assert(hnd);
   TH1D *hnd = (TH1D*)did->Get("hpt_nojetid"); assert(hnd);
   //TH1D *hnd = (TH1D*)did->Get("hpt_noid"); assert(hnd);
-  
+
   // Comparison of spectra
   const char *c1name = Form("c1_%d",ibin);
   TCanvas *c1 = new TCanvas(c1name,c1name,600,600);
@@ -228,7 +228,7 @@ void drawJetIDBin(TDirectory *did, TDirectory *dnd, int ibin, string type) {
 
   h->GetYaxis()->SetTitle("Increase due to impurity");
   h->DrawClone("AXIS");
-  
+
   hp->Draw("SAME");
   teta->Draw();
 
@@ -279,7 +279,7 @@ void drawTriggerRatio(string type, string algo) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     //if (obj->InheritsFrom("TDirectory")) {
     if (obj->InheritsFrom("TDirectory")
@@ -295,9 +295,9 @@ void drawTriggerRatio(string type, string algo) {
       TDirectory *dmc0 = gDirectory;
       assert(dmctop1->cd(obj->GetName()));
       TDirectory *dmc1 = gDirectory;
-      
+
       // Process subdirectory
-      //if (_jp_isdt and algo=="PF")
+      //if (jp::isdt and algo=="PF")
       //drawTriggerRatioBin(din0, din1, ibin1++, type, algo, dmc0, dmc1);
       drawTriggerRatioBin(din0, din1, ibin2++, type, algo);
     } // inherits TDirectory
@@ -309,7 +309,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
 			 string type, string algo,
 			 TDirectory *dmc0, TDirectory *dmc1) {
 
-  const bool _mc = _jp_ismc;
+  const bool _mc = jp::ismc;
   const bool _x = (dmc0 && dmc1);
   assert(algo=="PF" || algo=="CALO");
   assert(!(_x && algo=="CALO"));
@@ -442,7 +442,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
   } // for i
 
   gStyle->SetOptStat(0);
-  
+
   const char *c1name = Form("c1_%d", ibin);
   TCanvas *c1 = new TCanvas(c1name, c1name, 600, 600);
   c1->SetLogy();
@@ -466,7 +466,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
   teta->SetNDC();
   teta->SetTextSize(0.05);
   teta->Draw();
-  
+
   int nt = trigs.size();
   TLegend *leg = new TLegend(0.65,0.93-0.05*nt,0.90,0.93,"","brNDC");
   leg->SetFillStyle(kNone);
@@ -493,7 +493,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
     leg1b->Draw();
 
     for (unsigned int i = 0; i != trigs.size(); ++i) {
-      
+
       const char* t = trigs[i].c_str();
       TH1D *m = mpts[t];
       if (m) {
@@ -515,10 +515,10 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
     h->SetMarkerColor(mcolor[t]);
     h->SetLineWidth(2);
     h->Draw("SAME");
-    
+
     leg->AddEntry(h, labs[t], "P");
   } // for i
-  
+
   leg->Draw();
 
   // Save the histograms for redrawing PAS plots
@@ -581,7 +581,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
   teta2->SetY(0.88);
   teta2->Draw();
 
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
 
   //TLegend *leg2 = new TLegend(0.65, 0.23, 0.90, 0.59,"","brNDC");
   TLegend *leg2 = new TLegend(0.70, 0.23, 0.95, 0.59,"","brNDC");
@@ -593,7 +593,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
 		       "abs([0])+0.5*(1-abs([0]))*(1+TMath::Erf((x-[1])*[2]))",
 		       xmin,xmax);
   ftrig->SetParameters(0.02,25.,0.1);
-  double ftrig_pars_arr[6][4] = 
+  double ftrig_pars_arr[6][4] =
     {{0.02, 40., 1./3., 0.1},
      {0.00, 80., 1./5., 0.1},
      {0.00, 140., 1./10., 0.1},
@@ -691,14 +691,14 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
       double err = h->GetBinError(i0);
       _trgratios[t][ibin] = make_pair<double, double>(eff, err);
     }
-    
+
     h->SetLineStyle(lstyle[t]);
     h->SetLineColor(lcolor[t]);
     h->SetMarkerStyle(mstyle[t]);
     h->SetMarkerColor(mcolor[t]);
     h->Draw("SAME");
     vtrig[i] = h;
-    
+
     if (trigs[i]!="mb") {
       assert(ftrig_pars[t]);
       ftrig->SetParameters(ftrig_pars[t][0],ftrig_pars[t][1],
@@ -769,7 +769,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
   a370->Draw();
 
   //leg2->AddEntry(a60,"Turn-on","AL");
-  
+
   leg2->Draw();
 
   // Save the histograms for redrawing PAS plots
@@ -808,7 +808,7 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
     curdir->cd();
   } // _pas
 
-  
+
   if (_x) {
     if(_eps) c2->SaveAs(Form("eps/triggerRatios_DATAMC_Eta%d.eps",k));
     if(_pdf) c2->SaveAs(Form("pdf/triggerRatios_DATAMC_Eta%d.pdf",k));
@@ -888,9 +888,9 @@ void drawTriggerRatioBin(TDirectory *din0, TDirectory *din1, int ibin,
       } // for jt
       cout << " \\\\" << endl;
     } // for it
-    
+
     cout << "**********************************" << endl;
-  } // _trgratios     
+  } // _trgratios
 
 } // drawTriggerRatioBin
 
@@ -917,13 +917,13 @@ void drawUnfolding(string type, string algo) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")) {
 
       assert(din0->cd(obj->GetName()));
       TDirectory *din = gDirectory;
-      
+
       // Process subdirectory
       drawUnfoldingBin(din, ibin++, type, algo);
     } // inherits TDirectory
@@ -951,7 +951,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
   TGraphErrors *gfold = (TGraphErrors*)din->Get("gfold"); assert(gfold);
   TGraphErrors *gratio = (TGraphErrors*)din->Get("gratio"); assert(gratio);
   TF1 *fs = (TF1*)din->Get("fs"); assert(fs);
-  
+
   if (algo=="CALO") {
     hpt = (TH1D*)din->Get("hpt_ak5calo"); assert(hpt);
     gpt = (TGraphErrors*)din->Get("gpt_ak5calo"); assert(gpt);
@@ -1002,7 +1002,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
 
   fs->SetRange(xmin, fs->GetX(h->GetMinimum()));
   if (fs_b) fs_b->SetRange(xmin, fs_b->GetX(h->GetMinimum()));
-  
+
   gpt->SetMarkerStyle(kFullCircle);
   gpt->Draw("SAMEP");
   fs->Draw("SAME");
@@ -1070,7 +1070,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
   gfold->Draw("SAMEP");
 
   teta->Draw();
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
 
   if (algo!="PF") {
     talgo->Draw();
@@ -1093,7 +1093,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
       gfold_b->SetMarkerStyle(kOpenCircle);
       gfold_b->SetMarkerColor(kBlue);
       gfold_b->SetLineColor(kBlue);
-      
+
       gfold_b->Draw("SAMEP");
 
       TLegend *leg = new TLegend(0.35,0.74,0.65,0.86,"","brNDC");
@@ -1138,7 +1138,7 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
 
   teta->Draw();
   tchi2->Draw();
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
 
   if (algo!="PF") {
     talgo->Draw();
@@ -1183,12 +1183,12 @@ void drawUnfoldingBin(TDirectory *din, int ibin, string type, string algo) {
       gratio_b->SetMarkerStyle(kOpenCircle);
       gratio_b->SetMarkerColor(kBlue);
       gratio_b->SetLineColor(kBlue);
-      
+
       gratio_b->Draw("SAMEP");
       l1->Draw();
-    
+
       tchi2b->Draw();
-    }      
+    }
 
     if (algo=="PF") {
       if(_eps) c3->SaveAs(Form("eps/unfoldPlusB_ansatzRatio_%s_Eta%d.eps",t,k));
@@ -1277,13 +1277,13 @@ void drawMultijets(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")) {
 
       assert(din0->cd(obj->GetName()));
       TDirectory *din = gDirectory;
-      
+
       // Process subdirectory
       drawMultijetsBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1364,7 +1364,7 @@ void drawMultijetsBin(TDirectory *din, int ibin, string type) {
   hpt2->Draw("SAME HF");
   hpt1->Draw("SAME HF");
 
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
   teta->Draw();
   leg->Draw();
 
@@ -1404,7 +1404,7 @@ void drawBFraction(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     //if (obj->InheritsFrom("TDirectory")) {
     if (obj->InheritsFrom("TDirectory")
@@ -1415,9 +1415,9 @@ void drawBFraction(string type) {
       TDirectory *din = gDirectory;
       assert(dmc0->cd(obj->GetName()));
       TDirectory *dmc = gDirectory;
-      
+
       // Process subdirectory
-      if (_jp_isdt)
+      if (jp::isdt)
 	drawBFractionBin(din, ibin1++, type, dmc);
       drawBFractionBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1473,7 +1473,7 @@ void drawBFractionBin(TDirectory *din, int ibin, string type,
   hbf->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1519,7 +1519,7 @@ void drawBTagPurity(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     //if (obj->InheritsFrom("TDirectory")) {
     if (obj->InheritsFrom("TDirectory")
@@ -1530,9 +1530,9 @@ void drawBTagPurity(string type) {
       TDirectory *din = gDirectory;
       assert(dmc0->cd(obj->GetName()));
       TDirectory *dmc = gDirectory;
-      
+
       // Process subdirectory
-      if (_jp_isdt)
+      if (jp::isdt)
 	drawBTagPurityBin(din, ibin1++, type, dmc);
       drawBTagPurityBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1589,7 +1589,7 @@ void drawBTagPurityBin(TDirectory *din, int ibin, string type,
   pfb->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1635,7 +1635,7 @@ void drawBTagEfficiency(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     //if (obj->InheritsFrom("TDirectory")) {
     if (obj->InheritsFrom("TDirectory")
@@ -1646,9 +1646,9 @@ void drawBTagEfficiency(string type) {
       TDirectory *din = gDirectory;
       assert(dmc0->cd(obj->GetName()));
       TDirectory *dmc = gDirectory;
-      
+
       // Process subdirectory
-      if (_jp_isdt)
+      if (jp::isdt)
 	drawBTagEfficiencyBin(din, ibin1++, type, dmc);
       drawBTagEfficiencyBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1663,7 +1663,7 @@ void drawBTagEfficiencyBin(TDirectory *din, int ibin, string type,
   gStyle->SetOptStat(0);
 
   bool _x = (din && dmc);
-  
+
   TH1D *peffb = (TH1D*)din->Get("mb/peffb"); assert(peffb);
   TH1D *peffbmc = (_x ? (TH1D*)dmc->Get("mb/peffb") : 0); assert(peffbmc||!_x);
 
@@ -1704,7 +1704,7 @@ void drawBTagEfficiencyBin(TDirectory *din, int ibin, string type,
   peffb->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(_jp_isdt ? _lumi : 0);
+  cmsPrel(jp::isdt ? _lumi : 0);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1750,7 +1750,7 @@ void drawBTagNorm(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     //if (obj->InheritsFrom("TDirectory")) {
     if (obj->InheritsFrom("TDirectory")
@@ -1761,9 +1761,9 @@ void drawBTagNorm(string type) {
       TDirectory *din = gDirectory;
       assert(dmc0->cd(obj->GetName()));
       TDirectory *dmc = gDirectory;
-      
+
       // Process subdirectory
-      if (_jp_isdt)
+      if (jp::isdt)
 	drawBTagNormBin(din, ibin1++, type, dmc);
       drawBTagNormBin(din, ibin++, type);
     } // inherits TDirectory
@@ -1856,7 +1856,7 @@ void drawBTagNormBin(TDirectory *din, int ibin, string type,
   hnorm->Draw("PSAME");
 
   teta->Draw();
-  cmsPrel(_jp_isdt ? 0 : _lumi);
+  cmsPrel(jp::isdt ? 0 : _lumi);
   leg->Draw();
 
   const char* t = type.c_str();
@@ -1891,7 +1891,7 @@ void drawMCPurity() {
   assert(m);
   TList *l = m->GetListOfGraphs();
   assert(l);
-  
+
 
   const int ny = 4;//5;
   vector<TGraphErrors*> vmc(ny);
@@ -1950,7 +1950,7 @@ void drawMCPurity() {
   if(_pdf) c1->SaveAs("pdf/btagpurity_AllEta.pdf");
   if(_gif) c1->SaveAs("gif/btagpurity_AllEta.gif");
   if(_png) c1->SaveAs("png/btagpurity_AllEta.png");
-  
+
 } // drawMCPurity
 
 // Redraw the MC efficiency fit from Hauke
@@ -2021,7 +2021,7 @@ void drawMCEfficiency() {
   if(_pdf) c1->SaveAs("pdf/btagefficiency_AllEta.pdf");
   if(_gif) c1->SaveAs("gif/btagefficiency_AllEta.gif");
   if(_png) c1->SaveAs("png/btagefficiency_AllEta.png");
-  
+
 } // drawMCEfficiency
 */
 /*
@@ -2049,10 +2049,10 @@ void drawTemplatePurity() {
   //assert(gsys);
   //gsys = (TGraphAsymmErrors*)gsys->Clone();
   delete c0;
-  
+
   cout << gdata->GetN() << endl;
   cout << gmc->GetN() << endl;
-  
+
   // Calculate data / MC scale factor
   TGraphErrors *gr = new TGraphErrors(gdata->GetN());
   assert(gdata->GetN()==gmc->GetN());
@@ -2126,7 +2126,7 @@ void drawTemplatePurity() {
 
   gdata->SetMarkerStyle(kFullCircle);
   gdata->SetLineColor(kRed);
-  gdata->SetLineWidth(2);  
+  gdata->SetLineWidth(2);
   //gsys->SetFillStyle(1001);
   //gsys->SetFillColor(kYellow);
 
@@ -2146,7 +2146,7 @@ void drawTemplatePurity() {
   if(_pdf) c1->SaveAs("pdf/templatePurity_Eta0_2.pdf");
   if(_gif) c1->SaveAs("gif/templatePurity_Eta0_2.gif");
   if(_png) c1->SaveAs("png/templatePurity_Eta0_2.png");
-  
+
 } // drawTemplatePurity
 
 // Redraw the template fit from Daniel in template/fit_ptX_Y_etaA-B.root
@@ -2191,7 +2191,7 @@ void drawTemplate() {
   TH1D *hl = (TH1D*)lh->FindObject(Form("liGluTemplate_%s",cs));
   assert(hl); hl = (TH1D*)hl->Clone("hl");
   delete c0;
-  
+
   // Calculate the agreement between data and theory
   int ndf = -2;
   double chi2 = 0;
@@ -2243,7 +2243,7 @@ void drawTemplate() {
 
   hdata->SetMarkerSize(1.5);
   hdata->SetMarkerStyle(kFullCircle);
-  hdata->SetLineWidth(2);  
+  hdata->SetLineWidth(2);
   hdata->Draw("SAME LP");
 
   leg->AddEntry(hdata, "Data", "LP");
@@ -2262,7 +2262,7 @@ void drawTemplate() {
   if(_pdf) c1->SaveAs(Form("pdf/templateFit_%s_Eta0_2.pdf",trg));
   if(_gif) c1->SaveAs(Form("gif/templateFit_%s_Eta0_2.gif",trg));
   if(_png) c1->SaveAs(Form("png/templateFit_%s_Eta0_2.png",trg));
-  }  
+  }
 
 } // drawTemplate
 */

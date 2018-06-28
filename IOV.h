@@ -57,13 +57,13 @@ namespace jec {
 
     const char *tmps;
     const char *path = "CondFormats/JetMETObjects/data/";
-    string jectmp = string(_jp_jecgt) + id + (_jp_ismc ? string(_jp_jecversmc) : string(_jp_jecversdt)) + (_jp_ismc ? string("_MC_") : string("_DATA_"));
+    string jectmp = string(jp::jecgt) + id + (jp::ismc ? string(jp::jecversmc) : string(jp::jecversdt)) + (jp::ismc ? string("_MC_") : string("_DATA_"));
     const char *jecname = jectmp.c_str();
 
     vector<JetCorrectorParameters> vpar;
 
     // L1FastJet for AK*PF, L1Offset for others
-    tmps = Form("%s%sL1FastJet_%s.txt",path,jecname,_jp_algo);
+    tmps = Form("%s%sL1FastJet_%s.txt",path,jecname,jp::algo);
     if (access(tmps, F_OK)==-1) {
       cout << "The IOV files of " << tmps << " etc. were not found" << endl;
       return;
@@ -71,21 +71,21 @@ namespace jec {
     dat.names.push_back(string(tmps));
     vpar.push_back(JetCorrectorParameters(tmps));
 
-    tmps = Form("%s%sL2Relative_%s.txt",path,jecname,_jp_algo);
+    tmps = Form("%s%sL2Relative_%s.txt",path,jecname,jp::algo);
     dat.names.push_back(string(tmps));
     vpar.push_back(JetCorrectorParameters(tmps));
 
-    tmps = Form("%s%sL3Absolute_%s.txt",path,jecname,_jp_algo);
+    tmps = Form("%s%sL3Absolute_%s.txt",path,jecname,jp::algo);
     dat.names.push_back(string(tmps));
     vpar.push_back(JetCorrectorParameters(tmps));
 
-    if (_jp_isdt) {
-      if (!_jp_skipl2l3res) {
-        tmps = Form("%s%sL2L3Residual_%s.txt",path,jecname,_jp_algo);
+    if (jp::isdt) {
+      if (!jp::skipl2l3res) {
+        tmps = Form("%s%sL2L3Residual_%s.txt",path,jecname,jp::algo);
         dat.names.push_back(string(tmps));
         vpar.push_back(JetCorrectorParameters(tmps));
       }
-      tmps = Form("%s%sUncertainty_%s.txt",path,jecname,_jp_algo);
+      tmps = Form("%s%sUncertainty_%s.txt",path,jecname,jp::algo);
       dat.names.push_back(string(tmps));
       dat.unc = new JetCorrectionUncertainty(tmps);
     }
@@ -93,7 +93,7 @@ namespace jec {
 
     // For type-I and type-II MET
     vector<JetCorrectorParameters> vrc;
-    tmps = Form("%s%sL1RC_%s.txt",path,jecname,_jp_algo);
+    tmps = Form("%s%sL1RC_%s.txt",path,jecname,jp::algo);
     vrc.push_back(JetCorrectorParameters(tmps));
     dat.l1rc = new FactorizedJetCorrector(vrc);
 
@@ -109,11 +109,11 @@ namespace jec {
         return true;
     }
 
-    if (_jp_ismc or run==-1) {
+    if (jp::ismc or run==-1) {
       cout << endl << "Loading a single JEC" << endl;
       *corr = _jecs[0].corr;
       *l1rc = _jecs[0].l1rc;
-      if (_jp_isdt) *unc = _jecs[0].unc;
+      if (jp::isdt) *unc = _jecs[0].unc;
       for (auto &name: _jecs[0].names)
         cout << "Loading ... " << name << endl;
       return true;

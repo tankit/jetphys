@@ -34,7 +34,7 @@ void Pufromflat() {
   TFile *output = new TFile("pileup_MC.root","RECREATE");
   TFile *f = new TFile((filename).Data());
   TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
-  TH1D *hist = new TH1D("pileupmc","",_jp_maxpu,0,_jp_maxpu);
+  TH1D *hist = new TH1D("pileupmc","",jp::maxpu,0,jp::maxpu);
   t->Draw("EvtHdr_.mTrPu>>pileupmc");
   output->cd();
   hist->Write();

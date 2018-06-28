@@ -10,5 +10,5 @@
 
   #include "settings.h"
 
-  theory(_jp_type); // new generic, use _algo inside
+  theory(jp::type); // new generic, use _algo inside
 }

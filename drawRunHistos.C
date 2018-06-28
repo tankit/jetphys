@@ -54,7 +54,7 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   const double s = TMath::Gaus(ptmeas, pt, res, kTRUE);
   const double f = p[2] * exp(p[3]/pt) * pow(pt, p[4])
     * pow(1 - pt*cosh(eta) / 4000., p[5]);
-  
+
   return (f * s);
 }
 
@@ -83,7 +83,7 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
 }
 
 double unfold(double pt, double eta, double npv) {
-  
+
   // ansatz parameters
   const int npar = 5;
   double p[npar] = {0.00, 1.657e14, -17.86, -5.055, 9.480};
@@ -170,12 +170,12 @@ void drawRunHistos(string type) {
   scale0["jt320"] =  0.1*462.4;
   scale0["jt400"] =  0.1*462.4;
   scale0["jt450"] =  0.1*462.4;
-  
+
   ///////////////////////////////////////////////////
 
   map<string, map<string, map<string, double> > > scale;
 
-  if (string(_jp_algo)=="AK4") {
+  if (string(jp::algo)=="AK4") {
 
     /*9fb*/
     scale["jt40"]["Barrel"]["PF"] =  5e7;
@@ -209,7 +209,7 @@ void drawRunHistos(string type) {
     scale["jt450"]["Endcap"]["PF"] =  0.8653;
 
   }
-  if (string(_jp_algo)=="AK7") {
+  if (string(jp::algo)=="AK7") {
 
     scale["jt40"]["Barrel"]["PF"] =  2.424e+06;
     scale["jt60"]["Barrel"]["PF"] =  2.424e+06;
@@ -378,7 +378,7 @@ void drawRunHistos(string type) {
   for (unsigned int itype = 0; itype != types.size(); ++itype) {
   for (unsigned int ieta = 0; ieta != etas.size(); ++ieta) {
 
-    
+
     map<string, pair<double, double> > _norm;
 
     string ttc = types[itype];
@@ -395,15 +395,15 @@ void drawRunHistos(string type) {
 			nruns,-0.5,nruns+0.5);
     hc->SetMinimum(0.8);//tte=="Barrel" ? 0.9 : 0.8);
     hc->SetMaximum(1.4);//tte=="Barrel" ? 1.2 : 1.4);
-    hc->DrawClone("AXIS");    
+    hc->DrawClone("AXIS");
     c1d->cd();
     hc->SetMaximum(1.2);
     hc->DrawClone("AXIS");
 
     c1->cd();
-    
+
     for (unsigned int j = 0; j != trigs.size(); ++j) {
-    
+
       // Load central values
       assert(fin->cd(Form("Runs%s",etas[ieta].c_str())));
       TDirectory *d = gDirectory;
@@ -425,7 +425,7 @@ void drawRunHistos(string type) {
 	double npv = hn->GetBinContent(i);
 	double y = r->GetBinContent(i);
 	double y0 = r0->GetBinContent(i);
-	_ak7 = (string(_jp_algo)=="AK7"); // change PU smearing
+	_ak7 = (string(jp::algo)=="AK7"); // change PU smearing
 	double c = 1;//unfold(pt, eta, npv) / unfold(pt, eta, _npv0);
 	r->SetBinContent(i, c * y);
 	r0->SetBinContent(i, c * y0);
@@ -446,7 +446,7 @@ void drawRunHistos(string type) {
       TGraphErrors *grun = new TGraphErrors(0);//nrunbins);
       grun->SetName(Form("grun%s%s_%s",tc,te,t));
       for (int irun = 0; irun != nrunbins; ++irun) {
-	
+
 	double midrun = 0.5*(runbins[irun]+runbins[irun+1]-1);
 	double drun = 0.5*(runbins[irun+1]-runbins[irun]);
 	fit->SetRange(runbins[irun]-0.5, runbins[irun+1]-0.5);
@@ -454,8 +454,8 @@ void drawRunHistos(string type) {
 	r->Fit(fit,"QRN");
 	if (fit->GetParError(0)<0.10) {
 	  int n = grun->GetN();
-	  grun->SetPoint(n, midrun, fit->GetParameter(0)); 
-	  grun->SetPointError(n, drun, fit->GetParError(0)); 
+	  grun->SetPoint(n, midrun, fit->GetParameter(0));
+	  grun->SetPointError(n, drun, fit->GetParError(0));
 	}
       } // for irun
       grun->SetMarkerStyle(kOpenCircle);
@@ -568,14 +568,14 @@ void drawRunHistos(string type) {
       leg->SetFillStyle(kNone);
       leg->SetBorderSize(0);
       leg->SetTextSize(0.045);
-      if (_jp_debug) leg->AddEntry(r0,"Jet p_{t}>20 GeV","L");
+      if (jp::debug) leg->AddEntry(r0,"Jet p_{t}>20 GeV","L");
       leg->AddEntry(r,Form("Jet p_{T}>%1.0f GeV (%s)",thr[t],t),"L");
       leg->AddEntry(r1,"Flagged runs","PL");
 
       TH1D *haxis = (TH1D*)h->DrawClone("AXIS");
 
       r0->SetLineWidth(2);
-      if (_jp_debug) r0->Draw("SAME");
+      if (jp::debug) r0->Draw("SAME");
       r->SetLineColor(kBlue);
       r->Draw("SAME");
       r1->SetLineColor(kRed);
@@ -587,10 +587,10 @@ void drawRunHistos(string type) {
       leg->Draw();
       //tjet->Draw();
       tjet->DrawLatex(0.19,0.19,Form("Anti-k_{T} R=%1.1f PF, %s",
-				     string(_jp_algo)=="AK4" ? 0.4 : 0.7, te));
+				     string(jp::algo)=="AK4" ? 0.4 : 0.7, te));
       //cmsPrel(lumi);
 
-      if(_jp_pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_%s.pdf",tc,te,t));
+      if(jp::pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_%s.pdf",tc,te,t));
 
       // Same in linear scale
       c1->SetLogy(0);
@@ -691,11 +691,11 @@ void drawRunHistos(string type) {
 
       c1->Update();
 
-      
-      if (_jp_pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_%s_lin.pdf",tc,te,t));
+
+      if (jp::pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_%s_lin.pdf",tc,te,t));
 
       c1->SetLogy();
-      
+
     } // for j
 
 
@@ -711,12 +711,12 @@ void drawRunHistos(string type) {
 
       mrun->Fit(fit,"QRN");
       double k = sqrt(fit->GetChisquare() / max(1,fit->GetNDF()));
-      grun->SetPoint(irun, midrun, fit->GetParameter(0)); 
-      grun->SetPointError(irun, drun, k*fit->GetParError(0)); 	
+      grun->SetPoint(irun, midrun, fit->GetParameter(0));
+      grun->SetPointError(irun, drun, k*fit->GetParError(0));
     } // for irun
 
     c1c->cd();
-    
+
     TLine *lc = new TLine();
     double y2 = hc->GetMaximum();
     double y1 = hc->GetMinimum();
@@ -755,7 +755,7 @@ void drawRunHistos(string type) {
     grun->SetMarkerColor(kBlack);
     grun->SetMarkerStyle(kFullCircle);
     grun->Draw("SAMEP");
-    
+
     bool hb = (tte=="Barrel");
     TLatex *tex = new TLatex();
     tex->SetTextSize(0.040);
@@ -801,7 +801,7 @@ void drawRunHistos(string type) {
     //f1d->SetRange(i12c,ilast);
     //grun->Fit(f1d,"QRN");
     //f1d->DrawClone("SAME");
-    c1c->cd();      
+    c1c->cd();
 
     TF1 *fera = new TF1(Form("fera_%s",tte.c_str()),"1+[0]/100.",0,500);
     fera->SetLineColor(kRed);
@@ -857,7 +857,7 @@ void drawRunHistos(string type) {
 	  fera->DrawClone("SAME");
 	  tex->DrawLatex( 40, hb ? 0.92 : 0.84,
 			  Form("%+1.1f%%", fera->GetParameter(0)));
-	  
+
 	  //fera->SetRange(its, ilast);
 	  fera->SetRange(i12c, ilast);
 	  vmrun[itrig]->Fit(fera, "QRN");
@@ -879,9 +879,9 @@ void drawRunHistos(string type) {
       hc->GetYaxis()->SetTitle("Normalized inclusive jet rate");
     }
 
-    if (_jp_pdf) c1c->SaveAs(Form("pdf/RunHistos_%s_%s_lin.pdf",tc,te));
-    if (_jp_pdf) c1d->SaveAs(Form("pdf/RunHistos_%s_%s_lin2.pdf",tc,te));
-  
+    if (jp::pdf) c1c->SaveAs(Form("pdf/RunHistos_%s_%s_lin.pdf",tc,te));
+    if (jp::pdf) c1d->SaveAs(Form("pdf/RunHistos_%s_%s_lin2.pdf",tc,te));
+
     c1->cd();
 
     cout << " Residual trigger rates normalization" << endl;
@@ -948,7 +948,7 @@ void drawRunHistos(string type) {
       cout << " \\\\" << endl;
     } // for itype
   } // for itrig
-  
+
   {
     TCanvas *c2 = new TCanvas("c2","c2",600,600);
     c2->SetLogx();
@@ -1003,8 +1003,8 @@ void drawRunHistos(string type) {
       } // for j
     } // for i
 
-    if(_jp_pdf) c2->SaveAs("pdf/RunHistos_CaloPF_XDet_RateChange.pdf");
-  
+    if(jp::pdf) c2->SaveAs("pdf/RunHistos_CaloPF_XDet_RateChange.pdf");
+
     // Calo and PF separately
     for (unsigned int i = 0; i != graphs.size(); ++i) {
 
@@ -1015,7 +1015,7 @@ void drawRunHistos(string type) {
       const char *ct = t.c_str();
 
       for (unsigned int j = 0; j != graphs[i].size(); ++j) {
-	
+
 	TGraphErrors *g = graphs[i][j]; assert(g);
 	g->Draw("SAME P");
 	leg->AddEntry(g, (etas[j]+" ("+t+")").c_str(), "P");
@@ -1028,7 +1028,7 @@ void drawRunHistos(string type) {
 	f->Draw("SAME");
       } // for j
 
-      if(_jp_pdf) c2->SaveAs(Form("pdf/RunHistos_%s_XDet_RateChange.pdf",ct));
+      if(jp::pdf) c2->SaveAs(Form("pdf/RunHistos_%s_XDet_RateChange.pdf",ct));
     } // for i
 
     // Calo - PF difference
@@ -1040,9 +1040,9 @@ void drawRunHistos(string type) {
       h->Draw("AXIS");
       l->Draw();
       leg->Clear(); leg->Draw();
-      
+
       for (unsigned int j = 0; j != graphs[0].size(); ++j) {
-	
+
 	TGraphErrors *g0 = graphs[0][j]; assert(g0);
 	TGraphErrors *g1 = graphs[1][j]; assert(g1);
 	assert(g0->GetN()==g1->GetN());
@@ -1060,7 +1060,7 @@ void drawRunHistos(string type) {
 	leg->AddEntry(g, etas[j].c_str(), "P");
       } // for j
 
-      if(_jp_pdf) c2->SaveAs("pdf/RunHistos_CaloMinusPF_XDet_RateChange.pdf");
+      if(jp::pdf) c2->SaveAs("pdf/RunHistos_CaloMinusPF_XDet_RateChange.pdf");
     } // types==2
   }
 
@@ -1079,13 +1079,13 @@ void drawRunHistos(string type) {
     cout << endl;
   }
   cout << "=============================================================" << endl;
-    
-  
+
+
   fout.close();
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawRunHistos
 
 void drawRunLumi(string type) {
@@ -1108,7 +1108,7 @@ void drawRunLumi(string type) {
 void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
   assert(algo=="PF" || algo=="Calo");
-  
+
   TDirectory *curdir = gDirectory;
 
   setTDRStyle();
@@ -1151,7 +1151,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   meanpt["jt400"] = 1104;//602.6;//556.1;
 
   map<string, map<string, map<string, double> > > scale;
-  if (string(_jp_algo)=="AK4") {
+  if (string(jp::algo)=="AK4") {
 
     // 9/fb
     // V4
@@ -1226,7 +1226,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     scale["jt400"]["Endcap"]["PF"] =  0.7181;
     */
   }
-  if (string(_jp_algo)=="AK7") {
+  if (string(jp::algo)=="AK7") {
     // 20/fb, new thresholds
     scale["jt40"]["Barrel"]["PF"] =  2.424e+06;
     scale["jt80"]["Barrel"]["PF"] =  1.681e+05;
@@ -1297,10 +1297,10 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
   TCanvas *c1ts = new TCanvas("c1ts","c1ts",600,600);
-  
+
   const char *a = algo.c_str();
   TH1D *h = new TH1D("h",Form(";#LTN_{PV,good}#GT;Normalized rate per run (%s%s)",
-			      a, _jp_algo),
+			      a, jp::algo),
 		     //100,0.8,15.);
 		     100,0.,30.);
   h->SetMinimum(0.7);
@@ -1363,7 +1363,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 	double sc = scale[t][te][a]; //assert(sc!=0);
 	if (sc==0) {
 	  cout << "t="<<t<<", te="<<te<<", a="<<a
-	       << ",_algo="<<_jp_algo<<endl<<flush;
+	       << ",_algo="<<jp::algo<<endl<<flush;
 	  assert(sc!=0);
 	}
 	if (x!=0 && ex/x<maxe && ex!=0 && y!=0 && ey/y<maxe && ey!=0 &&
@@ -1375,7 +1375,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
 	  int n = g->GetN();
 	  double pt = meanpt[t];
-	  _ak7 = (string(_jp_algo)=="AK7"); // change PU smearing
+	  _ak7 = (string(jp::algo)=="AK7"); // change PU smearing
 	  //double c = unfold(pt, eta, x) / unfold(pt, eta, 12.);
 	  double c = unfold(pt, eta, x) / unfold(pt, eta, 13.5);
 	  g->SetPoint(n, x, y/sc*c);
@@ -1387,7 +1387,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 	  int m0 = gy->GetN();
 	  gy->SetPoint(m0, y/sc*c, x);
 	  gy->SetPointError(m0, ey/sc*c, ex);
-	  
+
 	  if (run>192000) {
 	    int na = ga->GetN();
 	    ga->SetPoint(na, x, y/sc*c);
@@ -1405,7 +1405,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 	}
       }
     } // for j
-    
+
     c1->cd();
     h->Draw("AXIS");
 
@@ -1419,7 +1419,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     gsys->Draw("SAME E3");
 
     g->Draw("SAMEP");
-    
+
     gu->SetMarkerStyle(kOpenCircle);
     gu->Draw("SAMEP");
 
@@ -1441,7 +1441,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     efit0->SetLineStyle(kDotted);
     efit0->DrawClone("SAME");
     efit0->SetParameter(2, -efit0->GetParameter(2));
-    efit0->DrawClone("SAME");			 
+    efit0->DrawClone("SAME");
 
     TF1 *fit2 = new TF1(Form("fit2_%s",t),"pol0",0,30);
     gy->Fit(fit2, "QRN");
@@ -1498,7 +1498,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
     gPad->RedrawAxis();
 
-    if(_jp_pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_RateVsNvtx_%s.pdf",a,te,t));
+    if(jp::pdf) c1->SaveAs(Form("pdf/RunHistos_%s_%s_RateVsNvtx_%s.pdf",a,te,t));
 
     // Draw again with before/after separation
     c1ts->cd();
@@ -1513,7 +1513,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     gb->SetMarkerColor(kBlue);
     gb->SetLineColor(kBlue);
     gb->Draw("SAMEP");
-    
+
     ga->SetMarkerColor(kRed);
     ga->SetLineColor(kRed);
     ga->Draw("SAMEP");
@@ -1537,7 +1537,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     efit->SetLineStyle(kDotted);//kDashed);
     efit->DrawClone("SAME");
     efit->SetParameter(2, -efit->GetParameter(2));
-    efit->DrawClone("SAME");			 
+    efit->DrawClone("SAME");
 
     TF1 *fitb2 = new TF1(Form("fitb2_%s",t),"pol0",0,30);
     gby->Fit(fitb2, "QRN");
@@ -1563,7 +1563,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
     efit->SetLineColor(kRed+2);
     efit->DrawClone("SAME");
     efit->SetParameter(2, -efit->GetParameter(2));
-    efit->DrawClone("SAME");			 
+    efit->DrawClone("SAME");
 
     TF1 *fita2 = new TF1(Form("fita2_%s",t),"pol0",0,30);
     gay->Fit(fita2, "QRN");
@@ -1581,7 +1581,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
     tex->Draw();
 
-    //if(_jp_pdf) c1ts->SaveAs(Form("pdf/RunHistos_%s_RateVsNvtxTS_%s.pdf",a,t));
+    //if(jp::pdf) c1ts->SaveAs(Form("pdf/RunHistos_%s_RateVsNvtxTS_%s.pdf",a,t));
   } // for i
 
 
@@ -1589,7 +1589,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   gPad->SetLogx();
 
   TH1D *h2a = new TH1D("h2a",";Mean trigger p_{T} (GeV);#DeltaL / #LTN_{PV}#GT (%)",
-		       int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+		       int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h2a->GetXaxis()->SetNoExponent();
   h2a->GetXaxis()->SetMoreLogLabels();
   h2a->SetMinimum(-2);//-1.5);
@@ -1600,7 +1600,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   grl->SetMarkerStyle(kFullCircle);
   grl->Draw("SAMEP");
 
-  TF1 *f1a = new TF1("f1a","[0]",_jp_xmin,min(2000./cosh(eta), _jp_xmax));
+  TF1 *f1a = new TF1("f1a","[0]",jp::xmin,min(2000./cosh(eta), jp::xmax));
   grl->Fit(f1a,"QN");
   f1a->SetLineColor(kBlack);
   f1a->DrawClone("SAME");
@@ -1636,26 +1636,26 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 				f1a->GetChisquare()/f1a->GetNDF()));
 
   //cmsPrel(_lumi);
-  
-  if (_jp_pdf) c2a->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaLvsPt.pdf",a,te));
+
+  if (jp::pdf) c2a->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaLvsPt.pdf",a,te));
 
 
   TCanvas *c2 = new TCanvas("c2","c2",600,600);
   gPad->SetLogx();
 
   TH1D *h2 = new TH1D("h2",";Mean trigger p_{T} (GeV);#DeltaO / #LTN_{PV}#GT (GeV)",
-		      int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+		      int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h2->GetXaxis()->SetNoExponent();
   h2->GetXaxis()->SetMoreLogLabels();
   h2->SetMinimum(-1);//-0.5);//-1.5);
   h2->SetMaximum(1);//0.5);//0.8);
 
   h2->Draw("HIST");//AXIS");
-  
+
   gro->SetMarkerStyle(kFullCircle);
   gro->Draw("SAMEP");
 
-  TF1 *f1 = new TF1("f1","[0]+[1]*x",_jp_xmin,min(2000./cosh(eta), _jp_xmax));
+  TF1 *f1 = new TF1("f1","[0]+[1]*x",jp::xmin,min(2000./cosh(eta), jp::xmax));
   f1->FixParameter(1,0);
   gro->Fit(f1,"QN");
   f1->SetLineColor(kBlack);
@@ -1663,8 +1663,8 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 
   cout << "dL/dNpv = ";
   cout << f1->GetParameter(0) << "+" << f1->GetParameter(1) << "x" << endl;
-  
-  TF1 *f2 = new TF1("f2","[0]+[1]*log(x)",_jp_xmin,_jp_xmax);
+
+  TF1 *f2 = new TF1("f2","[0]+[1]*log(x)",jp::xmin,jp::xmax);
   gro->Fit(f2,"QN");
   f2->SetLineStyle(kDashed);
   f2->SetLineColor(kBlack);
@@ -1702,17 +1702,17 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 				f1->GetParameter(0),
 				f1->GetParError(0),
 				f1->GetChisquare()/f1->GetNDF()));
-  
+
   //cmsPrel(_lumi);
-  
-  if (_jp_pdf) c2->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaOvsPt.pdf",a,te));
+
+  if (jp::pdf) c2->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaOvsPt.pdf",a,te));
 
 
   TCanvas *c2c = new TCanvas("c2c","c2c",600,600);
   gPad->SetLogx();
 
   TH1D *h2c = new TH1D("h2c",";Mean trigger p_{T} (GeV);#DeltaJER / #LTN_{PV}#GT (GeV)",
-		       int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+		       int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h2c->GetXaxis()->SetNoExponent();
   h2c->GetXaxis()->SetMoreLogLabels();
   h2c->SetMinimum(-10);
@@ -1723,7 +1723,7 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
   grs->SetMarkerStyle(kFullCircle);
   grs->Draw("SAMEP");
 
-  TF1 *f1c = new TF1("f1c","[0]",_jp_xmin,min(2000./cosh(eta), _jp_xmax));
+  TF1 *f1c = new TF1("f1c","[0]",jp::xmin,min(2000./cosh(eta), jp::xmax));
   grs->Fit(f1c,"QN");
   f1c->SetLineColor(kBlack);
   f1c->DrawClone("SAME");
@@ -1744,8 +1744,8 @@ void drawRateVsNvtx(string type="DATA", string algo="PF") {
 				f1c->GetChisquare()/f1c->GetNDF()));
 
   //cmsPrel(_lumi);
-  
-  if (_jp_pdf) c2c->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaJERvsPt.pdf",a,te));
+
+  if (jp::pdf) c2c->SaveAs(Form("pdf/RunHistos_%s_%s_DeltaJERvsPt.pdf",a,te));
   } // for ieta
 } // drawRateVsNvtx
 
@@ -1784,7 +1784,7 @@ void drawRunComposition(string type = "DATA") {
   //trgs.push_back("jt40");
   //trgs.push_back("jt80");
   //trgs.push_back("jt140");
-  //trgs.push_back("jt200"); 
+  //trgs.push_back("jt200");
   //trgs.push_back("jt260");
   trgs.push_back("jt320");
   //trgs.push_back("jt400");
@@ -1813,7 +1813,7 @@ void drawRunComposition(string type = "DATA") {
       if (_dm) {
 	refchf = 0.6274;
 	refnef = 0.2867;
-	refnhf = 0.0766;	
+	refnhf = 0.0766;
       }
     }
     if (etas[ieta]=="Transition") {
@@ -1870,7 +1870,7 @@ void drawRunComposition(string type = "DATA") {
     int nruns = runs->GetNbinsX();
     float lumi;
     assert(sscanf(runs->GetTitle(),"runs %f pb-1",&lumi)==1);
-    
+
     TH1D *h = new TH1D("h","",nruns,-0.5,nruns-0.5);
     h->SetMinimum(0.0);
     h->SetMaximum(0.9);
@@ -1898,13 +1898,13 @@ void drawRunComposition(string type = "DATA") {
     int i195530 = TMath::BinarySearch(nruns, &vrun[0], 195530);
     int i195540 = TMath::BinarySearch(nruns, &vrun[0], 195540);
     int i196531 = TMath::BinarySearch(nruns, &vrun[0], 196531);
-    
+
     double ifirst = i190645;
     double its = 0.5*(i191859+i193093);
     double iht = 0.5*(i193621+i193834);
     double ijump = 0.5*(i195530+i195540);
-    //double ilast = i196531;  
-    
+    //double ilast = i196531;
+
     int i190456 = TMath::BinarySearch(nruns, &vrun[0], 190456); // 2012A first
     //int i193621 = TMath::BinarySearch(nruns, &vrun[0], 193621); // 2012A last
     //int i193834 = TMath::BinarySearch(nruns, &vrun[0], 193834); // 2012B first
@@ -1913,13 +1913,13 @@ void drawRunComposition(string type = "DATA") {
     int i203742 = TMath::BinarySearch(nruns, &vrun[0], 203742); // 2012C last
     int i203777 = TMath::BinarySearch(nruns, &vrun[0], 203777); // 2012D first
     int i208686 = TMath::BinarySearch(nruns, &vrun[0], 208686); // 2012D last
-    
+
     //double ifirst = i190456;
     double i12b = 0.5*(i193621 + i193834);
     double i12c = 0.5*(i196531 + i198049);
     double i12d = 0.5*(i203742 + i203777);
     double ilast = i208686;
-    
+
     cout << "ifirst = " << ifirst << endl;
     cout << "its = " << its << endl;
     cout << "ilast = " << ilast << endl;
@@ -2045,7 +2045,7 @@ void drawRunComposition(string type = "DATA") {
       TGraphErrors *gnefvsnpv = new TGraphErrors(0);
       TGraphErrors *gnhfvsnpv = new TGraphErrors(0);
       for (int i = 1; i != hnhf->GetNbinsX()+1; ++i) {
-	
+
 	if (hchf->GetBinContent(i)!=0 &&
 	    hchf->GetBinError(i)<0.1*hchf->GetBinContent(i)) {
 	  int n = gchfvsnpv->GetN();
@@ -2105,7 +2105,7 @@ void drawRunComposition(string type = "DATA") {
       f0->SetLineColor(kGreen+3);
       f0->SetParameter(0, mcnhf);
       f0->DrawClone("SAME");
-      
+
       f0->SetLineStyle(kDotted);
       f0->SetRange(ifirst, ilast);
 
@@ -2146,7 +2146,7 @@ void drawRunComposition(string type = "DATA") {
       }
       leg->Draw();
 
-      if (_jp_pdf) c1->SaveAs(Form("pdf/RunComposition_PF_%s_%s.pdf",se,st));
+      if (jp::pdf) c1->SaveAs(Form("pdf/RunComposition_PF_%s_%s.pdf",se,st));
 
       // Coarse grain vs run
       TF1 *fit = new TF1("fit","[0]",0,350);
@@ -2166,30 +2166,30 @@ void drawRunComposition(string type = "DATA") {
 	double kchf = refchf / mcchf;
 	double k = 1.;//mcchf/fit->GetParameter(0); // XTRA
 	//double k0 = 1. / (1. + (mcchf - fit->GetParameter(0))); // XTRA
-	gchf->SetPoint(irun, midrun, k*kchf*fit->GetParameter(0)); 
-	gchf->SetPointError(irun, drun, k*kchf*fit->GetParError(0)); 
+	gchf->SetPoint(irun, midrun, k*kchf*fit->GetParameter(0));
+	gchf->SetPointError(irun, drun, k*kchf*fit->GetParError(0));
 
 	gnef0->Fit(fit,"QRN");
 	double knef = refnef / mcnef;
-	gnef->SetPoint(irun, midrun, k*knef*fit->GetParameter(0)); 
-	gnef->SetPointError(irun, drun, k*knef*fit->GetParError(0)); 
+	gnef->SetPoint(irun, midrun, k*knef*fit->GetParameter(0));
+	gnef->SetPointError(irun, drun, k*knef*fit->GetParError(0));
 
 	gnhf0->Fit(fit,"QRN");
 	double knhf = refnhf / mcnhf;
-	gnhf->SetPoint(irun, midrun, k*knhf*fit->GetParameter(0)); 
-	gnhf->SetPointError(irun, drun, k*knhf*fit->GetParError(0)); 
-	
+	gnhf->SetPoint(irun, midrun, k*knhf*fit->GetParameter(0));
+	gnhf->SetPointError(irun, drun, k*knhf*fit->GetParError(0));
+
       } // for irun
 
       mchf->Add(gchf);
       mnef->Add(gnef);
       mnhf->Add(gnhf);
-      
+
       c2->cd();
       if (itrg==0) {
 
 	h->DrawClone("AXIS");
-      
+
 	fit->SetLineStyle(kDashed);
 	fit->SetLineWidth(2);
 	fit->SetRange(ifirst, ilast);
@@ -2202,7 +2202,7 @@ void drawRunComposition(string type = "DATA") {
 	fit->SetLineColor(kGreen+3);
 	fit->SetParameter(0, refnhf);
 	fit->DrawClone("SAME");
-      }      
+      }
 
       gchf->SetMarkerStyle(kFullCircle);
       gchf->SetMarkerColor(kRed);
@@ -2234,7 +2234,7 @@ void drawRunComposition(string type = "DATA") {
       tex->DrawLatex(i12b+2,0.55,"B");
       tex->DrawLatex(i12c+2,0.55,"C");
       tex->DrawLatex(i12d+2,0.55,"D");
-      
+
       leg->SetHeader(Form("%1.1f #leq |#eta| < %1.1f",y1,y3));
       if (itrg==0) leg->Draw();
 
@@ -2246,7 +2246,7 @@ void drawRunComposition(string type = "DATA") {
       }
 
     } // for itrg
-    
+
     // Coarse grain vs trigger (and run)
     TF1 *fit = new TF1("mfit","[0]",0,350);
     TGraphErrors *gchf = new TGraphErrors(nrunbins);
@@ -2259,19 +2259,19 @@ void drawRunComposition(string type = "DATA") {
       fit->SetRange(runbins[irun]+0.5, runbins[irun+1]+0.5);
 
       mchf->Fit(fit,"QRN");
-      gchf->SetPoint(irun, midrun, fit->GetParameter(0)); 
-      gchf->SetPointError(irun, drun, fit->GetParError(0)); 
+      gchf->SetPoint(irun, midrun, fit->GetParameter(0));
+      gchf->SetPointError(irun, drun, fit->GetParError(0));
 
       mnef->Fit(fit,"QRN");
-      gnef->SetPoint(irun, midrun, fit->GetParameter(0)); 
-      gnef->SetPointError(irun, drun, fit->GetParError(0)); 
+      gnef->SetPoint(irun, midrun, fit->GetParameter(0));
+      gnef->SetPointError(irun, drun, fit->GetParError(0));
 
       mnhf->Fit(fit,"QRN");
-      gnhf->SetPoint(irun, midrun, fit->GetParameter(0)); 
-      gnhf->SetPointError(irun, drun, fit->GetParError(0)); 
-	
+      gnhf->SetPoint(irun, midrun, fit->GetParameter(0));
+      gnhf->SetPointError(irun, drun, fit->GetParError(0));
+
     } // for irun
-      
+
     c3->cd();
     h->DrawClone("AXIS");
 
@@ -2333,9 +2333,9 @@ void drawRunComposition(string type = "DATA") {
     TLine *l = new TLine();
     l->SetLineStyle(kDashed);
     //l->DrawLine(its,0.,its,0.9);
-    l->DrawLine(i12b,0.,i12b,0.9);    
-    l->DrawLine(i12c,0.,i12c,0.9);    
-    l->DrawLine(i12d,0.,i12d,0.9);    
+    l->DrawLine(i12b,0.,i12b,0.9);
+    l->DrawLine(i12c,0.,i12c,0.9);
+    l->DrawLine(i12d,0.,i12d,0.9);
 
     TLatex *tex = new TLatex();
     tex->SetTextSize(0.040);
@@ -2379,7 +2379,7 @@ void drawRunComposition(string type = "DATA") {
     }
 
     c5->cd();
-  
+
     double ymax0 = h->GetMaximum();
     double ymin0 = h->GetMinimum();
     double ymin = (y3>2 ? -9 : -3);//(ieta==2 ? -7 : -1.0);
@@ -2486,7 +2486,7 @@ void drawRunComposition(string type = "DATA") {
     tex->DrawLatex(ifirst+2,y,"A");
     tex->DrawLatex(i12b+2,y,"B");
     tex->DrawLatex(i12c+2,y,"C");
-    tex->DrawLatex(i12d+2,y,"D");    
+    tex->DrawLatex(i12d+2,y,"D");
 
     leg->SetHeader(Form("%1.1f #leq |#eta| < %1.1f",y1,y3));
     leg->Draw();
@@ -2494,12 +2494,12 @@ void drawRunComposition(string type = "DATA") {
     //cmsPrel(_lumi);
 
 
-    if (_jp_pdf) c2->SaveAs(Form("pdf/RunCompositionA_PF_%s.pdf",se));
-    if (_jp_pdf) c3->SaveAs(Form("pdf/RunCompositionB_PF_%s.pdf",se));
-    if (_jp_pdf) c5->SaveAs(Form("pdf/RunCompositionC_PF_%s.pdf",se));
+    if (jp::pdf) c2->SaveAs(Form("pdf/RunCompositionA_PF_%s.pdf",se));
+    if (jp::pdf) c3->SaveAs(Form("pdf/RunCompositionB_PF_%s.pdf",se));
+    if (jp::pdf) c5->SaveAs(Form("pdf/RunCompositionC_PF_%s.pdf",se));
 
   } // for ieta
-  
+
   fout.close();
 } // drawRunComposition
 

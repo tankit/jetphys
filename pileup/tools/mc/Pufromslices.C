@@ -39,7 +39,7 @@ void Pufromslices() {
 
   std::cmatch match;
   TFile *output = new TFile("pileup_MC.root","RECREATE");
-  TH1D *summary = new TH1D("pileupmc","",_jp_maxpu,0,_jp_maxpu);
+  TH1D *summary = new TH1D("pileupmc","",jp::maxpu,0,jp::maxpu);
   vector<int> pthatmin =
     {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200};
   vector<TH1D*> individuals;
@@ -58,12 +58,12 @@ void Pufromslices() {
           TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
           int number = stoi(match[1]);
           const char *histname = Form("pileupmc%d",number);
-          TH1D *hist = new TH1D(histname,"",_jp_maxpu,0,_jp_maxpu);
+          TH1D *hist = new TH1D(histname,"",jp::maxpu,0,jp::maxpu);
           t->Draw(Form("EvtHdr_.mTrPu>>%s",histname));
           int pos = 0;
           while (pthatmin[pos]!=number)
             ++pos;
-          hist->Scale(_jp_pthatsigmas[pos]/_jp_pthatnevts[pos]);
+          hist->Scale(jp::pthatsigmas[pos]/jp::pthatnevts[pos]);
           summary->Add(hist);
           individuals.push_back(hist);
         }
