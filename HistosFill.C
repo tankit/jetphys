@@ -944,29 +944,33 @@ bool HistosFill::AcceptEvent()
     assert(TriggerDecision_.size()==_availTrigs.size());
 #endif
 
+    // New and old mode: TriggerDecision and L1/HLT Prescales have the same indexing.
     for (auto itrg = 0u; itrg != jp::notrigs; ++itrg)
       _wt[jp::triggers[itrg]] = 1.0;
 
 #ifdef NEWMODE
     for (unsigned itrg = 0; itrg<TriggerDecision_.size(); ++itrg) {
-      auto &TD = TriggerDecision_[itrg];
       assert(itrg<_availTrigs.size());
-      auto trgPlace = std::find(_goodTrigs.begin(),_goodTrigs.end(),TD);
-      if (trgPlace==_goodTrigs.end()) continue;
+      auto &TDec = TriggerDecision_[itrg]; // Location of the current place
+      auto &TName = _availTrigs[TDec];
 
+      auto trgPlace = std::find(_goodTrigs.begin(),_goodTrigs.end(),TDec);
+      if (trgPlace==_goodTrigs.end()) continue;
       unsigned goodIdx = static_cast<unsigned int>(trgPlace-_goodTrigs.begin());
 #elif
     for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
       auto &itrg = _goodTrigs[goodIdx];
-      if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
+      auto &TDec = TriggerDecision_[itrg]; // Trigger fired or not: -1, 0, 1
+      if (TDec!=1) continue;
+      auto &TName = _availTrigs[itrg];
 #endif // NEWMODE
-      string trigname = _availTrigs[itrg];
+
 #ifdef NEWMODE
       if (jp::debug)
 #elif
-      if (jp::debug and TriggerDecision_[itrg]>0)
+      if (jp::debug and TDec>0)
 #endif
-        cout << trigname << " " << TriggerDecision_[itrg]
+        cout << TName << " " << itrg << " " << TDec
              << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
 
       // Set prescale from event for now
@@ -974,16 +978,16 @@ bool HistosFill::AcceptEvent()
       if (HLTPrescale_[itrg]>0) {
         double l1 = L1Prescale_[itrg];
         if (l1==0) l1 = 1;
-        _prescales[trigname][run] = l1 * HLTPrescale_[itrg];
+        _prescales[TName][run] = l1 * HLTPrescale_[itrg];
       } else {
-        cout << "Error for trigger " << trigname << " prescales: "
+        cout << "Error for trigger " << TName << " prescales: "
               << "L1  =" << L1Prescale_[itrg]
               << "HLT =" << HLTPrescale_[itrg] << endl;
-        _prescales[trigname][run] = 0;
+        _prescales[TName][run] = 0;
         if (jp::debug) { // check prescale
-          double prescale = _prescales[trigname][run];
+          double prescale = _prescales[TName][run];
           if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
-            cout << "Trigger " << trigname << ", "
+            cout << "Trigger " << TName << ", "
             << "Prescale(txt file) = " << prescale << endl;
             cout << "L1 = " << L1Prescale_[itrg] << ", "
             << "HLT = " << HLTPrescale_[itrg] << endl;
@@ -992,13 +996,13 @@ bool HistosFill::AcceptEvent()
         } // debug
       }
 
-      if (_prescales[trigname][run]>0) {
+      if (_prescales[TName][run]>0) {
         // Set trigger only if prescale information is known
-        _trigs.insert(trigname);
-        _wt[trigname] = _goodWgts[goodIdx];
+        _trigs.insert(TName);
+        _wt[TName] = _goodWgts[goodIdx];
       } else {
         // Make sure all info is good! This is crucial if there is something odd with the tuples
-        PrintInfo(Form("Missing prescale for %s in run %d",trigname.c_str(),run));
+        PrintInfo(Form("Missing prescale for %s in run %d",TName.c_str(),run));
       }
     } // for itrg (_goodTrigs)
 
