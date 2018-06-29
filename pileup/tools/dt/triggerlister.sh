@@ -77,7 +77,6 @@ for dir in ${FOLDERS[@]}; do
     READINGAK4="${READINGAK4}\n  "
     READINGAK8="${READINGAK8}\n  "
     for rrr in ${HTS[@]}; do
-        READINGAK4="${READINGAK4}\"${rrr}\","
         READINGAK8="${READINGAK8}\"${rrr}\","
     done
     READINGAK4="${READINGAK4}\n)\n"

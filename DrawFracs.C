@@ -213,8 +213,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
   vector<pair<TH1D*,string>> hdts;
   for (auto &frc : _fracs) {
-    if (!_dobeta and frc=="beta") continue;
-    else if (frc=="muf") continue;
+    if (frc=="muf") continue;
     else if (!_vseta and (!_vspt or eta2<3.0)) {
         if (frc=="hef" or frc=="hhf") continue;
     }
@@ -251,15 +250,13 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
         hdt->SetBinContent(i, hdt->GetBinContent(i)*hdt2->GetBinContent(i));  // beta -> chf * beta
     } else if (frc=="chf") { // For chf, multiply by (1-beta-betastar)
       hdf->Add(hdt, hmc, 100, -100);
-      TH1D *hmc2 = mcHistos["beta"]; assert(hmc2);
       TH1D *hmc3 = mcHistos["puf"]; assert(hmc3);
-      for (int i = 1; i != hmc2->GetNbinsX()+1; ++i)
-        hmc->SetBinContent(i, hmc->GetBinContent(i) * (1 - (_dobeta ? hmc2->GetBinContent(i) : 0)) - hmc3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
+      for (int i = 1; i != hmc->GetNbinsX()+1; ++i)
+        hmc->SetBinContent(i, hmc->GetBinContent(i) - hmc3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
 
-      TH1D *hdt2 = dtHistos["beta"]; assert(hdt2);
       TH1D *hdt3 = dtHistos["puf"]; assert(hdt3);
-      for (int i = 1; i != hdt2->GetNbinsX()+1; ++i)
-        hdt->SetBinContent(i, hdt->GetBinContent(i) * (1 - (_dobeta ? hdt2->GetBinContent(i) : 0)) - hdt3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
+      for (int i = 1; i != hdt->GetNbinsX()+1; ++i)
+        hdt->SetBinContent(i, hdt->GetBinContent(i) - hdt3->GetBinContent(i));  // chf -> chf*(1-beta-betastar)
     } // others we do not touch
 
     hmc->SetMarkerStyle(kNone);
@@ -272,7 +269,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     hdt->SetFillColor(_style[frc].first - 7); // for legend
     hdt->SetLineColor(_style[frc].first + 1);
     hdt->SetMarkerStyle(_style[frc].second);
-    hdt->SetMarkerSize(frc=="nhf" or (frc=="chf" and _dobeta) ? 1.3 : 1.0);
+    hdt->SetMarkerSize(frc=="nhf" ? 1.3 : 1.0);
     if (_vspt or _vseta) hdt->GetXaxis()->SetRangeUser(_rangemin[mode],_rangemax[mode]);
     hsdt->Add(hdt, "SAME P");
 
@@ -282,7 +279,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     hdf->SetMarkerColor(_style[frc].first + 1);
     hdf->SetMarkerStyle(_style[frc].second);
     hdf->SetLineWidth(2);
-    hdf->SetMarkerSize(frc=="nhf" or (frc=="chf" and _dobeta) ? 1.8 : 1.3);
+    hdf->SetMarkerSize(frc=="nhf" ? 1.8 : 1.3);
     hsdf->Add(hdf,"SAME P");
 
     c1->cd(2);
@@ -299,7 +296,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   tex->SetTextFont(63);
   tex->SetTextSize(leg->GetTextSize());
   //tex->DrawLatex(0.15,0.306,Form("Anti-k_{T} R=0.4 PF+CHS%s%s",_shiftJES ?", shifted by JES":"",_pertrg?Form(" Trg=PFJet%s",trg.substr(2).c_str()):""));
-  int trigidx = _pertrg ? int(std::find(jp::triggers,jp::triggers+jp::notrigs,trg)-jp::triggers) : 0;
+  int trigidx = _pertrg ? int(std::find(jp::triggers.begin(),jp::triggers.end(),trg)-jp::triggers.begin()) : 0;
   if (_pertrg) tex->DrawLatex(0.164,0.33,Form("%s",Form("Trg=PFJet%s, %1.1f#leq p_{T}[GeV]<%1.1f",trg.substr(2).c_str(),jp::trigranges[trigidx][0],jp::trigranges[trigidx][1])));
   tex->DrawLatex(0.164,0.83,Form("Anti-k_{T} R=0.4 PF+CHS"));
 

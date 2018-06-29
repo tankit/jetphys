@@ -13,7 +13,7 @@ g = open(path+'lumis.json', 'w')
 
 stuff = {}
 for line in f:
-    twins = line.split(",", 1)
+    twins = line.split(" ", 1)
     tmpstuff = sorted(list(set(list(map(int,twins[1].rstrip().lstrip().rstrip(']').lstrip('[').split(","))))))
     shortstuff = []
     prev = tmpstuff[0]

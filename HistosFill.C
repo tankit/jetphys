@@ -77,79 +77,84 @@ bool HistosFill::Init(TTree *tree)
   fCurrent = -1;
   fChain->SetMakeClass(1);
 
-  fChain->SetBranchAddress("EvtHdr_.mIsPVgood", &EvtHdr__mIsPVgood, &b_events_EvtHdr__mIsPVgood);
-  fChain->SetBranchAddress("EvtHdr_.mHCALNoiseNoMinZ", &EvtHdr__mHCALNoiseNoMinZ, &b_events_EvtHdr__mHCALNoiseNoMinZ);
-  fChain->SetBranchAddress("EvtHdr_.mRun", &EvtHdr__mRun, &b_events_EvtHdr__mRun);
-  fChain->SetBranchAddress("EvtHdr_.mEvent", &EvtHdr__mEvent, &b_events_EvtHdr__mEvent);
-  fChain->SetBranchAddress("EvtHdr_.mLumi", &EvtHdr__mLumi, &b_events_EvtHdr__mLumi);
-  fChain->SetBranchAddress("EvtHdr_.mBunch", &EvtHdr__mBunch, &b_events_EvtHdr__mBunch);
-  fChain->SetBranchAddress("EvtHdr_.mNVtx", &EvtHdr__mNVtx, &b_events_EvtHdr__mNVtx);
-  fChain->SetBranchAddress("EvtHdr_.mNVtxGood", &EvtHdr__mNVtxGood, &b_events_EvtHdr__mNVtxGood);
-  fChain->SetBranchAddress("EvtHdr_.mOOTPUEarly", &EvtHdr__mOOTPUEarly, &b_events_EvtHdr__mOOTPUEarly);
-  fChain->SetBranchAddress("EvtHdr_.mOOTPULate", &EvtHdr__mOOTPULate, &b_events_EvtHdr__mOOTPULate);
-  fChain->SetBranchAddress("EvtHdr_.mINTPU", &EvtHdr__mINTPU, &b_events_EvtHdr__mINTPU);
-  fChain->SetBranchAddress("EvtHdr_.mNBX", &EvtHdr__mNBX, &b_events_EvtHdr__mNBX);
-  fChain->SetBranchAddress("EvtHdr_.mPVndof", &EvtHdr__mPVndof, &b_events_EvtHdr__mPVndof);
-  fChain->SetBranchAddress("EvtHdr_.mTrPu", &EvtHdr__mTrPu, &b_events_EvtHdr__mTrPu);
-  fChain->SetBranchAddress("EvtHdr_.mPVx", &EvtHdr__mPVx, &b_events_EvtHdr__mPVx);
-  fChain->SetBranchAddress("EvtHdr_.mPVy", &EvtHdr__mPVy, &b_events_EvtHdr__mPVy);
-  fChain->SetBranchAddress("EvtHdr_.mPVz", &EvtHdr__mPVz, &b_events_EvtHdr__mPVz);
-  fChain->SetBranchAddress("EvtHdr_.mBSx", &EvtHdr__mBSx, &b_events_EvtHdr__mBSx);
-  fChain->SetBranchAddress("EvtHdr_.mBSy", &EvtHdr__mBSy, &b_events_EvtHdr__mBSy);
-  fChain->SetBranchAddress("EvtHdr_.mBSz", &EvtHdr__mBSz, &b_events_EvtHdr__mBSz);
-  fChain->SetBranchAddress("EvtHdr_.mPthat", &EvtHdr__mPthat, &b_events_EvtHdr__mPthat);
-  fChain->SetBranchAddress("EvtHdr_.mWeight", &EvtHdr__mWeight, &b_events_EvtHdr__mWeight);
-  fChain->SetBranchAddress("EvtHdr_.mCaloRho", &EvtHdr__mCaloRho, &b_events_EvtHdr__mCaloRho);
-  fChain->SetBranchAddress("EvtHdr_.mPFRho", &EvtHdr__mPFRho, &b_events_EvtHdr__mPFRho);
-  fChain->SetBranchAddress("PFMet_.et_", &PFMet__et_, &b_events_PFMet__et_);
-  fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_, &b_events_PFMet__sumEt_);
-  fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_, &b_events_PFMet__phi_);
-  fChain->SetBranchAddress("TriggerDecision_", &TriggerDecision_, &b_events_TriggerDecision_);
-  fChain->SetBranchAddress("L1Prescale_", &L1Prescale_, &b_events_L1Prescale_);
-  fChain->SetBranchAddress("HLTPrescale_", &HLTPrescale_, &b_events_HLTPrescale_);
-  fChain->SetBranchAddress("GenJets_", &GenJets__, &b_events_GenJets__);
-  fChain->SetBranchAddress("GenJets_.fCoordinates.fX", GenJets__fCoordinates_fX, &b_GenJets__fCoordinates_fX);
-  fChain->SetBranchAddress("GenJets_.fCoordinates.fY", GenJets__fCoordinates_fY, &b_GenJets__fCoordinates_fY);
-  fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", GenJets__fCoordinates_fZ, &b_GenJets__fCoordinates_fZ);
-  fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT, &b_GenJets__fCoordinates_fT);
-  fChain->SetBranchAddress(Form("PFJets%s_",jp::chs), &PFJetsCHS__, &b_events_PFJetsCHS__);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",jp::chs), PFJetsCHS__P4__fCoordinates_fX, &b_PFJetsCHS__P4__fCoordinates_fX);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fY",jp::chs), PFJetsCHS__P4__fCoordinates_fY, &b_PFJetsCHS__P4__fCoordinates_fY);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fZ",jp::chs), PFJetsCHS__P4__fCoordinates_fZ, &b_PFJetsCHS__P4__fCoordinates_fZ);
-  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fT",jp::chs), PFJetsCHS__P4__fCoordinates_fT, &b_PFJetsCHS__P4__fCoordinates_fT);
-  fChain->SetBranchAddress(Form("PFJets%s_.genR_",jp::chs), PFJetsCHS__genR_, &b_PFJetsCHS__genR_);
-  fChain->SetBranchAddress(Form("PFJets%s_.cor_",jp::chs), PFJetsCHS__cor_, &b_PFJetsCHS__cor_);
-  fChain->SetBranchAddress(Form("PFJets%s_.jecLabels_",jp::chs), PFJetsCHS__jecLabels_, &b_PFJetsCHS__jecLabels_);
-  fChain->SetBranchAddress(Form("PFJets%s_.unc_",jp::chs), PFJetsCHS__unc_, &b_PFJetsCHS__unc_);
-  fChain->SetBranchAddress(Form("PFJets%s_.uncSrc_",jp::chs), PFJetsCHS__uncSrc_, &b_PFJetsCHS__uncSrc_);
-  fChain->SetBranchAddress(Form("PFJets%s_.area_",jp::chs), PFJetsCHS__area_, &b_PFJetsCHS__area_);
-  fChain->SetBranchAddress(Form("PFJets%s_.looseID_",jp::chs), PFJetsCHS__looseID_, &b_PFJetsCHS__looseID_);
-  fChain->SetBranchAddress(Form("PFJets%s_.tightID_",jp::chs), PFJetsCHS__tightID_, &b_PFJetsCHS__tightID_);
-  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavour_",jp::chs), PFJetsCHS__partonFlavour_, &b_PFJetsCHS__partonFlavour_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hadronFlavour_",jp::chs), PFJetsCHS__hadronFlavour_, &b_PFJetsCHS__hadronFlavour_);
-  fChain->SetBranchAddress(Form("PFJets%s_.chf_",jp::chs), PFJetsCHS__chf_, &b_PFJetsCHS__chf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nhf_",jp::chs), PFJetsCHS__nhf_, &b_PFJetsCHS__nhf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nemf_",jp::chs), PFJetsCHS__nemf_, &b_PFJetsCHS__nemf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.cemf_",jp::chs), PFJetsCHS__cemf_, &b_PFJetsCHS__cemf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.muf_",jp::chs), PFJetsCHS__muf_, &b_PFJetsCHS__muf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",jp::chs), PFJetsCHS__hf_hf_, &b_PFJetsCHS__hf_hf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",jp::chs), PFJetsCHS__hf_phf_, &b_PFJetsCHS__hf_phf_);
-  fChain->SetBranchAddress(Form("PFJets%s_.chm_",jp::chs), PFJetsCHS__chm_, &b_PFJetsCHS__chm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.nhm_",jp::chs), PFJetsCHS__nhm_, &b_PFJetsCHS__nhm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.phm_",jp::chs), PFJetsCHS__phm_, &b_PFJetsCHS__phm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.elm_",jp::chs), PFJetsCHS__elm_, &b_PFJetsCHS__elm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mum_",jp::chs), PFJetsCHS__mum_, &b_PFJetsCHS__mum_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",jp::chs), PFJetsCHS__hf_hm_, &b_PFJetsCHS__hf_hm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",jp::chs), PFJetsCHS__hf_phm_, &b_PFJetsCHS__hf_phm_);
-  fChain->SetBranchAddress(Form("PFJets%s_.ncand_",jp::chs), PFJetsCHS__ncand_, &b_PFJetsCHS__ncand_);
-  fChain->SetBranchAddress(Form("PFJets%s_.betaPrime_",jp::chs), PFJetsCHS__betaPrime_, &b_PFJetsCHS__betaPrime_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mpuTrk_",jp::chs), PFJetsCHS__mpuTrk_, &b_PFJetsCHS__mpuTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mlvTrk_",jp::chs), PFJetsCHS__mlvTrk_, &b_PFJetsCHS__mlvTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.mjtTrk_",jp::chs), PFJetsCHS__mjtTrk_, &b_PFJetsCHS__mjtTrk_);
-  fChain->SetBranchAddress(Form("PFJets%s_.hof_",jp::chs), PFJetsCHS__hof_, &b_PFJetsCHS__hof_);
-  fChain->SetBranchAddress(Form("PFJets%s_.pujid_",jp::chs), PFJetsCHS__pujid_, &b_PFJetsCHS__pujid_);
-  fChain->SetBranchAddress("genFlavour_", &genFlavour_, &b_events_genFlavour_);
-  fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_, &b_events_genFlavourHadron_);
+  fChain->SetBranchAddress("EvtHdr_.mIsPVgood", &EvtHdr__mIsPVgood);
+  fChain->SetBranchAddress("EvtHdr_.mRun", &EvtHdr__mRun);
+  fChain->SetBranchAddress("EvtHdr_.mEvent", &EvtHdr__mEvent);
+  fChain->SetBranchAddress("EvtHdr_.mLumi", &EvtHdr__mLumi);
+  fChain->SetBranchAddress("EvtHdr_.mBunch", &EvtHdr__mBunch);
+  fChain->SetBranchAddress("EvtHdr_.mNVtx", &EvtHdr__mNVtx);
+  fChain->SetBranchAddress("EvtHdr_.mNVtxGood", &EvtHdr__mNVtxGood);
+  fChain->SetBranchAddress("EvtHdr_.mOOTPUEarly", &EvtHdr__mOOTPUEarly);
+  fChain->SetBranchAddress("EvtHdr_.mOOTPULate", &EvtHdr__mOOTPULate);
+  fChain->SetBranchAddress("EvtHdr_.mINTPU", &EvtHdr__mINTPU);
+  fChain->SetBranchAddress("EvtHdr_.mNBX", &EvtHdr__mNBX);
+  fChain->SetBranchAddress("EvtHdr_.mPVndof", &EvtHdr__mPVndof);
+  fChain->SetBranchAddress("EvtHdr_.mTrPu", &EvtHdr__mTrPu);
+  fChain->SetBranchAddress("EvtHdr_.mPVx", &EvtHdr__mPVx);
+  fChain->SetBranchAddress("EvtHdr_.mPVy", &EvtHdr__mPVy);
+  fChain->SetBranchAddress("EvtHdr_.mPVz", &EvtHdr__mPVz);
+  fChain->SetBranchAddress("EvtHdr_.mBSx", &EvtHdr__mBSx);
+  fChain->SetBranchAddress("EvtHdr_.mBSy", &EvtHdr__mBSy);
+  fChain->SetBranchAddress("EvtHdr_.mBSz", &EvtHdr__mBSz);
+  fChain->SetBranchAddress("EvtHdr_.mPthat", &EvtHdr__mPthat);
+  fChain->SetBranchAddress("EvtHdr_.mWeight", &EvtHdr__mWeight);
+  fChain->SetBranchAddress("EvtHdr_.mCaloRho", &EvtHdr__mCaloRho);
+  fChain->SetBranchAddress("EvtHdr_.mPFRho", &EvtHdr__mPFRho);
+  fChain->SetBranchAddress("PFMet_.et_", &PFMet__et_);
+  fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_);
+  fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_);
+  fChain->SetBranchAddress("TriggerDecision_", &TriggerDecision_);
+  fChain->SetBranchAddress("L1Prescale_", &L1Prescale_);
+  fChain->SetBranchAddress("HLTPrescale_", &HLTPrescale_);
+  fChain->SetBranchAddress("GenJets_", &GenJets__);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fX", GenJets__fCoordinates_fX);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fY", GenJets__fCoordinates_fY);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fZ", GenJets__fCoordinates_fZ);
+  fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT);
+#ifdef NEWMODE
+  fChain->SetBranchAddress("PFJetsCHS_.genIdx_", PFJetsCHS__genIdx_);
+#elif
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",_jp_chs), PFJetsCHS__genP4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",_jp_chs), PFJetsCHS__genP4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__genP4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",_jp_chs), PFJetsCHS__genP4__fCoordinates_fT);
+#endif
+  fChain->SetBranchAddress(Form("PFJets%s_",jp::chs), &PFJetsCHS__);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",jp::chs), PFJetsCHS__P4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fY",jp::chs), PFJetsCHS__P4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fZ",jp::chs), PFJetsCHS__P4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fT",jp::chs), PFJetsCHS__P4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genR_",jp::chs), PFJetsCHS__genR_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cor_",jp::chs), PFJetsCHS__cor_);
+  fChain->SetBranchAddress(Form("PFJets%s_.area_",jp::chs), PFJetsCHS__area_);
+  fChain->SetBranchAddress(Form("PFJets%s_.looseID_",jp::chs), PFJetsCHS__looseID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.tightID_",jp::chs), PFJetsCHS__tightID_);
+  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavour_",jp::chs), PFJetsCHS__partonFlavour_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hadronFlavour_",jp::chs), PFJetsCHS__hadronFlavour_);
+#ifdef NEWMODE
+  fChain->SetBranchAddress(Form("PFJets%s_.partonFlavourPhysicsDef_",jp::chs), PFJetsCHS__partonFlavourPhysicsDef_);
+#endif
+  fChain->SetBranchAddress(Form("PFJets%s_.chf_",jp::chs), PFJetsCHS__chf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhf_",jp::chs), PFJetsCHS__nhf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nemf_",jp::chs), PFJetsCHS__nemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.cemf_",jp::chs), PFJetsCHS__cemf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.muf_",jp::chs), PFJetsCHS__muf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hf_",jp::chs), PFJetsCHS__hf_hf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phf_",jp::chs), PFJetsCHS__hf_phf_);
+  fChain->SetBranchAddress(Form("PFJets%s_.chm_",jp::chs), PFJetsCHS__chm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.nhm_",jp::chs), PFJetsCHS__nhm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.phm_",jp::chs), PFJetsCHS__phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.elm_",jp::chs), PFJetsCHS__elm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.mum_",jp::chs), PFJetsCHS__mum_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_hm_",jp::chs), PFJetsCHS__hf_hm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.hf_phm_",jp::chs), PFJetsCHS__hf_phm_);
+  fChain->SetBranchAddress(Form("PFJets%s_.ncand_",jp::chs), PFJetsCHS__ncand_);
+  fChain->SetBranchAddress(Form("PFJets%s_.betaPrime_",jp::chs), PFJetsCHS__betaPrime_);
+  fChain->SetBranchAddress("genFlavour_", &genFlavour_);
+  fChain->SetBranchAddress("genFlavourHadron_", &genFlavourHadron_);
+#ifdef NEWMODE
+  fChain->SetBranchAddress("genFlavourPartonPhysicsDef_", &genFlavourPartonPhysicsDef_);
+#endif
 
   if (jp::quick) { // Activate only some branches
     fChain->SetBranchStatus("*",0);
@@ -172,12 +177,21 @@ bool HistosFill::Init(TTree *tree)
     fChain->SetBranchStatus(Form("PFJets%s_.area_",jp::chs),1); // jta
 
     if (jp::ismc) {
-      fChain->SetBranchStatus(Form("PFJets%s_.genP4_*",jp::chs),1); // jtgenp4*
+
       fChain->SetBranchStatus(Form("PFJets%s_.genR_",jp::chs),1); // jtgenr
+#ifdef NEWMODE
+      fChain->SetBranchStatus(Form("PFJets%s_.genIdx_",jp::chs),1); // jtgenidx
+#elif
+      fChain->SetBranchStatus(Form("PFJets%s_.genP4_*",jp::chs),1); // jtgenp4*
+#endif
     }
 
     // for quark/gluon study (Ozlem)
-    //fChain->SetBranchStatus(Form("PFJets%s_.QGtagger_",jp::chs),1); // qgl
+#ifdef NEWMODE
+    fChain->SetBranchStatus(Form("PFJets%s_.QGL_",jp::chs),1); // qgl
+#elif
+    fChain->SetBranchStatus(Form("PFJets%s_.QGtagger_",jp::chs),1); // qgl
+#endif
     if (jp::ismc) fChain->SetBranchStatus(Form("PFJets%s_.partonFlavour_",jp::chs),1);
 
     // Component fractions
@@ -217,7 +231,6 @@ bool HistosFill::Init(TTree *tree)
     fChain->SetBranchStatus("EvtHdr_.mPVndof",1); // pvndof
     fChain->SetBranchStatus("EvtHdr_.mBSx",1); // bsx
     fChain->SetBranchStatus("EvtHdr_.mBSy",1); // bsy
-    //
 
     if (jp::ismc) {
       fChain->SetBranchStatus("EvtHdr_.mTrPu",1); // trpu
@@ -247,15 +260,25 @@ bool HistosFill::Init(TTree *tree)
   jtidtight = &PFJetsCHS__tightID_[0];
   //
   jtgenr = &PFJetsCHS__genR_[0];
+#ifdef NEWMODE
+  jtgenidx = &PFJetsCHS__genIdx_[0];
+#elif
   jtgenp4x = &PFJetsCHS__P4__fCoordinates_fX[0];
   jtgenp4y = &PFJetsCHS__P4__fCoordinates_fY[0];
   jtgenp4z = &PFJetsCHS__P4__fCoordinates_fZ[0];
   jtgenp4t = &PFJetsCHS__P4__fCoordinates_fT[0];
+#endif
   //
 
-  // for quark/gluon study (Ozlem)
-  //qgl = &PFJetsCHS__QGtagger_[0];
   partonflavor = &PFJetsCHS__partonFlavour_[0];
+#ifdef NEWMODE
+  partonflavorphys = &PFJetsCHS__partonFlavourPhysicsDef_[0];
+  // for quark/gluon study (Ozlem)
+  qgl = &PFJetsCHS__QGL_[0];
+#elif
+  // for quark/gluon study (Ozlem)
+  qgl = &PFJetsCHS__QGtagger_[0];
+#endif
 
   jtn = &PFJetsCHS__ncand_[0];
   jtnch = &PFJetsCHS__chm_[0];
@@ -702,14 +725,14 @@ bool HistosFill::AcceptEvent()
   // Reset event ID
   _pass = true;
 
-  // Reject events with no vertex
+  // This is equal to the SMPJ GoodVertexFilter and is redundant
   pvrho = tools::oplus(pvx, pvy);
-  _pass = _pass and npvgood>0 and pvrho<2.;
+  _pass = _pass and pvndof > 4 and fabs(pvz) <= 24. and pvrho <= 2. and npvgood>0.;
   if (_pass) ++_cnt["03vtx"];
 
   // Event cuts against beam backgrounds
   if (_pass) {
-    if (tools::oplus(pvx-bsx, pvy-bsy)>0.15 or pvndof<=4 or fabs(pvz) >= 24.) {
+    if (tools::oplus(pvx-bsx, pvy-bsy)>0.15) {
       ++_bscounter_bad;
       _pass = false;
     } else {
@@ -797,11 +820,17 @@ bool HistosFill::AcceptEvent()
     if (jp::debug) cout << "Gen info!" << endl;
     // Calculate gen level info
     if (jp::ismc) {
+#ifdef NEWMODE
+      auto &gjetidx = jtgenidx[jetidx];
+      if (gjetidx>=0 and gjetidx<GenJets__)
+        genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
+#elif
       gp4.SetPxPyPzE(jtgenp4x[jetidx],jtgenp4y[jetidx],jtgenp4z[jetidx],jtgenp4t[jetidx]);
       jtgenpt[jetidx] = gp4.Pt();
       jtgeny[jetidx] = gp4.Rapidity();
       jtgeneta[jetidx] = gp4.Eta();
       jtgenphi[jetidx] = gp4.Phi();
+#endif
     }
 
     if (jp::debug) cout << "Jet " << jetidx << " corrected!" << endl;
@@ -863,11 +892,10 @@ bool HistosFill::AcceptEvent()
 
   // Zero jets not sensible
   _pass = _pass and i0>=0;
-  if (_pass) ++_cnt["04njt"];
-  else _pass = false;
+  if (_pass) ++_cnt["05njt"];
 
   if (jp::debug) {
-    cout << "Indices for the three leading jets: " << jt3leads[0] << " " << jt3leads[1] << " " << jt3leads[2] << endl;
+    cout << "Indices for the three leading jets: " << i0 << " " << i1 << " " << i2 << endl;
     cout << "Gen flav calculation!" << endl;
   }
 
@@ -877,7 +905,7 @@ bool HistosFill::AcceptEvent()
       ++_rhocounter_bad;
       _pass = false;
       if (jp::debug)
-        cout << Form("\nrun:ev:ls %d:%d:%d : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
+        cout << Form("\nrun:ev:ls %d:%d:%lld : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
                     run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[i0] :0.), metsumet, met) << flush;
     } else {
       ++_rhocounter_good;
@@ -1013,7 +1041,7 @@ bool HistosFill::AcceptEvent()
   _pass = _pass and _trigs.size()>0;
   if (_pass) {
     ++_trgcounter;
-    if (jp::isdt) ++_cnt["07trg"];
+    if (jp::isdt) ++_cnt["08trg"];
   }
 
   // Retrieve event weight. _w0 is static, _w is chanching with the trigger
@@ -1059,7 +1087,7 @@ bool HistosFill::AcceptEvent()
   FillJetID(_jetids);
 
 
-  if (_jetids[i0] and _pass) {
+  if (_pass) {
     // Check if overweight PU event
     if (jp::ismc and _pass) {
       if (jtpt[i0] < 1.5*jtgenpt[i0]) ++_cnt["09ptgenlim"];
@@ -1071,11 +1099,12 @@ bool HistosFill::AcceptEvent()
         else _pass = false;
       }
     }
-    if (_pass) ++_cnt["12jtid"]; // Non-restrictive
+    if (_jetids[i0]) // Non-restrictive
+      ++_cnt["11jtid"];
   }
 
   // Equipped in FillBasic and FillRun
-  _pass_qcdmet = (met < 0.4 * metsumet || met < 45.); // QCD-11-004
+  _pass_qcdmet = met < 45. or met < 0.4 * metsumet; // QCD-11-004
 
   return true;
 }
@@ -1511,7 +1540,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
     double y = jty[jetidx];
     double phi = jtphi[jetidx];
     double jec = jtjesnew[jetidx];
-    bool id = _jetids[jetidx];
+    bool pass_id = _jetids[jetidx];
 
     double jec2 = jtjesnew[jetidx]/jtjes[jetidx];
     bool etarange = fabs(eta) >= h->etamin and fabs(eta) < h->etamax;
@@ -1521,19 +1550,19 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
     if (etarange) { // Jet in eta range
       if (jp::debug) {
         cout << "..." << h->trigname << " | " << " index " << jetidx << "/" << njt
-          << " jet pt: " << pt << " eta : " << eta << " id: " << id << " jec: " << jec << endl;
+          << " jet pt: " << pt << " eta : " << eta << " id: " << pass_id << " jec: " << jec << endl;
         cout << "...evt id: " << _pass_qcdmet << " weight: " << _w << " met: " << met << " metsumet: " << metsumet << endl;
       }
 
       assert(h->hpt_noid); h->hpt_noid->Fill(pt, _w);
       assert(h->hpt_nojetid); if (_pass_qcdmet) h->hpt_nojetid->Fill(pt, _w);
-      assert(h->hpt_noevtid); if (id) h->hpt_noevtid->Fill(pt, _w);
+      assert(h->hpt_noevtid); if (pass_id) h->hpt_noevtid->Fill(pt, _w);
       // Same versus generator pT as MC extra
       // to decouple efficiency from JEC and JER
       if (h->ismcdir) {
         h->hpt_noid_g->Fill(ptgen, _w);
         if (_pass_qcdmet) h->hpt_nojetid_g->Fill(ptgen, _w);
-        if (id)    h->hpt_noevtid_g->Fill(ptgen, _w);
+        if (pass_id)    h->hpt_noevtid_g->Fill(ptgen, _w);
       }
     } // Jet in eta range
 
@@ -1545,7 +1574,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
       if (h->ismcdir and mcgendr and mcgenetarange) // GenJets matched to any reco jets in any events
         h->hpt_gg0->Fill(ptgen, _w);
 
-      if (_pass_qcdmet and id) { // id OK
+      if (_pass_qcdmet and pass_id) { // id OK
         if (h->ismcdir and mcgendr and mcgenetarange) // GenJets matched to good reco jets in good events
           h->hpt_gg->Fill(ptgen, _w);
 
@@ -1593,7 +1622,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           // REMOVED: "For trigger efficiency"
 
           // new histograms for quark/gluon study (Ozlem)
-          double probg = 1.-qgl[jetidx]; // First approximation
+          double probg = 1. - qgl[jetidx]; // First approximation
           if (jp::doqglfile) { // If we loaded a previous file to _h3probg, use this for better probg
             assert(_h3probg);
             probg = _h3probg->GetBinContent(_h3probg->FindBin(eta,pt,qgl[jetidx]));
@@ -1636,19 +1665,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
 
           // raw spectrum
           assert(h->hpt); h->hpt->Fill(pt,_w);
-          assert(h->hpt_tmp); h->hpt_tmp->Fill(pt); // Event statistics
-          assert(h->hpt_pre);
-          if (jp::isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run] / _wt[h->trigname]);
-          if (jp::ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
-          assert(h->hpt0); h->hpt0->Fill(pt, _w);
-          // REMOVED: "h->hpt_plus_38x->Fill(pt, _w);" etc.
-          // Do proper event statistics
-          assert(h->hpttmp); assert(h->hptevt);
-          if (h->hpttmp->GetBinContent(h->hpttmp->FindBin(pt))==0)
-            h->hptevt->Fill(pt, _w);
-          h->hpttmp->Fill(pt);
-
-          // leading and non-leading jets
+          assert(h->hpt0); h->hpt0->Fill(pt, _w); // Finer binning
+          // leading jets (1,2,3)
           if (jetidx==i0) {
             assert(h->hpt1); h->hpt1->Fill(pt, _w);
           } else if (jetidx==i1) {
@@ -1656,6 +1674,15 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           } else if (jetidx==i2) {
             assert(h->hpt3); h->hpt3->Fill(pt,_w);
           }
+          assert(h->hpt_tmp); h->hpt_tmp->Fill(pt); // Event statistics
+          assert(h->hpt_pre);
+          if (jp::isdt) h->hpt_pre->Fill(pt, _w*_prescales[h->trigname][run] / _wt[h->trigname]);
+          if (jp::ismc) h->hpt_pre->Fill(pt, _w0*_wt["mc"]);
+          // Do proper event statistics
+          assert(h->hpttmp); assert(h->hptevt);
+          if (h->hpttmp->GetBinContent(h->hpttmp->FindBin(pt))==0)
+            h->hptevt->Fill(pt, _w);
+          h->hpttmp->Fill(pt);
 
           if (jp::debug) cout << "..basic properties" << endl << flush;
 

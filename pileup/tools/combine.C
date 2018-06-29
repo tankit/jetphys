@@ -1,8 +1,8 @@
 #include "../../../../settings.h"
 
 void combine() {
-//  vector<string> tags = {"500", "450", "400", "320", "260", "200", "140", "80", "60", "40"};
-  vector<string> tags = {"450", "400", "320", "260", "200", "140", "80", "60", "40"};
+//  vector<string> tags = {"500", "450", "400", "320", "260", "200", "140", "80", "60", "40", "0"};
+  vector<string> tags = {"450", "400", "320", "260", "200", "140", "80", "60", "40", "0"};
   TFile f("pileup_DTu.root","RECREATE");
 
   for (unsigned i = 0; i < tags.size(); ++i) {
