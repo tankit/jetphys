@@ -30,9 +30,15 @@ HistosFill::HistosFill(TChain *tree) :
   njt(PFJetsCHS__),
   gen_njt(GenJets__),
   rho(EvtHdr__mPFRho),
+#ifdef NEWMODE
+  met(PFMetT0__et_),
+  metphi(PFMetT0__phi_),
+  metsumet(PFMetT0__sumEt_)
+#elif
   met(PFMet__et_),
   metphi(PFMet__phi_),
   metsumet(PFMet__sumEt_)
+#endif
 {
   assert(tree);
   _initsuccess = Init(tree);
@@ -2659,7 +2665,10 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
   // For data, load each trigger separately
   for (auto &t : jp::triggers) {
     _pudist[t] = dynamic_cast<TH1D*>(f_pudist->Get(t));
-    if (!_pudist[t]) return false;
+    if (!_pudist[t]) {
+      cout << "The trigger " << t << " was not found in the DT pileup file!" << endl;
+      return false;
+    }
     int nbinsdt = _pudist[t]->GetNbinsX();
     int kdt = _pudist[t]->FindBin(33);
     if (kdt!=kmc or nbinsdt!=nbinsmc) {

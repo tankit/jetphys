@@ -30,7 +30,8 @@
 #include "../../../settings.h"
 
 void Pufromflat() {
-  TString filename="/work/jet_tuples/MC/2017/P8M1/Flat.root";
+  TString filename="/work/jet_tuples/MC16_P8M1_Flat.root";
+  //TString filename="/work/jet_tuples/MC/2017/P8M1/Flat.root";
   TFile *output = new TFile("pileup_MC.root","RECREATE");
   TFile *f = new TFile((filename).Data());
   TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
