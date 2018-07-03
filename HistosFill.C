@@ -829,14 +829,16 @@ bool HistosFill::AcceptEvent()
 #ifdef NEWMODE
       auto &gjetidx = jtgenidx[jetidx];
       if (gjetidx>=0 and gjetidx<GenJets__)
-        genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
+        gp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
+      else
+        gp4.SetPxPyPzE(0.,0.,0.,0.);
 #elif
       gp4.SetPxPyPzE(jtgenp4x[jetidx],jtgenp4y[jetidx],jtgenp4z[jetidx],jtgenp4t[jetidx]);
+#endif
       jtgenpt[jetidx] = gp4.Pt();
       jtgeny[jetidx] = gp4.Rapidity();
       jtgeneta[jetidx] = gp4.Eta();
       jtgenphi[jetidx] = gp4.Phi();
-#endif
     }
 
     if (jp::debug) cout << "Jet " << jetidx << " corrected!" << endl;
@@ -931,6 +933,10 @@ bool HistosFill::AcceptEvent()
   if (jp::ismc) {
     // Always insert the generic mc trigger
     if (jp::debug) cout << "Entering PU weight calculation!" << endl;
+#ifdef NEWMODE
+    if (_pass and jtgenidx[i0]!=-1) ++_cnt["07mcgenjet"];
+    else return false;
+#endif
     if (jp::domctrigsim and njt>0) {
       // Only add the greatest trigger present
       // Calculate trigger PU weight
@@ -1105,13 +1111,12 @@ bool HistosFill::AcceptEvent()
         else _pass = false;
       }
     }
-    if (_jetids[i0]) // Non-restrictive
+    if (_pass and _jetids[i0]) // Non-restrictive
       ++_cnt["11jtid"];
   }
 
   // Equipped in FillBasic and FillRun
   _pass_qcdmet = met < 45. or met < 0.4 * metsumet; // QCD-11-004
-
   return true;
 }
 
@@ -1154,7 +1159,7 @@ void HistosFill::Report()
                           "Events triggered by JetHT and AK8PFJet are included in addition to AK4PFJet.");
   *ferr << endl;
 
-  PrintInfo("Reporting lumis not discraded in reports/passedlumis.json",true);
+  PrintInfo("Reporting lumis not discarded in reports/passedlumis.json",true);
   ofstream fout(Form("reports/passedlumis-%s.json",jp::type), ios::out);
   for (auto &lumit : _passedlumis) fout << lumit.first << " " << lumit.second << endl;
 
@@ -1402,7 +1407,6 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
               assert(h->hdjmpftp);   h->hdjmpftp->Fill(pttag, alphatp, mpftp, _w);
             }
             //} // Dijet balance
-
             if (alphatp < 0.3) {
               //{ Composition vs pt tag pt
               // Fractions vs pt: we do pt selection later in HistosCombine
