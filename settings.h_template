@@ -121,7 +121,7 @@ namespace jp {
 
   // Reapply json selection based on the latest one (check lumicalc if false!).
   constexpr bool dojson = true;
-  const constexpr array<const char*,yrs> json_ = { // [YE]
+  const constexpr array<const char*,yrs> json_ = {
     "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt",
     "lumicalc/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt",
     "lumicalc/Cert_314472-317591_13TeV_PromptReco_Collisions18_JSON.txt"
@@ -130,7 +130,7 @@ namespace jp {
 
   // Calculate luminosity on the fly based on .csv file and take only events with non-zero luminosity.
   constexpr bool dolumi = true;
-  const constexpr array<const char*,yrs> lumifile_ = { // [YE]
+  const constexpr array<const char*,yrs> lumifile_ = {
     "lumicalc/lumibyls16.csv",
     "lumicalc/lumibyls17.csv",
     "lumicalc/lumibyls18.csv"
@@ -142,7 +142,7 @@ namespace jp {
   // Use "mc" trigger for whole pT range instead of stiching triggers together in HistosCombine (false requires trigsim)
   constexpr bool usemctrig = false;
 
-  const array<vector<const char*>,yrs> triggers_ = {{ // [YE]
+  const array<vector<const char*>,yrs> triggers_ = {{
     {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450"},
     {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450","jt500"},
     {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450","jt500"}
@@ -151,7 +151,7 @@ namespace jp {
   const unsigned int notrigs = triggers.size();
 
   // reference trigger for PU profile in the mc folder and for trigger lumi weighting
-  constexpr const array<const char*,yrs> reftrig_ = { // [YE]
+  constexpr const array<const char*,yrs> reftrig_ = {
     "jt450",
     "jt500",
     "jt500"
@@ -224,7 +224,7 @@ namespace jp {
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
       {  0.      ,61532.879 ,81850.422 ,2179907.105,9391065.528 ,40906058.156 ,106635571.117,368074388.178,839802101.462 ,1644114276.408,12862598870.332}, // A
       {  0.      ,14317.836 ,58268.021 , 219361.961,3047288.819 ,13059809.222 , 29134010.487,116536041.947,233072083.895 ,466144167.79  , 3729153342.317}  // B
-
+    }}
   }};
   const vector<vector<double>> triglumiera = triglumiera_.at(yid);
 

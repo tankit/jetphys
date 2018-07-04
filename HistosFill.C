@@ -489,19 +489,21 @@ bool HistosFill::PreRun()
   _jecUnc = 0;
 
   // Time dependent JEC (only for dt)
-  if (jp::isdt and jp::useIOV) {
-    // If multiple IOV's are used, we set _JEC etc for each event separately, checking that the IOV is correct
-    for (unsigned iovidx=0; iovidx<jp::IOVnames.size(); ++iovidx)
-      _iov.add(jp::IOVnames[iovidx],jp::IOVranges.at(iovidx).at(0),jp::IOVranges.at(iovidx).at(1));
-  } else {
-    // If only one great IOV is used, we can set _JEC etc. directly here.
-    _iov.add("");
-    bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
-    if (!setcorrection or !_JEC or !_L1RC or (jp::isdt and !_jecUnc)) {
-      cout << "Issues while loading JEC; aborting..." << endl;
-      return false;
-    }
-  } // JEC redone
+  if (jp::redojes) {
+    if (jp::isdt and jp::useIOV) {
+      // If multiple IOV's are used, we set _JEC etc for each event separately, checking that the IOV is correct
+      for (unsigned iovidx=0; iovidx<jp::IOVnames.size(); ++iovidx)
+        _iov.add(jp::IOVnames[iovidx],jp::IOVranges.at(iovidx).at(0),jp::IOVranges.at(iovidx).at(1));
+    } else {
+      // If only one great IOV is used, we can set _JEC etc. directly here.
+      _iov.add("");
+      bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
+      if (!setcorrection or !_JEC or !_L1RC or (jp::isdt and !_jecUnc)) {
+        cout << "Issues while loading JEC; aborting..." << endl;
+        return false;
+      }
+    } // JEC redone
+  }
 
   // Load latest JSON selection
   if (jp::isdt and jp::dojson) {
@@ -748,7 +750,7 @@ bool HistosFill::AcceptEvent()
   }
 
   // load correct IOV for JEC
-  if (jp::isdt and jp::useIOV) {
+  if (jp::redojes and jp::isdt and jp::useIOV) {
     bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
     if (!setcorrection or !_JEC or !_L1RC or !_jecUnc) {
       cout << "Issues while loading JEC; aborting..." << endl;
@@ -780,39 +782,46 @@ bool HistosFill::AcceptEvent()
     jtptu[jetidx] = p4.Pt();
     jteu[jetidx] = p4.E();
 
-    if (jp::debug) cout << "Recalculating JEC!" << endl;
-    // Recalculate JEC
-    _JEC->setRho(rho);
-    _JEC->setNPV(npvgood);
-    _JEC->setJetA(jta[jetidx]);
-    _JEC->setJetPt(jtptu[jetidx]);
-    _JEC->setJetE(jteu[jetidx]);
-    _JEC->setJetEta(p4.Eta());
-    jtjesnew[jetidx] = _JEC->getCorrection();
+    if (jp::redojes) {
+      if (jp::debug) cout << "Recalculating JEC!" << endl;
+      // Recalculate JEC
+      _JEC->setRho(rho);
+      _JEC->setNPV(npvgood);
+      _JEC->setJetA(jta[jetidx]);
+      _JEC->setJetPt(jtptu[jetidx]);
+      _JEC->setJetE(jteu[jetidx]);
+      _JEC->setJetEta(p4.Eta());
+      jtjesnew[jetidx] = _JEC->getCorrection();
 
-    if (jp::debug) cout << "Recalculating JEC (again)!" << endl;
-    // Recalculate JEC (again to get subcorrections)
-    _JEC->setRho(rho);
-    _JEC->setNPV(npvgood);
-    _JEC->setJetA(jta[jetidx]);
-    _JEC->setJetPt(jtptu[jetidx]);
-    _JEC->setJetE(jteu[jetidx]);
-    _JEC->setJetEta(p4.Eta());
-    //
-    vector<float> v = _JEC->getSubCorrections();
-    double jec_res = 1;
-    if (jp::ismc or jp::skipl2l3res) {
-      assert(v.size()==3);
+      if (jp::debug) cout << "Recalculating JEC (again)!" << endl;
+      // Recalculate JEC (again to get subcorrections)
+      _JEC->setRho(rho);
+      _JEC->setNPV(npvgood);
+      _JEC->setJetA(jta[jetidx]);
+      _JEC->setJetPt(jtptu[jetidx]);
+      _JEC->setJetE(jteu[jetidx]);
+      _JEC->setJetEta(p4.Eta());
+      //
+      vector<float> v = _JEC->getSubCorrections();
+      double jec_res = 1;
+      if (jp::ismc or jp::skipl2l3res) {
+        assert(v.size()==3);
+      } else {
+        assert(v.size()==4);
+        jec_res = v[3]/v[2];
+      }
+      double jec_l1 = v[0];
+      double jec_l2l3 = v[2]/v[0];
+      jtjes_l1[jetidx] = jec_l1;
+      jtjes_l2l3[jetidx] = jec_l2l3;
+      jtjes_res[jetidx] = jec_res;
+      assert(jtjesnew[jetidx] == v[v.size()-1]);
     } else {
-      assert(v.size()==4);
-      jec_res = v[3]/v[2];
+      jtjesnew[jetidx] = 1.;
+      jtjes_l1[jetidx] = 1.;
+      jtjes_l2l3[jetidx] = 1.;
+      jtjes_res[jetidx] = 1.;
     }
-    double jec_l1 = v[0];
-    double jec_l2l3 = v[2]/v[0];
-    jtjes_l1[jetidx] = jec_l1;
-    jtjes_l2l3[jetidx] = jec_l2l3;
-    jtjes_res[jetidx] = jec_res;
-    assert(jtjesnew[jetidx] == v[v.size()-1]);
 
     if (jp::debug) cout << "Reapplying JEC!" << endl;
     if (jp::redojes) p4 *= jtjesnew[jetidx];
@@ -847,12 +856,17 @@ bool HistosFill::AcceptEvent()
     if (jtpt[jetidx] > jp::recopt and fabs(jteta[jetidx])<4.7) {
       // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
       // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
-      _L1RC->setRho(rho);
-      _L1RC->setJetA(jta[jetidx]);
-      _L1RC->setJetPt(jtptu[jetidx]);
-      _L1RC->setJetE(jteu[jetidx]);
-      _L1RC->setJetEta(jteta[jetidx]);
-      double l1corr = _L1RC->getCorrection();
+      double l1corr = 1.;
+      if (jp::redojes) {
+        _L1RC->setRho(rho);
+        _L1RC->setJetA(jta[jetidx]);
+        _L1RC->setJetPt(jtptu[jetidx]);
+        _L1RC->setJetE(jteu[jetidx]);
+        _L1RC->setJetEta(jteta[jetidx]);
+        l1corr = _L1RC->getCorrection();
+      } else {
+        l1corr = jtjes[jetidx];
+      }
       double dpt = - jtpt[jetidx] + l1corr*jtptu[jetidx];
       //double dpt = - jtpt[jetidx] + (l1chs - l1pf + l1corr)*jtptu[jetidx];
       mex += dpt * cos(jtphi[jetidx]);
