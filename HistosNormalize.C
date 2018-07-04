@@ -74,8 +74,21 @@ void HistosNormalize()
 
   if (jp::isdt and jp::usetriglumi) { // Setting up lumis
     cout << "Reading trigger luminosity from settings.h" << endl;
+    int eraIdx = -1;
+    if (jp::usetriglumiera) {
+      int eraNo = 0;
+      for (auto &eraMatch : jp::eras) {
+        if (std::regex_search(jp::run,eraMatch)) {
+          eraIdx = eraNo;
+          break;
+        }
+        ++eraNo;
+      }
+      if (eraIdx!=-1) cout << "Using weights according to the run era!" << endl;
+      else cout << "Could not locate the given era! :(" << endl;
+    }
     for (unsigned int i = 0; i < jp::notrigs; ++i) {
-      double lumi = jp::triglumi[i]/1e6; // /ub to /pb
+      double lumi = (jp::usetriglumiera ? jp::triglumiera[eraIdx][i]/1e6 : jp::triglumi[i]/1e6); // /ub to /pb
       cout << Form(" *%s: %1.3f /pb", jp::triggers[i],lumi) << endl;
       triglumi[jp::triggers[i]] = lumi;
     }

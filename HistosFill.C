@@ -2789,7 +2789,7 @@ bool HistosFill::GetTriggers()
         unsigned thrplace = 0;
         if (thrplace < jp::notrigs) {
           _goodTrigs.push_back(_availTrigs.size());
-          if (jp::usetriglumiera) {
+          if (jp::useeraweights) {
             // Get a weight for the current trig version normalized with the average of all triggers
             double eraLumiWgt  =     eraLumis.back()/    eraLumis[thrplace];
             double yearLumiWgt = jp::triglumi.back()/jp::triglumi[thrplace];
@@ -2812,7 +2812,7 @@ bool HistosFill::GetTriggers()
         unsigned thrplace = static_cast<unsigned>(std::find(jp::trigthr.begin()+1,jp::trigthr.end(),trigthr)-jp::trigthr.begin());
         if (thrplace < jp::notrigs) {
           _goodTrigs.push_back(_availTrigs.size());
-          if (jp::usetriglumiera) {
+          if (jp::useeraweights) {
             // Get a weight for the current trig version normalized with the average of all triggers
             double eraLumiWgt  =     eraLumis.back()/    eraLumis[thrplace];
             double yearLumiWgt = jp::triglumi.back()/jp::triglumi[thrplace];
