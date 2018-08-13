@@ -85,6 +85,9 @@ public :
   Float_t         PFMetT0__et_;
   Float_t         PFMetT0__sumEt_;
   Float_t         PFMetT0__phi_;
+  Float_t         PFMetT0T1__et_;
+  Float_t         PFMetT0T1__sumEt_;
+  Float_t         PFMetT0T1__phi_;
 #endif
   vector<int>     TriggerDecision_;
   vector<int>     L1Prescale_;
@@ -381,6 +384,8 @@ private:
   Float_t         &met;
   Float_t         &metphi;
   Float_t         &metsumet;
+  Float_t         &met01;
+  Float_t         &metsumet01;
 
   Float_t         met1;
   Float_t         metphi1;

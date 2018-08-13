@@ -33,7 +33,9 @@ HistosFill::HistosFill(TChain *tree) :
 #ifdef NEWMODE
   met(PFMetT0__et_),
   metphi(PFMetT0__phi_),
-  metsumet(PFMetT0__sumEt_)
+  metsumet(PFMetT0__sumEt_),
+  met01(PFMetT0T1__et_),
+  metsumet01(PFMetT0T1__sumEt_)
 #elif
   met(PFMet__et_),
   metphi(PFMet__phi_),
@@ -106,6 +108,14 @@ bool HistosFill::Init(TTree *tree)
   fChain->SetBranchAddress("EvtHdr_.mWeight", &EvtHdr__mWeight);
   fChain->SetBranchAddress("EvtHdr_.mCaloRho", &EvtHdr__mCaloRho);
   fChain->SetBranchAddress("EvtHdr_.mPFRho", &EvtHdr__mPFRho);
+#ifdef NEWMODE
+  fChain->SetBranchAddress("PFMetT0_.et_", &PFMetT0__et_);
+  fChain->SetBranchAddress("PFMetT0_.sumEt_", &PFMetT0__sumEt_);
+  fChain->SetBranchAddress("PFMetT0_.phi_", &PFMetT0__phi_);
+  fChain->SetBranchAddress("PFMetT0T1_.et_", &PFMetT0T1__et_);
+  fChain->SetBranchAddress("PFMetT0T1_.sumEt_", &PFMetT0T1__sumEt_);
+  fChain->SetBranchAddress("PFMetT0T1_.phi_", &PFMetT0T1__phi_);
+#endif
   fChain->SetBranchAddress("PFMet_.et_", &PFMet__et_);
   fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_);
   fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_);
@@ -221,9 +231,18 @@ bool HistosFill::Init(TTree *tree)
     fChain->SetBranchStatus(Form("PFJets%s_.looseID_",jp::chs),1); // jtidloose
 
     //fChain->SetBranchStatus("rho",1);
+#ifdef NEWMODE
+    fChain->SetBranchStatus("PFMetT0_.et_",1); // met
+    fChain->SetBranchStatus("PFMetT0_.phi_",1); // metphi
+    fChain->SetBranchStatus("PFMetT0_.sumEt_",1); // metsumet
+    fChain->SetBranchStatus("PFMetT0T1_.et_",1); // met
+    fChain->SetBranchStatus("PFMetT0T1_.phi_",1); // metphi
+    fChain->SetBranchStatus("PFMetT0T1_.sumEt_",1); // metsumet
+#elif
     fChain->SetBranchStatus("PFMet_.et_",1); // met
     fChain->SetBranchStatus("PFMet_.phi_",1); // metphi
     fChain->SetBranchStatus("PFMet_.sumEt_",1); // metsumet
+#endif
 
     fChain->SetBranchStatus("TriggerDecision_",1);
     fChain->SetBranchStatus("L1Prescale_",1);
@@ -1130,7 +1149,7 @@ bool HistosFill::AcceptEvent()
   }
 
   // Equipped in FillBasic and FillRun
-  _pass_qcdmet = met < 45. or met < 0.4 * metsumet; // QCD-11-004
+  _pass_qcdmet = met01 < 45. or met < 0.4 * metsumet01; // QCD-11-004
   return true;
 }
 

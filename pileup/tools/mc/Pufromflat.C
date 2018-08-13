@@ -27,16 +27,16 @@
 #include <fstream>
 #include <regex>
 
-#include "../../../settings.h"
+#include "../../settings.h"
 
 void Pufromflat() {
-  TString filename="/work/jet_tuples/MC16_P8M1_Flat.root";
+  TString filename="/work/jet_tuples/MC/2016/HS1/FlatPthat_15to7000.root";
   //TString filename="/work/jet_tuples/MC/2017/P8M1/Flat.root";
   TFile *output = new TFile("pileup_MC.root","RECREATE");
   TFile *f = new TFile((filename).Data());
   TTree *t = (TTree*) f->Get("ak4/ProcessedTree");
   TH1D *hist = new TH1D("pileupmc","",jp::maxpu,0,jp::maxpu);
-  t->Draw("EvtHdr_.mTrPu>>pileupmc");
+  t->Draw("EvtHdr_.mTrPu>>pileupmc","EvtHdr_.mWeight");
   output->cd();
   hist->Write();
   output->Close();
