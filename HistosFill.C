@@ -2495,7 +2495,18 @@ void HistosFill::FillJetID(vector<bool> &id)
   assert(int(id.size())==njt);
 
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
-    id[jetidx] = ((fabs(jteta[jetidx])<2.5 ? jtidtight[jetidx] : jtidloose[jetidx]));
+    id[jetidx] = jtidtight[jetidx];
+    float etabs = fabs(jteta[jetidx]);
+    if (jp::yid==0) { // 2016 specialities
+      // Loose ID is still in use
+      if (etabs>2.5) id[jetidx] = jtidloose[jetidx];
+      // TightLepVeto
+      if (etabs<=2.7 and (jtcef[jetidx]>=0.90 or jtmuf[jetidx]>=0.80)) id[jetidx] = false;
+    } else if (jp::yid==1) { // 2017 specialities
+      if (etabs<=2.7 and (jtcef[jetidx]>=0.80 or jtmuf[jetidx]>=0.80)) id[jetidx] = false;
+    } else if (jp::yid==2) {
+      if (etabs<=2.7 and (jtcef[jetidx]>=0.80 or jtmuf[jetidx]>=0.80)) id[jetidx] = false;
+    }
 
     if (jp::isdt and jp::doVetoHot) {
       // Abort if one of the leading jets is in a difficult zone
@@ -2764,17 +2775,31 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
       }
       *ferr << endl << flush;
     } else if (jp::pthatbins) {
-      TString filename = fChain->GetCurrentFile()->GetName();
+      string filename = fChain->GetCurrentFile()->GetName();
       // Check the position of the current file in the list of file names
-      unsigned currFile = std::find_if(jp::pthatfiles.begin(),jp::pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-jp::pthatfiles.begin();
-      if (jp::pthatnevts[currFile]<=0.0 or jp::pthatsigmas[currFile]<=0) {
-        PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",jp::pthatfiles[currFile]));
+      unsigned sliceIdx = 0;
+      bool sliceFound = false;
+      for (auto &fname : jp::pthatfiles) {
+        regex rfile(fname);
+        std::cmatch mfile;
+        if (std::regex_search(filename.c_str(),mfile,rfile)) {
+          sliceFound = true;
+          break;
+        }
+        ++sliceIdx;
+      }
+      if (!sliceFound) {
+        PrintInfo(Form("Pthat slice file name contradictory %s. Aborting...",filename.c_str()));
         return -3;
       }
-      _pthatweight = jp::pthatsigmas[currFile]/jp::pthatnevts[currFile];
-      _pthatweight /= (jp::pthatsigmas.back()/jp::pthatnevts.back()); // Normalize
+      if (jp::pthatsigmas[sliceIdx]<=0) {
+        PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",filename.c_str()));
+        return -3;
+      }
+      _pthatweight = jp::pthatsigmas[sliceIdx]/_ntot;
+      _pthatweight /= (jp::pthatsigmas.back()/jp::pthatnormalevts); // Normalize
       PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f",
-                     currFile,fChain->GetCurrentFile()->GetName(),jp::pthatranges[currFile],jp::pthatranges[currFile+1],_pthatweight));;
+                     sliceIdx,fChain->GetCurrentFile()->GetName(),jp::pthatranges[sliceIdx],jp::pthatranges[sliceIdx+1],_pthatweight),true);;
     }
     // slices with pthat bins
   }

@@ -62,7 +62,7 @@ void HistosCombine() {
       _ignoretrgs.push_back("mc");
     }
   }
-  for (int itrg = 0; itrg != jp::notrigs; ++itrg) {
+  for (auto itrg = 0u; itrg != jp::notrigs; ++itrg) {
     _ptranges[jp::triggers[itrg]] = pair<double, double>(jp::trigranges[itrg][0], jp::trigranges[itrg][1]);
 
     if (jp::ismc and jp::usemctrig) { // When in mc, we need to know how to use trigger weighting. Either mc or triggers are ignored

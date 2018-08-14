@@ -52,14 +52,14 @@ namespace jp {
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunGN";
+  constexpr const char* run = "RunD";
+  // Do we use pthatbinned MC (if not, we use flat)
+  constexpr bool pthatbins = false;
   // In case of flat MC, choose file (all options given in mcfiles/hwfiles)
-  constexpr const char* simfile = "NW";
+  constexpr const char* simfile = "P8M1";//"HS1";//"P8M1";
 
-  const unsigned int   yid = 0; // 0:2016, 1:2017 (2:2018)
+  const unsigned int   yid = 1; // 0:2016, 1:2017 (2:2018)
   const unsigned int   yrs = 3; // Number of supported Run years
-  // The use of ZB files
-  constexpr bool zbmode = false;
   // Simple helper
   constexpr bool isdt = strings_equal(type,"DATA");
   constexpr bool ismc = !isdt;
@@ -71,10 +71,10 @@ namespace jp {
   //{ BEGIN run settings
   // Number of events to process (-1 for all)
   constexpr Long64_t nentries =
-  -1; // all
+  //-1; // all
   //10; // debug
   //100; //debug
-  //1000;
+  1000;
   //10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
@@ -175,8 +175,8 @@ namespace jp {
   const vector<array<double,2>> trigranges = trigranges_.at(yid);
 
   // Trigger lumis for weighting
-  constexpr bool usetriglumi = true; // use luminosity numbers below, in /ub
-  constexpr bool usetriglumiera = true;
+  constexpr bool usetriglumi = true;     // use luminosity numbers below, in /ub
+  constexpr bool usetriglumiera = false; // use per-era values in HistosNormalize (not recommmended)
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
     { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 ,96089534.929 ,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
@@ -187,7 +187,7 @@ namespace jp {
 
     // These are used to find out which year and which era we are living in
     const array<vector<regex>,yrs> eras_ = {{
-      {regex("^RunB1"),regex("^RunB2"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
+      {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
       {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunF")},
       {regex("^RunA"),regex("^RunB")}
     }};
@@ -200,15 +200,14 @@ namespace jp {
   // 2016 values: (zb,jt40-jt450)
     {{
   //   ZB        PFJ40     PFJ60      PFJ80       PFJ140      PFJ200       PFJ260        PFJ320        PFJ400         PFJ450              Era
-      {    0.   ,    0.   ,     0.   ,      0.   ,      0.   ,       0.   ,        0.   ,        0.   ,         0.   ,         0.   }, // B1
-      {12272.564,42777.404,154339.679,1013725.894,6678362.048,31439255.077,138379573.748,423036630.016,1156112123.522,5780974274.166}, // B2
+      {12272.564,42777.404,154339.679,1013725.894,6678362.048,31439255.077,138379573.748,423036630.016,1156112123.522,5780974274.166}, // B
       { 1267.369,21826.26 , 62136.999, 197392.975,2000961.79 ,10062309.79 , 48166077.979,135218220.578, 412946722.943,2573399420.069}, // C
       { 1898.671,36624.724,104611.27 , 328062.586,3357266.779,16824336.184, 76550163.736,225203181.004, 683469876.284,4248383597.366}, // D
       { 3011.27 ,31294.62 , 86426.534, 270224.019,2763649.831,13071806.045, 65431121.382,191469713.187, 583096480.718,4008663475.924}, // E
       { 1504.894,21653.271, 48745.957, 136195.575,1491075.627, 6052884.716, 38701199.163,116084466.056, 348342950.9  ,2704118419.004}, // Fe
       {  215.493, 2828.924,  7205.162,  18382.409, 204124.035,  681254.62 ,  6502077.341, 18270869.363,  53084258.548, 397499983.002}, // Fl
       { 3165.916,48839.939,123669.326, 370518.873,3628983.85 ,11996221.263,102627755.009,310855295.835, 921468153.924,7540487746.602}, // G
-      { 5700.644,58972.432,131684.466, 398826.083,3841266.079,12723493.628,111360342.779,333826688.043, 982546425.482,8605689857.939}  // H§
+      { 5700.644,58972.432,131684.466, 398826.083,3841266.079,12723493.628,111360342.779,333826688.043, 982546425.482,8605689857.939}  // H
     }},
   // 2017 values: (zb,jt40-jt500)
     {{
@@ -223,7 +222,8 @@ namespace jp {
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
       {  0.      ,61532.879 ,81850.422 ,2179907.105,9391065.528 ,40906058.156 ,106635571.117,368074388.178,839802101.462 ,1644114276.408,12862598870.332}, // A
-      {  0.      ,14317.836 ,58268.021 , 219361.961,3047288.819 ,13059809.222 , 29134010.487,116536041.947,233072083.895 ,466144167.79  , 3729153342.317}  // B
+      {  0.      ,14317.836 ,58268.021 , 219361.961,3047288.819 ,13059809.222 , 29134010.487,116536041.947,233072083.895 , 466144167.79 , 3729153342.317}, // B
+      {  0.      ,11478.901 ,46117.365 , 173627.808,2458757.632 ,10537532.709 , 24145984.344, 93300159.689,185505726.814 , 369916861.066, 2951672740.593}  // C
     }}
   }};
   const vector<vector<double>> triglumiera = triglumiera_.at(yid);
@@ -233,19 +233,19 @@ namespace jp {
   const array<string,yrs> jecgt_ = {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
-    "Ses"
+    "NANI"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
-    "_V11",
+    "_V12",
     "_V8",
-    "_V0"
+    "_VX"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
-    "_V11",
+    "_V13",
     "_V8",
-    "_V0"
+    "_VX"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -254,14 +254,14 @@ namespace jp {
   const array<vector<string>,yrs> IOVnames_ = {{
     {"BCD","EF","GH"},
     {"B","C","D","E","F"},
-    {"A","B"}
+    {"A","B","C"}
   }};
   const vector<string> IOVnames = IOVnames_.at(yid);
   // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
   const array<vector<array<int,2>>,yrs> IOVranges_ = {{
-    { {1,276811},{276831,278801},{278802,297020} },
+    { {272760,276811},{276831,278801},{278802,284045} },
     { {297020,299329},{299337,302029},{302030,303434},{303435,304826},{304911,306460} },
-    { {297020,299329},{299337,302029} }
+    { {297020,299329},{299337,302029},{302030,400000} } // NOT TO BE TRUSTED
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES and JEC
@@ -282,32 +282,31 @@ namespace jp {
 
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Gold/","Data/2017/Silver/","Data/2018/"};
+      {"Data/2016/Final/","Data/2017/RRMar18/","Data/2018/"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
       {
-        {"RunGN",{"../../../ZB16_G.root","../../../DT16_G.root"}},
-        {"RunB1",{"B1.root"}},
-        {"RunB2",{"B2.root"}},
-        {"RunC" ,{"C.root"}},
-        {"RunD" ,{"D.root"}},
-        {"RunE" ,{"E.root"}},
-        {"RunFe",{"Fe.root"}},
-        {"RunFl",{"Fl.root"}},
-        {"RunG" ,{"G.root"}},
-        {"RunH" ,{"H.root"}}
+        {"RunB" ,{"B_ZB.root", "B.root"}},
+        {"RunC" ,{"C_ZB.root", "C.root"}},
+        {"RunD" ,{"D_ZB.root", "D.root"}},
+        {"RunE" ,{"E_ZB.root", "E.root"}},
+        {"RunFe",{"Fe_ZB.root", "Fe.root"}},
+        {"RunFl",{"Fl_ZB.root", "Fl.root"}},
+        {"RunG" ,{"G_ZB.root", "G.root"}},
+        {"RunH" ,{"H_ZB.root", "H.root"}}
       },
       {
-        {"RunB",{"B.root"}},
-        {"RunC",{"C.root"}},
-        {"RunD",{"D.root"}},
-        {"RunE",{"E.root"}},
-        {"RunF",{"F.root"}}
+        {"RunB",{"B_ZB.root", "B.root"}},
+        {"RunC",{"C_ZB.root", "C.root"}},
+        {"RunD",{"D_ZB.root", "D.root"}},
+        {"RunE",{"E_ZB.root", "E.root"}},
+        {"RunF",{"F_ZB.root", "F.root"}}
       },
       {
         {"RunA",{"A.root"}},
-        {"RunB",{"B.root"}}
+        {"RunB",{"B.root"}},
+        {"RunC",{"C3_0.root","C3_1.root"}}
       }
     }};
     const map<string,vector<const char*>> dtfiles = dtfiles_.at(yid);
@@ -316,25 +315,26 @@ namespace jp {
     //{ BEGIN MC: Generic options
     const array<map<string,vector<const char*>>,yrs> mcfiles_ = {{
       {
-        {"NW",{"MC16_P8M1_Flat.root"}}
+        {"P8M1",{"MC/2016/P8M1/FlatPthat_15to7000.root"}}
       },
       {
-        {"NW",{"MC16_P8M1_Flat.root"}}
+        {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
+        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}}
       },
       {
-        {"NW",{"MC16_P8M1_Flat.root"}}
+        {"P8CP5",{"MC16_P8M1_Flat.root"}}
       }
     }};
     const map<string,vector<const char*>> mcfiles = mcfiles_.at(yid);
     const array<map<string,vector<const char*>>,yrs> hwfiles_ = {{
       {
-        {"H16",{"MC/2016/HS1/Flat.root"}}
+        {"HS1",{"MC/2016/HS1/FlatPthat_15to7000.root"}}
       },
       {
-        {"H17",{"MC/2017/HS1/Flat.root"}}
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
       },
       {
-        {"H17",{"MC/2017/HS1/Flat.root"}}
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
       }
     }};
     const map<string,vector<const char*>> hwfiles = hwfiles_.at(yid);
@@ -343,13 +343,11 @@ namespace jp {
     //{ BEGIN MC: Process pThatbinned file options
     // All the following values need to be updated, if other source tuples are used.
     const array<const char*,yrs> pthatpath_ = {
-      "MC/2016/P8M1/Slices/",
-      "MC/2017/P8CP5/Slices/",
+      "MC/2016/P8M1/",
+      "MC/2017/P8CP5/",
       "Ses"
     };
     const char* pthatpath = pthatpath_.at(yid);
-    // These can be obtained using getSliceEvts.C
-    constexpr bool pthatbins = false;
     // The corresponding ranges, the last number is ~inf
     const vector<double> pthatranges = {15,30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
     // Number of pthat bins
@@ -357,19 +355,20 @@ namespace jp {
     // The corresponding lumis in picobarns (current values for CUETP8M1). These need to be fetched from McM
     const vector<double> pthatsigmas =
       {1837410000,140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
-    const array<vector<double>,yrs> pthatnevts_ = {{
-      {39879090,9967899,9929377,14677532,12562967,14729966,22268956,3884796,3779261,3806979,2802350,2462449,347405,832157,164877},
-      {19972000,19945892,19242252,28752620,26789534,29727346,53407317,25949792,64371703,35897868,18280778,5127374,2553432,1601509,609460},
-      {19972000,19945892,19242252,28752620,26789534,29727346,53407317,25949792,64371703,35897868,18280778,5127374,2553432,1601509,609460}
+    // These can be obtained using GetSliceEvts.C: the 3200toInf number of events
+    const array<double,yrs> pthatnormalevts_ = {{
+      391735,
+      609460,
+      609460
     }};
-    const vector<double> pthatnevts = pthatnevts_.at(yid);
+    const double pthatnormalevts = pthatnormalevts_.at(yid);
 
     // The filenames need to be given here and in mk_HistosFill, since ROOT is exceedingly stupid
-    const vector<const char*> pthatfiles =
-      {"Pthat_15to30.root","Pthat_30to50.root","Pthat_50to80.root","Pthat_80to120.root","Pthat_120to170.root","Pthat_170to300.root",
-      "Pthat_300to470.root","Pthat_470to600.root","Pthat_600to800.root","Pthat_800to1000.root","Pthat_1000to1400.root",
-      "Pthat_1400to1800.root","Pthat_1800to2400.root","Pthat_2400to3200.root","Pthat_3200toInf.root",
-      };
+    const vector<const char*> pthatfiles = {
+      "Pthat_15to30","Pthat_30to50","Pthat_50to80","Pthat_80to120","Pthat_120to170","Pthat_170to300",
+      "Pthat_300to470","Pthat_470to600","Pthat_600to800","Pthat_800to1000","Pthat_1000to1400",
+      "Pthat_1400to1800","Pthat_1800to2400","Pthat_2400to3200","Pthat_3200toInf"
+    };
     //} END pthatbins stuff
 
   //} END DT/MC: File names

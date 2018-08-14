@@ -80,14 +80,11 @@ void mk_HistosFill() {
   }
   // Check that pthat file dimensions are ok
   if (jp::ispy and jp::pthatbins) {
-    if (jp::pthatfiles.size()!=jp::npthatbins) {
+    if (jp::pthatfiles.size()<jp::npthatbins) {
       cout << "The pthat info dimensions don't match! jp::pthatfiles vs jp::npthatbins" << endl;
       fail = true;
     } else if (jp::pthatsigmas.size()!=jp::npthatbins) {
       cout << "The pthat info dimensions don't match! jp::pthatsigmas vs jp::npthatbins" << endl;
-      fail = true;
-    } else if (jp::pthatnevts.size()!=jp::npthatbins) {
-      cout << "The pthat info dimensions don't match! jp::pthatnevts vs jp::npthatbins" << endl;
       fail = true;
     } else if (jp::pthatranges.size()!=jp::npthatbins+1) {
       cout << "The pthat info dimensions don't match! jp::pthatranges vs jp::npthatbins" << endl;
@@ -111,11 +108,8 @@ void mk_HistosFill() {
     assert(jp::dtfiles.size()>=jp::eras.size());
     const char* ps = jp::dtpath;
 
-    regex zbs("^ZB");
-    for (auto &fname : jp::dtfiles.at(jp::run)) {
-      if (!jp::zbmode or !std::regex_search(fname,zbs))
-        files.push_back(Form("%s%s%s",p,ps,fname));
-    }
+    for (auto &fname : jp::dtfiles.at(jp::run))
+      files.push_back(Form("%s%s%s",p,ps,fname));
   } else if (jp::ispy) {
     if (jp::pthatbins) {
       cout << "Running over pthat binned files in pythia8" << endl;
@@ -123,8 +117,16 @@ void mk_HistosFill() {
 
       const char *ps = jp::pthatpath;
 
-      for (auto &fname : jp::pthatfiles)
-        files.push_back(Form("%s%s%s",p,ps,fname));
+      for (auto &fname : jp::pthatfiles) {
+        const char *name1 = Form("%s%s%s.root",p,ps,fname);
+        const char *name2 = Form("%s%s%s_ext.root",p,ps,fname);
+        std::ifstream stream1(name1);
+        std::ifstream stream2(name2);
+        if (stream1.good())
+          files.push_back(name1);
+        if (stream2.good())
+          files.push_back(name2);
+      }
     } else {
       cout << "Running over pythia flat sample" << endl;
 
