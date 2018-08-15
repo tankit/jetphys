@@ -2,9 +2,10 @@
 #include "TH1D.h"
 #include "TROOT.h"
 
+//const vector<string> tags = {"500", "450", "400", "320", "260", "200", "140", "80", "60", "40"};
+const vector<string> tags = {"450", "400", "320", "260", "200", "140", "80", "60", "40", "0"};
+
 void normalize() {
-//  vector<string> tags = {"500", "450", "400", "320", "260", "200", "140", "80", "60", "40"};
-  vector<string> tags = {"450", "400", "320", "260", "200", "140", "80", "60", "40", "0"};
   TFile f("pileup_DT.root","RECREATE");
   TFile g("pileup_DTu.root","READ");
 
