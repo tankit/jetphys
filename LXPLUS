@@ -29,19 +29,19 @@ source /afs/cern.ch/sw/lcg/releases/ROOT/6.08.02-99084/x86_64-slc6-gcc49-opt/bin
 Once...
 
 settings.h:
-- Check that _jp_ntrigger is set correctly
-- Check that _jp_triggers is set correctly
-- Check that _jp_trigthr is set correctly
-- Check that _jp_trigranges is set correctly
+- Check that jp::ntrigger is set correctly
+- Check that jp::triggers is set correctly
+- Check that jp::trigthr is set correctly
+- Check that jp::trigranges is set correctly
 (the above can be checked mostly from https://twiki.cern.ch/twiki/bin/view/CMS/InclusiveJetsLegacy)
-- Check that _jp_triglumi is set correctly
+- Check that jp::triglumi is set correctly
 (this can be done using brilcalc, see the commented out commands)
 
 Always...
 
 settings.h:
-- Check that _jp_type is set to DATA
-- Check that _jp_jecgt_[dt] points to the correct file
+- Check that jp::type is set to DATA
+- Check that jp::jecgt_[dt] points to the correct file
 
 mk_fillHistos.C:
 - Check that the correct files are uncommented
@@ -57,7 +57,7 @@ within the folder)
 Always...
 
 settings.h:
-- Check that _jp_type is set to MC or HW
+- Check that jp::type is set to MC or HW
 
 mk_fillHistos.C:
 - Check that the correct files are uncommented

@@ -130,10 +130,10 @@ bool HistosFill::Init(TTree *tree)
 #ifdef NEWMODE
   fChain->SetBranchAddress("PFJetsCHS_.genIdx_", PFJetsCHS__genIdx_);
 #elif
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",_jp_chs), PFJetsCHS__genP4__fCoordinates_fX);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",_jp_chs), PFJetsCHS__genP4__fCoordinates_fY);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",_jp_chs), PFJetsCHS__genP4__fCoordinates_fZ);
-  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",_jp_chs), PFJetsCHS__genP4__fCoordinates_fT);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",jp::chs), PFJetsCHS__genP4__fCoordinates_fX);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",jp::chs), PFJetsCHS__genP4__fCoordinates_fY);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",jp::chs), PFJetsCHS__genP4__fCoordinates_fZ);
+  fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",jp::chs), PFJetsCHS__genP4__fCoordinates_fT);
 #endif
   fChain->SetBranchAddress(Form("PFJets%s_",jp::chs), &PFJetsCHS__);
   fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",jp::chs), PFJetsCHS__P4__fCoordinates_fX);
