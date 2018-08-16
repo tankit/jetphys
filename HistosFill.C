@@ -1330,33 +1330,31 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
   if (_w <= 0) return;
 
   bool fired = (_trigs.find(h->trigname)!=_trigs.end());
+  if (!fired) return;
 
   // Luminosity information
   if (jp::isdt and h->lums[run][lbn]==0) {
     double lum = _lums[run][lbn];
     double lum2 = _lums2[run][lbn];
     double prescale(0);
-    map<int, int>::const_iterator ip = _prescales[h->trigname].find(run);
+    auto ip = _prescales[h->trigname].find(run);
     if (ip==_prescales[h->trigname].end()) {
-      if (fired) {
-        PrintInfo(Form("No prescale info for trigger %s in run %d!",
-                       h->trigname.c_str(),run));
+      PrintInfo(Form("No prescale info for trigger %s in run %d!",h->trigname.c_str(),run));
+      assert(false);
+    } else {
+      prescale = ip->second;
+      if (prescale==0) {
+        PrintInfo(Form("Prescale zero for trigger %s in run %d!",h->trigname.c_str(),run));
+        prescale = 1.;
         assert(false);
       }
-    } else prescale = ip->second;
-
-    if (prescale==0 and fired) {
-      PrintInfo(Form("Prescale zero for trigger %s in run %d!",
-                     h->trigname.c_str(),run));
-      prescale = 1.;
-      assert(false);
     }
 
-    h->lumsum += (prescale ? lum / prescale : 0.);
-    h->lumsum2 += (prescale ? lum2 / prescale : 0.);
+    h->lumsum += lum / prescale;
+    h->lumsum2 += lum2 / prescale;
     h->lums[run][lbn] = 1;
 
-    h->hlumi_vstrpu->Fill(trpu, prescale ? lum / prescale : 0.);
+    h->hlumi_vstrpu->Fill(trpu, lum / prescale);
   }
 
   // For MC vs truePU
@@ -1372,8 +1370,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
     }
   }
 
-  // check if required trigger fired and passed
-  if (!fired or !_pass) return;
+  // Are all of our conditions met?
+  if (!_pass) return;
 
   if (jp::debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",h->etamin,h->etamax,h->trigname.c_str()) << endl;
   if (jp::debug) cout << "Calculate and fill dijet mass" << endl << flush;

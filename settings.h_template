@@ -62,9 +62,14 @@ namespace jp {
   const unsigned int   yid = 1; // 0:2016, 1:2017 (2:2018)
   const unsigned int   yrs = 3; // Number of supported Run years
   // Luminosity weighting options (DATA)
-  //
-  constexpr bool usetriglumi = true;     // use luminosity numbers below, in /ub
-  constexpr bool usetriglumiera = false; // use per-era values in HistosNormalize (not recommmended)
+  // Do we use trigger lumi weighting (see triglumi or triglumiera)
+  constexpr bool usetriglumi = true;
+  // Use per-era values in HistosNormalize (not recommmended)
+  // That is, use values from the correct triglumiera instead of triglumi values.
+  constexpr bool usetriglumiera = false;
+  // Do a "psuedo-weighting" procedure within histosFill.
+  // When this setting is on, we weight by w_era/w_year (pseudo-weight) in HistosFill.
+  // Then, in HistosNormalize we apply w_year.
   constexpr bool useeraweights = true;
   //} END fundamental settings
 
@@ -180,7 +185,7 @@ namespace jp {
   }}; // V[5,6], AK4
   const vector<array<double,2>> trigranges = trigranges_.at(yid);
 
-  // Trigger lumis for weighting
+  // Trigger lumis for weighting in /ub
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
     { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 ,96089534.929 ,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
@@ -199,6 +204,7 @@ namespace jp {
   // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
   // Overrides the above routines with a more intricate weighting scheme. When this is on, output-*1.root is weighted to match the era results.
   // In the version treatment we give the weights directly to induce better comparability
+  // Values given in /ub
   const array<vector<vector<double>>,yrs> triglumiera_ = {{
   // 2016 values: (zb,jt40-jt450)
     {{
