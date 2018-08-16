@@ -2702,9 +2702,10 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
   _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
   if (!_pumc) return false;
   double maxmcpu = _pumc->GetMaximum();
-  int lomclim = _pumc->FindFirstBinAbove(maxmcpu/1000.0);
-  int upmclim = _pumc->FindLastBinAbove(maxmcpu/1000.0);
-  int maxmcbin = _pumc->FindFirstBinAbove(0.999*maxmcpu);
+  _pumc->Scale(1.0/maxmcpu);
+  int lomclim = _pumc->FindFirstBinAbove(0.01);
+  int upmclim = _pumc->FindLastBinAbove(0.01);
+  int maxmcbin = _pumc->FindFirstBinAbove(0.999);
   PrintInfo(Form("Maximum bin: %d for MC",maxmcbin),true);
   PrintInfo(Form("Hazardous pu below & above: %f, %f",_pumc->GetBinLowEdge(lomclim),_pumc->GetBinLowEdge(upmclim+1)),true);
   int nbinsmc = _pumc->GetNbinsX();
@@ -2726,8 +2727,8 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
       return false;
     }
     double maxdtpu = _pudist[t]->GetMaximum();
-    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/1000.0);
-    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/1000.0);
+    int lodtlim = _pudist[t]->FindFirstBinAbove(maxdtpu/100.0);
+    int updtlim = _pudist[t]->FindLastBinAbove(maxdtpu/100.0);
     int maxdtbin = _pudist[t]->FindFirstBinAbove(0.999*maxdtpu);
 
     for (int bin = 0; bin < lomclim; ++bin) // Set fore-tail to zero
@@ -2796,7 +2797,9 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
         PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",filename.c_str()));
         return -3;
       }
-      _pthatweight = jp::pthatsigmas[sliceIdx]/_ntot;
+      // Normalization with the amount of entries within the current tree
+      _pthatweight = jp::pthatsigmas[sliceIdx]/fChain->GetTree()->GetEntries();
+      // This is a normalization procedure by the luminosity of the furthest pthat bin. In practice, it does not hurt if the normalevts number is arbitrary.
       _pthatweight /= (jp::pthatsigmas.back()/jp::pthatnormalevts); // Normalize
       PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f",
                      sliceIdx,fChain->GetCurrentFile()->GetName(),jp::pthatranges[sliceIdx],jp::pthatranges[sliceIdx+1],_pthatweight),true);;

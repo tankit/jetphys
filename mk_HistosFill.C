@@ -130,7 +130,7 @@ void mk_HistosFill() {
     } else {
       cout << "Running over pythia flat sample" << endl;
 
-      for (auto &fname : jp::mcfiles.at(jp::simfile))
+      for (auto &fname : jp::mcfiles.at(jp::mcfile))
         files.push_back(Form("%s%s",p,fname));
     }
   } else if (jp::ishw) {
@@ -138,7 +138,7 @@ void mk_HistosFill() {
 
     cout << "Running over Herwig flat sample" << endl;
 
-    for (auto &fname : jp::hwfiles.at(jp::simfile))
+    for (auto &fname : jp::hwfiles.at(jp::hwfile))
       files.push_back(Form("%s%s",p,fname));
   } else {
     cout << "Enter a proper type!!" << endl;
@@ -155,8 +155,17 @@ void mk_HistosFill() {
         cout << "Problems with pthat file logic!" << endl;
       } else {
         cout << "Enter a proper value for MC tag!" << endl;
-        cout << "Entered: " << jp::simfile << endl << "Options:";
+        cout << "Entered: " << jp::mcfile << endl << "Options:";
         for (auto &fname : jp::mcfiles) cout << " " << fname.first;
+        cout << endl;
+      }
+    } else if (jp::ishw) {
+      if (jp::pthatbins) {
+        cout << "Problems with pthat file logic!" << endl;
+      } else {
+        cout << "Enter a proper value for HW tag!" << endl;
+        cout << "Entered: " << jp::mcfile << endl << "Options:";
+        for (auto &fname : jp::hwfiles) cout << " " << fname.first;
         cout << endl;
       }
     }
