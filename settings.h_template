@@ -29,9 +29,9 @@ using std::endl;
 using std::regex;
 
 // Will assert be used in the programs? More than 1/3 reduction of run time if off.
-// CAUTION: this is an expert option - comment this if you are certain that no problems occur.
+// CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
 #define USEASSERT
-// New handling for triggers etc.
+// New handling for triggers etc. - comment this out if old mode is to be used
 #define NEWMODE
 
 namespace jp {
@@ -53,28 +53,29 @@ namespace jp {
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
   constexpr const char* run = "RunD";
+  // In case of flat MC, choose file (all options given in mcfiles/hwfiles)
+  constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
+  constexpr const char* hwfile = "HS1";
   // Do we use pthatbinned MC (if not, we use flat)
   constexpr bool pthatbins = false;
-  // In case of flat MC, choose file (all options given in mcfiles/hwfiles)
-  constexpr const char* simfile = "P8M1";//"HS1";//"P8M1";
 
   const unsigned int   yid = 1; // 0:2016, 1:2017 (2:2018)
   const unsigned int   yrs = 3; // Number of supported Run years
-  // Simple helper
-  constexpr bool isdt = strings_equal(type,"DATA");
-  constexpr bool ismc = !isdt;
-  constexpr bool ispy = strings_equal(type,"MC");
-  constexpr bool ishw = strings_equal(type,"HW");
+  // Luminosity weighting options (DATA)
+  //
+  constexpr bool usetriglumi = true;     // use luminosity numbers below, in /ub
+  constexpr bool usetriglumiera = false; // use per-era values in HistosNormalize (not recommmended)
+  constexpr bool useeraweights = true;
   //} END fundamental settings
 
 
   //{ BEGIN run settings
   // Number of events to process (-1 for all)
   constexpr Long64_t nentries =
-  //-1; // all
+  -1; // all
   //10; // debug
   //100; //debug
-  1000;
+  //1000;
   //10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
@@ -90,6 +91,11 @@ namespace jp {
   constexpr bool save = false;
   //} END run settings
 
+  // Simple helper
+  constexpr bool isdt = strings_equal(type,"DATA");
+  constexpr bool ismc = !isdt;
+  constexpr bool ispy = strings_equal(type,"MC");
+  constexpr bool ishw = strings_equal(type,"HW");
 
   //{ BEGIN A group of constexpr switches and their settings to turn some parts of the code on/off
   // If the output files grow too much, processing becomes more difficult.
@@ -175,12 +181,10 @@ namespace jp {
   const vector<array<double,2>> trigranges = trigranges_.at(yid);
 
   // Trigger lumis for weighting
-  constexpr bool usetriglumi = true;     // use luminosity numbers below, in /ub
-  constexpr bool usetriglumiera = false; // use per-era values in HistosNormalize (not recommmended)
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
     { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 ,96089534.929 ,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
-    {216792.656,482065.984,1139733.993,4312924.723,39867734.668,218732780.747,555290604.197,1407226435.608,4213534357.166,10450245990.568,41518330099.836},
+    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
     {     0.   , 75850.715, 140118.443,2399269.066,12438354.347, 53965867.378,135769581.604, 484610430.125,1072874185.357, 2110258444.198,16591752212.649}
   }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
@@ -194,7 +198,6 @@ namespace jp {
     const vector<regex> eras = eras_.at(yid);
   // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
   // Overrides the above routines with a more intricate weighting scheme. When this is on, output-*1.root is weighted to match the era results.
-  constexpr bool useeraweights = true;
   // In the version treatment we give the weights directly to induce better comparability
   const array<vector<vector<double>>,yrs> triglumiera_ = {{
   // 2016 values: (zb,jt40-jt450)
@@ -212,11 +215,11 @@ namespace jp {
   // 2017 values: (zb,jt40-jt500)
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
-      {  7535.892, 96544.007, 26613.512, 189762.639,12522154.722,100580324.193, 86554240.379,217924151.156, 850290147.873,4432114167.512, 4792275119.918}, // B
-      { 12917.709, 57586.041,229575.132,2205692.326, 7556492.96 , 31529781.977,134477822.149,335926582.322,1010731539.999,1746567274.595, 9629969872.337}, // C
-      {151363.218,190186.185,351471.559, 528324.641, 4182961.999, 15916430.461, 70997485.515,180256699.991, 483577051.765, 887235845.666, 4247751278.508}, // D
-      { 18436.344, 65480.414, 273870.991,602426.283, 6245730.674, 25002916.985,110449354.954,280092069.859, 761299355.731,1355998352.269, 9314018088.842}, // E
-      { 26539.493, 72269.337, 258202.799,786718.834, 9360394.313, 45703327.131,152811701.2  ,393026932.28 ,1107636261.798,2028330350.526,13534315740.231}  // F
+      {  7539.226, 96664.998, 26622.936, 189826.043,12534821.364,100732085.583, 86579973.307,217989804.268, 850535229.404,4433502069.149, 4793979607.968}, // B
+      { 12918.576, 57596.329,229617.920,2205841.654, 7557872.755, 31535667.322,134501668.374,335987447.077,1010919949.001,1746883754.461, 9631323656.448}, // C
+      {  9652.826, 48475.568,209759.897, 386611.391, 4041221.865, 15774605.427, 70855229.555,180113633.815, 483431612.818, 887087743.403, 4247564824.502}, // D
+      { 18436.289, 65480.301,273870.786, 602425.276, 6245719.204, 25002871.020,110449169.249,280091604.472, 761298045.169,1355996073.006, 9313989713.752}, // E
+      { 26539.351, 72269.990,258203.913, 786728.947, 9360558.636, 45704451.813,152813820.231,393033189.126,1107652914.187,2028349954.165,13534253545.762}  // F
     }},
   // 2018 values: (zb,jt40-jt500)
     {{
@@ -238,14 +241,14 @@ namespace jp {
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V12",
-    "_V8",
+    "_V23",
     "_VX"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V13",
-    "_V8",
-    "_VX"
+    "_V23",
+    "_V1"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -435,8 +438,8 @@ namespace jp {
   // A wide binning for pt: these should agree with trigger turn-on places
   constexpr const double wptrange[] = {
     1, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 272, 330, 395, 468, 548,
-    686, 846, 1032, 1248, 1588, 2000, 2500, 3103, 3450, 3637, 3832,
-    4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000
+    686, 846, 1032, 1248, 1588, 2000, 2500, 3103, 3832,
+    4713, 5777, 7000
   };
   constexpr const int nwpts = sizeof(wptrange)/sizeof(wptrange[0])-1;
 
