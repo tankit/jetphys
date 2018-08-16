@@ -1149,7 +1149,7 @@ bool HistosFill::AcceptEvent()
   }
 
   // Equipped in FillBasic and FillRun
-  _pass_qcdmet = met01 < 45. or met < 0.4 * metsumet01; // QCD-11-004
+  _pass_qcdmet = met01 < 45. or met01 < 0.4 * metsumet01; // QCD-11-004
   return true;
 }
 
