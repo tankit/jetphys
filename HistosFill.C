@@ -36,7 +36,7 @@ HistosFill::HistosFill(TChain *tree) :
   metsumet(PFMetT0__sumEt_),
   met01(PFMetT0T1__et_),
   metsumet01(PFMetT0T1__sumEt_)
-#elif
+#else
   met(PFMet__et_),
   metphi(PFMet__phi_),
   metsumet(PFMet__sumEt_)
@@ -129,7 +129,7 @@ bool HistosFill::Init(TTree *tree)
   fChain->SetBranchAddress("GenJets_.fCoordinates.fT", GenJets__fCoordinates_fT);
 #ifdef NEWMODE
   fChain->SetBranchAddress("PFJetsCHS_.genIdx_", PFJetsCHS__genIdx_);
-#elif
+#else
   fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fX",jp::chs), PFJetsCHS__genP4__fCoordinates_fX);
   fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fY",jp::chs), PFJetsCHS__genP4__fCoordinates_fY);
   fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fZ",jp::chs), PFJetsCHS__genP4__fCoordinates_fZ);
@@ -197,7 +197,7 @@ bool HistosFill::Init(TTree *tree)
       fChain->SetBranchStatus(Form("PFJets%s_.genR_",jp::chs),1); // jtgenr
 #ifdef NEWMODE
       fChain->SetBranchStatus(Form("PFJets%s_.genIdx_",jp::chs),1); // jtgenidx
-#elif
+#else
       fChain->SetBranchStatus(Form("PFJets%s_.genP4_*",jp::chs),1); // jtgenp4*
 #endif
     }
@@ -205,7 +205,7 @@ bool HistosFill::Init(TTree *tree)
     // for quark/gluon study (Ozlem)
 #ifdef NEWMODE
     fChain->SetBranchStatus(Form("PFJets%s_.QGL_",jp::chs),1); // qgl
-#elif
+#else
     fChain->SetBranchStatus(Form("PFJets%s_.QGtagger_",jp::chs),1); // qgl
 #endif
     if (jp::ismc) fChain->SetBranchStatus(Form("PFJets%s_.partonFlavour_",jp::chs),1);
@@ -238,7 +238,7 @@ bool HistosFill::Init(TTree *tree)
     fChain->SetBranchStatus("PFMetT0T1_.et_",1); // met
     fChain->SetBranchStatus("PFMetT0T1_.phi_",1); // metphi
     fChain->SetBranchStatus("PFMetT0T1_.sumEt_",1); // metsumet
-#elif
+#else
     fChain->SetBranchStatus("PFMet_.et_",1); // met
     fChain->SetBranchStatus("PFMet_.phi_",1); // metphi
     fChain->SetBranchStatus("PFMet_.sumEt_",1); // metsumet
@@ -287,7 +287,7 @@ bool HistosFill::Init(TTree *tree)
   jtgenr = &PFJetsCHS__genR_[0];
 #ifdef NEWMODE
   jtgenidx = &PFJetsCHS__genIdx_[0];
-#elif
+#else
   jtgenp4x = &PFJetsCHS__P4__fCoordinates_fX[0];
   jtgenp4y = &PFJetsCHS__P4__fCoordinates_fY[0];
   jtgenp4z = &PFJetsCHS__P4__fCoordinates_fZ[0];
@@ -300,7 +300,7 @@ bool HistosFill::Init(TTree *tree)
   partonflavorphys = &PFJetsCHS__partonFlavourPhysicsDef_[0];
   // for quark/gluon study (Ozlem)
   qgl = &PFJetsCHS__QGL_[0];
-#elif
+#else
   // for quark/gluon study (Ozlem)
   qgl = &PFJetsCHS__QGtagger_[0];
 #endif
@@ -860,7 +860,7 @@ bool HistosFill::AcceptEvent()
         gp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
       else
         gp4.SetPxPyPzE(0.,0.,0.,0.);
-#elif
+#else
       gp4.SetPxPyPzE(jtgenp4x[jetidx],jtgenp4y[jetidx],jtgenp4z[jetidx],jtgenp4t[jetidx]);
 #endif
       jtgenpt[jetidx] = gp4.Pt();
@@ -1030,7 +1030,7 @@ bool HistosFill::AcceptEvent()
       auto trgPlace = std::find(_goodTrigs.begin(),_goodTrigs.end(),TDec);
       if (trgPlace==_goodTrigs.end()) continue;
       unsigned goodIdx = static_cast<unsigned int>(trgPlace-_goodTrigs.begin());
-#elif
+#else
     for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
       auto &itrg = _goodTrigs[goodIdx];
       auto &TDec = TriggerDecision_[itrg]; // Trigger fired or not: -1, 0, 1
@@ -1040,7 +1040,7 @@ bool HistosFill::AcceptEvent()
 
 #ifdef NEWMODE
       if (jp::debug)
-#elif
+#else
       if (jp::debug and TDec>0)
 #endif
         cout << TName << " " << itrg << " " << TDec
@@ -1147,9 +1147,13 @@ bool HistosFill::AcceptEvent()
     if (_pass and _jetids[i0]) // Non-restrictive
       ++_cnt["11jtid"];
   }
-
+#ifdef NEWMODE
   // Equipped in FillBasic and FillRun
   _pass_qcdmet = met01 < 45. or met01 < 0.4 * metsumet01; // QCD-11-004
+#else
+  _pass_qcdmet = met < 45. or met < 0.4 * metsumet; 
+#endif
+
   return true;
 }
 

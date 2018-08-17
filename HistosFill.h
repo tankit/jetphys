@@ -104,7 +104,7 @@ public :
   Double_t        PFJetsCHS__P4__fCoordinates_fT[kMaxPFJetsCHS_];   //[PFJetsCHS__]
 #ifdef NEWMODE
   Int_t           PFJetsCHS__genIdx_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-#elif
+#else
   Double_t        PFJetsCHS__genP4__fCoordinates_fX[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__genP4__fCoordinates_fY[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__genP4__fCoordinates_fZ[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -126,7 +126,7 @@ public :
   vector<int>     genFlavour_;
   vector<int>     genFlavourPartonPhysicsDef_;
   vector<int>     genFlavourHadron_;
-#elif
+#else
   Float_t         PFJetsCHS__QGtagger_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -348,7 +348,7 @@ private:
 #ifdef NEWMODE
   Int_t           *partonflavor;
   Int_t           *partonflavorphys;
-#elif
+#else
   Float_t         *partonflavor;
 #endif
 
@@ -384,8 +384,10 @@ private:
   Float_t         &met;
   Float_t         &metphi;
   Float_t         &metsumet;
+#ifdef NEWMODE 
   Float_t         &met01;
   Float_t         &metsumet01;
+#endif
 
   Float_t         met1;
   Float_t         metphi1;
