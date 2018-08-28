@@ -181,8 +181,12 @@ void mk_HistosFill() {
   cout << "Got " << centries << " entries" << endl;
 
   if (centries > 0) {
-    HistosFill filler(c);
-    filler.Loop();
+    try {
+      HistosFill filler(c);
+      filler.Loop();
+    } catch (const exception& e) {
+      cout << e.what() << endl;
+    }
   } else {
     cout << "Please specify files to be looped over!" << endl << "Exiting ..." << endl;
   }

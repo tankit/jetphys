@@ -66,7 +66,7 @@ void HistosFill::PrintMemInfo(bool printcout)
 
 
 // Mostly setting up the root tree and its branches
-bool HistosFill::Init(TTree *tree)
+bool HistosFill::Init(TChain *tree)
 {
   ferr = 0;
   ferr = new ofstream(Form("reports/HistosFill-%s.log",jp::type),ios::out);
@@ -464,8 +464,10 @@ bool HistosFill::PreRun()
   _trgcounter = _evtcounter = _totcounter = 0;
 
   // Initialize _pthatweight. It will be loaded for each tree separately.
-  if (jp::pthatbins)
+  if (jp::pthatbins) {
     _pthatweight = 0;
+    _pthatrepeats = 0;
+  }
 
   PrintInfo("\nCONFIGURATION DUMP:");
   PrintInfo("-------------------");
@@ -498,7 +500,7 @@ bool HistosFill::PreRun()
       PrintInfo(Form("Matched %s with era index %d!",jp::run,_eraIdx),true);
     }
   } else if (jp::ismc) {
-    PrintInfo(Form("%s pileup profile in MC to data",jp::reweighPU ? "Reweighing" : "Not reweighing"));
+    PrintInfo(Form("%s pileup profile in MC to data",jp::reweighPU ? "Reweighting" : "Not reweighting"));
     PrintInfo(Form("Processing %s samples", jp::pthatbins ? "pThat binned" : "\"flat\""));
   }
   *ferr << endl;
@@ -1048,20 +1050,20 @@ bool HistosFill::AcceptEvent()
 
       // Set prescale from event for now
       //if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) { There's trouble in 2017 L1, so we let it pass
-      if (HLTPrescale_[itrg]>0) {
+      if (HLTPrescale_[itrg]>0 or L1Prescale_[itrg]>0) {
         double l1 = L1Prescale_[itrg];
+        double hlt = HLTPrescale_[itrg];
         if (l1==0) l1 = 1;
-        _prescales[TName][run] = l1 * HLTPrescale_[itrg];
+        if (hlt==0) hlt = 1;
+        _prescales[TName][run] = l1 * hlt;
       } else {
-        cout << "Error for trigger " << TName << " prescales: "
-              << "L1  =" << L1Prescale_[itrg]
-              << "HLT =" << HLTPrescale_[itrg] << endl;
+        PrintInfo(Form("Error for trigger %s prescales: L1 = %d HLT = %d",TName.c_str(),L1Prescale_[itrg],HLTPrescale_[itrg]));
         _prescales[TName][run] = 0;
         if (jp::debug) { // check prescale
           double prescale = _prescales[TName][run];
           if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
             cout << "Trigger " << TName << ", "
-            << "Prescale(txt file) = " << prescale << endl;
+            << "Prescale (txt file) = " << prescale << endl;
             cout << "L1 = " << L1Prescale_[itrg] << ", "
             << "HLT = " << HLTPrescale_[itrg] << endl;
             assert(false);
@@ -1075,7 +1077,7 @@ bool HistosFill::AcceptEvent()
         _wt[TName] = _goodWgts[goodIdx];
       } else {
         // Make sure all info is good! This is crucial if there is something odd with the tuples
-        PrintInfo(Form("Missing prescale for %s in run %d",TName.c_str(),run));
+        PrintInfo(Form("Missing prescale for %s in run %d",TName.c_str(),run),true);
       }
     } // for itrg (_goodTrigs)
 
@@ -1192,7 +1194,7 @@ void HistosFill::Report()
   for (auto &cit : _cnt)
     PrintInfo(Form("%s: %d (%1.1f%%)",cit.first.c_str(),cit.second,100.*cit.second/max(1,_cnt["01all"])),true);
 
-  if (jp::isdt) PrintInfo("Note that for DT it is likely that we lose a large percentage of events for the trigger."
+  if (jp::isdt) PrintInfo("Note that for DT it is likely that we lose a large percentage of events for the trigger.\n"
                           "Events triggered by JetHT and AK8PFJet are included in addition to AK4PFJet.");
   *ferr << endl;
 
@@ -1953,15 +1955,15 @@ void HistosFill::WriteBasic()
   PrintInfo("WriteBasic():");
   PrintMemInfo();
 
-  for (auto histit = _histos.begin(); histit != _histos.end(); ++histit) {
-    for (auto histidx = 0u; histidx != histit->second.size(); ++histidx) {
+  for (auto &histrange : _histos) {
+    for (auto &h : histrange.second) {
       // Luminosity information
-      HistosBasic *h = histit->second[histidx];
       for (int j = 0; j != h->hlumi->GetNbinsX()+1; ++j) {
         h->hlumi->SetBinContent(j, jp::isdt ? h->lumsum : 1. );
         h->hlumi2->SetBinContent(j, jp::isdt ? h->lumsum2 : 1. );
       }
-      delete h; // histit->second[histidx];
+      h->Write();
+      delete h;
     } // for histidx
   } // for histit
 
@@ -2746,6 +2748,24 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
 } // LoadPuProfiles
 
 
+Int_t HistosFill::FindPthatIdx(string filename)
+{
+  int sliceIdx = 0;
+  bool sliceFound = false;
+  for (auto &fname : jp::pthatfiles) {
+    regex rfile(fname);
+    std::cmatch mfile;
+    if (std::regex_search(filename.c_str(),mfile,rfile)) {
+      sliceFound = true;
+      break;
+    }
+    ++sliceIdx;
+  }
+  if (sliceFound) return sliceIdx;
+  return -1;
+}
+
+
 // Check that the correct tree is open in the chain
 Long64_t HistosFill::LoadTree(Long64_t entry)
 {
@@ -2778,33 +2798,55 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
       }
       *ferr << endl << flush;
     } else if (jp::pthatbins) {
-      string filename = fChain->GetCurrentFile()->GetName();
-      // Check the position of the current file in the list of file names
-      unsigned sliceIdx = 0;
-      bool sliceFound = false;
-      for (auto &fname : jp::pthatfiles) {
-        regex rfile(fname);
-        std::cmatch mfile;
-        if (std::regex_search(filename.c_str(),mfile,rfile)) {
-          sliceFound = true;
-          break;
+      // If there are two pthat files with the same pthat range, we convey this information through "prevweight"
+      Long64_t noevts = fChain->GetTree()->GetEntries();
+      if (_pthatrepeats<=0) {
+        string filename = fChain->GetCurrentFile()->GetName();
+        // Check the position of the current file in the list of file names
+        int sliceIdx = FindPthatIdx(filename);
+        if (sliceIdx<0) {
+          PrintInfo(Form("Pthat slice file name contradictory %s. Aborting...",filename.c_str()));
+          return -3;
         }
-        ++sliceIdx;
+        if (jp::pthatsigmas[sliceIdx]<=0) {
+          PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",filename.c_str()));
+          return -3;
+        }
+        PrintInfo(Form("Pthat bin changing.\nFile %d %s, position %lld with %lld events.",
+                       sliceIdx,filename.c_str(),centry,noevts),true);
+
+        _pthatrepeats = 0;
+        // We have a look if the next tree in the chain has the same range
+        Long64_t next = entry-centry;
+        while (fChain->GetTreeNumber()<fChain->GetNtrees()-1) {
+          next = next+fChain->GetTree()->GetEntries();
+          if (next>=_ntot) break;
+          Long64_t nentry = fChain->LoadTree(next);
+          if (nentry < 0) break;
+          Long64_t nextevts = fChain->GetTree()->GetEntries();
+          string nextname = fChain->GetCurrentFile()->GetName();
+          int nextIdx = FindPthatIdx(nextname);
+          if (nextIdx<0) {
+            PrintInfo(Form("Pthat slice file name contradictory %s. Aborting...",nextname.c_str()));
+            return -3;
+          }
+          if (sliceIdx!=nextIdx) break;
+          PrintInfo(Form("File extension %d %s, position %lld with %lld events",
+                         nextIdx,nextname.c_str(),nentry,nextevts),true);
+          noevts += nextevts;
+          ++_pthatrepeats;
+        }
+        // Normalization with the amount of entries within the current tree
+        _pthatweight = jp::pthatsigmas[sliceIdx]/noevts;
+        // This is a normalization procedure by the luminosity of the furthest pthat bin. In practice, it does not hurt if the normalevts number is arbitrary.
+        _pthatweight /= (jp::pthatsigmas.back()/jp::pthatnormalevts); // Normalize
+        PrintInfo(Form("The given slice has the pthat range [%f,%f]\nWeight: %f, with a total of %lld events.",
+                       jp::pthatranges[sliceIdx],jp::pthatranges[sliceIdx+1],_pthatweight,noevts),true);
+      } else {
+        --_pthatrepeats;
+        PrintInfo(Form("Pthat bin remains the same while file is changing.\nFile %s\nWeight: %f",
+                       fChain->GetCurrentFile()->GetName(),_pthatweight),true);
       }
-      if (!sliceFound) {
-        PrintInfo(Form("Pthat slice file name contradictory %s. Aborting...",filename.c_str()));
-        return -3;
-      }
-      if (jp::pthatsigmas[sliceIdx]<=0) {
-        PrintInfo(Form("Suspicious pthat slice information for file %s. Aborting...",filename.c_str()));
-        return -3;
-      }
-      // Normalization with the amount of entries within the current tree
-      _pthatweight = jp::pthatsigmas[sliceIdx]/fChain->GetTree()->GetEntries();
-      // This is a normalization procedure by the luminosity of the furthest pthat bin. In practice, it does not hurt if the normalevts number is arbitrary.
-      _pthatweight /= (jp::pthatsigmas.back()/jp::pthatnormalevts); // Normalize
-      PrintInfo(Form("Pthat bin changing.\nFile %d %s should correspond to the range [%f,%f]\nWeight: %f",
-                     sliceIdx,fChain->GetCurrentFile()->GetName(),jp::pthatranges[sliceIdx],jp::pthatranges[sliceIdx+1],_pthatweight),true);;
     }
     // slices with pthat bins
   }
@@ -2820,10 +2862,14 @@ bool HistosFill::GetTriggers()
   TH1F *usedtrigs = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/TriggerPass")); assert(usedtrigs);
   TAxis *uxax = usedtrigs->GetXaxis();
 
-  regex zbs("HLT_ZeroBias_v([0-9]*)");
-  regex pfjet("HLT_PFJet([0-9]*)_v([0-9]*)");
-  regex ak8("HLT_AK8PFJet([0-9]*)_v[0-9]*");
-  regex jetht("HLT_PFHT([0-9]*)_v[0-9]*");
+  regex zbs("HLT_ZeroBias_v([0-9]+)");
+  regex pfjet("HLT_PFJet([0-9]+)_v([0-9]+)");
+  regex ak8("HLT_AK8PFJet([0-9]+)_v[0-9]+");
+  regex jetht("HLT_PFHT([0-9]+)_v[0-9]+");
+  regex hipfjet("HLT_HI[AK4]*PFJet([0-9]+)_v[0-9]+");
+  regex hipfjetfwd("HLT_HI[AK4]*PFJet[FWwDd]*([0-9]+)[FWwDd]*_v[0-9]+");
+  regex hiak8("HLT_HIAK8PFJet([0-9]+)_v[0-9]+");
+  regex hiak8fwd("HLT_HIAK8PFJet[FWwDd]*([0-9]+)[FWwDd]*_v[0-9]+");
 
   // List triggers with actual contents
   map<string,unsigned int> utrigs;
@@ -2861,10 +2907,40 @@ bool HistosFill::GetTriggers()
             _goodWgts.push_back(eraLumiWgt/yearLumiWgt);
             PrintInfo(Form("Trigger %s responding loud and clear with %u events and relative weight %f!",trgName.c_str(),utrigs[trgName],_goodWgts.back()),true);
           } else {
-            PrintInfo(Form("Trigger %s responding loud and clear with %u events!",trgName.c_str(),utrigs[trgName]),true);
             _goodWgts.push_back(1.0);
+            PrintInfo(Form("Trigger %s responding loud and clear with %u events!",trgName.c_str(),utrigs[trgName]),true);
           }
         } else { // No trig era weighting: no relative weights
+          PrintInfo(Form("The trigger %s is available, but not supported",trgName.c_str()),true);
+        }
+      }
+    } else if (std::regex_match(trgName,hiak8)) {
+      trigger=std::regex_replace(trgName, hiak8, "ak8jt$1", std::regex_constants::format_no_copy);
+    } else if (std::regex_match(trgName,hiak8fwd)) {
+      trigger=std::regex_replace(trgName, hiak8fwd, "ak8jt$1fwd", std::regex_constants::format_no_copy);
+    } else if (std::regex_match(trgName,hipfjet)) {
+      trigger=std::regex_replace(trgName, hipfjet, "jt$1", std::regex_constants::format_no_copy);
+      if (_eraIdx==1 and jp::yid==2 and !zbcase and utrigs.find(trgName) != utrigs.end()) {
+        double trigthr = std::stod(std::regex_replace(trgName, hipfjet, "$1", std::regex_constants::format_no_copy));
+        unsigned thrplace = static_cast<unsigned>(std::find(jp::trigthr.begin()+1,jp::trigthr.end(),trigthr)-jp::trigthr.begin());
+        if (thrplace < jp::notrigs) {
+          _goodTrigs.push_back(_availTrigs.size());
+          PrintInfo(Form("Trigger %s responding loud and clear with %u events!",trgName.c_str(),utrigs[trgName]),true);
+          _goodWgts.push_back(1.0);
+        } else {
+          PrintInfo(Form("The trigger %s is available, but not supported",trgName.c_str()),true);
+        }
+      }
+    } else if (std::regex_match(trgName,hipfjetfwd)) {
+      trigger=std::regex_replace(trgName, hipfjetfwd, "jt$1fwd", std::regex_constants::format_no_copy);
+      if (_eraIdx==0 and jp::yid==2 and !zbcase and utrigs.find(trgName) != utrigs.end()) {
+        double trigthr = std::stod(std::regex_replace(trgName, hipfjetfwd, "$1", std::regex_constants::format_no_copy));
+        unsigned thrplace = static_cast<unsigned>(std::find(jp::trigthr.begin()+1,jp::trigthr.end(),trigthr)-jp::trigthr.begin());
+        if (thrplace < jp::notrigs) {
+          _goodTrigs.push_back(_availTrigs.size());
+          PrintInfo(Form("Trigger %s responding loud and clear with %u events!",trgName.c_str(),utrigs[trgName]),true);
+          _goodWgts.push_back(1.0);
+        } else {
           PrintInfo(Form("The trigger %s is available, but not supported",trgName.c_str()),true);
         }
       }

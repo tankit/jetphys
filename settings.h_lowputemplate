@@ -1,0 +1,562 @@
+// Purpose: Analysis settings for jet physics package
+// Author:    mikko.voutilainen@cern.ch
+// Co-author: hannu.siikonen@cern.ch
+// Created: June 1, 2015
+
+#ifndef STNGS
+#define STNGS
+
+#include <map>
+#include <vector>
+#include <array>
+#include <set>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <regex>
+#include <algorithm>
+#include <cassert>
+#include <cstdio>
+
+using std::map;
+using std::vector;
+using std::array;
+using std::set;
+using std::string;
+using std::cout;
+using std::endl;
+using std::regex;
+
+// Will assert be used in the programs? More than 1/3 reduction of run time if off.
+// CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
+#define USEASSERT
+// New handling for triggers etc. - comment this out if old mode is to be used
+#define NEWMODE
+
+namespace jp {
+  constexpr bool strings_equal(char const * a, char const * b) {
+    return *a == *b and (*a == '\0' or strings_equal(a + 1, b + 1));
+  }
+
+  // Debugging info
+  constexpr bool debug = false;
+
+  //{ BEGIN fundamental file settings
+  // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
+  constexpr const char* chs = "CHS";
+  // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
+  constexpr const char* algo = "AK4PFchs";
+  // Data type ("DATA", "MC", or "HW")
+  constexpr const char* type = "DATA";
+  // In case of DATA, choose run (all options given in dtfiles).
+  // This also affects the hot zone cuts done in MC.
+  // The naming format is "RunX...", where X should be chosen correctly.
+  constexpr const char* run = "RunH_FSQJ2";
+  // In case of flat MC, choose file (all options given in mcfiles/hwfiles)
+  constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
+  constexpr const char* hwfile = "HS1";
+  // Do we use pthatbinned MC (if not, we use flat)
+  constexpr bool pthatbins = false;
+
+  const unsigned int   yid = 2; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yrs = 4; // Number of supported Run years
+
+  // Luminosity weighting options (DATA)
+  // Do we use trigger lumi weighting (see triglumi or triglumiera)
+  constexpr bool usetriglumi = true;
+  // Use per-era values in HistosNormalize (not recommmended)
+  // That is, use values from the correct triglumiera instead of triglumi values.
+  constexpr bool usetriglumiera = true;
+  // Do a "psuedo-weighting" procedure within histosFill.
+  // When this setting is on, we weight by w_era/w_year (pseudo-weight) in HistosFill.
+  // Then, in HistosNormalize we apply w_year.
+  constexpr bool useeraweights = false;
+  // So, what is the difference between usetriglumiera and useeraweights?
+  // The former applies the correction within HistosNormalize.
+  // The latter runs a per-run correction within HistosFill and then further applies the common correction in HistosNormalize.
+  // This allows us to "glue" output-*-1.root files together, if several runs are given at the same time.
+  // Thus, with the latter option we have a "per-Era" kind of weighting procedure - and all the files behave quite as normally.
+  // In HistosFill we apply only small corrections that revolve around one, which is basically just fine-tuning.
+  //} END fundamental settings
+
+
+  //{ BEGIN run settings
+  // Number of events to process (-1 for all)
+  constexpr Long64_t nentries =
+  -1; // all
+  //10; // debug
+  //100; //debug
+  //1000;
+  //10000; // shorter test run
+  //100000; // short test run
+  //1000000; // shortish test run
+  //2500000; // shortish test run
+  //10000000;
+  // Number of events to skip from the beginning (for debugging)
+  constexpr Long64_t nskip = 0;
+  // Step between events
+  constexpr Long64_t skim = 0; // "prescale", off if zero
+  // Only load selected branches (large speedup, but be careful!)
+  constexpr bool quick = true;
+  // Save the infos at times. Setting this to true might help with long runs. (Not recommended)
+  constexpr bool save = false;
+  //} END run settings
+
+  // Simple helper
+  constexpr bool isdt = strings_equal(type,"DATA");
+  constexpr bool ismc = !isdt;
+  constexpr bool ispy = strings_equal(type,"MC");
+  constexpr bool ishw = strings_equal(type,"HW");
+
+  //{ BEGIN A group of constexpr switches and their settings to turn some parts of the code on/off
+  // If the output files grow too much, processing becomes more difficult.
+
+  // Produce run-level histograms
+  constexpr bool doRunHistos = false; // Not needed very often
+  // Produce basic set of histograms
+  constexpr bool doBasicHistos = true;
+  // Produce full-eta TH3 histograms
+  constexpr bool doEtaHistos = true;
+  // Special reco/gen histos in mc
+  constexpr bool doEtaHistosMcResponse = false; // Special studies
+  // Toggle 3D asymmetry and mpf histos off, if too much space is consumed
+  constexpr bool do3dHistos = true;
+  // Toggle phi histograms
+  constexpr bool doPhiHistos = true;
+
+  // QGL studies by Ozlem (use an external file for qgl studies)
+  constexpr bool doqglfile = false;
+  constexpr const char qglfile[] = "output-DATA_RunGfullpart-1.root";
+
+  // At some point of time Kostas stored UNCORRECTED four-vector. Current status: CORRECTED
+  // NOTE: this is a source of constant anxiety, should be rechecked from time to time
+  constexpr bool undojes = true;
+  // We can choose also not to apply the new jes onto a four-vector
+  constexpr bool redojes = true;
+  // For debugging
+  constexpr bool skipl2l3res = false;
+
+  // Reapply json selection based on the latest one (check lumicalc if false!).
+  constexpr bool dojson = true;
+  const constexpr array<const char*,yrs> json_ = {
+    "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt",
+    "lumicalc/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1mod.txt",
+    "lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
+    "lumicalc/Cert_314472-317591_13TeV_PromptReco_Collisions18_JSON.txt"
+  };
+  const constexpr char* json = json_.at(yid);
+
+  // Calculate luminosity on the fly based on .csv file and take only events with non-zero luminosity.
+  constexpr bool dolumi = true;
+  const constexpr array<const char*,yrs> lumifile_ = {
+    "lumicalc/lumibyls16.csv",
+    "lumicalc/lumibyls17.csv",
+    "lumicalc/lumibyls17h.csv",
+    "lumicalc/lumibyls18.csv"
+  };
+  const constexpr char* lumifile = lumifile_.at(yid);
+
+  // Decide whether or not to simulate triggers from MC (this is slow)
+  constexpr bool domctrigsim = true;
+  // Use "mc" trigger for whole pT range instead of stiching triggers together in HistosCombine (false requires trigsim)
+  constexpr bool usemctrig = false;
+
+  const array<vector<const char*>,yrs> triggers_ = {{
+    {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450"},
+    {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450","jt500"},
+    {"jt0","jt15","jt25","jt40","jt60","jt80","jt140"},
+    {"jt0","jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450","jt500"}
+  }};
+  const vector<const char*> triggers = triggers_.at(yid);
+  const unsigned int notrigs = triggers.size();
+
+  // reference trigger for PU profile in the mc folder and for trigger lumi weighting
+  constexpr const array<const char*,yrs> reftrig_ = {
+    "jt450",
+    "jt500",
+    "jt140",
+    "jt500"
+  };
+  constexpr const char* reftrig = reftrig_.at(yid);
+
+  // Thresholds for the corresponding triggers (same as in trigger name)
+  const array<vector<double>,yrs> trigthr_ = {{
+    {0,40,60,80,140,200,260,320,400,450    },
+    {0,40,60,80,140,200,260,320,400,450,500},
+    {0,15,25,40,60,80,140},
+    {0,40,60,80,140,200,260,320,400,450,500}
+  }};
+  const vector<double> trigthr = trigthr_.at(yid);
+
+  // Trigger ranges (differ from thresholds)
+  const array<vector<array<double,2>>,yrs> trigranges_ = {{
+    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,6500}          }},
+    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
+    {{{0,28},{28,37},{37,49},{49,84},{84,114},{114,196},{196,272}}},
+    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
+  }}; // V[5,6], AK4
+  const vector<array<double,2>> trigranges = trigranges_.at(yid);
+
+  // Trigger lumis for weighting in /ub
+  const array<vector<double>,yrs> triglumi_ = {{
+  // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
+    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 ,96089534.929 ,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
+    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
+    {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
+    {     0.   , 75850.715, 140118.443,2399269.066,12438354.347, 53965867.378,135769581.604, 484610430.125,1072874185.357, 2110258444.198,16591752212.649}
+  }}; // in /ub
+  const vector<double> triglumi = triglumi_.at(yid);
+
+    // These are used to find out which year and which era we are living in
+    const array<vector<regex>,yrs> eras_ = {{
+      {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
+      {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunF")},
+      {regex("^RunH[a-zA-Z0-9_]*Fwd$"),regex("^RunH")},
+      {regex("^RunA"),regex("^RunB")}
+    }};
+    const vector<regex> eras = eras_.at(yid);
+  // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
+  // Overrides the above routines with a more intricate weighting scheme. When this is on, output-*1.root is weighted to match the era results.
+  // In the version treatment we give the weights directly to induce better comparability
+  // Values given in /ub
+  const array<vector<vector<double>>,yrs> triglumiera_ = {{
+  // 2016 values: (zb,jt40-jt450)
+    {{
+  //   ZB        PFJ40     PFJ60      PFJ80       PFJ140      PFJ200       PFJ260        PFJ320        PFJ400         PFJ450              Era
+      {12272.564,42777.404,154339.679,1013725.894,6678362.048,31439255.077,138379573.748,423036630.016,1156112123.522,5780974274.166}, // B
+      { 1267.369,21826.26 , 62136.999, 197392.975,2000961.79 ,10062309.79 , 48166077.979,135218220.578, 412946722.943,2573399420.069}, // C
+      { 1898.671,36624.724,104611.27 , 328062.586,3357266.779,16824336.184, 76550163.736,225203181.004, 683469876.284,4248383597.366}, // D
+      { 3011.27 ,31294.62 , 86426.534, 270224.019,2763649.831,13071806.045, 65431121.382,191469713.187, 583096480.718,4008663475.924}, // E
+      { 1504.894,21653.271, 48745.957, 136195.575,1491075.627, 6052884.716, 38701199.163,116084466.056, 348342950.9  ,2704118419.004}, // Fe
+      {  215.493, 2828.924,  7205.162,  18382.409, 204124.035,  681254.62 ,  6502077.341, 18270869.363,  53084258.548, 397499983.002}, // Fl
+      { 3165.916,48839.939,123669.326, 370518.873,3628983.85 ,11996221.263,102627755.009,310855295.835, 921468153.924,7540487746.602}, // G
+      { 5700.644,58972.432,131684.466, 398826.083,3841266.079,12723493.628,111360342.779,333826688.043, 982546425.482,8605689857.939}  // H
+    }},
+  // 2017 values: (zb,jt40-jt500)
+    {{
+  //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
+      {  7539.226, 96664.998, 26622.936, 189826.043,12534821.364,100732085.583, 86579973.307,217989804.268, 850535229.404,4433502069.149, 4793979607.968}, // B
+      { 12918.576, 57596.329,229617.920,2205841.654, 7557872.755, 31535667.322,134501668.374,335987447.077,1010919949.001,1746883754.461, 9631323656.448}, // C
+      {  9652.826, 48475.568,209759.897, 386611.391, 4041221.865, 15774605.427, 70855229.555,180113633.815, 483431612.818, 887087743.403, 4247564824.502}, // D
+      { 18436.289, 65480.301,273870.786, 602425.276, 6245719.204, 25002871.020,110449169.249,280091604.472, 761298045.169,1355996073.006, 9313989713.752}, // E
+      { 26539.351, 72269.990,258203.913, 786728.947, 9360558.636, 45704451.813,152813820.231,393033189.126,1107652914.187,2028349954.165,13534253545.762}, // F
+    }},
+  // 2017 RunH values (dummy)
+    {{
+  //   ZB         HIPFJ15(FWD) HIPFJ25(FWD) HIPFJ40(FWD) HIPFJ60(FWD) HIPFJ80(FWD) HIPFJ140(FWD)
+      {   202.798,   16787.739,  141082.702, 2104185.471, 7462468.196,45397276.568,199414408.843}, // H FWD
+      {   202.798,   11702.608,   70534.718,  449652.826, 2016829.117, 6734615.464,199413819.206}  // H
+    }},
+  // 2018 values: (zb,jt40-jt500)
+    {{
+  //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
+      {  0.      ,61532.879 ,81850.422 ,2179907.105,9391065.528 ,40906058.156 ,106635571.117,368074388.178,839802101.462 ,1644114276.408,12862598870.332}, // A
+      {  0.      ,14317.836 ,58268.021 , 219361.961,3047288.819 ,13059809.222 , 29134010.487,116536041.947,233072083.895 , 466144167.79 , 3729153342.317}, // B
+      {  0.      ,11478.901 ,46117.365 , 173627.808,2458757.632 ,10537532.709 , 24145984.344, 93300159.689,185505726.814 , 369916861.066, 2951672740.593}  // C
+    }}
+  }};
+  const vector<vector<double>> triglumiera = triglumiera_.at(yid);
+
+  //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
+  // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
+  const array<string,yrs> jecgt_ = {
+    "Summer16_07Aug2017",
+    "Fall17_17Nov2017",
+    "Fall17_17Nov2017",
+    "NANI"
+  };
+  const string jecgt = jecgt_.at(yid);
+  const array<string,yrs> jecversdt_ = {
+    "_V14",
+    "_V23",
+    "_V23",
+    "_VX"
+  };
+  const string jecversdt = jecversdt_.at(yid);
+  const array<string,yrs> jecversmc_ = {
+    "_V14",
+    "_V23",
+    "_V23",
+    "_V1"
+  };
+  const string jecversmc = jecversmc_.at(yid);
+
+  // Use Intervals-Of-Validity for JEC
+  constexpr const bool useIOV = true ;
+  const array<vector<string>,yrs> IOVnames_ = {{
+    {"BCD","EF","GH"},
+    {"B","C","D","E","F"},
+    {"F"}, // Run2017F is used for Run2017H (lowpu)
+    {"A","B","C"}
+  }};
+  const vector<string> IOVnames = IOVnames_.at(yid);
+  // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
+  const array<vector<array<int,2>>,yrs> IOVranges_ = {{
+    { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
+    { {297020,299329},{299337,302029},{302030,303434},{303435,304826},{304911,306460},{306926,307082} }, // B,C,D,E,F
+    { {306926,307082} }, // H
+    { {297020,299329},{299337,302029},{302030,400000} } // A,B,C | NOT TO BE TRUSTED
+  }};
+  const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
+  //} END JES and JEC
+
+
+  //{ BEGIN For MC reweighting purposes, PU profiles for data and MC
+  constexpr bool reweighPU = true;
+  constexpr const char* pudata = "pileup/curr/pileup_DT.root";
+  constexpr const char* pumc   = "pileup/curr/pileup_MC.root";
+  constexpr const char* puhw   = "pileup/curr/pileup_HW.root";
+  constexpr const double maxpu = 80.0;
+  //} END PU profiles
+
+  //{ BEGIN DT/MC: File options
+
+  constexpr const char* filepath = "/work/jet_tuples/";
+  //constexpr const char* filepath = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
+
+    //{ BEGIN DT: Files
+    constexpr const array<const char*,yrs> dtpath_ =
+      {"Data/2016/Final/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
+    constexpr const char* dtpath = dtpath_.at(yid);
+
+    const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
+      {
+        {"RunB" ,{"B_ZB.root", "B.root"}},
+        {"RunC" ,{"C_ZB.root", "C.root"}},
+        {"RunD" ,{"D_ZB.root", "D.root"}},
+        {"RunE" ,{"E_ZB.root", "E.root"}},
+        {"RunFe",{"Fe_ZB.root", "Fe.root"}},
+        {"RunFl",{"Fl_ZB.root", "Fl.root"}},
+        {"RunG" ,{"G_ZB.root", "G.root"}},
+        {"RunH" ,{"H_ZB.root", "H.root"}}
+      },
+      {
+        {"RunB",{"B_ZB.root", "B.root"}},
+        {"RunC",{"C_ZB.root", "C.root"}},
+        {"RunD",{"D_ZB.root", "D.root"}},
+        {"RunE",{"E_ZB.root", "E.root"}},
+        {"RunF",{"F_ZB.root", "F.root"}}
+      },
+      {
+        {"RunH_FSQJ2",{"H_FSQJ2.root"}},
+        {"RunH_FSQJ2Fwd",{"H_FSQJ2.root"}},
+        {"RunH_LEG",{"H_LEG.root"}},
+        {"RunH_LEGFwd",{"H_LEG.root"}},
+        {"RunH_HEG",{"H_HEG.root"}},
+        {"RunH_HEGFwd",{"H_HEG.root"}},
+        {"RunH_ZB",{"H_ZB.root"}}
+      },
+      {
+        {"RunA",{"A.root"}},
+        {"RunB",{"B.root"}},
+        {"RunC",{"C3_0.root","C3_1.root"}}
+      }
+    }};
+    const map<string,vector<const char*>> dtfiles = dtfiles_.at(yid);
+    //}
+
+    //{ BEGIN MC: Generic options
+    const array<map<string,vector<const char*>>,yrs> mcfiles_ = {{
+      {
+        {"P8M1",{"MC/2016/P8M1/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
+        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"P8CP5",{"MC16_P8M1_Flat.root"}}
+      }
+    }};
+    const map<string,vector<const char*>> mcfiles = mcfiles_.at(yid);
+    const array<map<string,vector<const char*>>,yrs> hwfiles_ = {{
+      {
+        {"HS1",{"MC/2016/HS1/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
+      },
+      {
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
+      }
+    }};
+    const map<string,vector<const char*>> hwfiles = hwfiles_.at(yid);
+    //}
+
+    //{ BEGIN MC: Process pThatbinned file options
+    // All the following values need to be updated, if other source tuples are used.
+    const array<const char*,yrs> pthatpath_ = {
+      "MC/2016/P8M1/",
+      "MC/2017/P8CP5/",
+      "MC/2017/P8CP5/",
+      "Ses"
+    };
+    const char* pthatpath = pthatpath_.at(yid);
+    // The corresponding ranges, the last number is ~inf
+    const vector<double> pthatranges = {15,30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200,20000};
+    // Number of pthat bins
+    const unsigned int npthatbins = pthatranges.size()-1;
+    // The corresponding lumis in picobarns (current values for CUETP8M1). These need to be fetched from McM
+    const vector<double> pthatsigmas =
+      {1837410000,140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+    // These can be obtained using GetSliceEvts.C: the 3200toInf number of events
+    const array<double,yrs> pthatnormalevts_ = {{
+      391735,
+      609460,
+      609460,
+      609460
+    }};
+    const double pthatnormalevts = pthatnormalevts_.at(yid);
+
+    // The filenames need to be given here and in mk_HistosFill, since ROOT is exceedingly stupid
+    const vector<const char*> pthatfiles = {
+      "Pthat_15to30","Pthat_30to50","Pthat_50to80","Pthat_80to120","Pthat_120to170","Pthat_170to300",
+      "Pthat_300to470","Pthat_470to600","Pthat_600to800","Pthat_800to1000","Pthat_1000to1400",
+      "Pthat_1400to1800","Pthat_1800to2400","Pthat_2400to3200","Pthat_3200toInf"
+    };
+    //} END pthatbins stuff
+
+  //} END DT/MC: File names
+
+  //{ BEGIN RUN2 params
+  constexpr double sqrts = 13000.; // GeV
+  constexpr double emax = sqrts/2.; // Max possible jet pt
+  constexpr double recopt = 15; // Min observed jet pt
+  constexpr double xsecMinBias = 7.126E+10;
+  constexpr double lumi = -4; // Unprescaled luminosity for plots in /fb
+  //} END Run2
+
+  //{ BEGIN Special HistosFill analyses that are not typically needed
+  // Eta phi exclusion due to hot ECAL regions (produced with dataequality.C)
+  constexpr bool doVetoHot = false;
+  const constexpr char HotType[] = ""; // h2hotr (Robert) or h2hotm (Mikko)
+
+  // Check for duplicates (warning: takes a lot of memory!)
+  constexpr bool checkduplicates = false;
+  //} END Special analyses that are not typically needed
+
+  //{ BEGIN HistosNormalize (leave these off if not interested on details)
+  // Correct for trigger efficiency based on MC
+  constexpr bool dotrigeff = false; // CAUTION: Requires output-MC-1.root file
+  // Correct pT<114 GeV only, if above dotrigeff=true
+  constexpr bool dotrigefflowptonly = false; // CAUTION: Not needed
+  // Correct for time-dependence (prescales) in data
+  constexpr bool dotimedep = false; // CAUTION: Unknown consequences
+  //} END HistosNormalize
+
+  //{ BEGIN drawSummary
+  // Center uncertainties around ansatz (true) or data (false)
+  constexpr bool centerOnAnsatz = false;
+  constexpr bool centerOnTheory = false;
+  // Plot Pythia for final PRL results
+  constexpr bool plotPythia = false;
+  // Draw againts HERAPDF1.7 instead of PDF4LHC (drawSummary)
+  constexpr bool herapdf = false;
+  // Produce plots (also drawRunHistos)
+  constexpr bool pdf = true;
+  //} END drawSummary
+
+  //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
+  // Minimum and maximum pT range to be plotted and fitted
+  constexpr double fitptmin = 114;//43;
+  // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
+  constexpr double xmin57 = 114;//56;
+  constexpr double xminpas = 114;//56;
+  constexpr double xmin = 114;//24.;//20.;
+  constexpr double xmax = 1497;//TEMP PATCH for partial data //1999.;
+  //} END limits
+
+  //{ BEGIN Binnings
+  // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
+  // pT<100 GeV to optimize bin widths for PFJets and b-tagging
+  // (little higher than resolution, but fairly flat relative width)
+  // http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/QCDAnalysis/HighPtJetAnalysis/interface/DefaultPtBins.h?revision=1.2&view=markup
+  // Logic: 'n' means number of bins (len-1) and 'no' the length of an array (len)
+  constexpr const double ptrange[] = {
+    1, 5, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832, 4037, 4252, 4477, 4713, 4961, 5220, 5492, 5777, 6076, 6389, 6717, 7000
+  };
+  constexpr const unsigned int npts = sizeof(ptrange)/sizeof(ptrange[0])-1;
+
+  // A wide binning for pt: these should agree with trigger turn-on places
+  constexpr const double wptrange[] = {
+    1, 15, 21, 28, 37, 49, 64, 84, 114, 153, 196, 272, 330, 395, 468, 548,
+    686, 846, 1032, 1248, 1588, 2000, 2500, 3103, 3832,
+    4713, 5777, 7000
+  };
+  constexpr const int nwpts = sizeof(wptrange)/sizeof(wptrange[0])-1;
+
+  // Optimized binning created by optimizeBins.C ("MC"; lumi 1000/pb, eff 1e+10%)
+  // Using NLOxNP theory fit as input when available
+  constexpr const unsigned int nopts_eta = 65;
+  constexpr const double ptrangevseta[][nopts_eta] = {
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3832, 6076, 6389}, // Eta_0.0-0.5
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3637, 5220, 5492}, // Eta_0.5-1.0
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2238, 2366, 2500, 2640, 2941, 3832}, // Eta_1.0-1.5
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116, 2500, 2640}, // Eta_1.5-2.0
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032, 1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684}, // Eta_2.0-2.5
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032}, // Eta_2.5-3.0
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032}, // Eta_3.0-3.5
+    {10, 12, 15, 18, 21, 24, 28, 32, 37, 43, 49, 56, 64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362, 395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032} // Eta_3.5-4.0
+  };
+  constexpr const unsigned int noptranges = sizeof(ptrangevseta)/sizeof(ptrangevseta[0]);
+
+  constexpr const double wetarange[] = {
+    -5.191, -3.839, -3.489, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322,
+    -2.172, -1.930, -1.653, -1.479, -1.305, -1.044, -0.783, -0.522, -0.261,
+      0.000,  0.261,  0.522,  0.783,  1.044,  1.305,  1.479,  1.653,  1.930,
+      2.172,  2.322,  2.500,  2.650,  2.853,  2.964,  3.139,  3.489,  3.839, 5.191
+  };
+  constexpr const unsigned int nwetas = sizeof(wetarange)/sizeof(wetarange[0])-1;
+
+  constexpr const double posetarange[] = {
+    0, 0.261, 0.522, 0.783, 0.957, 1.131, 1.305, 1.479, 1.93, 2.322, 2.411, 2.5, 2.853, 2.964, 5.191
+  };
+  constexpr const unsigned int nposetas = sizeof(posetarange)/sizeof(posetarange[0])-1;
+
+  constexpr const double etarange[] = {
+    -5.191,-4.889,-4.716,-4.538,-4.363,-4.191,-4.013,-3.839,-3.664,-3.489,-3.314,
+    -3.139,-2.964,-2.853,-2.65,-2.5,-2.322,-2.172,-2.043,-1.93,-1.83,-1.74,-1.653,
+    -1.566,-1.479,-1.392,-1.305,-1.218,-1.131,-1.044,-0.957,-0.879,-0.783,-0.696,
+    -0.609,-0.522,-0.435,-0.348,-0.261,-0.174,-0.087, 0.000, 0.087, 0.174, 0.261,
+      0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.879, 0.957, 1.044, 1.131, 1.218,
+      1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5,
+      2.65, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363,
+      4.538, 4.716, 4.889, 5.191
+  };
+  constexpr const unsigned int netas = sizeof(etarange)/sizeof(etarange[0])-1;
+
+  constexpr const double pvrange[] = {
+    -0.5,0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,10.5,11.5,12.5,13.5,14.5,15.5,16.5,17.5,18.5,19.5,20.5,21.5,22.5,23.5,24.5,25.5,26.5,27.5,28.5,29.5,30.5,31.5,32.5,33.5,34.5,35.5,36.5,37.5,38.5,39.5,40.5,41.5,42.5,43.5,44.5,45.5,46.5,47.5,48.5,49.5
+  };
+  constexpr const unsigned int npvs = sizeof(pvrange)/sizeof(pvrange[0])-1;
+
+  constexpr const double phirange[] = {
+    -3.15,-3.097959,-3.054326,-3.010693,-2.967060,-2.923426,-2.879793,-2.836160,-2.792527,-2.748894,-2.705260,-2.661627,-2.617994,-2.574361,-2.530727,-2.487094,-2.443461,-2.399828,-2.356194,-2.312561,-2.268928,-2.225295,-2.181662,-2.138028,-2.094395,-2.050762,-2.007129,-1.963495,-1.919862,-1.876229,-1.832596,-1.788962,-1.745329,-1.701696,-1.658063,-1.614430,-1.570796,-1.527163,-1.483530,-1.439897,-1.396263,-1.352630,-1.308997,-1.265364,-1.221730,-1.178097,-1.134464,-1.090831,-1.047198,-1.003564,-0.959931,-0.916298,-0.872665,-0.829031,-0.785398,-0.741765,-0.698132,-0.654498,-0.610865,-0.567232,-0.523599,-0.479966,-0.436332,-0.392699,-0.349066,-0.305433,-0.261799,-0.218166,-0.174533,-0.130900,-0.087266,-0.043633,0.000000,0.043633,0.087266,0.130900,0.174533,0.218166,0.261799,0.305433,0.349066,0.392699,0.436332,0.479966,0.523599,0.567232,0.610865,0.654498,0.698132,0.741765,0.785398,0.829031,0.872665,0.916298,0.959931,1.003564,1.047198,1.090831,1.134464,1.178097,1.221730,1.265364,1.308997,1.352630,1.396263,1.439897,1.483530,1.527163,1.570796,1.614430,1.658063,1.701696,1.745329,1.788962,1.832596,1.876229,1.919862,1.963495,2.007129,2.050762,2.094395,2.138028,2.181662,2.225295,2.268928,2.312561,2.356194,2.399828,2.443461,2.487094,2.530727,2.574361,2.617994,2.661627,2.705260,2.748894,2.792527,2.836160,2.879793,2.923426,2.967060,3.010693,3.054326,3.097959,3.15
+  };
+  constexpr const unsigned int nphis = sizeof(phirange)/sizeof(phirange[0])-1;
+
+  constexpr const double posphirange[] = {
+  0.000000,0.021817,0.043633,0.065450,0.087266,0.109083,0.130900,0.152716,0.174533,0.196350,0.218166,0.239983,0.261799,0.283616,0.305433,0.327249,0.349066,0.370882,0.392699,0.414516,0.436332,0.458149,0.479966,0.501782,0.523599,0.545415,0.567232,0.589049,0.610865,0.632682,0.654498,0.676315,0.698132,0.719948,0.741765,0.763582,0.785398,0.807215,0.829031,0.850848,0.872665,0.894481,0.916298,0.938114,0.959931,0.981748,1.003564,1.025381,1.047198,1.069014,1.090831,1.112647,1.134464,1.156281,1.178097,1.199914,1.221730,1.243547,1.265364,1.287180,1.308997,1.330814,1.352630,1.374447,1.396263,1.418080,1.439897,1.461713,1.483530,1.505346,1.527163,1.548980,1.570796,1.592613,1.614430,1.636246,1.658063,1.679879,1.701696,1.723513,1.745329,1.767146,1.788962,1.810779,1.832596,1.854412,1.876229,1.898046,1.919862,1.941679,1.963495,1.985312,2.007129,2.028945,2.050762,2.072578,2.094395,2.116212,2.138028,2.159845,2.181662,2.203478,2.225295,2.247111,2.268928,2.290745,2.312561,2.334378,2.356194,2.378011,2.399828,2.421644,2.443461,2.465278,2.487094,2.508911,2.530727,2.552544,2.574361,2.596177,2.617994,2.639810,2.661627,2.683444,2.705260,2.727077,2.748894,2.770710,2.792527,2.814343,2.836160,2.857977,2.879793,2.901610,2.923426,2.945243,2.967060,2.988876,3.010693,3.032510,3.054326,3.076143,3.097959,3.119776,3.15
+  };
+  constexpr const unsigned int nposphis = sizeof(posphirange)/sizeof(posphirange[0])-1;
+
+  constexpr const double wphirange[] = {
+    -3.15,-2.96706,-2.79253,-2.61799,-2.44346,-2.26893,-2.0944,-1.91986,-1.74533,-1.5708,-1.39626,-1.22173,-1.0472,-0.872665,-0.698132,-0.523599,-0.349066,-0.174533,0,0.174533,0.349066,0.523599,0.698132,0.872665,1.0472,1.22173,1.39626,1.5708,1.74533,1.91986,2.0944,2.26893,2.44346,2.61799,2.79253,2.96706,3.15
+  };
+  constexpr const unsigned int nwphis = sizeof(wphirange)/sizeof(wphirange[0])-1;
+
+  constexpr const double wposphirange[] = {
+    0,0.0872665,0.174533,0.261799,0.349066,0.436332,0.523599,0.610865,0.698132,0.785398,0.872665,0.959931,1.0472,1.13446,1.22173,1.309,1.39626,1.48353,1.5708,1.65806,1.74533,1.8326,1.91986,2.00713,2.0944,2.18166,2.26893,2.35619,2.44346,2.53073,2.61799,2.70526,2.79253,2.87979,2.96706,3.05433,3.15
+  };
+  constexpr const unsigned int nwposphis = sizeof(wposphirange)/sizeof(wposphirange[0])-1;
+
+  //} END Binnings
+}
+#endif // STNGS
