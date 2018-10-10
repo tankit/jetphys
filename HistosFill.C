@@ -1153,7 +1153,7 @@ bool HistosFill::AcceptEvent()
   // Equipped in FillBasic and FillRun
   _pass_qcdmet = met01 < 45. or met01 < 0.4 * metsumet01; // QCD-11-004
 #else
-  _pass_qcdmet = met < 45. or met < 0.4 * metsumet; 
+  _pass_qcdmet = met < 45. or met < 0.4 * metsumet;
 #endif
 
   return true;
@@ -1385,9 +1385,20 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
   if (h->ismcdir) h->hpthat->Fill(pthat, _w);
   if (h->ismcdir) h->hpthatnlo->Fill(pthat);
 
+  //{ Pre-calculate some nice garden tools
   int i0 = jt3leads[0];
   int i1 = jt3leads[1];
   int i2 = jt3leads[2];
+  if (i0 < 0.) return; // This should not happen, but check just in case
+
+  double ptave = (i1>=0 ? 0.5 * (jtpt[i0] + jtpt[i1]) : jtpt[i0]);
+  double dphi = (i1>=0 ? DPhi(jtphi[i0], jtphi[i1]) : 0.);
+  double dpt = (i1>=0 ? fabs(jtpt[i0]-jtpt[i1])/(2*ptave) : 0.999);
+  // If the jetID is bad for the third jet (and the third jet is visible), we set pt3 to ptave (alpha = 1)
+  double pt3 = ((i1>=0 and i2>=0 and jtpt[i2]>jp::recopt) ? (_jetids[i2] ? jtpt[i2] : ptave) : 0.);
+  double alpha = pt3/ptave;
+  //} Garden tools
+
   if (_pass_qcdmet and i0>=0 and _jetids[i0] and jtpt[i0]>jp::recopt) { // First leading jet
     if (i1>=0 and _jetids[i1] and jtpt[i1]>jp::recopt) { // Second leading jet
       //{ Calculate and fill dijet mass.
@@ -1397,32 +1408,39 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
       double etamaxdj = max(fabs(jteta[i0]),fabs(jteta[i1]));
       bool goodjets = (jtpt[i0]>30. and jtpt[i1]>30.);
       // The eta sectors are filled according to max eta
-      // NOTE: alpha and dphi cuts are currently completely missing!
       if (goodjets and etamaxdj >= h->etamin and etamaxdj < h->etamax) {
         assert(h->hdjmass); h->hdjmass->Fill(djmass, _w);
         assert(h->hdjmass0); h->hdjmass0->Fill(djmass, _w);
         assert(h->pdjmass_ptratio); h->pdjmass_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
         assert(h->pdjmass0_ptratio); h->pdjmass0_ptratio->Fill(djmass, _j1.Pt()/_j2.Pt(), _w);
+        if (dphi > 2.7) { // Back-to-back condition
+          if (alpha<0.1) { assert(h->hdjmass_a01); h->hdjmass_a01->Fill(djmass, _w); }
+          if (alpha<0.2) { assert(h->hdjmass_a02); h->hdjmass_a02->Fill(djmass, _w); }
+          if (alpha<0.3) { assert(h->hdjmass_a03); h->hdjmass_a03->Fill(djmass, _w); }
+        }
       }
       //} Dijet mass
-
+      //{ Calculate and fill jet mass.
+      assert(h->hjmass);  h->hjmass->Fill(_j1.M(),weight);  h->hjmass->Fill(_j2.M(),weight);
+      assert(h->hjmass0); h->hjmass0->Fill(_j1.M(),weight); h->hjmass0->Fill(_j2.M(),weight);
+      if (dphi > 2.7) { // Back-to-back condition
+        if (alpha<0.1) { assert(h->hjmass_a01); h->hjmass_a01->Fill(_j1.M(),weight); h->hjmass_a01->Fill(_j2.M(),weight); }
+        if (alpha<0.2) { assert(h->hjmass_a02); h->hjmass_a02->Fill(_j1.M(),weight); h->hjmass_a02->Fill(_j2.M(),weight); }
+        if (alpha<0.3) { assert(h->hjmass_a03); h->hjmass_a03->Fill(_j1.M(),weight); h->hjmass_a03->Fill(_j2.M(),weight); }
+      }
+      //}
 
       //{ Tag & probe hoods: Tag in barrel and fires trigger, probe in eta bin unbiased
       if (jp::debug) cout << "Calculate and fill dijet balance" << endl << flush;
 
-      double dphi = DPhi(jtphi[i0], jtphi[i1]);
-
       if (dphi > 2.7) { // Back-to-back condition
-        double pt3 = ((i2>=0 and jtpt[i2]>jp::recopt) ? jtpt[i2] : 0.);
-        double ptave = 0.5 * (jtpt[i0] + jtpt[i1]);
-        double alpha = pt3/ptave;
-
         for (auto itag_lead = 0u; itag_lead<2u; ++itag_lead) { // Look for both t&p combos for the leading jets
           int itag = jt3leads[itag_lead];
           int iprobe = jt3leads[(itag_lead==0 ? 1 : 0)];
           double etatag = jteta[itag];
           double etaprobe = jteta[iprobe];
 
+          // Eta sel: tag in barrel, probe in current slice
           if (fabs(etatag) < 1.3 and fabs(etaprobe) >= h->etamin and fabs(etaprobe) < h->etamax) { // Eta sel.
             double pttag = jtpt[itag];
             double ptprobe = jtpt[iprobe];
@@ -1444,7 +1462,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
               assert(h->hdjmpftp);   h->hdjmpftp->Fill(pttag, alphatp, mpftp, _w);
             }
             //} // Dijet balance
-            if (alphatp < 0.3) {
+            if (alphatp < 0.3 or ptave < 45) {
               //{ Composition vs pt tag pt
               // Fractions vs pt: we do pt selection later in HistosCombine
               assert(h->pncandtp);    h->pncandtp->Fill(pttag, jtn[iprobe], _w);
@@ -1494,7 +1512,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->hmuftp);      h->hmuftp->Fill(jtmuf[iprobe], _w);
                 assert(h->hhhftp);      h->hhhftp->Fill(jthhf[iprobe], _w);
                 assert(h->hheftp);      h->hheftp->Fill(jthef[iprobe], _w);
-                assert(h->hpuftp); h->hpuftp->Fill(jtbetaprime[iprobe]*jtchf[iprobe], _w);
+                assert(h->hpuftp);      h->hpuftp->Fill(jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 // Fractions vs number of primary vertices
                 assert(h->pncandtp_vsnpv);    h->pncandtp_vsnpv->Fill(npvgood, jtn[iprobe], _w);
@@ -1512,7 +1530,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pmuftp_vsnpv);      h->pmuftp_vsnpv->Fill(npvgood, jtmuf[iprobe], _w);
                 assert(h->phhftp_vsnpv);      h->phhftp_vsnpv->Fill(npvgood, jthhf[iprobe], _w);
                 assert(h->pheftp_vsnpv);      h->pheftp_vsnpv->Fill(npvgood, jthef[iprobe], _w);
-                assert(h->ppuftp_vsnpv); h->ppuftp_vsnpv->Fill(npvgood, jtbetaprime[iprobe]*jtchf[iprobe], _w);
+                assert(h->ppuftp_vsnpv);      h->ppuftp_vsnpv->Fill(npvgood, jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 // Fractions vs true pileup
                 assert(h->pchftp_vstrpu);      h->pchftp_vstrpu->Fill(trpu, jtchf[iprobe], _w);
@@ -1522,7 +1540,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->pmuftp_vstrpu);      h->pmuftp_vstrpu->Fill(trpu, jtmuf[iprobe], _w);
                 assert(h->phhftp_vstrpu);      h->phhftp_vstrpu->Fill(trpu, jthhf[iprobe], _w);
                 assert(h->pheftp_vstrpu);      h->pheftp_vstrpu->Fill(trpu, jthef[iprobe], _w);
-                assert(h->ppuftp_vstrpu); h->ppuftp_vstrpu->Fill(trpu, jtbetaprime[iprobe]*jtchf[iprobe], _w);
+                assert(h->ppuftp_vstrpu);      h->ppuftp_vstrpu->Fill(trpu, jtbetaprime[iprobe]*jtchf[iprobe], _w);
 
                 if (jp::doPhiHistos) {
                   if (etaprobe>0) {
@@ -1533,7 +1551,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->pmufpostp_vsphi);      h->pmufpostp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
                     assert(h->phhfpostp_vsphi);      h->phhfpostp_vsphi->Fill(phiprobe, jthhf[iprobe], _w);
                     assert(h->phefpostp_vsphi);      h->phefpostp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
-                    assert(h->ppufpostp_vsphi); h->ppufpostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
+                    assert(h->ppufpostp_vsphi);      h->ppufpostp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
                   } else {
                     assert(h->pchfnegtp_vsphi);      h->pchfnegtp_vsphi->Fill(phiprobe, jtchf[iprobe], _w);
                     assert(h->pnefnegtp_vsphi);      h->pnefnegtp_vsphi->Fill(phiprobe, (jtnef[iprobe]-jthef[iprobe]), _w);
@@ -1542,7 +1560,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                     assert(h->pmufnegtp_vsphi);      h->pmufnegtp_vsphi->Fill(phiprobe, jtmuf[iprobe], _w);
                     assert(h->phhfnegtp_vsphi);      h->phhfnegtp_vsphi->Fill(phiprobe, jthhf[iprobe], _w);
                     assert(h->phefnegtp_vsphi);      h->phefnegtp_vsphi->Fill(phiprobe, jthef[iprobe], _w);
-                    assert(h->ppufnegtp_vsphi); h->ppufnegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
+                    assert(h->ppufnegtp_vsphi);      h->ppufnegtp_vsphi->Fill(phiprobe, jtbetaprime[iprobe]*jtchf[iprobe], _w);
                   }
                 }
               } // Tag fires trigger
@@ -1570,10 +1588,6 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
       h->px32->Fill(npvgood, has32 ? 1 : 0);
     } // Jet quality stats
   } // First leading jet
-
-  // retrieve event-wide variables
-  double dphi = (i1>=0 ? DPhi(jtphi[i0], jtphi[i1]) : 0.);
-  double dpt = (i1>=0 ? fabs(jtpt[i0]-jtpt[i1])/(jtpt[i0]+jtpt[i1]) : 0.999);
 
   if (jp::debug) cout << "Entering jet loop" << endl << flush;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
@@ -1667,48 +1681,6 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           if (jp::debug) cout << "..raw spectrum" << endl << flush;
 
           // REMOVED: "For trigger efficiency"
-
-          // new histograms for quark/gluon study (Ozlem)
-          double probg = 1. - qgl[jetidx]; // First approximation
-          if (jp::doqglfile) { // If we loaded a previous file to _h3probg, use this for better probg
-            assert(_h3probg);
-            probg = _h3probg->GetBinContent(_h3probg->FindBin(eta,pt,qgl[jetidx]));
-          }
-          if (probg>=0 and probg<=1) {
-            assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
-            assert(h->hgpt0); h->hgpt0->Fill(pt, _w*probg);
-
-            assert(h->hqgl);  h->hqgl->Fill(qgl[jetidx], _w);
-            assert(h->hqgl2); h->hqgl2->Fill(pt, qgl[jetidx], _w);
-            if (jp::ismc) {
-              assert(h->hqgl_g);
-              assert(h->hqgl_q);
-              bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
-              bool isquark = (fabs(partonflavor[jetidx])<7);
-              assert(isgluon || isquark);
-
-              // For data templates from scaling Pythia (wq & wg), see instructions at
-              // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
-              double x = qgl[jetidx];
-              if (isgluon) {
-                h->hqgl_g->Fill(x, _w);
-                h->hqgl2_g->Fill(pt, x, _w);
-                double wg = 1;//-55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
-                assert(wg>0);
-                h->hqgl_dg->Fill(x, _w*wg);
-                h->hqgl2_dg->Fill(pt, x, _w*wg);
-              } else if (isquark) {
-                h->hqgl_q->Fill(x, _w);
-                h->hqgl2_q->Fill(pt, x, _w);
-                double wq = 1;// -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
-                assert(wq>0);
-                h->hqgl_dq->Fill(x, _w*wq);
-                h->hqgl2_dq->Fill(pt, x, _w*wq);
-              } else {
-                PrintInfo("Quark/Gluon status missing from partonflavor");
-              }
-            }
-          } // probg quark/gluon
 
           // raw spectrum
           assert(h->hpt); h->hpt->Fill(pt,_w);
@@ -1853,6 +1825,48 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           h->pmpf->Fill(pt, 1 + met * cos(DPhi(metphi, phi)) / pt, _w);
           h->pmpf1->Fill(pt, 1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
           h->pmpf2->Fill(pt, 1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
+
+          // Histograms for quark/gluon study (Ozlem)
+          double probg = 1. - qgl[jetidx]; // First approximation
+          if (jp::doqglfile) { // If we loaded a previous file to _h3probg, use this for a better probg value
+            assert(_h3probg);
+            probg = _h3probg->GetBinContent(_h3probg->FindBin(eta,pt,qgl[jetidx]));
+          }
+          if (probg>=0 and probg<=1) {
+            assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
+            assert(h->hgpt0); h->hgpt0->Fill(pt, _w*probg);
+
+            assert(h->hqgl);  h->hqgl->Fill(qgl[jetidx], _w);
+            assert(h->hqgl2); h->hqgl2->Fill(pt, qgl[jetidx], _w);
+            if (jp::ismc) {
+              assert(h->hqgl_g);
+              assert(h->hqgl_q);
+              bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
+              bool isquark = (fabs(partonflavor[jetidx])<7);
+              assert(isgluon || isquark);
+
+              // For data templates from scaling Pythia (wq & wg), see instructions at
+              // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
+              double x = qgl[jetidx];
+              if (isgluon) {
+                h->hqgl_g->Fill(x, _w);
+                h->hqgl2_g->Fill(pt, x, _w);
+                double wg = 1;//-55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+                assert(wg>0);
+                h->hqgl_dg->Fill(x, _w*wg);
+                h->hqgl2_dg->Fill(pt, x, _w*wg);
+              } else if (isquark) {
+                h->hqgl_q->Fill(x, _w);
+                h->hqgl2_q->Fill(pt, x, _w);
+                double wq = 1;// -0.666978*x*x*x + 0.929524*x*x -0.255505*x + 0.981581;
+                assert(wq>0);
+                h->hqgl_dq->Fill(x, _w*wq);
+                h->hqgl2_dq->Fill(pt, x, _w*wq);
+              } else {
+                PrintInfo("Quark/Gluon status missing from partonflavor");
+              }
+            }
+          } // probg quark/gluon
 
           if (h->ismcdir and mcgendr) { // MC extras
             if (jp::debug)

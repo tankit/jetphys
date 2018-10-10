@@ -103,8 +103,17 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   // dijet mass
   hdjmass = new TH1D("hdjmass","",nx,&x[0]);
   hdjmass0 = new TH1D("hdjmass0","",static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  hdjmass_a01 = new TH1D("hdjmass_a01","",nx,&x[0]);
+  hdjmass_a02 = new TH1D("hdjmass_a02","",nx,&x[0]);
+  hdjmass_a03 = new TH1D("hdjmass_a03","",nx,&x[0]);
   pdjmass_ptratio = new TProfile("pdjmass_ptratio","",nx,&x[0]);
   pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","", static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  // leading jet mass
+  hjmass = new TH1D("hjmass","",nx,&x[0]);
+  hjmass0 = new TH1D("hjmass0","",static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  hjmass_a01 = new TH1D("hjmass_a01","",nx,&x[0]);
+  hjmass_a02 = new TH1D("hjmass_a02","",nx,&x[0]);
+  hjmass_a03 = new TH1D("hjmass_a03","",nx,&x[0]);
 
   // basic properties
   ppt = new TProfile("ppt","",nx,&x[0]);
