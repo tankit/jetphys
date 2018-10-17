@@ -48,7 +48,7 @@
 
 class HistosFill {
 public :
-  TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+  TChain          *fChain;   //!pointer to the analyzed TTree or TChain
   Int_t           fCurrent; //!current Tree number in a TChain
 
   static const Int_t kMaxGenJets_   = 100;
@@ -166,6 +166,7 @@ public :
     fChain->Show(entry);
   }
   virtual Long64_t LoadTree(Long64_t entry);
+  virtual Int_t    FindPthatIdx(string filename);
   virtual void     PrintInfo(string info, bool printcout = false);
   virtual void     PrintMemInfo(bool printcout = false);
 
@@ -174,7 +175,7 @@ public :
     //if (ferr) delete ferr;
   }
   HistosFill(TChain *tree);
-  virtual bool     Init(TTree *tree); // custom
+  virtual bool     Init(TChain *tree); // custom
 
   virtual void     Loop();
   virtual bool     PreRun();
@@ -238,6 +239,7 @@ private:
   double _xsecMinBias;
   double _w, _w0;
   double _pthatweight;
+  int    _pthatrepeats;
 
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
