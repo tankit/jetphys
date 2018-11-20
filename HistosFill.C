@@ -442,10 +442,10 @@ void HistosFill::Loop()
   PrintInfo(Form("Finished processing %lld entries:",_nentries),true);
   PrintMemInfo(true);
 
-  if (jp::doRunHistos)   WriteRun();
+  if (jp::isdt and jp::doRunHistos)   WriteRun();
   if (jp::doEtaHistos)   WriteEta();
   if (jp::ismc and jp::doEtaHistos and jp::doEtaHistosMcResponse) WriteMC();
-  if (jp::doMpfHistos)   WriteAll();
+  if (jp::isdt and jp::doMpfHistos)   WriteAll();
   if (jp::doBasicHistos) WriteBasic(); // this needs to be last, output file closed
 
   Report();
@@ -580,8 +580,15 @@ bool HistosFill::PreRun()
     }
   }
 
-  if (jp::doMpfHistos) {
+  if (jp::isdt and jp::doMpfHistos) {
     InitAll("AllTrigs");
+  }
+
+  if (jp::isdt and jp::doRunHistos) {
+    InitRun("Runs",0.,3.);
+    InitRun("RunsBarrel",0.,1.);
+    InitRun("RunsTransition",1.,2.);
+    InitRun("RunsEndcap",2.,3.);
   }
 
   // For debugging purposes, save the weights used for pileup profiles.
@@ -591,13 +598,6 @@ bool HistosFill::PreRun()
     _outfile->cd("puwgt");
     for (auto &puprof : _pudist)
       puprof.second->Write();
-  }
-
-  if (jp::isdt and jp::doRunHistos) {
-    InitRun("Runs",0.,3.);
-    InitRun("RunsBarrel",0.,1.);
-    InitRun("RunsTransition",1.,2.);
-    InitRun("RunsEndcap",2.,3.);
   }
 
   if (jp::doVetoHot) {
