@@ -31,6 +31,8 @@ class HistosAll {
   // These are created using the jp::wwptrange bins
   TProfile * pmetave;
   TProfile * pmetave_nol2l3;
+  TProfile * ppttagave;
+  TProfile * ppttagave_nol2l3;
   vector<TProfile2D *> p2ptjet1;
   vector<TProfile2D *> p2ptjet2;
   vector<TProfile2D *> p2ptjet3;

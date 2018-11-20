@@ -16,6 +16,8 @@ HistosAll::HistosAll(TDirectory *dir) {
 
   pmetave        = new TProfile("pmetave",       ";p_T^{tag};MET^{proj}_{ave};",jp::nwwpts,jp::wwptrange);
   pmetave_nol2l3 = new TProfile("pmetave_nol2l3",";p_T^{tag};MET^{proj}_{ave};",jp::nwwpts,jp::wwptrange);
+  ppttagave        = new TProfile("ppttagave",       ";p_T^{tag};p^{proj}_{T,ave};",jp::nwwpts,jp::wwptrange);
+  ppttagave_nol2l3 = new TProfile("ppttagave_nol2l3",";p_T^{tag};p^{proj}_{T,ave};",jp::nwwpts,jp::wwptrange);
   for (unsigned idx = 0; idx < jp::nwwpts; ++idx) {
     int num = jp::wwptrange[idx];
     string number = std::to_string(num);

@@ -2593,11 +2593,14 @@ void HistosFill::FillAll(string name)
         double ju_px = cos(jtphi[0]);
         double ju_py = sin(jtphi[0]);
 
-        // Let's fill MET histos
+        // Let's fill MET histos and pttag histos
+        double pttag_nol2l3 = jtpt_nol2l3[0];
         double projmet = ju_px * cos(metphi1) + ju_py * sin(metphi1);
         double projmet_nol2l3 = ju_px * cos(metphi1_nol2l3) + ju_py * sin(metphi1_nol2l3);
-        h->pmetave->Fill(pttag,projmet*met1,wt);
-        h->pmetave_nol2l3->Fill(jtpt_nol2l3[0],projmet_nol2l3*met1_nol2l3,wt);
+        h->pmetave         ->Fill(pttag,       projmet       *met1,       wt);
+        h->pmetave_nol2l3  ->Fill(pttag_nol2l3,projmet_nol2l3*met1_nol2l3,wt);
+        h->ppttagave       ->Fill(pttag,       pttag,                     wt);
+        h->ppttagave_nol2l3->Fill(pttag_nol2l3,pttag_nol2l3,              wt);
 
         // First jet
         int pidx = 1;
