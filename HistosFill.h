@@ -39,6 +39,7 @@
 #include "HistosEta.h"
 #include "HistosMC.h"
 #include "HistosRun.h"
+#include "HistosAll.h"
 #include "tools.h"
 #include "IOV.h"
 
@@ -208,6 +209,10 @@ public :
   void             FillRun(string name);
   void             WriteRun();
 
+  void             InitAll(string name);
+  void             FillAll(string name);
+  void             WriteAll();
+
   inline double DPhi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
@@ -265,6 +270,7 @@ private:
   map<string, vector<HistosEta*> > _etahistos;
   map<string, vector<HistosMC*> > _mchistos;
   map<string, HistosRun*> _runhistos;
+  map<string, HistosAll*> _allhistos;
   map<string, TH1D*> _pudist;
   map<string, int> _cnt; // efficiency counters
 
@@ -307,7 +313,6 @@ private:
   Float_t         &pvy;
   Float_t         &pvz;
   Float_t         &pvndof;
-  //UInt_t          pvntrk;
   Float_t         &bsx;
   Float_t         &bsy;
   //
@@ -325,9 +330,10 @@ private:
   Float_t         jteta[_maxnjt];   //[njt]
   Float_t         jtphi[_maxnjt];   //[njt]
   Float_t         jty[_maxnjt];   //[njt]
+  Float_t         jtpt_nol2l3[_maxnjt];   //[njt]
   Float_t         *jta;//[_maxnjt];   //[njt]
   Float_t         *jtjes;//[_maxnjt];   //[njt]
-  Float_t         *jtbetaprime;
+  Float_t         *jtbetaprime;//[_maxnjt];   //[njt]
   Float_t         jtjesnew[_maxnjt];   //[njt]
   Float_t         jtjes_l1[_maxnjt];   //[njt]
   Float_t         jtjes_l2l3[_maxnjt];   //[njt]
@@ -346,12 +352,10 @@ private:
   Float_t         jtgeneta[_maxnjt];   //[njt]
   Float_t         jtgenphi[_maxnjt];   //[njt]
 
-  Float_t         *qgl;
+  Float_t         *qgl;//[_maxnjt];   //[njt]
+  Int_t           *partonflavor;//[_maxnjt];   //[njt]
 #ifdef NEWMODE
-  Int_t           *partonflavor;
   Int_t           *partonflavorphys;
-#else
-  Float_t         *partonflavor;
 #endif
 
   Int_t           *jtn;//[_maxnjt];   //[njt]
@@ -386,13 +390,15 @@ private:
   Float_t         &met;
   Float_t         &metphi;
   Float_t         &metsumet;
-#ifdef NEWMODE 
+#ifdef NEWMODE
   Float_t         &met01;
   Float_t         &metsumet01;
 #endif
 
   Float_t         met1;
   Float_t         metphi1;
+  Float_t         met1_nol2l3;
+  Float_t         metphi1_nol2l3;
   Float_t         met2;
   Float_t         metphi2;
 };

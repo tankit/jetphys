@@ -17,6 +17,7 @@
 #include "HistosBasic.h"
 #include "HistosEta.h"
 #include "HistosMC.h"
+#include "HistosAll.h"
 #include "HistosFill.h"
 
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
@@ -30,6 +31,7 @@ R__LOAD_LIBRARY(HistosRun.C+g)
 R__LOAD_LIBRARY(HistosBasic.C+g)
 R__LOAD_LIBRARY(HistosEta.C+g)
 R__LOAD_LIBRARY(HistosMC.C+g)
+R__LOAD_LIBRARY(HistosAll.C+g)
 R__LOAD_LIBRARY(HistosFill.C+g)
 #else
 R__LOAD_LIBRARY(tools.C+)
@@ -37,6 +39,7 @@ R__LOAD_LIBRARY(HistosRun.C+)
 R__LOAD_LIBRARY(HistosBasic.C+)
 R__LOAD_LIBRARY(HistosEta.C+)
 R__LOAD_LIBRARY(HistosMC.C+)
+R__LOAD_LIBRARY(HistosAll.C+)
 R__LOAD_LIBRARY(HistosFill.C+)
 #endif // USEASSERT or not?
 

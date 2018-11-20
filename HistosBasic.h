@@ -198,6 +198,16 @@ class HistosBasic {
   TProfile *pheftp;
   TProfile *ppuftp;
   //
+  TProfile *ppttagptprobe;
+  TProfile *ppttageff;
+  TProfile *ppttagmu;
+  TProfile *ppttagptprobe_noa;
+  TProfile *ppttagmu_noa;
+  TH2D *h2pttagptprobe;
+  TH2D *h2pttagmu;
+  TH2D *h2pttagptprobe_noa;
+  TH2D *h2pttagmu_noa;
+  //
   TH1D *hncandtp;
   TH1D *hnchtp;
   TH1D *hnnetp;
