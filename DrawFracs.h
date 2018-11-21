@@ -104,7 +104,7 @@ public:
   * order:
   *  0 standard
   *  1 reshuffled */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0, string tp = "tp") {
     _plot_title = plot_title;
     _lumi_title = lumi_title;
     _savedir = savedir;
@@ -201,7 +201,7 @@ public:
     _h2min = {-4+1e-5, -4.5+1e-5, -6+1e-5, -5+1e-5, -4.5, -4.5};
     _h2max = { 4-1e-5, 4.5-1e-5, 16-1e-5, 5-1e-5, 4.5, 4.5};
 
-    _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
+    _tp = tp; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
     _usetriglines = true;
   }
 };

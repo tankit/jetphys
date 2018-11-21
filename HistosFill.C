@@ -2659,13 +2659,20 @@ void HistosFill::FillAll(string name)
             double cumul        = 0;
             double cumul_nol2l3 = 0;
             // We loop over jets, including the current jet, and take the cumulative sum corresponding to the bin of this jet
+            // A jet already considered is marked with the tag '-1'
             for (int jidx = pidx; jidx < njt; ++jidx) {
               bool match        = (assoc == jet2bin[jidx]);
               bool match_nol2l3 = (assoc_nol2l3 == jet2bin_nol2l3[jidx]);
               if (match or match_nol2l3) {
                 double proj4p = ju_px*cos(jtphi[jidx]) + ju_py*sin(jtphi[jidx]);
-                if (match)        cumul        += proj4p*jtpt       [jidx];
-                if (match_nol2l3) cumul_nol2l3 += proj4p*jtpt_nol2l3[jidx];
+                if (match) {
+                  cumul        += proj4p*jtpt       [jidx];
+                  jet2bin       [jidx] = -1;
+                }
+                if (match_nol2l3) {
+                  cumul_nol2l3 += proj4p*jtpt_nol2l3[jidx];
+                  jet2bin_nol2l3[jidx] = -1;
+                }
               }
             }
             double etaj4 = jteta[pidx];
