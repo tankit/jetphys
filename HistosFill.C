@@ -546,7 +546,7 @@ bool HistosFill::PreRun()
 
   // Load PU profiles for MC reweighing
   if (jp::ismc and jp::reweighPU) {
-    if (!LoadPuProfiles(jp::pudata, (jp::ispy ? jp::pumc : jp::puhw))) {
+    if (!LoadPuProfiles(jp::pudata, (jp::ispy ? jp::pumc : (jp::ishw ? jp::puhw : (jp::isnu ? jp::punu : ""))))) {
       cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
       return false;
     }

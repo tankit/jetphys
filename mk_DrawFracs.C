@@ -26,8 +26,18 @@ void mk_DrawFracs() {
     //string lumit="9.6 fb^{-1}";
     //string title="Run2017DE";
     //string lumit="13.6 fb^{-1}";
-    //string title="Run2017DE";
+    //string title="Run2017F";
     //string lumit="13.5 fb^{-1}";
+
+    // 2018 IOV's: tot. 53.27 fb^{-1}
+    //string title="Run2018A";
+    //string lumit="14.0 fb^{-1}";
+    //string title="Run2018B";
+    //string lumit="7.1 fb^{-1}";
+    //string title="Run2018C3";
+    //string lumit="3.0 fb^{-1}";
+    //string title="Run2018D";
+    //string lumit="29.2 fb^{-1}";
 
     for (unsigned idx = 0; idx < mctypes.size(); ++idx) {
       const char *mctype = mctypes[idx];
