@@ -334,7 +334,7 @@ bool HistosFill::Init(TChain *tree)
 
   // Put some logging info into the file
   _runinfo = "\n";
-  vector<string> infofiles = {"settings.h","HistosFill.h","HistosFill.C","HistosBasic.h","HistosBasic.C","HistosEta.h","HistosEta.C","HistosAll.h","HistosAll.C"};
+  vector<string> infofiles = {"settings.h","HistosFill.h","HistosFill.C","HistosBasic.h","HistosBasic.C","HistosEta.h","HistosEta.C","HistosAll.h","HistosAll.C","HistosNormalize.C","HistosCombine.C"};
   if (jp::gitinfo) {
     gROOT->ProcessLine(".!git log > gitlog.txt");
     infofiles.push_back("gitlog.txt");

@@ -157,9 +157,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       if (loclvl==1) cout << endl << "Entering: " << indir2->GetName();
 
       recurseFile(indir2, outdir2, etawid, etamid, loclvl);
-    } // inherits from TDirectory
-
-    if (obj->InheritsFrom("TH1")) { // Normalize (or just pass on) histogrammish objects
+      // inherits from TDirectory
+    } else if (obj->InheritsFrom("TH1")) { // Normalize (or just pass on) histogrammish objects
       outdir->cd();
       string name = obj->GetName();
       string trgname = indir->GetName();
@@ -472,7 +471,15 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       obj2->Write();
       obj2->Delete();
       indir->cd();
-    } // inherits from TH1
+      // inherits from TH1
+    } else { // Others
+      // Save the stuff into an identical directory
+      TObject *obj2 = obj->Clone(obj->GetName()); // Copy the input object to output
+      outdir->cd();
+      obj2->Write();
+      obj2->Delete();
+      indir->cd();
+    }
     obj->Delete();
   } // while key
 
