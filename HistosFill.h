@@ -401,6 +401,8 @@ private:
   Float_t         metphi1_nol2l3;
   Float_t         met2;
   Float_t         metphi2;
+
+  string         _runinfo;
 };
 
 #endif

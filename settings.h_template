@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
+#include <streambuf>
 
 using std::map;
 using std::vector;
@@ -47,19 +48,20 @@ namespace jp {
   constexpr const char* chs = "CHS";
   // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
   constexpr const char* algo = "AK4PFchs";
-  // Data type ("DATA", "MC", or "HW")
+  // Data type ("DATA", "MC", "HW", or "NU")
   constexpr const char* type = "DATA";
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunG";
-  // In case of flat MC, choose file (all options given in mcfiles/hwfiles)
+  constexpr const char* run = "RunD";
+  // In case of flat MC, choose file (all options given in mcfiles)
   constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
   constexpr const char* hwfile = "HS1";
+  constexpr const char* nufile = "NuGun";
   // Do we use pthatbinned MC (if not, we use flat)
   constexpr bool pthatbins = false;
 
-  const unsigned int   yid = 0; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
   // Luminosity weighting options (DATA)
@@ -108,6 +110,7 @@ namespace jp {
   constexpr bool ismc = !isdt;
   constexpr bool ispy = strings_equal(type,"MC");
   constexpr bool ishw = strings_equal(type,"HW");
+  constexpr bool isnu = strings_equal(type,"NU");
 
   //{ BEGIN A group of constexpr switches and their settings to turn some parts of the code on/off
   // If the output files grow too much, processing becomes more difficult.
@@ -123,9 +126,9 @@ namespace jp {
   // Toggle 3D asymmetry and mpf histos off, if too much space is consumed
   constexpr bool do3dHistos = true;
   // Toggle phi histograms
-  constexpr bool doPhiHistos = true;
+  constexpr bool doPhiHistos = false;
   // Toggle development histos
-  constexpr bool doMpfHistos = true;
+  constexpr bool doMpfHistos = false;
 
   // QGL studies by Ozlem (use an external file for qgl studies)
   constexpr bool doqglfile = false;
@@ -139,13 +142,16 @@ namespace jp {
   // For debugging
   constexpr bool skipl2l3res = false;
 
+  // Save git version info (recommended)
+  constexpr bool gitinfo = true;
+
   // Reapply json selection based on the latest one (check lumicalc if false!).
   constexpr bool dojson = true;
   const constexpr array<const char*,yrs> json_ = {
     "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt",
     "lumicalc/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1mod.txt",
     "lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
-    "lumicalc/Cert_314472-321221_13TeV_PromptReco_Collisions18_JSON.txt"
+    "lumicalc/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
   };
   const constexpr char* json = json_.at(yid);
 
@@ -203,10 +209,10 @@ namespace jp {
   // Trigger lumis for weighting in /ub
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
-    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 ,96089534.929 ,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
+    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
     { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
     {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
-    {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.   ,         1.   ,         1.   ,          1.   ,          1.   }
+    { 71025.684,214560.811, 702594.906,4763057.43 ,43147422.256,185864584.42 ,424038506.419,1626563779.747,3368088125.968, 6692924544.657,53266005893.392}
   }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
@@ -215,7 +221,7 @@ namespace jp {
       {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
       {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunF")},
       {regex("^RunH[a-zA-Z0-9_]*Fwd$"),regex("^RunH")},
-      {regex("^RunA"),regex("^RunB"),regex("^RunC")}
+      {regex("^RunA"),regex("^RunB"),regex("^RunC"),regex("^RunD")}
     }};
     const vector<regex> eras = eras_.at(yid);
   // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
@@ -253,9 +259,10 @@ namespace jp {
   // 2018 values: (zb,jt40-jt500)
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
-      {  0.      ,61532.879 ,81850.422 ,2179907.105,9391065.528 ,40906058.156 ,106635571.117,368074388.178,839802101.462 ,1644114276.408,12862598870.332}, // A
-      {  0.      ,14317.836 ,58268.021 , 219361.961,3047288.819 ,13059809.222 , 29134010.487,116536041.947,233072083.895 , 466144167.79 , 3729153342.317}, // B
-      {  3396.780,11620.313 ,46651.463 , 175629.038,2468713.676 ,10580201.467 , 24441922.325, 94392750.276,187660520.878 , 374196062.081, 2985693638.923}  // C
+      { 24886.109, 65937.99,  89100.785,2453432.502,10135979.76 , 44392687.158,115825842.173,398144553.92 , 912726818.03 ,1783679072.5  ,14002382122.174}, // A
+      { 10979.168, 26940.560,110806.544, 417154.048, 5874327.302, 25175688.436, 55403271.989,221613087.956, 443226175.913, 886452351.826, 7091618814.605}, // B
+      {  3396.780, 11620.313, 46651.463, 175629.038, 2468713.676, 10580201.467, 24441922.325, 94392750.276, 187660520.878, 374196062.081, 2985693638.923}, // C
+      { 31763.627,110061.948,456036.114,1716841.842,24668401.518,105716007.359,228367469.932,912413387.595,1824474611.147,3648597058.250,29186311317.690}  // D
     }}
   }};
   const vector<vector<double>> triglumiera = triglumiera_.at(yid);
@@ -266,21 +273,27 @@ namespace jp {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
     "Fall17_17Nov2017",
-    "Fall17_17Nov2017"
+    //"Fall17_17Nov2017"
+    //"Fall17_09May2018",
+    //"Fall17_09May2018",
+    "Fall17_09May2018"
+    //"Fall18_17Sep2018"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V18",
-    "_V28",
-    "_V28",
-    "_V28"
+    "_V32",
+    "_V32",
+    "_V32"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V15",
-    "_V24",
-    "_V24",
-    "_V24"
+    "_V32",
+    "_V32",
+    //"_V3",
+    //"_V3",
+    "_V1"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -288,17 +301,17 @@ namespace jp {
   constexpr const bool useIOV = true ;
   const array<vector<string>,yrs> IOVnames_ = {{
     {"BCD","EF","GH"},
-    {"B","C","D","E","F"},
+    {"B","C","DE","F"},
     {"F"}, // Run2017F is used for Run2017H (lowpu)
-    {"F","F","F"}
+    {"F","F","F","F"} // Run2017F is used for all 2018
   }};
   const vector<string> IOVnames = IOVnames_.at(yid);
   // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
   const array<vector<array<int,2>>,yrs> IOVranges_ = {{
     { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
-    { {297020,299329},{299337,302029},{302030,303434},{303435,304826},{304911,306460},{306926,307082} }, // B,C,D,E,F
+    { {297020,299329},{299337,302029},{302030,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
-    { {297020,299329},{299337,302029},{302030,400000} } // A,B,C | NOT TO BE TRUSTED
+    { {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES and JEC
@@ -309,6 +322,7 @@ namespace jp {
   constexpr const char* pudata = "pileup/curr/pileup_DT.root";
   constexpr const char* pumc   = "pileup/curr/pileup_MC.root";
   constexpr const char* puhw   = "pileup/curr/pileup_HW.root";
+  constexpr const char* punu   = "pileup/curr/pileup_NU.root";
   constexpr const double maxpu = 80.0;
   //} END PU profiles
 
@@ -350,9 +364,10 @@ namespace jp {
         {"RunH_ZB",{"H_ZB.root"}}
       },
       {
-        {"RunA",{"A.root"}},
-        {"RunB",{"B.root"}},
-        {"RunC",{"C3_ZB.root","C3.root"}}
+        {"RunA",{"A_ZB.root", "A.root"}},
+        {"RunB",{"B_ZB.root", "B.root"}},
+        {"RunC",{"C3_ZB.root","C3.root"}},
+        {"RunD",{"D_ZB.root","D.root"}}
       }
     }};
     const map<string,vector<const char*>> dtfiles = dtfiles_.at(yid);
@@ -361,35 +376,29 @@ namespace jp {
     //{ BEGIN MC: Generic options
     const array<map<string,vector<const char*>>,yrs> mcfiles_ = {{
       {
-        {"P8M1",{"MC/2016/P8M1/FlatPthat_15to7000.root"}}
+        {"P8M1",{"MC/2016/P8M1/FlatPthat_15to7000.root"}},
+        {"HS1",{"MC/2016/HS1/FlatPthat_15to7000.root"}},
+        {"NuGun",{"MC/2016/NuGun.root"}}
       },
       {
         {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
-        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}}
+        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}},
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
+        {"NuGun",{"MC/2016/NuGun.root"}}
       },
       {
-        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}}
+        {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
+        {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}},
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
+        {"NuGun",{"MC/2016/NuGun.root"}}
       },
       {
-        {"P8CP5",{"MC16_P8M1_Flat.root"}}
+        {"P8CP5",{"MC/2018/P8CP5/FlatPthat_15to7000.root"}},
+        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
+        {"NuGun",{"MC/2018/NuGun.root"}}
       }
     }};
     const map<string,vector<const char*>> mcfiles = mcfiles_.at(yid);
-    const array<map<string,vector<const char*>>,yrs> hwfiles_ = {{
-      {
-        {"HS1",{"MC/2016/HS1/FlatPthat_15to7000.root"}}
-      },
-      {
-        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
-      },
-      {
-        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
-      },
-      {
-        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}}
-      }
-    }};
-    const map<string,vector<const char*>> hwfiles = hwfiles_.at(yid);
     //}
 
     //{ BEGIN MC: Process pThatbinned file options
@@ -398,7 +407,7 @@ namespace jp {
       "MC/2016/P8M1/",
       "MC/2017/P8CP5/",
       "MC/2017/P8CP5/",
-      "Ses"
+      "MC/2018/P8CP5/"
     };
     const char* pthatpath = pthatpath_.at(yid);
     // The corresponding ranges, the last number is ~inf
@@ -494,7 +503,7 @@ namespace jp {
 
   // A very wide binning for pt: these should agree with trigger turn-on places (typically 15 GeV is where we cut everything)
   constexpr const double wwptrange[] = {
-    15, 28, 40, 49, 64, 84, 114, 196, 272, 330, 395, 440, 468, 486, 507, 527, 548, 575, 618, 686, 905, 2000, 7000
+    15, 28, 40, 49, 64, 84, 114, 196, 272, 330, 395, 440, 468, 486, 507, 527, 548, 575, 618, 686, 905, 2116, 7000
   };
   constexpr const int nwwpts = sizeof(wwptrange)/sizeof(wwptrange[0])-1;
 

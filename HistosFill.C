@@ -332,6 +332,26 @@ bool HistosFill::Init(TChain *tree)
   gen_jtp4z = &GenJets__fCoordinates_fZ[0];
   gen_jtp4t = &GenJets__fCoordinates_fT[0];
 
+  // Put some logging info into the file
+  _runinfo = "\n";
+  vector<string> infofiles = {"settings.h","HistosFill.h","HistosFill.C","HistosBasic.h","HistosBasic.C","HistosEta.h","HistosEta.C","HistosAll.h","HistosAll.C"};
+  if (jp::gitinfo) {
+    gROOT->ProcessLine(".!git log > gitlog.txt");
+    infofiles.push_back("gitlog.txt");
+  }
+  for (auto &infofile : infofiles) {
+    std::ifstream tmpstrm(infofile.c_str());
+    string tmpstr;
+
+    tmpstrm.seekg(0, std::ios::end);
+    tmpstr.reserve(tmpstrm.tellg());
+    tmpstrm.seekg(0, std::ios::beg);
+    tmpstr.assign((std::istreambuf_iterator<char>(tmpstrm)),std::istreambuf_iterator<char>());
+    _runinfo += Form("\n###I\n###I %s Block\n###I\n\n",infofile.c_str());
+    _runinfo += tmpstr;
+  }
+  if (jp::gitinfo) gROOT->ProcessLine(".!rm gitlog.txt");
+
   return true;
 }
 
@@ -450,12 +470,36 @@ void HistosFill::Loop()
 
   Report();
 
-  stop.Stop();
-  TDatime now;
-  cout << "Stopping at: ";
-  now.Print();
+  cout << "Stopping processing at: ";
+  TDatime now1;
+  now1.Print();
   PrintInfo(Form("Processing used %f s CPU time (%f h)",stop.CpuTime(),stop.CpuTime()/3600.),true);
   PrintInfo(Form("Processing used %f s real time (%f h)",stop.RealTime(),stop.RealTime()/3600.),true);
+
+  // Gather info from the report file
+  std::ifstream tmpstrm(Form("reports/HistosFill-%s.log",jp::type));
+  string tmpstr;
+
+  tmpstrm.seekg(0, std::ios::end);
+  tmpstr.reserve(tmpstrm.tellg());
+  tmpstrm.seekg(0, std::ios::beg);
+  tmpstr.assign((std::istreambuf_iterator<char>(tmpstrm)),std::istreambuf_iterator<char>());
+  _runinfo += "\n###I\n###I Run Info Block\n###I\n\n";
+  _runinfo += tmpstr;
+
+  // Write RunInfo and close the file
+  _outfile->mkdir("infodir");
+  _outfile->cd("infodir");
+  TNamed runinfo("info",_runinfo);
+  runinfo.Write();
+  _outfile->Close();
+
+  cout << "File closed, exiting at: ";
+  TDatime now2;
+  now2.Print();
+  PrintInfo(Form("Processing and logistics used %f s CPU time (%f h)",stop.CpuTime(),stop.CpuTime()/3600.),true);
+  PrintInfo(Form("Processing and logistics used %f s real time (%f h)",stop.RealTime(),stop.RealTime()/3600.),true);
+  stop.Continue();
 }
 
 
@@ -2012,7 +2056,6 @@ void HistosFill::WriteBasic()
   } // for histit
 
   PrintInfo(Form("\nOutput (HistosBasic) stored in %s",_outfile->GetName()),true);
-  _outfile->Close();
 
   // Report memory usage to avoid malloc problems when writing file
   PrintInfo("writeBasic() finished:");
