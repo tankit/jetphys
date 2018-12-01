@@ -8,8 +8,9 @@ R__LOAD_LIBRARY(DrawFracs.C+g)
 void mk_DrawFracs() {
     const char *mcpath="./";
     const char *dtpath="./";
-    vector<const char*> savedirs = {"pypdf","hwpdf"}; // pypdf, hwpdf
-    vector<const char*> mctypes = {"MC","HW"}; // MC, HW
+    vector<const char*> savedirs = {"pypdf","hwpdf","nupdf","pynupdf","hwnupdf"};
+    vector<const char*> mctypes = {"MC","HW","NU","MCNU","HWNU"};
+    vector<bool> dotfracs = {true,true,true,false,false};
 
     // 2016 IOV's: tot. 35.86 fb^{-1}
     //string title="Run2016BCD";
@@ -42,14 +43,18 @@ void mk_DrawFracs() {
     for (unsigned idx = 0; idx < mctypes.size(); ++idx) {
       const char *mctype = mctypes[idx];
       const char *savedir = savedirs[idx];
+      bool do_t = dotfracs[idx];
+      cout << mctype << endl;
       Fracs fracs(mcpath,dtpath,title,lumit,savedir,false,mctype,"DT",3);
-      Fracs tfracs(mcpath,dtpath,title,lumit,savedir,true,mctype,"DT",3);
       Fracs dfracs(mcpath,dtpath,title,lumit,savedir,false,mctype,"DT",3,"");
-      vector<unsigned int> order = {0,3};//,1,2,4,5};
-      for (auto &i : order) {
+      vector<unsigned int> order = {0,3,1,2};//,4,5};
+      for (auto &i : order)
         fracs.DrawFracs(i);
-        tfracs.DrawFracs(i);
-      }
       dfracs.DrawFracs(0);
+      if (do_t) {
+        Fracs tfracs(mcpath,dtpath,title,lumit,savedir,true,mctype,"DT",3);
+        for (auto &i : order)
+          tfracs.DrawFracs(i);
+      }
     }
 }

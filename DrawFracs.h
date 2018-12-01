@@ -124,6 +124,8 @@ public:
 
     _mc_type = mc_type;
     _dt_type = dt_type;
+    if (_mc_type=="MCNU") _mc_type="MC";
+    else if (_mc_type=="HWNU") _mc_type="HW";
     _mc_typeverb = _mc_type;
     _dt_typeverb = _dt_type;
     if (_mc_typeverb=="DT") _mc_typeverb = "Data";
@@ -137,9 +139,9 @@ public:
 
     bool all_DT = false;
     bool all_MC = false;
-    if (_mc_type!="MC" and _mc_type!="HW")
+    if (_mc_type!="MC" and _mc_type!="HW" and _mc_type!="MCNU" and _mc_type!="HWNU")
       all_DT = true;
-    if (_dt_type=="MC" and _dt_type=="HW")
+    if (_dt_type=="MC" or _dt_type=="HW" or _dt_type=="MCNU" or _dt_type=="HWNU")
       all_MC = true;
     assert(!(all_MC and all_DT));
 

@@ -1028,7 +1028,7 @@ bool HistosFill::AcceptEvent()
     // Always insert the generic mc trigger
     if (jp::debug) cout << "Entering PU weight calculation!" << endl;
 #ifdef NEWMODE
-    if (_pass and jtgenidx[i0]!=-1) ++_cnt["07mcgenjet"];
+    if (_pass and (jtgenidx[i0]!=-1 or jp::isnu)) ++_cnt["07mcgenjet"];
     else return false;
 #endif
     if (jp::domctrigsim and njt>0) {
@@ -1200,12 +1200,12 @@ bool HistosFill::AcceptEvent()
   if (_pass) {
     // Check if overweight PU event
     if (jp::ismc and _pass) {
-      if (jtpt[i0] < 1.5*jtgenpt[i0]) ++_cnt["09ptgenlim"];
+      if (jtpt[i0] < 1.5*jtgenpt[i0] or jp::isnu) ++_cnt["09ptgenlim"];
       else _pass = false;
 
       if (_pass) {
         double lim = (pthat < 100) ? 2.0 : 1.5;
-        if (jtpt[i0] < lim*pthat) ++_cnt["10pthatlim"];
+        if (jtpt[i0] < lim*pthat or jp::isnu) ++_cnt["10pthatlim"];
         else _pass = false;
       }
     }
