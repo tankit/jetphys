@@ -1,7 +1,6 @@
-// Purpose: Normalize jet physics analysis histograms
-// Author:  mikko.voutilainen@cern.ch
-// Created: March 21, 2010
-// Updated: June 2, 2015
+// Purpose: Fuse jet physics analysis histograms
+// Author:  hannu.siikonen@cern.ch
+// Created: December 3, 2018
 {
   // compile code
   gROOT->ProcessLine(".L HistosFuse.C+g");

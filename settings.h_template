@@ -31,7 +31,7 @@ using std::regex;
 
 // Will assert be used in the programs? More than 1/3 reduction of run time if off.
 // CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
-//#define USEASSERT
+#define USEASSERT
 // New handling for triggers etc. - comment this out if old mode is to be used
 #define NEWMODE
 
@@ -42,6 +42,9 @@ namespace jp {
 
   // Debugging info
   constexpr bool debug = false;
+
+  // Save git version info (recommended)
+  constexpr bool gitinfo = true;
 
   //{ BEGIN fundamental file settings
   // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
@@ -141,9 +144,6 @@ namespace jp {
   constexpr bool redojes = true;
   // For debugging
   constexpr bool skipl2l3res = false;
-
-  // Save git version info (recommended)
-  constexpr bool gitinfo = true;
 
   // Reapply json selection based on the latest one (check lumicalc if false!).
   constexpr bool dojson = true;
@@ -384,13 +384,13 @@ namespace jp {
         {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
         {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}},
         {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
-        {"NuGun",{"MC/2016/NuGun.root"}}
+        {"NuGun",{"MC/2017/NuGun.root"}}
       },
       {
         {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
         {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}},
         {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
-        {"NuGun",{"MC/2016/NuGun.root"}}
+        {"NuGun",{"MC/2017/NuGun.root"}}
       },
       {
         {"P8CP5",{"MC/2018/P8CP5/FlatPthat_15to7000.root"}},
