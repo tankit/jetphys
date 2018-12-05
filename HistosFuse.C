@@ -1,9 +1,6 @@
-// Purpose: Normalize inclusive jet analysis histograms
-// Author:  mikko.voutilainen@cern.ch
-// Co-author: hannu.siikonen@cern.ch
-// Created: March 21, 2010
-// Updated: April 4, 2017
-// Archaic blocks denoted by wide commenting
+// Purpose: Fuse Single Neutrino and standard MC jet analysis histograms
+// Author: hannu.siikonen@cern.ch
+// Created: December 3, 2018
 
 
 #include "TFile.h"
