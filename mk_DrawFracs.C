@@ -31,8 +31,8 @@ void mk_DrawFracs() {
     //string lumit="13.5 fb^{-1}";
 
     // 2018 IOV's: tot. 53.27 fb^{-1}
-    //string title="Run2018A";
-    //string lumit="14.0 fb^{-1}";
+    string title="Run2018A";
+    string lumit="14.0 fb^{-1}";
     //string title="Run2018B";
     //string lumit="7.1 fb^{-1}";
     //string title="Run2018C3";

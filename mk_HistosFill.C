@@ -146,7 +146,7 @@ void mk_HistosFill() {
   } else if (jp::isnu) {
     if (jp::pthatbins) cout << "No pthat binned files exist for Neutrino Gun!" << endl;
 
-    cout << "Running over Herwig flat sample" << endl;
+    cout << "Running over HSingle Neutrino sample" << endl;
 
     for (auto &fname : jp::mcfiles.at(jp::nufile))
       files.push_back(Form("%s%s",p,fname));

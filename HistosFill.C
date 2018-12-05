@@ -3016,8 +3016,13 @@ bool HistosFill::LoadPuProfiles(const char *datafile, const char *mcfile)
   TFile *fpumc = new TFile(mcfile,"READ");
   if (!fpumc or fpumc->IsZombie()) return false;
 
-  _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc"));
+  _pumc = dynamic_cast<TH1D*>(fpumc->Get("pileupmc")->Clone("pumchelp"));
   if (!_pumc) return false;
+  if (jp::isnu) { // In the neutrino gun samples we look at the hardest PU event, so need to shift PU by -1
+    _pumc->SetBinContent(0,_pumc->GetBinContent(0)+_pumc->GetBinContent(1));
+    for (int idx = 1; idx < _pumc->GetNbinsX(); ++idx)
+      _pumc->SetBinContent(idx,_pumc->GetBinContent(idx+1));
+  }
   double maxmcpu = _pumc->GetMaximum();
   _pumc->Scale(1.0/maxmcpu);
   int lomclim = _pumc->FindFirstBinAbove(0.01);

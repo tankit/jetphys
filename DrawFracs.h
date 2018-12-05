@@ -126,6 +126,7 @@ public:
     _dt_type = dt_type;
     if (_mc_type=="MCNU") _mc_type="MC";
     else if (_mc_type=="HWNU") _mc_type="HW";
+    else if (_mc_type=="NU") _mc_type="MC";
     _mc_typeverb = _mc_type;
     _dt_typeverb = _dt_type;
     if (_mc_typeverb=="DT") _mc_typeverb = "Data";
