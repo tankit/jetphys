@@ -13,12 +13,14 @@
 bool doIOVeff = true; // correct ECALprefire per IOV
 
 // "Rebin(2)"
-const int nptb = 51;
+const int nptb = 51+10+6;
 const float ptbins[nptb+1] =
-  {64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362,
+  {15, 18, 21, 24, 28, 32, 37, 43, 49, 56,
+   64, 74, 84, 97, 114, 133, 153, 174, 196, 220, 245, 272, 300, 330, 362,
    395, 430, 468, 507, 548, 592, 638, 686, 737, 790, 846, 905, 967, 1032,
    1101, 1172, 1248, 1327, 1410, 1497, 1588, 1684, 1784, 1890, 2000, 2116,
-   2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832};
+   2238, 2366, 2500, 2640, 2787, 2941, 3103, 3273, 3450, 3637, 3832,
+   4037, 4252, 4477, 4713, 4961, 5220};
 
 TH1F *rebinXsec(TH1F *h) {
   //assert(h->GetBinLowEdge(1)<=pt[0]);
@@ -80,7 +82,14 @@ void drawJetPt(string sy = "0.0-0.5") {
   //TFile *fin2 = new TFile("rootfiles/common2016_Legacy.root","READ");
   //TFile *fin2 = new TFile("rootfiles/common2016_Legacy_v2.root","READ");
   TFile *fin2 = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+  //TFile *fin2 = new TFile("rootfiles/common2016_October2018_V17.root","READ");
   assert(fin2 && !fin2->IsZombie());
+
+  TFile *fin3 = new TFile("rootfiles/common2017_V11.root","READ");
+  assert(fin3 && !fin3->IsZombie());
+
+  TFile *fu = new TFile("rootfiles/unfold.root","READ");
+  assert(fu && !fu->IsZombie());
 
   // ECAL prefire efficiency file
   TFile *fe = new TFile("rootfiles/ECALprefireEff.root");
@@ -144,18 +153,18 @@ void drawJetPt(string sy = "0.0-0.5") {
   JetCorrectionUncertainty *unc1 = new JetCorrectionUncertainty(s1);
 
   // 5 eras: BCDEFGH, BCD, EF, G and H
-  const int nera = 4;//5;//4;//5;
+  const int nera = 5;//5;//4;//5;
   //TFile *fins[nera] = {fin, fin, fin, fin, fin};
   //const char *eras[nera] = {"BCDEFGH","BCD","EFearly","FlateG","H"};
   //TFile *fins[nera] = {fin, fin, fin, fin, fin2};
-  TFile *fins[nera] = {fin2, fin2, fin2, fin2};
+  TFile *fins[nera] = {fin2, fin2, fin2, fin2, fin3};
   //const char *
   //string eras[nera] = {"CD","EF","G","H", "BCDEFGH"};
-  string eras[nera] = {"BCD","EF","GH", "BCDEFGH"};
+  string eras[nera] = {"BCD","EF","GH", "BCDEFGH", "B"};
   // luminosity re-normalization
   //double lumi[nera] = {1, 1, 1, 1, 1};
   //double lumi[nera] = {1, 1, 1, 1, 1};
-  double lumi[nera] = {1, 1, 1, 1};
+  double lumi[nera] = {1, 1, 1, 1, 4800};
 
   // Mithat's settings
   /*
@@ -169,14 +178,14 @@ void drawJetPt(string sy = "0.0-0.5") {
 			     "H"};
   */
   //int color[nera] = {kRed+2, kOrange+2, kMagenta+2, kBlue+1, kBlack};
-  int color[nera] = {kRed+2, kOrange+2, kBlue+1, kBlack};
+  int color[nera] = {kRed+2, kOrange+2, kBlue+1, kBlack, kBlack};//kGreen+2};
   //int marker[nera] = {kFullCircle, kFullDiamond,
   //		      kFullStar, kOpenStar,kFullSquare};
   int marker[nera] = {kFullCircle, kFullDiamond,
-  		      kFullStar, kFullSquare};
+  		      kFullStar, kFullSquare, kOpenCircle};
   const char* label[nera] = {"BCD",//"CD",
 			     "EF^{1}",
-			     "F^{2}GH", "All"};
+			     "F^{2}GH", "All","2017B"};
 			     //"F^{2}G",
 			     //"H", "BCDEFGH (AK4)"};
 
@@ -488,22 +497,37 @@ void drawJetPt(string sy = "0.0-0.5") {
     //string hname = Form("ak4/y_%s/hpt_Run%s_rereco",cy,cera);
     //string hname = Form("ak7/y_%s/hptRun%s_Febr2017V3",cy,cera);
     //string hname = Form("ak7/y_%s/hptRun%s_Febr2017V3_unfolded",cy,cera);
-    string hname = Form("ak4/y_%s/hptData_%s2016_particle_%dbin",cy,cera,
+    //string hname = Form("ak4/y_%s/hptData_%s2016_particle_%dbin",cy,cera,
+    string hname = Form("ak4/y_%s/hptData_%s2016_detector_%dbin",cy,cera,
 			eta==3.2 ? 7 : int(eta/0.5)+1);
     // PATCH start
     //if (string(cera)=="FlateG") hname = Form("ak7/y_%s/hptRunG_Febr2017V3",cy);
     if (eras[iera]=="BCDEFGH")
       //hname = Form("ak4/y_%s/hptData_%dbin",cy,
       //	   eta==3.2 ? 7 : int(eta/0.5)+1);
-      //hname = Form("ak4/y_%s/hptData_full2016_detector_%dbin",cy,
-      hname = Form("ak4/y_%s/hptData_full2016_particle_%dbin",cy,
+      //hname = Form("ak4/y_%s/hptData_full2016_particle_%dbin",cy,
+      hname = Form("ak4/y_%s/hptData_full2016_detector_%dbin",cy,
 		   eta==3.2 ? 7 : int(eta/0.5)+1);
-    
+    if (eras[iera]=="B")
+      hname = Form("ak4/Eta_%s/hpt_data_2017_%s_det",cy,eras[iera].c_str());
     // PATCH end
     TH1F *hera = (TH1F*)fins[iera]->Get(hname.c_str());
     cout << hname << endl << flush;
     assert(hera);
     //hera->Scale(1.033); // for luminosity patch for 2016
+
+    //if (eras[iera]=="B") {
+    if (true) {
+      TF1 *f1 = (TF1*)fu->Get(Form("fr_%s",cy)); assert(f1);
+      for (int i = 1; i != hera->GetNbinsX()+1; ++i) {
+	if (hera->GetBinContent(i)!=0) {
+	  double pt = hera->GetBinCenter(i);
+	  double rdu = f1->Eval(pt);
+	  hera->SetBinContent(i, hera->GetBinContent(i)/rdu);
+	  hera->SetBinError(i, hera->GetBinError(i)/rdu);
+	}
+      }
+    }
 
     // patch different pT binning
     /*
@@ -542,6 +566,7 @@ void drawJetPt(string sy = "0.0-0.5") {
 	  if (eras[iera]=="BCD") ineff = feffBCD->Eval(x);
 	  if (eras[iera]=="EF") ineff = feffEF->Eval(x);
 	  if (eras[iera]=="GH") ineff = feffGH->Eval(x);
+	  if (eras[iera]=="B") ineff = feffGH->Eval(x);
 	}
 	xsecECAL += (1-ineff) * xs;
       }
@@ -927,3 +952,52 @@ void drawJetPt(string sy = "0.0-0.5") {
   c3->SaveAs(Form("pdf/drawJetPt_XsecoverBCDEFGH_%s.pdf",cy2));
 
 }
+
+
+// Tool to estimate unfolding corrections
+void unfold(string sy = "0.0-0.5", int ieta = 1) {
+
+  TFile *f = new TFile("rootfiles/common2016_LegacyIOVs_v3.root","READ");
+  //TFile *f = new TFile("rootfiles/common2016_October2018_V17.root","READ");
+  assert(f && !f->IsZombie());
+  TFile *fout = new TFile("rootfiles/unfold.root",
+			  ieta==1 ? "RECREATE" : "UPDATE");
+
+  const char *cy = sy.c_str();
+  TH1D *hd = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_detector_%dbin",
+				cy,ieta));
+  assert(hd);
+  TH1D *hu = (TH1D*)f->Get(Form("ak4/y_%s/hptData_full2016_particle_%dbin",
+				cy,ieta));
+  assert(hu);
+
+  fout->cd();
+  TH1D *hr = (TH1D*)hu->Clone(Form("hr_%s",cy));
+  for (int i = 1; i != hr->GetNbinsX()+1; ++i) {
+    int i1 = hd->FindBin(hr->GetBinLowEdge(i));
+    int i2 = hd->FindBin(hr->GetBinLowEdge(i+1)-0.5);
+    double yd = (hd->GetBinContent(i1)*hd->GetBinWidth(i1) +
+		 hd->GetBinContent(i2)*hd->GetBinWidth(i2)) /
+      (hd->GetBinWidth(i1) + hd->GetBinWidth(i2));
+    double yu = hu->GetBinContent(i);
+    if (yu!=0 && yd!=0) {
+      hr->SetBinContent(i, yd/yu);
+      hr->SetBinError(i, hu->GetBinError(i)/hu->GetBinContent(i)
+		      * hr->GetBinContent(i));
+    }
+    else {
+      hr->SetBinContent(i, 0);
+      hr->SetBinError(i, 0);
+    }
+  }
+
+  //TF1 *f1 = new TF1(Form("fr_%d",ieta),"[0]+[1]*log(x)+[2]*log(x)*log(x)",
+  TF1 *f1 = new TF1(Form("fr_%s",cy),"[0]+[1]*log(x)+[2]*log(x)*log(x)",
+		    114,3000);
+  f1->SetParameters(1,0.01,-0.001);
+  hr->Fit(f1,"QRN");
+  f1->Write();
+
+  fout->Write();
+  fout->Close();
+} // unfold
