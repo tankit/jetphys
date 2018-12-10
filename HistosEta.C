@@ -46,28 +46,28 @@ HistosEta::HistosEta(TDirectory *dir, string trigname, double pttrg, double ptmi
     hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),
                               ";p_{T,tag};#eta;Asymmetry",
                               jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
-    hdjasymmpt.push_back(new TH3D((string("hdjasymmpt_a")+number).c_str(),
-                              ";p_{T,probe};#eta;Asymmetry",
-                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
+    //hdjasymmpt.push_back(new TH3D((string("hdjasymmpt_a")+number).c_str(),
+    //                          ";p_{T,probe};#eta;Asymmetry",
+    //                          jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjmpf.push_back(    new TH3D((string("hdjmpf_a")+number).c_str(),
                               ";p_{T,ave};#eta;MPF",
                               jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjmpftp.push_back(  new TH3D((string("hdjmpftp_a")+number).c_str(),
                               ";p_{T,tag};#eta;MPF",
                               jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
-    hdjmpfpt.push_back(  new TH3D((string("hdjmpfpt_a")+number).c_str(),
-                              ";p_{T,probe};#eta;MPF",
-                              jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
-  }
+   // hdjmpfpt.push_back(  new TH3D((string("hdjmpfpt_a")+number).c_str(),
+   //                           ";p_{T,probe};#eta;MPF",
+   //                           jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
+  }//
 
   // Weights:
   for (unsigned i = 0; i < alpharange.size(); ++i) {
     hdjasymm[i]->Sumw2();
     hdjasymmtp[i]->Sumw2();
-    hdjasymmpt[i]->Sumw2();
+    //hdjasymmpt[i]->Sumw2();
     hdjmpf[i]->Sumw2();
     hdjmpftp[i]->Sumw2();
-    hdjmpfpt[i]->Sumw2();
+    //hdjmpfpt[i]->Sumw2();
   }
 
   // components vs eta (Ozlem)

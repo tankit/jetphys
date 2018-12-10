@@ -37,7 +37,7 @@
 \usecolortheme[named=ferngreen]{structure}
 \beamertemplatenavigationsymbolsempty
 \setbeamertemplate{bibliography item}[text]
-\title[B17 (17Nov17 ReReco) hot zones]{B17 (17Nov17 ReReco) hot zones}
+\title[BCD16 (Legacy ReReco) hot zones]{BCD16 (Legacy ReReco) hot zones}
 %\subtitle{JERC meeting 26th Feb 2018}
 \author{Hannu Siikonen}
 \institute{Helsinki Institute of Physics \\ \vspace{0.25cm} Instructor Adj.~Prof.~Mikko~Voutilainen}
@@ -55,9 +55,8 @@
 
 \begin{frame}[t]{Motivation}
 \begin{itemize}
- \item In the past (2016 23Sep16 ReReco) we produced histograms for exlcuding ECAL hot zones
+ \item In the past we have produced histograms for exlcuding ECAL hot zones
  \item More recently, there was a discussion on cleaning certain areas in HCAL \footnote{\url{https://groups.cern.ch/group/CMS-JME-L2L3Residual-Analysts/Lists/Archive/Flat.aspx?RootFolder=\%2fgroup\%2fCMS-JME-L2L3Residual-Analysts\%2fLists\%2fArchive\%2fFollow\%20up\%20on\%20HCAL\%20hot\%20towers\%20cleaning&FolderCTID=0x012002000BA29B1615BA554D933D94B87E1E3AC3}}
- \item Furthermore, I have presented some hot zone analysis for '16 Legacy data \footnote{\url{http://hsiikone.web.cern.ch/hsiikone/hotcoldjets/16-LegacyReReco/}}
  \item In these slides I will present an update of the hot tower analysis (ECAL+HCAL)
  \item Underlying data: $\eta - \phi$ histograms of jet counts for the triggering jet of each HLT\_PFJet\* trigger separately
  \item Definitions:
@@ -66,18 +65,87 @@
  \item The excess/deficit plots show the deviation from the pedestal divided by the rms value
  \item From the (final) pedestal averaging and the (final) rms value we exclude values over 2 (initial) rms values away from the (initial) pedestal
  \item The Black patches: The suggested exclusion zones based on combined BCDEF Data
- \item MC==Pythia8 CP5, HW==Herwig++
+ \item P8M1: the old pythia8 tune
+ \item P8CP5: the new pythia8 tune
+ \item HS1: the Herwig++ tune
  \end{itemize}
 \end{itemize}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet40 Njets (Data, MC)}
+\begin{frame}[t]{HLT\_ZeroBias Njets (Data, P8M1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt0.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt0.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_ZeroBias Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt0.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt0.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_ZeroBias Data}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt0.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt0.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_ZeroBias HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt0.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt0.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_ZeroBias P8M1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt0.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt0.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}[t]{HLT\_PFJet40 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt40.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt40.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet40 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt40.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt40.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -93,7 +161,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet40 MC}
+\begin{frame}[t]{HLT\_PFJet40 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt40.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt40.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet40 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt40.pdf}
@@ -104,13 +183,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet60 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet60 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt60.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt60.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet60 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt60.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt60.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -126,7 +217,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet60 MC}
+\begin{frame}[t]{HLT\_PFJet60 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt60.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt60.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet60 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt60.pdf}
@@ -137,13 +239,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet80 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet80 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt80.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt80.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet80 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt80.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt80.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -159,7 +273,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet80 MC}
+\begin{frame}[t]{HLT\_PFJet80 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt80.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt80.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet80 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt80.pdf}
@@ -170,13 +295,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet140 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet140 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt140.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt140.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet140 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt140.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt140.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -192,7 +329,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet140 MC}
+\begin{frame}[t]{HLT\_PFJet140 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt140.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt140.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet140 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt140.pdf}
@@ -203,13 +351,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet200 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet200 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt200.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt200.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet200 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt200.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt200.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -225,7 +385,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet200 MC}
+\begin{frame}[t]{HLT\_PFJet200 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt200.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt200.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet200 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt200.pdf}
@@ -236,13 +407,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet260 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet260 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt260.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt260.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet260 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt260.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt260.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -258,7 +441,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet260 MC}
+\begin{frame}[t]{HLT\_PFJet260 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt260.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt260.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet260 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt260.pdf}
@@ -269,13 +463,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet320 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet320 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt320.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt320.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet320 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt320.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt320.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -291,7 +497,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet320 MC}
+\begin{frame}[t]{HLT\_PFJet320 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt320.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt320.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet320 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt320.pdf}
@@ -302,13 +519,25 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet400 Njets (Data, MC)}
+
+\begin{frame}[t]{HLT\_PFJet400 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt400.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt400.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet400 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt400.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt400.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -324,7 +553,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet400 MC}
+\begin{frame}[t]{HLT\_PFJet400 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt400.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt400.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet400 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt400.pdf}
@@ -335,13 +575,24 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet450 Njets (Data, MC)}
+\begin{frame}[t]{HLT\_PFJet450 Njets (Data, P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt450.pdf}
   \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt450.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet450 Njets (P8M1, HS1)}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt450.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt450.pdf}
   \end{column}
 \end{columns}
 \end{frame}
@@ -357,7 +608,18 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet450 MC}
+\begin{frame}[t]{HLT\_PFJet450 HS1}
+\begin{columns}[T]
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt450.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt450.pdf}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}[t]{HLT\_PFJet450 P8M1}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt450.pdf}
@@ -368,40 +630,64 @@
 \end{columns}
 \end{frame}
 
-\begin{frame}[t]{HLT\_PFJet500 Njets (Data, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
 
-\begin{frame}[t]{HLT\_PFJet500 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
+%\begin{frame}[t]{HLT\_PFJet500 Njets (Data, P8M1)}
+%\begin{columns}[T]
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/dataquality_njet_jt500.pdf}
+%  \end{column}
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt500.pdf}
+%  \end{column}
+%\end{columns}
+%\end{frame}
+%
+%\begin{frame}[t]{HLT\_PFJet500 Njets (P8M1, HS1)}
+%\begin{columns}[T]
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt500.pdf}
+%  \end{column}
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt500.pdf}
+%  \end{column}
+%\end{columns}
+%\end{frame}
+%
+%\begin{frame}[t]{HLT\_PFJet500 Data}
+%\begin{columns}[T]
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt500.pdf}
+%  \end{column}
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt500.pdf}
+%  \end{column}
+%\end{columns}
+%\end{frame}
 
-\begin{frame}[t]{HLT\_PFJet500 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
+%\begin{frame}[t]{HLT\_PFJet500 HS1}
+%\begin{columns}[T]
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt500.pdf}
+%  \end{column}
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt500.pdf}
+%  \end{column}
+%\end{columns}
+%\end{frame}
+%
+%\begin{frame}[t]{HLT\_PFJet500 P8M1}
+%\begin{columns}[T]
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt500.pdf}
+%  \end{column}
+%  \begin{column}{.5\textwidth}
+%  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt500.pdf}
+%  \end{column}
+%\end{columns}
+%\end{frame}
 
-\begin{frame}[t]{Cumulative summary (Data,MC)}
+
+\begin{frame}[t]{Cumulative summary (Data,P8M1)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/dataquality_cumulation.pdf}
@@ -416,497 +702,13 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}[t]{Filtered cumulative summary Data (hot, cold)}
+\begin{frame}[t]{Cumulative summary (P8M1,HS1)}
 \begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_hots.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_colds.pdf}
-  \end{column}
-\end{columns}
-\begin{itemize}
- \item The same procedure as on the previous slide, but now we emphasize noise that is significant in more than only one trigger
- \item Hot and cold zones separated
-\end{itemize}
-\end{frame}
-
-\begin{frame}[t]{Filtered cumulative summary MC (hot, cold)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_hots.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_colds.pdf}
-  \end{column}
-\end{columns}
-\begin{itemize}
- \item Cold zones quite well modeled in MC
- \item Hot zones not at all
-\end{itemize}
-\end{frame}
-
-\begin{frame}[t]{Filtered cumulative summary MC (hot, cold)}
-\begin{itemize}
- \item Hot zones are present also in '17
- \item The HCAL exclusion zones have become irrelevant
- \item Some of the historical ECAL exclusion zones are once again activated
- \item For complete results, see \footnote{\url{http://hsiikone.web.cern.ch/hsiikone/hotcoldjets/17-17Nov17ReReco/}}
- \item Filtered hot zone maps for each era are given as a reference for exclusion purposes
- \item The unfiltered h2hot results and the filtered h2hot results (for exclusion purposes) are given
- \item The area $\eta > 3.0$ seems to be a bit noisy in general, and needs consideration (exclusion or not)
- \item Shown after this slide: the same results but with Data vs. Pythia8 vs. Herwig++ \footnote{Spoiler: nothing very shocking to be seen there}
-\end{itemize}
-\end{frame}
-
-
-\begin{frame}[t]{HLT\_PFJet40 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt40.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt40.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet40 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt40.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt40.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet40 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt40.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt40.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet40 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt40.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt40.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet60 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt60.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt60.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet60 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt60.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt60.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet60 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt60.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt60.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet60 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt60.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt60.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet80 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt80.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt80.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet80 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt80.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt80.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet80 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt80.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt80.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet80 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt80.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt80.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet140 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt140.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt140.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet140 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt140.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt140.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet140 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt140.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt140.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet140 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt140.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt140.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet200 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt200.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt200.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet200 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt200.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt200.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet200 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt200.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt200.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet200 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt200.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt200.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet260 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt260.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt260.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet260 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt260.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt260.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet260 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt260.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt260.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet260 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt260.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt260.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet320 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt320.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt320.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet320 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt320.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt320.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet320 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt320.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt320.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet320 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt320.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt320.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet400 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt400.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt400.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet400 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt400.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt400.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet400 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt400.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt400.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet400 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt400.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt400.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet450 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt450.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt450.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet450 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt450.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt450.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet450 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt450.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt450.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet450 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt450.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt450.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet500 Njets (HW, MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_njet_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_njet_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet500 Data}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_relfluctuation_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/dataquality_significance_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet500 HW}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_relfluctuation_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_significance_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{HLT\_PFJet500 MC}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_relfluctuation_jt500.pdf}
-  \end{column}
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/mcquality_significance_jt500.pdf}
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}[t]{Cumulative summary (HW,MC)}
-\begin{columns}[T]
-  \begin{column}{.5\textwidth}
-  \includegraphics[width=\linewidth]{../pdf/hwquality_cumulation.pdf}
-  \end{column}
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_cumulation.pdf}
+  \end{column}
+  \begin{column}{.5\textwidth}
+  \includegraphics[width=\linewidth]{../pdf/hwquality_cumulation.pdf}
   \end{column}
 \end{columns}
 \begin{itemize}
@@ -930,7 +732,7 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}[t]{Filtered cumulative summary HW (hot, cold)}
+\begin{frame}[t]{Filtered cumulative summary HS1 (hot, cold)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/hwquality_hots.pdf}
@@ -945,7 +747,7 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}[t]{Filtered cumulative summary MC (hot, cold)}
+\begin{frame}[t]{Filtered cumulative summary P8M1 (hot, cold)}
 \begin{columns}[T]
   \begin{column}{.5\textwidth}
   \includegraphics[width=\linewidth]{../pdf/mcquality_hots.pdf}
@@ -959,7 +761,5 @@
  \item Hot and cold zones separated
 \end{itemize}
 \end{frame}
-
-
 
 \end{document}

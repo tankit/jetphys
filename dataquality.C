@@ -5,27 +5,72 @@
 #include "tdrstyle_mod18.C"
 #include "TError.h"
 
-// Draw 2D plot of jet rates in (eta,phi) to spot issues
-void dataquality() {
-  const char *eras = "B";
-  const double maxgoodsig = 2.; // How many rms values away is a good signal
-  const double minsig = 3.;
-  const double maxsig = 8.5;
+#include "settings.h"
 
-  //const vector<double> etalims = {4.2,4.0,3.8,3.4,3.0,2.6};
-  //const vector<int> etatrgs = {1,2,3,4,5,9};
-  //const vector<double> etaws = {9.0,4.5,3.0,2.25,1.8,1.0}; // ngoodtrig/nalltrigs
-  const vector<double> etalims = {5.0,4.0,3.4,3.2,2.6};
-  const vector<int> etatrgs = {1,3,5,8,10};
-  const vector<double> etaws = {10.0,3.333,2.0,1.25,1.0}; // ngoodtrig/nalltrigs
-  const vector<double> minsumsig = {80.0,30.0,18.0,11.25,9.};
+// Draw 2D plot of jet rates in (eta,phi) to spot issues
+void dataquality(bool overlayNew = true) {
+  const char *eras = "A";
+  const double maxgoodsig = 3.; // How many rms values away is a good signal
+  const double minsig = 3;
+  const double maxsig = 8;
+
+  string yrtag = "16"; // default
+  if (jp::yid==1) yrtag = "17";
+  else if (jp::yid==2) yrtag = "17 LowPU";
+  else if (jp::yid==3) yrtag = "18";
+  const char *yeartag = yrtag.c_str();
+
+  // Further overlay settings
+  string overlayName = Form("./hotjets-%srun%s.root",yeartag,eras);
+  bool overlayR = false;
+  bool overlayM = false;
+  bool overlayH = false;
+
+  //string savedir = "rootfiles";
+  string savedir = ".";
+
+
+  const array<vector<double>,jp::yrs> thresholdcoeffs_ = {{
+    {0.7,0.8,0.9,0.9,1.2,1.5}, // 2016
+    {0.7,0.8,0.9,1.2,1.5},     // 2017
+    {0.7,0.8,0.9,1.2,1.5},     // 2017 LowPU
+    {0.7,0.8,0.9,1.2,1.5}      // 2018
+  }};
+  const vector<double> thresholdcoeffs = thresholdcoeffs_.at(jp::yid);
+
+  // Eta ranges where different counts of triggers are considered
+  const array<vector<double>,jp::yrs> etalims_ = {{
+    {4.2,4.0,3.8,3.4,3.0,2.6}, // 2016
+    {5.0,4.0,3.4,3.2,2.6},     // 2017
+    {5.0,4.0,3.4,3.2,2.6},     // 2017 LowPU
+    {5.0,4.0,3.4,3.2,2.6}      // 2018
+  }};
+  // Counts of triggers in each eta range
+  const vector<double> etalims = etalims_.at(jp::yid);
+  const array<vector<int>,jp::yrs> etatrgs_ = {{
+    {2,3,4,5,6,10}, // 2016
+    {2,4,6,9,11},   // 2017
+    {2,4,6,9,11},   // 2017 LowPU
+    {2,4,6,9,11}    // 2018
+  }};
+  const vector<int> etatrgs = etatrgs_.at(jp::yid);
+  assert(etatrgs.size()==etalims.size());
+
+  // Weights that take into account the number of triggers available in each range
+  vector<double> etaws(etatrgs.size(),jp::triggers.size());
+  for (unsigned idx = 0; idx<etaws.size(); ++idx)
+    etaws[idx] /= etatrgs[idx];
+
+  // Minimal required signal: typically we require action at least in two triggers
+  vector<double> minsumsig = etaws;
+  for (unsigned idx = 0; idx<etaws.size(); ++idx)
+    minsumsig[idx] *= thresholdcoeffs[idx]*maxsig;
 
   TDirectory *curdir = gDirectory;
   setTDRStyle();
   gStyle->SetOptTitle();
   gStyle->SetPalette(1);
-
-  const char *yeartag = "17";
+  //gStyle->SetPalette(kLightTemperature);
 
   TFile *fd = new TFile("./output-DATA-1.root","READ");
   assert(fd && !fd->IsZombie());
@@ -40,26 +85,17 @@ void dataquality() {
   TH2D *h2hotr(0);
   TH2D *h2hotm(0);
   TH2D *h2hotHCAL(0);
-  bool overlayNew = true;
-  bool overlayR = false;
-  bool overlayM = false;
-  bool overlayH = false;
   TFile *hotmap = 0;
   if (overlayNew) {
-    hotmap = new TFile("./rootfiles/hotjets-17runBCDEF.root");
-    assert(hotmap);
-    h2hotNew = static_cast<TH2D*>(hotmap->Get("h2hotfilter"));
-    assert(h2hotNew);
+    hotmap = new TFile(overlayName.c_str());
+    assert(hotmap && !hotmap->IsZombie());
+    h2hotNew = static_cast<TH2D*>(static_cast<TH2D*>(hotmap->Get("h2hotfilter"))->Clone("newmap"));
+    assert(h2hotNew && !h2hotNew->IsZombie());
   }
-
-  string triggers[] = {"jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450","jt500"};
-  const int ntrg = sizeof(triggers)/sizeof(triggers[0]);
-  cout << "Using " << ntrg << " triggers!" << endl;
 
   double etabins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,3.2,4.7};
   const int neta = sizeof(etabins)/sizeof(etabins[0])-1;
   cout << "Using " << neta << " etabins!" << endl;
-
 
   // Create map of known hot ECAL regions from Robert Schoefbeck:
   // https://github.com/schoef/JetMET/blob/master/JEC/python/L2res/jet_cleaning.py#L2-L8
@@ -96,9 +132,9 @@ void dataquality() {
     {-3.600, -3.139, 2.237, 2.475}
   };
 
-  TH2D *h2s[ntrg], *h2as[ntrg], *h2bs[ntrg];
-  TH2D *h2hots[ntrg], *h2colds[ntrg];
-  TH1D *hrmss[ntrg], *hrms2s[ntrg];
+  TH2D *h2s[jp::notrigs], *h2as[jp::notrigs], *h2bs[jp::notrigs];
+  TH2D *h2hots[jp::notrigs], *h2colds[jp::notrigs];
+  TH1D *hrmss[jp::notrigs], *hrms2s[jp::notrigs];
 
   for (int dtmc = 0; dtmc <= 2; ++dtmc) {
     TFile *f = (dtmc==0) ? fd : ((dtmc==1) ? fm : fh);
@@ -107,9 +143,10 @@ void dataquality() {
     TDirectory *din = gDirectory;
     string nametag = (dtmc==0) ? "data" : ((dtmc==1) ? "mc" : "hw");
     string roottag = (dtmc==0) ? "" : ((dtmc==1) ? "mc" : "hw");
-    for (int itrg = 0; itrg < ntrg; ++itrg) {
-      string strg = triggers[itrg];
-      const char *ctrg = triggers[itrg].c_str();
+    for (int itrg = 0; itrg < jp::notrigs; ++itrg) {
+      string strg = jp::triggers[itrg];
+      const char *ctrg = jp::triggers[itrg];
+      cout << strg << endl;
 
       TH2D *h2 = 0;
       for (int ieta = 0; ieta < neta; ++ieta) {
@@ -264,22 +301,21 @@ void dataquality() {
     TH2D *h2cold2 = (TH2D*)h2colds[0]->Clone("h2cold2");
     for (int idxeta = 1; idxeta < h2hot->GetNbinsX()+1; ++idxeta) {
       double abseta = fabs(h2hot->GetXaxis()->GetBinCenter(idxeta));
-      int breaker = -1;
-      for (auto ie = 0u; ie < etalims.size(); ++ie) {
-        if (abseta>etalims[ie]) {
-          breaker = ie;
-          break;
+      int breaker = etalims.size();
+      if (abseta>etalims[0]) {
+        continue;
+      } else {
+        for (auto ie = 1u; ie < etalims.size(); ++ie) {
+          if (abseta>etalims[ie]) {
+            breaker = ie;
+            break;
+          }
         }
       }
-      int maxtrg = 0;
-      double scale = 1.0;
-      double msumsig = 9.0;
-      if (breaker<0) maxtrg = ntrg;
-      else if (breaker>0) {
-        maxtrg = etatrgs[breaker-1];
-        scale = etaws[breaker-1];
-        msumsig = minsumsig[breaker-1];
-      }
+      double maxtrg = etatrgs[breaker-1];
+      double scale = etaws[breaker-1];
+      double msumsig = minsumsig[breaker-1];
+      cout << "Eta: " << abseta << " max trg: " << maxtrg << " scale: " << scale << " minsumsig: " << msumsig << endl;
 
       for (int idxphi = 1; idxphi < h2hot->GetNbinsY()+1; ++idxphi) {
         // Hot regions
@@ -288,6 +324,7 @@ void dataquality() {
         // Cold regions
         h2cold->SetBinContent(idxeta, idxphi, 0);
         h2cold2->SetBinContent(idxeta, idxphi, 0);
+        // Fill all triggers, taking weight into account
         for (int itrg = 0; itrg < maxtrg; ++itrg) {
           h2hot->SetBinContent(idxeta,idxphi, h2hot->GetBinContent(idxeta,idxphi) + scale*h2hots[itrg]->GetBinContent(idxeta,idxphi));
           h2cold->SetBinContent(idxeta,idxphi, h2cold->GetBinContent(idxeta,idxphi) + scale*h2colds[itrg]->GetBinContent(idxeta,idxphi));
@@ -298,13 +335,13 @@ void dataquality() {
         if (h2hot->GetBinContent(idxeta,idxphi)>=msumsig)
           h2hot2->SetBinContent(idxeta,idxphi,10);
         else
-          h2hot2->SetBinContent(idxeta,idxphi,-10);
+          h2hot2->SetBinContent(idxeta,idxphi,0);
 
         // Select regions with deficits in at least two triggers
         if (h2cold->GetBinContent(idxeta,idxphi)>=msumsig)
           h2cold2->SetBinContent(idxeta,idxphi,10);
         else
-          h2cold2->SetBinContent(idxeta,idxphi,-10);
+          h2cold2->SetBinContent(idxeta,idxphi,0);
       } // for idxphi
     } // for idxeta
 
@@ -330,18 +367,18 @@ void dataquality() {
       h2hotNew->GetXaxis()->SetRangeUser(-4.79,4.79);
       h2hotNew->GetYaxis()->SetRangeUser(-TMath::Pi(),TMath::Pi());
       h2hotNew->GetZaxis()->SetRangeUser(0,10);
-      h2hotNew->Scale(h2s[ntrg-1]->Integral());
+      h2hotNew->Scale(h2s[jp::notrigs-1]->Integral());
       //h2hotNew->Scale(10000*max(static_cast<double>(h2s[0]->Integral()),1.0));
     }
-    h2hotr->Scale(h2s[ntrg-1]->Integral());
-    h2hotm->Scale(h2s[ntrg-1]->Integral());
-    h2hotHCAL->Scale(h2s[ntrg-1]->Integral());
+    h2hotr->Scale(10000000*h2s[jp::notrigs-1]->Integral());
+    h2hotm->Scale(10000000*h2s[jp::notrigs-1]->Integral());
+    h2hotHCAL->Scale(10000000*h2s[jp::notrigs-1]->Integral());
     //h2hotr->Scale(10000*max(static_cast<double>(h2s[0]->Integral()),1.0));
     //h2hotm->Scale(10000*max(static_cast<double>(h2s[0]->Integral()),1.0));
     //h2hotHCAL->Scale(10000*max(static_cast<double>(h2s[0]->Integral()),1.0));
 
-    for (int itrg = 0; itrg != ntrg; ++itrg) {
-      const char *ctrg = triggers[itrg].c_str();
+    for (int itrg = 0; itrg != jp::notrigs; ++itrg) {
+      const char *ctrg = jp::triggers[itrg];
 
       TCanvas *c1 = new TCanvas("c1","c1",600,600);
       gPad->SetLeftMargin(0.10);
@@ -474,14 +511,14 @@ void dataquality() {
 
     h2hot2->GetXaxis()->SetRangeUser(-4.79,4.79);
     h2hot2->GetYaxis()->SetRangeUser(-TMath::Pi(),TMath::Pi());
-    TFile *fouthot = new TFile(Form("rootfiles/hotjets%s-%srun%s.root",roottag.c_str(),yeartag,eras),"RECREATE");
+    TFile *fouthot = new TFile(Form("%s/hotjets%s-%srun%s.root",savedir.c_str(),roottag.c_str(),yeartag,eras),"RECREATE");
     h2hot->Write("h2hot");
     h2hot2->Write("h2hotfilter");
     //h2hotr->Write("h2hotrobert");
     //h2hotm->Write("h2hotmikko");
     //h2hotHCAL->Write("h2hotHCAL");
     fouthot->Close();
-    TFile *foutcold = new TFile(Form("rootfiles/coldjets%s-%srun%s.root",roottag.c_str(),yeartag,eras),"RECREATE");
+    TFile *foutcold = new TFile(Form("%s/coldjets%s-%srun%s.root",savedir.c_str(),roottag.c_str(),yeartag,eras),"RECREATE");
     h2cold->Write("h2cold");
     h2cold2->Write("h2hole");
     foutcold->Close();

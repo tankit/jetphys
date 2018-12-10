@@ -35,7 +35,7 @@ class HistosEta {
 
   bool ismcdir;
 
-  // control plots vs eta (Ozlem)
+  // control plots vs eta
   TProfile *pncandtp_vseta;
   TProfile *pnchtp_vseta;
   TProfile *pnnetp_vseta;
@@ -59,10 +59,10 @@ class HistosEta {
   // tp: tag-probe (tag), pt: probe-tag (probe)
   vector<TH3D *> hdjasymm;
   vector<TH3D *> hdjasymmtp;
-  vector<TH3D *> hdjasymmpt;
+  //vector<TH3D *> hdjasymmpt;
   vector<TH3D *> hdjmpf;
   vector<TH3D *> hdjmpftp;
-  vector<TH3D *> hdjmpfpt;
+  //vector<TH3D *> hdjmpfpt;
 
   TProfile3D *p3rvsnpv;
   TProfile3D *p3rvsnpvW;
