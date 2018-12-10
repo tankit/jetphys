@@ -12,6 +12,15 @@
 
   gROOT->ProcessLine(".L drawJetPt.C+g");
 
+  unfold("0.0-0.5",1);
+  unfold("0.5-1.0",2);
+  unfold("1.0-1.5",3);
+  unfold("1.5-2.0",4);
+  unfold("2.0-2.5",5);
+  unfold("2.5-3.0",6);
+  unfold("3.2-4.7",7);
+
+
   drawJetPt("0.0-0.5");
   drawJetPt("0.5-1.0");
   drawJetPt("1.0-1.5");
@@ -19,4 +28,5 @@
   drawJetPt("2.0-2.5");
   drawJetPt("2.5-3.0");
   drawJetPt("3.2-4.7");
+
 }
