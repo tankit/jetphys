@@ -1003,7 +1003,8 @@ bool HistosFill::AcceptEvent()
 
   // Check rho
   if (_pass) {
-    if (rho>40.) {
+    if (rho>500.) {
+    //if (rho>40.) { // This was for run 1 settings
       ++_rhocounter_bad;
       _pass = false;
       if (jp::debug)
@@ -1078,15 +1079,15 @@ bool HistosFill::AcceptEvent()
       cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
       cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
     }
-#ifndef NEWMODE
+    #ifndef NEWMODE
     assert(TriggerDecision_.size()==_availTrigs.size());
-#endif
+    #endif
 
     // New and old mode: TriggerDecision and L1/HLT Prescales have the same indexing.
     for (auto itrg = 0u; itrg != jp::notrigs; ++itrg)
       _wt[jp::triggers[itrg]] = 1.0;
 
-#ifdef NEWMODE
+    #ifdef NEWMODE
     for (unsigned itrg = 0; itrg<TriggerDecision_.size(); ++itrg) {
       assert(itrg<_availTrigs.size());
       auto &TDec = TriggerDecision_[itrg]; // Location of the current place
@@ -1095,21 +1096,20 @@ bool HistosFill::AcceptEvent()
       auto trgPlace = std::find(_goodTrigs.begin(),_goodTrigs.end(),TDec);
       if (trgPlace==_goodTrigs.end()) continue;
       unsigned goodIdx = static_cast<unsigned int>(trgPlace-_goodTrigs.begin());
-#else
+    #else
     for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
       auto &itrg = _goodTrigs[goodIdx];
       auto &TDec = TriggerDecision_[itrg]; // Trigger fired or not: -1, 0, 1
       if (TDec!=1) continue;
       auto &TName = _availTrigs[itrg];
-#endif // NEWMODE
+    #endif // NEWMODE
 
-#ifdef NEWMODE
+      #ifdef NEWMODE
       if (jp::debug)
-#else
+      #else
       if (jp::debug and TDec>0)
-#endif
-        cout << TName << " " << itrg << " " << TDec
-             << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
+      #endif
+        cout << TName << " " << itrg << " " << TDec << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
 
       // Set prescale from event for now
       //if (L1Prescale_[itrg]>0 and HLTPrescale_[itrg]>0) { There's trouble in 2017 L1, so we let it pass
@@ -1143,8 +1143,7 @@ bool HistosFill::AcceptEvent()
         PrintInfo(Form("Missing prescale for %s in run %d",TName.c_str(),run),true);
       }
     } // for itrg (_goodTrigs)
-
-  }
+  } // if isdt
 
   ++_totcounter;
   if (_pass) ++_evtcounter;
@@ -1745,16 +1744,23 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             //_jecUnc2->Rjet(pt, unc); // use Fall10 absolute scale uncertainty
           }
 
-          // calculate and/or retrieve efficiencies
-          double ideff = 1.;
-          double vtxeff = 1.;
-          double dqmeff = 1.;
-          double trigeff = 1.;
-          double eff = ideff * vtxeff * dqmeff * trigeff;
+          if (jp::dotrigeffsimple) {
+            // calculate and/or retrieve efficiencies
+            // REMOVED: "For trigger efficiency" (only dummies left)
+            double ideff = 1.;
+            double vtxeff = 1.;
+            double dqmeff = 1.;
+            double trigeff = 1.;
+            double eff = ideff * vtxeff * dqmeff * trigeff;
 
-          if (jp::debug) cout << "..raw spectrum" << endl << flush;
+            if (jp::debug) cout << "..raw spectrum" << endl << flush;
 
-          // REMOVED: "For trigger efficiency"
+            // efficiencies
+            assert(h->peff); h->peff->Fill(pt, eff, _w);
+            assert(h->pideff); h->pideff->Fill(pt, ideff, _w);
+            assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
+            assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
+          }
 
           // raw spectrum
           assert(h->hpt); h->hpt->Fill(pt,_w);
@@ -1789,12 +1795,6 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           assert(h->pjec_l1); h->pjec_l1->Fill(pt, jtjes_l1[jetidx], _w);
           assert(h->pjec_l2l3); h->pjec_l2l3->Fill(pt, jtjes_l2l3[jetidx], _w);
           assert(h->pjec_res); h->pjec_res->Fill(pt, jtjes_res[jetidx], _w);
-
-          // efficiencies
-          assert(h->peff); h->peff->Fill(pt, eff, _w);
-          assert(h->pideff); h->pideff->Fill(pt, ideff, _w);
-          assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
-          assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
 
           if (jp::debug) cout << "..control plots of components" << endl << flush;
 
@@ -3199,7 +3199,6 @@ bool HistosFill::GetTriggers()
     if (std::regex_match(trgName,zbs)) zbcase = true;
   }
 
-  //if (zbcase) cout <<
   auto &eraLumis  = jp::triglumiera[_eraIdx];
   assert(eraLumis.size()==jp::notrigs);
   _availTrigs.clear();
