@@ -157,9 +157,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       if (loclvl==1) cout << endl << "Entering: " << indir2->GetName();
 
       recurseFile(indir2, outdir2, etawid, etamid, loclvl);
-    } // inherits from TDirectory
-
-    if (obj->InheritsFrom("TH1")) { // Normalize (or just pass on) histogrammish objects
+      // inherits from TDirectory
+    } else if (obj->InheritsFrom("TH1")) { // Normalize (or just pass on) histogrammish objects
       outdir->cd();
       string name = obj->GetName();
       string trgname = indir->GetName();
@@ -221,7 +220,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
         bool hptstuff = (string(obj2->GetName())=="hpt") or isjk or isjet;
 
         // Normalization for luminosity
-        if (lumiref>0 and !isgen) {
+        if (jp::isdt and lumiref>0) {
           bool ispre = (TString(obj2->GetName()).Contains("_pre"));
           if (ispre)
             norm0 *= lumiref;
@@ -232,8 +231,11 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
         // Scale normalization for jackknife (but why?)
         if (isjk) norm0 *= 0.9;
 
-        TProfile *peff = dynamic_cast<TProfile*>(indir->Get("peff"));
-        assert(peff);
+        TProfile *peff;
+        if (jp::dotrigeffsimple) {
+          peff = dynamic_cast<TProfile*>(indir->Get("peff"));
+          assert(peff);
+        }
 
         //// Test MC-based normalization for trigger efficiency
         TH1D *htrigeff = dynamic_cast<TH1D*>(outdir->FindObject("htrigeff"));
@@ -393,7 +395,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           } // timedep only for some histos
         } // jp::dotimedep
 
-        assert(hpt->GetNbinsX()==peff->GetNbinsX() || isoth);
+        if (jp::dotrigeffsimple) assert(hpt->GetNbinsX()==peff->GetNbinsX() or isoth);
 
         // Lumi weighting checked in each bin separately
         for (int binidx = 1; binidx != hpt->GetNbinsX()+1; ++binidx) {
@@ -402,7 +404,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           double trigeff = 1.;
           double pt = hpt->GetBinCenter(binidx);
           // Normalization for all the common efficiencies
-          if (peff->GetBinContent(binidx)!=0 && !isgen)
+          if (jp::dotrigeffsimple and !isgen and peff->GetBinContent(binidx)!=0)
             norm *= peff->GetBinContent(binidx);
 
           // Test MC-based normalization for trigger efficiency
@@ -435,7 +437,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
             hpt_withtimedep->SetBinError(binidx, hpt_withtimedep->GetBinError(binidx)/ norm_notime);
           }
 
-          if (!isgen and !isoth) {
+          if (jp::dotrigeffsimple and !isgen and !isoth) {
             if (peff->GetBinContent(binidx)==0 and hpt->GetBinContent(binidx)!=0) { // Zero peff but non-zero hpt
               if (hpt->GetBinCenter(binidx)>jp::recopt and hpt->GetBinCenter(binidx)*cosh(etamid)<3500.) // Good pt and eta region
                 cerr << "Hist " << hpt->GetName() << " " << indir->GetName() << " pt=" << hpt->GetBinCenter(binidx) << " etamid = " << etamid << endl << flush;
@@ -472,7 +474,15 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       obj2->Write();
       obj2->Delete();
       indir->cd();
-    } // inherits from TH1
+      // inherits from TH1
+    } else { // Others
+      // Save the stuff into an identical directory
+      TObject *obj2 = obj->Clone(obj->GetName()); // Copy the input object to output
+      outdir->cd();
+      obj2->Write();
+      obj2->Delete();
+      indir->cd();
+    }
     obj->Delete();
   } // while key
 
