@@ -43,6 +43,9 @@ namespace jp {
   // Debugging info
   constexpr bool debug = false;
 
+  // Use output-MC-1 instead of MC-2b (or NLOxNP) in dagostini.C
+  constexpr bool dagfile1 = true;
+ 
   // Save git version info (recommended)
   constexpr bool gitinfo = true;
 
@@ -483,6 +486,11 @@ namespace jp {
   constexpr double xmin = 114;//24.;//20.;
   constexpr double xmax = 1497;//TEMP PATCH for partial data //1999.;
   //} END limits
+
+  // pT limits for unfolding
+  constexpr double unfptminreco = 15;
+  constexpr double unfptmingen = 15;
+  constexpr double unfptminnlo = 15;
 
   //{ BEGIN Binnings
   // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
