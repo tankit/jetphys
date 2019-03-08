@@ -1,7 +1,8 @@
 // Purpose: Combine different triggers into a single spectrum
-// Author:  mikko.voutilainen@cern.ch
+// Authors:  mikko.voutilainen@cern.ch
+//           hannu.siikonen@cern.ch
 // Created: March 22, 2010
-// Updated: June 2, 2015
+// Updated: November 21, 2018
 
 // We throw a name to recurseFile and the function loops over all directories.
 // As we reach a certain level, a new histogram is declared.
@@ -121,11 +122,14 @@ void HistosCombine() {
   recurseFile(fin, fout, "pnnh");
   recurseFile(fin, fout, "pnce");
   recurseFile(fin, fout, "pnmu");
+
   recurseFile(fin, fout, "pchf");
   recurseFile(fin, fout, "pnef");
   recurseFile(fin, fout, "pnhf");
   recurseFile(fin, fout, "pcef");
   recurseFile(fin, fout, "pmuf");
+  recurseFile(fin, fout, "phhf");
+  recurseFile(fin, fout, "phef");
   recurseFile(fin, fout, "pbeta");
   recurseFile(fin, fout, "pbetastar");
   recurseFile(fin, fout, "ppuf");

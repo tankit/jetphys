@@ -30,30 +30,6 @@ class HistosBasic {
   double ptmax;
   bool ismcdir;
 
-  // new histograms for quark/gluon study (Ozlem)
-  TH1D *hgpt;
-  TH1D *hgpt0;
-
-  //Ozlem
-  TH1D *hgpt_g0tw;
-  TH1D *hqpt_g0tw;
-  TH1D *hgpt_g0;
-  TH1D *hqpt_g0;
-  TH1D *hgpt_g;
-  TH1D *hqpt_g;
-  //
-  TH1D *hqgl;
-  TH1D *hqgl_q;
-  TH1D *hqgl_g;
-  TH1D *hqgl_dq;
-  TH1D *hqgl_dg;
-  //
-  TH2D *hqgl2;
-  TH2D *hqgl2_g;
-  TH2D *hqgl2_q;
-  TH2D *hqgl2_dg;
-  TH2D *hqgl2_dq;
-
   // raw spectrum
   TH1D *hpt;
   TH1D *hpt_pre;
@@ -84,8 +60,40 @@ class HistosBasic {
   // dijet mass
   TH1D *hdjmass;
   TH1D *hdjmass0;
+  TH1D *hdjmass_a01;
+  TH1D *hdjmass_a02;
+  TH1D *hdjmass_a03;
   TProfile *pdjmass_ptratio;
   TProfile *pdjmass0_ptratio;
+  // jet mass (for the two leading jets)
+  TH1D *hjmass;
+  TH1D *hjmass0;
+  TH1D *hjmass_a01;
+  TH1D *hjmass_a02;
+  TH1D *hjmass_a03;
+
+  // Ozlem: new histograms for quark/gluon study
+  TH1D *hgpt;
+  TH1D *hgpt0;
+
+  TH1D *hgpt_g0tw;
+  TH1D *hqpt_g0tw;
+  TH1D *hgpt_g0;
+  TH1D *hqpt_g0;
+  TH1D *hgpt_g;
+  TH1D *hqpt_g;
+  //
+  TH1D *hqgl;
+  TH1D *hqgl_q;
+  TH1D *hqgl_g;
+  TH1D *hqgl_dq;
+  TH1D *hqgl_dg;
+  //
+  TH2D *hqgl2;
+  TH2D *hqgl2_g;
+  TH2D *hqgl2_q;
+  TH2D *hqgl2_dg;
+  TH2D *hqgl2_dq;
 
   // basic properties
   TProfile *ppt;
@@ -189,6 +197,16 @@ class HistosBasic {
   TProfile *phhftp;
   TProfile *pheftp;
   TProfile *ppuftp;
+  //
+  TProfile *ppttagptprobe;
+  TProfile *ppttageff;
+  TProfile *ppttagmu;
+  TProfile *ppttagptprobe_noa;
+  TProfile *ppttagmu_noa;
+  TH2D *h2pttagptprobe;
+  TH2D *h2pttagmu;
+  TH2D *h2pttagptprobe_noa;
+  TH2D *h2pttagmu_noa;
   //
   TH1D *hncandtp;
   TH1D *hnchtp;

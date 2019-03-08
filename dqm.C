@@ -4,7 +4,8 @@
 #include "TFile.h"
 #include "TH1D.h"
 
-#include "tdrstyle_mod15.C"
+#include "tdrstyle_mod18.C"
+#include "settings.h"
 
 void dqm() {
 
@@ -12,10 +13,10 @@ void dqm() {
   setTDRStyle();
 
   const char *crun = "";
-  TFile *fm = new TFile("./output-MC-1.root");
+  TFile *fm = new TFile("./output-MCNU-2a.root");
   assert(fm && !fm->IsZombie());
 
-  TFile *fd = new TFile("./output-DATA-1.root");
+  TFile *fd = new TFile("./output-DATA-2a.root");
   assert(fd && !fd->IsZombie());
 
   curdir->cd();
@@ -25,8 +26,8 @@ void dqm() {
   //////////////////////
 
   // Choose fractions to be plotted
-  const int nfrac = 3;//4;
-  string fracs[nfrac] = {"chf", "nhf", "nef"};// "cef"};
+  const int nfrac = 4;
+  string fracs[nfrac] = {"chf", "nhf", "nef", "cef"};
 
   // Define colors and markers for each fraction
   map<string,int> colors;
@@ -75,8 +76,8 @@ void dqm() {
 
   const int neta = 9;
   const char* etas[neta] = {"Eta_0.0-0.5","Eta_0.5-1.0","Eta_1.0-1.5","Eta_1.5-2.0","Eta_2.0-2.5","Eta_2.5-3.0","Eta_3.0-3.2","Eta_3.2-4.7","Eta_0.0-1.3"};
-  const int ntrg = 9;
-  const char* trgs[ntrg] = {"jt40","jt60","jt80","jt140","jt200","jt260","jt320","jt400","jt450"};
+  vector<const char*> trgs = jp::triggers;
+  const int ntrg = trgs.size();
 
   vector<string> filenames;
   for (int ieta = 0; ieta < neta; ++ieta) {
@@ -113,7 +114,7 @@ void dqm() {
       h2->SetMaximum(2.0-1e-5);//1.75-1e-5);
       h2->SetMinimum(0.5+1e-5);//0.75);
 
-      lumi_13TeV = "Run2016GH Legacy ReReco 16.8 fb^{-1}";
+      lumi_13TeV = "Run2017DE Legacy ReReco 13.6 fb^{-1}";
       //TCanvas *c1 = tdrCanvas("c1",h,4,11,kSquare);
       TCanvas *c1 = tdrDiCanvas("c1",h,h2,4,11);
 

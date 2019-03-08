@@ -104,7 +104,7 @@ public:
   * order:
   *  0 standard
   *  1 reshuffled */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0, string tp = "tp") {
     _plot_title = plot_title;
     _lumi_title = lumi_title;
     _savedir = savedir;
@@ -124,6 +124,9 @@ public:
 
     _mc_type = mc_type;
     _dt_type = dt_type;
+    if (_mc_type=="MCNU") _mc_type="MC";
+    else if (_mc_type=="HWNU") _mc_type="HW";
+    else if (_mc_type=="NU") _mc_type="MC";
     _mc_typeverb = _mc_type;
     _dt_typeverb = _dt_type;
     if (_mc_typeverb=="DT") _mc_typeverb = "Data";
@@ -137,9 +140,9 @@ public:
 
     bool all_DT = false;
     bool all_MC = false;
-    if (_mc_type!="MC" and _mc_type!="HW")
+    if (_mc_type!="MC" and _mc_type!="HW" and _mc_type!="MCNU" and _mc_type!="HWNU")
       all_DT = true;
-    if (_dt_type=="MC" and _dt_type=="HW")
+    if (_dt_type=="MC" or _dt_type=="HW" or _dt_type=="MCNU" or _dt_type=="HWNU")
       all_MC = true;
     assert(!(all_MC and all_DT));
 
@@ -201,7 +204,7 @@ public:
     _h2min = {-4+1e-5, -4.5+1e-5, -6+1e-5, -5+1e-5, -4.5, -4.5};
     _h2max = { 4-1e-5, 4.5-1e-5, 16-1e-5, 5-1e-5, 4.5, 4.5};
 
-    _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
+    _tp = tp; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
     _usetriglines = true;
   }
 };

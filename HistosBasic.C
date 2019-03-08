@@ -46,23 +46,6 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   for (unsigned int i = 0; i != y.size(); ++i) y[i] = -5. + 0.2*i;
   const int ny = y.size()-1;
 
-  // new histograms for quark/gluon study (Ozlem)
-  hgpt = new TH1D("hgpt","",nx,&x[0]);
-  hgpt0 = new TH1D("hgpt0","",6500,0.,6500.);
-
-  hqgl = new TH1D("hqgl","",101,0,1.01);
-  hqgl_q = new TH1D("hqgl_q","",101,0,1.01);
-  hqgl_g = new TH1D("hqgl_g","",101,0,1.01);
-  hqgl_dq = new TH1D("hqgl_dq","",101,0,1.01);
-  hqgl_dg = new TH1D("hqgl_dg","",101,0,1.01);
-
-  // add TH2Ds for pT bins here
-  hqgl2 =  new TH2D("hqgl2","",nx,&x[0],101,0,1.01);
-  hqgl2_g =  new TH2D("hqgl2_g","",nx,&x[0],101,0,1.01);
-  hqgl2_q =  new TH2D("hqgl2_q","",nx,&x[0],101,0,1.01);
-  hqgl2_dg =  new TH2D("hqgl2_dg","",nx,&x[0],101,0,1.01);
-  hqgl2_dq =  new TH2D("hqgl2_dq","",nx,&x[0],101,0,1.01);
-
   // raw spectrum
   hpt = new TH1D("hpt","",nx,&x[0]);
   hpt_pre = new TH1D("hpt_pre","",nx,&x[0]); // prescale weighed
@@ -103,8 +86,17 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   // dijet mass
   hdjmass = new TH1D("hdjmass","",nx,&x[0]);
   hdjmass0 = new TH1D("hdjmass0","",static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  hdjmass_a01 = new TH1D("hdjmass_a01","",nx,&x[0]);
+  hdjmass_a02 = new TH1D("hdjmass_a02","",nx,&x[0]);
+  hdjmass_a03 = new TH1D("hdjmass_a03","",nx,&x[0]);
   pdjmass_ptratio = new TProfile("pdjmass_ptratio","",nx,&x[0]);
   pdjmass0_ptratio = new TProfile("pdjmass0_ptratio","", static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  // leading jet mass
+  hjmass = new TH1D("hjmass","",nx,&x[0]);
+  hjmass0 = new TH1D("hjmass0","",static_cast<int>(jp::sqrts),0.,jp::sqrts);
+  hjmass_a01 = new TH1D("hjmass_a01","",nx,&x[0]);
+  hjmass_a02 = new TH1D("hjmass_a02","",nx,&x[0]);
+  hjmass_a03 = new TH1D("hjmass_a03","",nx,&x[0]);
 
   // basic properties
   ppt = new TProfile("ppt","",nx,&x[0]);
@@ -168,6 +160,16 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   phhf = new TProfile("phhf","",jp::npts,&jp::ptrange[0]);
   phef = new TProfile("phef","",jp::npts,&jp::ptrange[0]);
   ppuf = new TProfile("ppuf","",jp::npts,&jp::ptrange[0]);
+
+  ppttagptprobe = new TProfile("ppttagptprobe","",jp::npts,&jp::ptrange[0]);
+  ppttageff = new TProfile("ppttageff","",jp::npts,&jp::ptrange[0]);
+  ppttagmu = new TProfile("ppttagmu","",jp::npts,&jp::ptrange[0]);
+  ppttagptprobe_noa = new TProfile("ppttagptprobe_noa","",jp::npts,&jp::ptrange[0]);
+  ppttagmu_noa = new TProfile("ppttagmu_noa","",jp::npts,&jp::ptrange[0]);
+  h2pttagptprobe = new TH2D("h2pttagptprobe","",jp::npts,&jp::ptrange[0],jp::npts,&jp::ptrange[0]);
+  h2pttagmu = new TH2D("h2pttagmu","",jp::npts,&jp::ptrange[0],jp::npvs,jp::pvrange);
+  h2pttagptprobe_noa = new TH2D("h2pttagptprobe_noa","",jp::npts,&jp::ptrange[0],jp::npts,&jp::ptrange[0]);
+  h2pttagmu_noa = new TH2D("h2pttagmu_noa","",jp::npts,&jp::ptrange[0],jp::npvs,jp::pvrange);
 
   hncand = new TH1D("hncand","",300,-0.5,299.5);
   hnch = new TH1D("hnch","",300,-0.5,299.5);
@@ -264,6 +266,24 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
     phefnegtp_vsphi = new TProfile("phefnegtp_vsphi","",jp::nwphis,jp::wphirange);
     ppufnegtp_vsphi = new TProfile("ppufnegtp_vsphi","",jp::nwphis,jp::wphirange);
   }
+
+  //{ Histograms for QGL study (Ozlem)
+  hgpt = new TH1D("hgpt","",nx,&x[0]);
+  hgpt0 = new TH1D("hgpt0","",6500,0.,6500.);
+
+  hqgl = new TH1D("hqgl","",101,0,1.01);
+  hqgl_q = new TH1D("hqgl_q","",101,0,1.01);
+  hqgl_g = new TH1D("hqgl_g","",101,0,1.01);
+  hqgl_dq = new TH1D("hqgl_dq","",101,0,1.01);
+  hqgl_dg = new TH1D("hqgl_dg","",101,0,1.01);
+
+  // add TH2Ds for pT bins here
+  hqgl2 =  new TH2D("hqgl2","",nx,&x[0],101,0,1.01);
+  hqgl2_g =  new TH2D("hqgl2_g","",nx,&x[0],101,0,1.01);
+  hqgl2_q =  new TH2D("hqgl2_q","",nx,&x[0],101,0,1.01);
+  hqgl2_dg =  new TH2D("hqgl2_dg","",nx,&x[0],101,0,1.01);
+  hqgl2_dq =  new TH2D("hqgl2_dq","",nx,&x[0],101,0,1.01);
+  //} QGL study
 
   // control plots for topology (JEC)
   hselpt = new TH1D("hselpt","",nx,&x[0]);

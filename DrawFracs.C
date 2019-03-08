@@ -119,7 +119,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
 
   lumi_13TeV = _lumi_title;
   lumi_bonus = _plot_title;
-  TCanvas *c1 = tdrDiCanvas(Form("c1%s",taguniq.c_str()),h,h2,4,33);
+  TCanvas *c1 = tdrDiCanvas(Form("c1%s%s",taguniq.c_str(),_tp.c_str()),h,h2,4,33);
 
   c1->cd(1);
 
@@ -174,6 +174,7 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
     const char *hname0 = Form("p%s%s%s%s",frc.c_str(),_sphi.c_str(),_tp.c_str(),_modes[mode].c_str());
     if (!_vseta) {
       if (!_vspt and (frc=="hef" or frc=="hhf")) continue;
+//      if (_tp=="" and (frc=="hef" or frc=="hhf")) continue;
       bool enterdtdir = ddt->cd(dirname); assert(enterdtdir);
     } else if (_pertrg) { bool enterdtdir = ddt->cd(trg.c_str()); assert(enterdtdir); }
     else { bool enterdtdir = ddt->cd(); assert(enterdtdir); }
@@ -351,6 +352,6 @@ void Fracs::makeProfile(unsigned mode, TDirectory *dmc, TDirectory *ddt, string 
   gPad->RedrawAxis();
 
   gErrorIgnoreLevel = kWarning;
-  c1->SaveAs(Form("%s/drawFracs%s.pdf",_savedir.c_str(),taguniq.c_str()));
-  cout << Form("\\includegraphics[width=0.30\\textwidth]{../%s/drawFracs%s.pdf}",_savedir.c_str(),taguniq.c_str()) << endl;
+  c1->SaveAs(Form("%s/drawFracs%s%s.pdf",_savedir.c_str(),taguniq.c_str(),_tp=="tp"?"":"_dm"));
+  cout << Form("\\includegraphics[width=0.30\\textwidth]{../%s/drawFracs%s%s.pdf}",_savedir.c_str(),taguniq.c_str(),_tp=="tp"?"":"_dm") << endl;
 }

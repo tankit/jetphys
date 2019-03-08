@@ -17,6 +17,7 @@
 #include "HistosBasic.h"
 #include "HistosEta.h"
 #include "HistosMC.h"
+#include "HistosAll.h"
 #include "HistosFill.h"
 
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
@@ -30,6 +31,7 @@ R__LOAD_LIBRARY(HistosRun.C+g)
 R__LOAD_LIBRARY(HistosBasic.C+g)
 R__LOAD_LIBRARY(HistosEta.C+g)
 R__LOAD_LIBRARY(HistosMC.C+g)
+R__LOAD_LIBRARY(HistosAll.C+g)
 R__LOAD_LIBRARY(HistosFill.C+g)
 #else
 R__LOAD_LIBRARY(tools.C+)
@@ -37,6 +39,7 @@ R__LOAD_LIBRARY(HistosRun.C+)
 R__LOAD_LIBRARY(HistosBasic.C+)
 R__LOAD_LIBRARY(HistosEta.C+)
 R__LOAD_LIBRARY(HistosMC.C+)
+R__LOAD_LIBRARY(HistosAll.C+)
 R__LOAD_LIBRARY(HistosFill.C+)
 #endif // USEASSERT or not?
 
@@ -138,7 +141,14 @@ void mk_HistosFill() {
 
     cout << "Running over Herwig flat sample" << endl;
 
-    for (auto &fname : jp::hwfiles.at(jp::hwfile))
+    for (auto &fname : jp::mcfiles.at(jp::hwfile))
+      files.push_back(Form("%s%s",p,fname));
+  } else if (jp::isnu) {
+    if (jp::pthatbins) cout << "No pthat binned files exist for Neutrino Gun!" << endl;
+
+    cout << "Running over HSingle Neutrino sample" << endl;
+
+    for (auto &fname : jp::mcfiles.at(jp::nufile))
       files.push_back(Form("%s%s",p,fname));
   } else {
     cout << "Enter a proper type!!" << endl;
@@ -150,22 +160,13 @@ void mk_HistosFill() {
       cout << "Entered: " << jp::run << endl << "Options:";
       for (auto &fname : jp::dtfiles) cout << " " << fname.first;
       cout << endl;
-    } else if (jp::ispy) {
+    } else if (jp::ispy or jp::ishw or jp::isnu) {
       if (jp::pthatbins) {
         cout << "Problems with pthat file logic!" << endl;
       } else {
         cout << "Enter a proper value for MC tag!" << endl;
         cout << "Entered: " << jp::mcfile << endl << "Options:";
         for (auto &fname : jp::mcfiles) cout << " " << fname.first;
-        cout << endl;
-      }
-    } else if (jp::ishw) {
-      if (jp::pthatbins) {
-        cout << "Problems with pthat file logic!" << endl;
-      } else {
-        cout << "Enter a proper value for HW tag!" << endl;
-        cout << "Entered: " << jp::mcfile << endl << "Options:";
-        for (auto &fname : jp::hwfiles) cout << " " << fname.first;
         cout << endl;
       }
     }
