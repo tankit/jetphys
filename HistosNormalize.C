@@ -225,7 +225,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           if (ispre)
             norm0 *= lumiref;
           else if (lumi>0)
-            norm0 *= lumi/lumiref;
+            norm0 *= lumi; ///lumiref;
         }
 
         // Scale normalization for jackknife (but why?)
