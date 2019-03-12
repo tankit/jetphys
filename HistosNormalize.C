@@ -232,10 +232,10 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
         if (isjk) norm0 *= 0.9;
 
         TProfile *peff;
-        if (jp::dotrigeffsimple) {
+	/*  if (jp::dotrigeffsimple) {
           peff = dynamic_cast<TProfile*>(indir->Get("peff"));
           assert(peff);
-        }
+	  } */
 
         //// Test MC-based normalization for trigger efficiency
         TH1D *htrigeff = dynamic_cast<TH1D*>(outdir->FindObject("htrigeff"));
@@ -395,7 +395,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           } // timedep only for some histos
         } // jp::dotimedep
 
-        if (jp::dotrigeffsimple) assert(hpt->GetNbinsX()==peff->GetNbinsX() or isoth);
+	//  if (jp::dotrigeffsimple) assert(hpt->GetNbinsX()==peff->GetNbinsX() or isoth);
 
         // Lumi weighting checked in each bin separately
         for (int binidx = 1; binidx != hpt->GetNbinsX()+1; ++binidx) {
@@ -404,8 +404,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           double trigeff = 1.;
           double pt = hpt->GetBinCenter(binidx);
           // Normalization for all the common efficiencies
-          if (jp::dotrigeffsimple and !isgen and peff->GetBinContent(binidx)!=0)
-            norm *= peff->GetBinContent(binidx);
+	  // if (jp::dotrigeffsimple and !isgen and peff->GetBinContent(binidx)!=0)
+          //  norm *= peff->GetBinContent(binidx);
 
           // Test MC-based normalization for trigger efficiency
           if (htrigeff) {
@@ -437,12 +437,12 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
             hpt_withtimedep->SetBinError(binidx, hpt_withtimedep->GetBinError(binidx)/ norm_notime);
           }
 
-          if (jp::dotrigeffsimple and !isgen and !isoth) {
+	  /*  if (jp::dotrigeffsimple and !isgen and !isoth) {
             if (peff->GetBinContent(binidx)==0 and hpt->GetBinContent(binidx)!=0) { // Zero peff but non-zero hpt
               if (hpt->GetBinCenter(binidx)>jp::recopt and hpt->GetBinCenter(binidx)*cosh(etamid)<3500.) // Good pt and eta region
                 cerr << "Hist " << hpt->GetName() << " " << indir->GetName() << " pt=" << hpt->GetBinCenter(binidx) << " etamid = " << etamid << endl << flush;
-            }
-          }
+		}
+		} */
         } // for binidx
       } else if (jp::isdt) { // TH3, TH2 and TH1 that is not a hpt object
         // This we do only for data - there are no lumi weights to be applied for MC
