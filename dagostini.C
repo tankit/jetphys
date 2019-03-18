@@ -199,7 +199,8 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
 
       TH1D *hpt = (TH1D*)obj;
       //TH1D *hpt2 = (TH1D*)indir2->Get("hnlo"); assert(hpt2);
-      TH1D *hpt2 = (TH1D*)indir2->Get(jp::dagfile1 ? "mc/hpt_g" : "hgpt"); assert(hpt2);
+      //    TH1D *hpt2 = (TH1D*)indir2->Get(jp::dagfile1 ? "mc/hpt_g" : "hgpt"); assert(hpt2);
+        TH1D *hpt2 = (TH1D*)indir2->Get(jp::dagfile1 ? "mc/hpt_g" : "hpt"); assert(hpt2);
 
        if (hpt2)
         dagostiniUnfold_histo(hpt, hpt2, outdir, ismc);
@@ -245,7 +246,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
 		           "[0]*pow(x,[1])"
                       "*pow(1-x*cosh([3])/[4],[2])", //10., 1000.);
 		      jp::unfptminnlo, min(jp::xmax, jp::emax/cosh(y1)));
-  fnlo->SetParameters(2e14,-5.2,8.9,y1,jp::emax);
+
+  fnlo->SetParameters(5e10,-5.2,8.9,y1,jp::emax);
   //  fnlo->SetParameters(2e14*2e-10,-18,-5,10,y1,jp::emax);
   fnlo->FixParameter(3,y1);
   fnlo->FixParameter(4,jp::emax);
@@ -253,7 +255,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   //hnlo->Fit(fnlo,"QRN");
   //hnlo->Scale(2e-10); // TEMP PATCH
   fnlo->SetRange(max(60.,jp::unfptminnlo), min(jp::xmax, jp::emax/cosh(y1)));
-  hnlo->Fit(fnlo,"RN");
+  cout << "fit hnlo" << endl;
+  hnlo->Fit(fnlo,"RN");  // There seems to be abnormal terminations
   fnlo->SetRange(jp::unfptminnlo, min(jp::xmax, jp::emax/cosh(y1)));
 
   // Graph of theory points with centered bins
@@ -280,14 +283,15 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   // Second fit to properly centered graph
   //gnlo2->Fit(fnlo,"QRN");
   fnlo->SetRange(max(60.,jp::unfptminnlo), min(jp::xmax, jp::emax/cosh(y1)));
+  cout << "fit to gnlo2" << endl;
   gnlo2->Fit(fnlo,"RN");
   fnlo->SetRange(jp::unfptminnlo, min(jp::xmax, jp::emax/cosh(y1)));
 
   // Bin-centered data points
   TGraphErrors *gpt = new TGraphErrors(0);
   gpt->SetName(Form("gpt%s",c));
-  for (int i = 1; i != hpt->GetNbinsX()+1; ++i) {
-
+    for (int i = 1; i != hpt->GetNbinsX()+1; ++i) {
+ 
     double ptmin = hpt->GetBinLowEdge(i);
     double ptmax = hpt->GetBinLowEdge(i+1);
     double y = fnlo->Integral(ptmin, ptmax) / (ptmax - ptmin);
@@ -317,6 +321,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   TH1D *hcorrpt_fwd = (TH1D*)hpt->Clone(Form("hcorrpt_fwd%s",c));
 
   for (int i = 0; i != gpt->GetN(); ++i) {
+    //  for (int i = 1; i != gpt->GetN()+1; ++i) {
     double x, y, ex, ey;
     tools::GetPoint(gpt, i, x, y, ex, ey);
     double k = fnlo->Eval(x) / fnlos->Eval(x);
@@ -351,21 +356,23 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     double x2 = hpt->GetBinLowEdge(i+1);
     double y = hpt->GetBinContent(i);
 
-    if (x>=jp::recopt && y>0) {
+    if (x>=jp::unfptminreco && y>0) {
       if (vx.size()==0) vx.push_back(x1);
       vx.push_back(x2);
     }
 
-    if (x>=jp::fitptmin && y>0) {
+    //   if (x>=jp::fitptmin && y>0) {
+      if (x>=jp::unfptmingen && y>0) {
       if (vy.size()==0) vy.push_back(x1);
       vy.push_back(x2);
     }
   } // for i
 
   // copy over relevant part of hpt
-  TH1D *hreco = new TH1D(Form("hreco%s",c),";p_{T,reco} (GeV)",
+  TH1D *hreco = new TH1D(Form("hreco%s",c),";p_{T,reco} (GeV)",   // Indices? do we want bin 0 too?
 			 vy.size()-1,&vy[0]);
-  for (int i = 1; i != hreco->GetNbinsX()+1; ++i) {
+  //   for (int i = 1; i != hreco->GetNbinsX()+1; ++i) {  // orig
+   for (int i = 0; i != hreco->GetNbinsX(); ++i) {
     int j = hpt->FindBin(hreco->GetBinCenter(i));
     double dpt = hpt->GetBinWidth(j);
     hreco->SetBinContent(i, hpt->GetBinContent(j)*dpt);
@@ -375,7 +382,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   // copy over relevant part of hnlo
   TH1D *htrue = new TH1D(Form("htrue%s",c),";p_{T,gen} (GeV)",
 			 vx.size()-1,&vx[0]);
-  for (int i = 1; i != htrue->GetNbinsX()+1; ++i) {
+  //  for (int i = 1; i != htrue->GetNbinsX()+1; ++i) { // orig
+   for (int i = 0; i != htrue->GetNbinsX(); ++i) {
     int j = hnlo->FindBin(htrue->GetBinCenter(i));
     double dpt = hnlo->GetBinWidth(j);
     htrue->SetBinContent(i, hnlo->GetBinContent(j)*dpt);
@@ -406,7 +414,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       double ptgen1 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j));
       double ptgen2 = min(jp::emax/cosh(y1), mt->GetYaxis()->GetBinLowEdge(j+1));
 
-      if (ptgen1>=jp::recopt && ptreco>jp::recopt && ptgen1*cosh(y1)<jp::emax) {
+      if (ptgen1>=jp::unfptmingen && ptreco>jp::unfptminreco && ptgen1*cosh(y1)<jp::emax) {
 
         fnlos->SetParameter(4, ptgen1);
         fnlos->SetParameter(5, ptgen2);
@@ -926,8 +934,11 @@ void drawDagostini(string type) {
       h2->GetYaxis()->SetTitleOffset(1.5);
       h2->GetZaxis()->SetRangeUser(1e-3,0.9999);
 
-      h2->GetXaxis()->SetRangeUser(jp::fitptmin,jp::xmax);//1327.);
-      h2->GetYaxis()->SetRangeUser(jp::recopt,jp::xmax);
+      //    h2->GetXaxis()->SetRangeUser(jp::fitptmin,jp::xmax);//1327.);
+      // h2->GetYaxis()->SetRangeUser(jp::recopt,jp::xmax);
+      
+      h2->GetXaxis()->SetRangeUser(jp::unfptminreco,jp::xmax);//1327.);
+      h2->GetYaxis()->SetRangeUser(jp::unfptmingen,jp::xmax);
       //h2resp->Draw("SAME COLZ");
 
       //tex->DrawLatex(0.8, 0.15, _algo=="AK7" ?
@@ -941,7 +952,7 @@ void drawDagostini(string type) {
     c2->cd(iy+1);
     gPad->SetLogx();
 
-    h->SetMinimum(0.45);
+    h->SetMinimum(0.1);
     h->SetMaximum(1.15);
     h->SetXTitle(iy==ny-1 ? "p_{T} (GeV)" : "");
     h->SetYTitle(iy==0 ? "Unfolding correction" : "");
