@@ -1744,7 +1744,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             //_jecUnc2->Rjet(pt, unc); // use Fall10 absolute scale uncertainty
           }
 
-          if (jp::dotrigeffsimple) {
+	  /*    if (jp::dotrigeffsimple) {
             // calculate and/or retrieve efficiencies
             // REMOVED: "For trigger efficiency" (only dummies left)
             double ideff = 1.;
@@ -1760,7 +1760,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             assert(h->pideff); h->pideff->Fill(pt, ideff, _w);
             assert(h->pvtxeff); h->pvtxeff->Fill(pt, vtxeff, _w);
             assert(h->pdqmeff); h->pdqmeff->Fill(pt, dqmeff, _w);
-          }
+	    } */
 
           // raw spectrum
           assert(h->hpt); h->hpt->Fill(pt,_w);
