@@ -224,10 +224,12 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
           bool ispre = (TString(obj2->GetName()).Contains("_pre"));
           if (ispre)
             norm0 *= lumiref;
-          else if (lumi>0)
-            norm0 *= lumi; ///lumiref;
+          else if (lumi>0) {
+            norm0 *= lumi/lumiref;
+	    norm0 *= jp::triglumiera[jp::runidx][jp::refidx]/1e6; // triglumiera for normalizating a single lumi era correctly
+	  }
         }
-
+	
         // Scale normalization for jackknife (but why?)
         if (isjk) norm0 *= 0.9;
 
