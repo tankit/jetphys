@@ -55,11 +55,11 @@ namespace jp {
   // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
   constexpr const char* algo = "AK4PFchs";
   // Data type ("DATA", "MC", "HW", or "NU")
-  constexpr const char* type = "DATA";
+  constexpr const char* type = "MC";
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunA";
+  constexpr const char* run = "RunD";
   // In case of flat MC, choose file (all options given in mcfiles)
   constexpr const char* mcfile = "P8CP5"; //"P8M1" or "P8CP5"
   constexpr const char* hwfile = "HS1";
@@ -70,6 +70,10 @@ namespace jp {
   const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
+  // Quick fix for reweightning
+  int refidx = 10; // 9 for jt500
+  int runidx = 3; // 0-8 for 2016
+  
   // Luminosity weighting options (DATA)
   // Do we use trigger lumi weighting (see triglumi or triglumiera)
   constexpr bool usetriglumi = true;
@@ -154,8 +158,7 @@ namespace jp {
     "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt",
     "lumicalc/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1mod.txt",
     "lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
-    //    "lumicalc/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
-    "lumicalc/Cert_314472-321221_13TeV_PromptReco_Collisions18_JSON.txt"
+    "lumicalc/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
   };
   const constexpr char* json = json_.at(yid);
 
@@ -216,8 +219,8 @@ namespace jp {
     { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
     { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
     {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
-    { 71025.684,214560.811, 702594.906,4763057.43 ,43147422.256,185864584.42 ,424038506.419,1626563779.747,3368088125.968, 6692924544.657,53266005893.392}
-  }}; // in /ub
+    { 75831.608,231122.765, 764683.719,4998554.8 ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}
+    }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
     // These are used to find out which year and which era we are living in
@@ -263,9 +266,10 @@ namespace jp {
   // 2018 values: (zb,jt40-jt500)
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
-      { 24886.109, 65937.99,  89100.785,2453432.502,10135979.76 , 44392687.158,115825842.173,398144553.92 , 912726818.03 ,1783679072.5  ,14002382122.174}, // A
-      { 10979.168, 26940.560,110806.544, 417154.048, 5874327.302, 25175688.436, 55403271.989,221613087.956, 443226175.913, 886452351.826, 7091618814.605}, // B
-      {  3396.780, 11620.313, 46651.463, 175629.038, 2468713.676, 10580201.467, 24441922.325, 94392750.276, 187660520.878, 374196062.081, 2985693638.923}, // C
+
+      { 25013.934, 66295.974, 89414.136,2456363.426,10191358.171, 44630018.263,116215006.966,399701370.502, 915840136.381,1789905866.607,14052199937.969}, // A
+      { 10986.42 , 26966.089,110846.903, 417305.989, 5875972.082, 25182737.494, 55423451.676,221693806.705, 443387613.41 , 886775226.82 , 7094201814.561}, // B
+      {  8067.627, 27798.754,108386.566, 408043.543, 5681358.29,  24348565.549, 55309473.888,217862956.528, 434600933.381, 868076887.087, 6936740238.969}, // C
       { 31763.627,110061.948,456036.114,1716841.842,24668401.518,105716007.359,228367469.932,912413387.595,1824474611.147,3648597058.250,29186311317.690}  // D
     }}
   }};
@@ -277,27 +281,21 @@ namespace jp {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
     "Fall17_17Nov2017",
-    //"Fall17_17Nov2017"
-    //"Fall17_09May2018",
-    //"Fall17_09May2018",
-    "Autumn18_RunA_V7_DATA/Autumn18_Run"
-    //"Fall18_17Sep2018"
+    "Autumn18_RunD_V10_MC/Autumn18_Run"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V18",
     "_V11",//"_V32",
     "_V32",
-    "_V7"
+    "_V10"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V15",
     "_V11",//"_V32",
     "_V32",
-    //"_V3",
-    //"_V3",
-    "_V7"
+    "_V10"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -338,7 +336,7 @@ namespace jp {
 
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Final/","2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","2018data/"};
+      {"Data/2016/Final/","2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","Data/2018/"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
