@@ -8,9 +8,12 @@ R__LOAD_LIBRARY(DrawFracs.C+g)
 void mk_DrawFracs() {
     const char *mcpath="./";
     const char *dtpath="./";
-    vector<const char*> savedirs = {"pypdf","hwpdf","nupdf","pynupdf","hwnupdf"};
-    vector<const char*> mctypes = {"MC","HW","NU","MCNU","HWNU"};
-    vector<bool> dotfracs = {true,true,true,false,false};
+    vector<const char*> savedirs = {"pypdf","nupdf","pynupdf"};
+    vector<const char*> mctypes = {"MC","NU","MCNU"};
+    vector<bool> dotfracs = {true,true,false};
+    //vector<const char*> savedirs = {"pypdf","hwpdf","nupdf","pynupdf","hwnupdf"};
+    //vector<const char*> mctypes = {"MC","HW","NU","MCNU","HWNU"};
+    //vector<bool> dotfracs = {true,true,true,false,false};
 
     // 2016 IOV's: tot. 35.86 fb^{-1}
     //string title="Run2016BCD";
@@ -31,14 +34,14 @@ void mk_DrawFracs() {
     //string lumit="13.5 fb^{-1}";
 
     // 2018 IOV's: tot. 53.27 fb^{-1}
-    string title="Run2018A";
-    string lumit="14.0 fb^{-1}";
+    //string title="Run2018A";
+    //string lumit="14.1 fb^{-1}";
     //string title="Run2018B";
     //string lumit="7.1 fb^{-1}";
-    //string title="Run2018C3";
-    //string lumit="3.0 fb^{-1}";
-    //string title="Run2018D";
-    //string lumit="29.2 fb^{-1}";
+    //string title="Run2018C";
+    //string lumit="6.9 fb^{-1}";
+    string title="Run2018D";
+    string lumit="29.2 fb^{-1}";
 
     for (unsigned idx = 0; idx < mctypes.size(); ++idx) {
       const char *mctype = mctypes[idx];

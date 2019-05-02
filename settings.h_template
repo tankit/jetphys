@@ -31,7 +31,7 @@ using std::regex;
 
 // Will assert be used in the programs? More than 1/3 reduction of run time if off.
 // CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
-#define USEASSERT
+//#define USEASSERT
 // New handling for triggers etc. - comment this out if old mode is to be used
 #define NEWMODE
 
@@ -59,7 +59,7 @@ namespace jp {
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunD";
+  constexpr const char* run = "RunC";
   // In case of flat MC, choose file (all options given in mcfiles)
   constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
   constexpr const char* hwfile = "HS1";
@@ -67,7 +67,7 @@ namespace jp {
   // Do we use pthatbinned MC (if not, we use flat)
   constexpr bool pthatbins = false;
 
-  const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
   // Luminosity weighting options (DATA)
@@ -212,10 +212,10 @@ namespace jp {
   // Trigger lumis for weighting in /ub
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
-    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
-    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
+    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                }, // 2016
+    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432}, // 2017
     {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
-    { 75831.608,231122.765, 764683.719,4998554.8 ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}
+    { 75831.608,231122.765, 764683.719,4998554.8  ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}  // 2018
   }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
@@ -262,9 +262,9 @@ namespace jp {
   // 2018 values: (zb,jt40-jt500)
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
-      { 24886.109, 65937.99,  89100.785,2453432.502,10135979.76 , 44392687.158,115825842.173,398144553.92 , 912726818.03 ,1783679072.5  ,14002382122.174}, // A
-      { 10979.168, 26940.560,110806.544, 417154.048, 5874327.302, 25175688.436, 55403271.989,221613087.956, 443226175.913, 886452351.826, 7091618814.605}, // B
- { 8067.627, 27798.754,108386.566, 408043.543, 5681358.29, 24348565.549, 55309473.888,217862956.528, 434600933.381, 868076887.087, 6936740238.969}, // C
+.934, 66295.974, 89414.136,2456363.426,10191358.171, 44630018.263,116215006.966,399701370.502, 915840136.381,1789905866.607,14052199937.969}, // A
+      { 10986.42 , 26966.089,110846.903, 417305.989, 5875972.082, 25182737.494, 55423451.676,221693806.705, 443387613.41 , 886775226.82 , 7094201814.561}, // B
+      {  8067.627, 27798.754,108386.566, 408043.543, 5681358.29,  24348565.549, 55309473.888,217862956.528, 434600933.381, 868076887.087, 6936740238.969}, // C
       { 31763.627,110061.948,456036.114,1716841.842,24668401.518,105716007.359,228367469.932,912413387.595,1824474611.147,3648597058.250,29186311317.690}  // D
     }}
   }};
@@ -279,15 +279,15 @@ namespace jp {
     //"Fall17_17Nov2017"
     //"Fall17_09May2018",
     //"Fall17_09May2018",
-    "Fall17_09May2018"
-    //"Fall18_17Sep2018"
+    //"Fall17_09May2018"
+    "Autumn18"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V18",
     "_V32",
     "_V32",
-    "_V32"
+    "_V6"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
@@ -296,7 +296,7 @@ namespace jp {
     "_V32",
     //"_V3",
     //"_V3",
-    "_V1"
+    "_V5"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -306,7 +306,7 @@ namespace jp {
     {"BCD","EF","GH"},
     {"B","C","DE","F"},
     {"F"}, // Run2017F is used for Run2017H (lowpu)
-    {"F","F","F","F"} // Run2017F is used for all 2018
+    {"_RunA","_RunB","_RunC","_RunD"}
   }};
   const vector<string> IOVnames = IOVnames_.at(yid);
   // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
@@ -314,7 +314,7 @@ namespace jp {
     { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
     { {297020,299329},{299337,302029},{302030,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
-    { {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
+    { {315000,316999},{317000,319079},{319080,320099},{320100,400000} } // A,B,C,D
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES and JEC
@@ -369,7 +369,7 @@ namespace jp {
       {
         {"RunA",{"A_ZB.root", "A.root"}},
         {"RunB",{"B_ZB.root", "B.root"}},
-        {"RunC",{"C3_ZB.root","C3.root"}},
+        {"RunC",{"C_ZB.root","C.root"}},
         {"RunD",{"D_ZB.root","D.root"}}
       }
     }};
@@ -461,6 +461,8 @@ namespace jp {
   constexpr bool dotrigeff = false; // CAUTION: Requires output-MC-1.root file
   // Correct pT<114 GeV only, if above dotrigeff=true
   constexpr bool dotrigefflowptonly = false; // CAUTION: Not needed
+  // Correct for trigger efficiency according to a simpler scheme
+  constexpr bool dotrigeffsimple = false;
   // Correct for time-dependence (prescales) in data
   constexpr bool dotimedep = false; // CAUTION: Unknown consequences
   //} END HistosNormalize
