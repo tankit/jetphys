@@ -55,7 +55,7 @@ namespace jp {
   // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
   constexpr const char* algo = "AK4PFchs";
   // Data type ("DATA", "MC", "HW", or "NU")
-  constexpr const char* type = "MC";
+  constexpr const char* type = "DATA";
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
@@ -72,13 +72,8 @@ namespace jp {
 
   // Quick fix for reweightning
   int refidx = 10; // 9 for jt500
-<<<<<<< HEAD
   int runidx = 3; // 0-8 for 2016
-  
-=======
-  int runidx = 0; // 0-8 for 2016
 
->>>>>>> c40ba7d89f0dc9d958f71c1c34d28381f9fa03b7
   // Luminosity weighting options (DATA)
   // Do we use trigger lumi weighting (see triglumi or triglumiera)
   constexpr bool usetriglumi = true;
