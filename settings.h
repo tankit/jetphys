@@ -55,24 +55,24 @@ namespace jp {
   // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
   constexpr const char* algo = "AK4PFchs";
   // Data type ("DATA", "MC", "HW", or "NU")
-  constexpr const char* type = "DATA";
+  constexpr const char* type = "MC";
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunA";
+  constexpr const char* run = "RunB";
   // In case of flat MC, choose file (all options given in mcfiles)
   constexpr const char* mcfile = "P8CP5"; //"P8M1" or "P8CP5"
   constexpr const char* hwfile = "HS1";
   constexpr const char* nufile = "NuGun";
   // Do we use pthatbinned MC (if not, we use flat)
-  constexpr bool pthatbins = false;
+  constexpr bool pthatbins = true; // false;
 
-  const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
   // Quick fix for reweightning
-  int refidx = 10; // 9 for jt500
-  int runidx = 0; // 0-8 for 2016
+  int refidx = 10; // 10 for jt500
+  int runidx = 0; // 0-8 for 2016, 0-4 for 2017, 0-3 for 2018
 
   // Luminosity weighting options (DATA)
   // Do we use trigger lumi weighting (see triglumi or triglumiera)
@@ -100,7 +100,7 @@ namespace jp {
   //10; // debug
   //100; //debug
   //1000;
-  //10000; // shorter test run
+  // 10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
   //2500000; // shortish test run
@@ -207,7 +207,7 @@ namespace jp {
   // Trigger ranges (differ from thresholds)
   const array<vector<array<double,2>>,yrs> trigranges_ = {{
     {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,6500}          }},
-    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
+    {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
     {{{0,28},{28,37},{37,49},{49,84},{84,114},{114,196},{196,272}}},
     {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
   }}; // V[5,6], AK4
@@ -278,28 +278,22 @@ namespace jp {
   // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
   const array<string,yrs> jecgt_ = {
     "Summer16_07Aug2017",
+    "Fall17_17Nov2017_V32_MC/Fall17_17Nov2017", 
     "Fall17_17Nov2017",
-    "Fall17_17Nov2017",
-    //"Fall17_17Nov2017"
-    //"Fall17_09May2018",
-    //"Fall17_09May2018",
     "Autumn18_RunA_V10_DATA/Autumn18_Run"
-    //"Fall18_17Sep2018"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V18",
-    "_V11",//"_V32",
+    "_V32",
     "_V32",
     "_V10"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
-    "_V15",
-    "_V11",//"_V32",
     "_V32",
-    //"_V3",
-    //"_V3",
+    "_V32",
+    "_V32",
     "_V7"
   };
   const string jecversmc = jecversmc_.at(yid);
@@ -308,7 +302,7 @@ namespace jp {
   constexpr const bool useIOV = true ;
   const array<vector<string>,yrs> IOVnames_ = {{
     {"BCD","EF","GH"},
-    {"B","C","D","E","F"},
+    {"B","C","DE","F"},
     {"F"}, // Run2017F is used for Run2017H (lowpu)
     //    {"F","F","F","F"} // Run2017F is used for all 2018
     {"A","B","C","D"}
@@ -317,7 +311,7 @@ namespace jp {
   // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
   const array<vector<array<int,2>>,yrs> IOVranges_ = {{
     { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
-    { {297020,299329},{299337,302029},{302030,303434},{303435,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
+    { {297020,299329},{299337,302029},{302030,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
     { {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
   }};
@@ -341,7 +335,7 @@ namespace jp {
 
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Final/","2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","2018data/"};
+      {"Data/2016/Final/","Data/2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","2018data/"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
@@ -454,8 +448,8 @@ namespace jp {
 
   //{ BEGIN Special HistosFill analyses that are not typically needed
   // Eta phi exclusion due to hot ECAL regions (produced with dataequality.C)
-  constexpr bool doVetoHot = false;
-  const constexpr char HotType[] = ""; // h2hotr (Robert) or h2hotm (Mikko)
+  constexpr bool doVetoHot = true;
+  const constexpr char HotType[] = "filter"; // h2hotr (Robert) or h2hotm (Mikko)
 
   // Check for duplicates (warning: takes a lot of memory!)
   constexpr bool checkduplicates = false;
