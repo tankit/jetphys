@@ -646,13 +646,16 @@ bool HistosFill::PreRun()
 
   if (jp::doVetoHot) {
     string HotTag = "";
+    string HotYr = "";
     if (jp::yid==0) {
+      HotYr = "16";
       if      (std::regex_search(jp::run,regex("^Run[BCD]"))) HotTag = "BCD";
       else if (std::regex_search(jp::run,regex("^RunE")))     HotTag = "EF";
       else if (std::regex_search(jp::run,regex("^RunFe")))    HotTag = "EF";
       else if (std::regex_search(jp::run,regex("^RunFl")))    HotTag = "GH";
       else if (std::regex_search(jp::run,regex("^Run[GH]")))  HotTag = "GH";
     } else if (jp::yid==1) {
+      HotYr = "17";
       if      (std::regex_search(jp::run,regex("^RunB"))) HotTag = "B";
       else if (std::regex_search(jp::run,regex("^RunC"))) HotTag = "C";
       else if (std::regex_search(jp::run,regex("^RunD"))) HotTag = "D";
@@ -660,7 +663,7 @@ bool HistosFill::PreRun()
       else if (std::regex_search(jp::run,regex("^RunF"))) HotTag = "F";
     }
     assert(HotTag!="");
-    fHotExcl = new TFile(Form("rootfiles/hotjets-run%s.root",HotTag.c_str()),"READ");
+    fHotExcl = new TFile(Form("rootfiles/hotjets-%srun%s.root",HotYr.c_str(),HotTag.c_str()),"READ");
     assert(fHotExcl and !fHotExcl->IsZombie() and Form("file rootfiles/hotjets-run%s.root missing",HotTag.c_str()));
     h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",jp::HotType));
     assert(h2HotExcl and "erroneous eta-phi exclusion type");
@@ -1213,9 +1216,9 @@ bool HistosFill::AcceptEvent()
   }
 #ifdef NEWMODE
   // Equipped in FillBasic and FillRun
-  _pass_qcdmet = met01 < 45. or met01 < 0.4 * metsumet01; // QCD-11-004
+  _pass_qcdmet = met01 < 45. or met01 < 0.3 * metsumet01; // updated 4/2018
 #else
-  _pass_qcdmet = met < 45. or met < 0.4 * metsumet;
+  _pass_qcdmet = met < 45. or met < 0.3 * metsumet;
 #endif
 
   return true;
@@ -2828,7 +2831,7 @@ void HistosFill::FillJetID(vector<bool> &id)
     if (jp::isdt and jp::doVetoHot) {
       // Abort if one of the leading jets is in a difficult zone
       assert(h2HotExcl);
-      bool good = h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) < 0;
+      bool good = h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) <= 0;
       id[jetidx] = (id[jetidx] and good);
     }
   }
