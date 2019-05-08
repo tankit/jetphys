@@ -266,9 +266,9 @@ namespace jp {
   // 2018 values: (zb,jt40-jt500)
     {{
   //   ZB         PFJ40      PFJ60      PFJ80       PFJ140       PFJ200        PFJ260        PFJ320        PFJ400         PFJ450         PFJ500               Era
-      { 24886.109, 65937.99,  89100.785,2453432.502,10135979.76 , 44392687.158,115825842.173,398144553.92 , 912726818.03 ,1783679072.5  ,14002382122.174}, // A
-      { 10979.168, 26940.560,110806.544, 417154.048, 5874327.302, 25175688.436, 55403271.989,221613087.956, 443226175.913, 886452351.826, 7091618814.605}, // B
-      { 8067.627, 27798.754,108386.566, 408043.543, 5681358.29, 24348565.549, 55309473.888,217862956.528, 434600933.381, 868076887.087, 6936740238.969}, // C
+      { 25013.934, 66295.974, 89414.136,2456363.426,10191358.171, 44630018.263,116215006.966,399701370.502, 915840136.381,1789905866.607,14052199937.969}, // A
+      { 10986.42 , 26966.089,110846.903, 417305.989, 5875972.082, 25182737.494, 55423451.676,221693806.705, 443387613.41 , 886775226.82 , 7094201814.561}, // B
+      {  8067.627, 27798.754,108386.566, 408043.543, 5681358.29,  24348565.549, 55309473.888,217862956.528, 434600933.381, 868076887.087, 6936740238.969}, // C
       { 31763.627,110061.948,456036.114,1716841.842,24668401.518,105716007.359,228367469.932,912413387.595,1824474611.147,3648597058.250,29186311317.690}  // D
     }}
   }};
@@ -280,7 +280,7 @@ namespace jp {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017_V32_MC/Fall17_17Nov2017", 
     "Fall17_17Nov2017",
-    "Autumn18_RunA_V10_DATA/Autumn18_Run"
+    "Autumn18_RunB_V10_DATA/Autumn18_Run"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
@@ -293,8 +293,8 @@ namespace jp {
   const array<string,yrs> jecversmc_ = {
     "_V32",
     "_V32",
-    "_V32",
     "_V7"
+    "_V10"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -304,7 +304,6 @@ namespace jp {
     {"BCD","EF","GH"},
     {"B","C","DE","F"},
     {"F"}, // Run2017F is used for Run2017H (lowpu)
-    //    {"F","F","F","F"} // Run2017F is used for all 2018
     {"A","B","C","D"}
   }};
   const vector<string> IOVnames = IOVnames_.at(yid);
@@ -335,7 +334,7 @@ namespace jp {
 
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Final/","Data/2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","2018data/"};
+      {"Data/2016/Final/","Data/2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","Data/2018"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
@@ -368,7 +367,7 @@ namespace jp {
       {
         {"RunA",{"A_ZB.root", "A.root"}},
         {"RunB",{"B_ZB.root", "B.root"}},
-        {"RunC",{"C3_ZB.root","C3.root"}},
+        {"RunC",{"C_ZB.root","C.root"}},
         {"RunD",{"D_ZB.root","D.root"}}
       }
     }};

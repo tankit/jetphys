@@ -135,7 +135,7 @@ namespace jec {
           return true;
         }
       }
-    } // getCorr
+    } // setCorr
     cout << "IOV for run " << run << " not found!!" << endl << flush;
     return false;
   }
