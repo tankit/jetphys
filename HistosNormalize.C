@@ -64,6 +64,10 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 // Use this to fix luminosity
 std::map<std::string, double> triglumi;
 
+
+int eraIdx = -1;
+int eraNo = 0;
+
 void HistosNormalize()
 {
   TFile *fin = new TFile(Form("output-%s-1.root",jp::type),"READ");
@@ -74,9 +78,9 @@ void HistosNormalize()
 
   if (jp::isdt and jp::usetriglumi) { // Setting up lumis
     cout << "Reading trigger luminosity from settings.h" << endl;
-    int eraIdx = -1;
-    if (jp::usetriglumiera) {
-      int eraNo = 0;
+    eraIdx = -1;
+    //   if (jp::usetriglumiera) {
+    eraNo = 0;
       for (auto &eraMatch : jp::eras) {
         if (std::regex_search(jp::run,eraMatch)) {
           eraIdx = eraNo;
@@ -86,7 +90,7 @@ void HistosNormalize()
       }
       if (eraIdx!=-1) cout << "Using weights according to the run era!" << endl;
       else cout << "Could not locate the given era! :(" << endl;
-    }
+      //  }
     for (unsigned int i = 0; i < jp::notrigs; ++i) {
       double lumi = (jp::usetriglumiera ? jp::triglumiera[eraIdx][i]/1e6 : jp::triglumi[i]/1e6); // /ub to /pb
       cout << Form(" *%s: %1.3f /pb", jp::triggers[i],lumi) << endl;
@@ -94,11 +98,13 @@ void HistosNormalize()
     }
   }
 
+  
   cout << "Calling HistosNormalize("<<jp::type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursive loop. This may take a minute" << endl << flush;
 
+ 
   // Loop over all the directories recursively
   recurseFile(fin, fout);
 
@@ -221,12 +227,20 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
 
         // Normalization for luminosity
         if (jp::isdt and lumiref>0) {
-          bool ispre = (TString(obj2->GetName()).Contains("_pre"));
-          if (ispre)
-            norm0 *= lumiref;
-          else if (lumi>0) {
-            norm0 *= lumi/lumiref;
-	    norm0 *= jp::triglumiera[jp::runidx][jp::refidx]/1e6; // triglumiera for normalizating a single lumi era correctly
+	  
+	  int refidx=0;
+	  if (jp::yid==0) {
+	    refidx = 9;
+	  }
+	  else refidx = 10;
+
+	  
+	  bool ispre = (TString(obj2->GetName()).Contains("_pre"));
+	  if (ispre)
+	    norm0 *= lumiref;
+	  else if (lumi>0) {
+	    norm0 *= lumi/lumiref;
+	    norm0 *= jp::triglumiera[eraIdx][refidx]/1e6; // triglumiera for normalizating a single lumi era correctly
 	  }
         }
 	
