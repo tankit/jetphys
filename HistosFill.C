@@ -2825,10 +2825,10 @@ void HistosFill::FillJetID(vector<bool> &id)
       if (etabs<=2.7 and (jtcef[jetidx]>=0.80 or jtmuf[jetidx]>=0.80)) id[jetidx] = false;
     }
 
-    if (jp::isdt and jp::doVetoHot) {
+    if (jp::doVetoHot) {
       // Abort if one of the leading jets is in a difficult zone
       assert(h2HotExcl);
-      bool good = h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) < 0;
+      bool good = h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) <= 0;
       id[jetidx] = (id[jetidx] and good);
     }
   }
