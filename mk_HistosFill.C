@@ -20,11 +20,20 @@
 #include "HistosAll.h"
 #include "HistosFill.h"
 
+// Uncomment, if jp::doJetResolution is used
+#define JETRESO
+// Uncomment, if debugging mode
+//#define USEASSERT
+
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
+#ifdef JETRESO
+R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetResolutionObject.cc+)
+R__LOAD_LIBRARY(JetMETCorrections/Modules/src/JetResolution.cc+)
+#endif
 #ifdef USEASSERT
 R__LOAD_LIBRARY(tools.C+g)
 R__LOAD_LIBRARY(HistosRun.C+g)
