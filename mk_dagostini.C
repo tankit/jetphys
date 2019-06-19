@@ -18,10 +18,11 @@
 
   R__LOAD_LIBRARY(RooUnfold/libRooUnfold.so)
   R__LOAD_LIBRARY(dagostini.C+)
+  R__LOAD_LIBRARY(drawdagostini.C+)
 
   #include "settings.h"
 
  void mk_dagostini() {
  dagostiniUnfold(jp::type);
-  drawDagostini(jp::type);
+ drawDagostini(jp::type);
 }
