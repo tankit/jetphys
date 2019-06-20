@@ -28,6 +28,9 @@
 #include "RooUnfold/src/RooUnfoldResponse.h"
 //#include "RooUnfold.h"
 
+#include "TUnfold.h"
+#include "TUnfoldDensity.h"
+
 #include "tdrstyle_mod18.C"
 #include "ptresolution.h"
 #include "settings.h"
@@ -37,10 +40,9 @@
 
 using namespace std;
 
-// Resolution function
-int _jk = 0;
 bool _jet = false;
 
+// Resolution function
 Double_t fPtRes(Double_t *x, Double_t *p) { return ptresolution(x[0], p[0]);}
 
 // Ansatz Kernel 
@@ -159,7 +161,7 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
     } // inherits from TDirectory
 
     // Found hpt plot: call unfolding routine
-    if (obj->InheritsFrom("TH1") && (string(obj->GetName())=="hpt")) {
+    if (obj->InheritsFrom("TH1") && (string(obj->GetName())=="hpt" || string(obj->GetName())=="hpt_jet" )) {
       cout << "+" << flush;
 
       _jk = 0;
@@ -189,7 +191,6 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   sscanf(outdir->GetName(),"Eta_%f-%f",&y1,&y2);
   cout << outdir->GetName() << " y1:" << y1 << " y2: " << y2 << endl;
   const char *c = id.c_str();
-  if (_jk) c = Form("_jk%d",_jk);
   if (_jet) c = "_jet";
 
   _ismcjer = ismc;
@@ -434,58 +435,38 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   // Get singular values
   TVectorD singulars = svd->GetSig();
   singulars.Print();
-  // zeros -> get rid of by eliminaing rows and colums with only 0s?
-  
-  
+
+
   // For BinByBin and SVD, need square matrix
   TH2D *mts(0);
   TH1D *mxs(0);
 
-   _jet = 0; // added
-  
-  if (!_jk && !_jet) {
-
-    mts = new TH2D(Form("mts%s",c),"mts;p_{T,reco};p_{T,gen}",
+  mts = new TH2D(Form("mts%s",c),"mts;p_{T,reco};p_{T,gen}",
 		   vy.size()-1, &vy[0], vy.size()-1, &vy[0]);
-    mxs = new TH1D(Form("mxs%s",c),"mxs;p_{T,gen};#sigma/dp_{T}",
+  mxs = new TH1D(Form("mxs%s",c),"mxs;p_{T,gen};#sigma/dp_{T}",
 		   vy.size()-1, &vy[0]);
 
-    for (int i = 1; i != mts->GetNbinsX()+1; ++i) {
-      for (int j = 1; j != mts->GetNbinsY()+1; ++j) {
-
-	double x = ((TAxis*)mts->GetXaxis())->GetBinCenter(i);
-	double y = ((TAxis*)mts->GetYaxis())->GetBinCenter(j);
-	int i2 = mt->GetXaxis()->FindBin(x);
-	int j2 = mt->GetYaxis()->FindBin(y);
-	mts->SetBinContent(i, j, mt->GetBinContent(i2, j2));
-	mts->SetBinError(i, j, mt->GetBinError(i2, j2));
-      }
+  for (int i = 1; i != mts->GetNbinsX()+1; ++i) {
+    for (int j = 1; j != mts->GetNbinsY()+1; ++j) {
+      double x = ((TAxis*)mts->GetXaxis())->GetBinCenter(i);
+      double y = ((TAxis*)mts->GetYaxis())->GetBinCenter(j);
+      int i2 = mt->GetXaxis()->FindBin(x);
+      int j2 = mt->GetYaxis()->FindBin(y);
+      mts->SetBinContent(i, j, mt->GetBinContent(i2, j2));
+      mts->SetBinError(i, j, mt->GetBinError(i2, j2));
     }
+  }
 
-    for (int i = 1; i != mxs->GetNbinsX()+1; ++i) {
-
-      double x = mxs->GetBinCenter(i);
-      int i2 = mx->FindBin(x);
-      mxs->SetBinContent(i, mx->GetBinContent(i2));
-      mxs->SetBinError(i, mx->GetBinError(i2));
-    }
-  } // !_jk
-
-
+  for (int i = 1; i != mxs->GetNbinsX()+1; ++i) {
+    double x = mxs->GetBinCenter(i);
+    int i2 = mx->FindBin(x);
+    mxs->SetBinContent(i, mx->GetBinContent(i2));
+    mxs->SetBinError(i, mx->GetBinError(i2));
+  }
+  
   _epsilon = tmp_eps;
   if (jp::debug)
     cout << "done." << endl << flush;
-
- 
-  outdir->cd();
-  if (!_jk) {
-    hreco->Write();
-    mx->Write();
-    my->Write();
-    mt->Write();
-    mtu->Write();
-  }
- 
 
   // Now to actual unfolding business with the d'Agostini method
   if (jp::debug)
@@ -548,7 +529,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   
   TH1D *hcorrpt_bin(0), *hcorrpt_svd(0);
   //  _jet = 0; // added
-  if (!_jk && !_jet) {
+  if (!_jet) {
 
     RooUnfoldResponse *uResps = new RooUnfoldResponse(my, mxs, mts);
     RooUnfoldBinByBin *uBin = new RooUnfoldBinByBin(uResps, hreco);
@@ -582,7 +563,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       hcorrpt_svd->SetBinContent(j, hTrueSVD->GetBinContent(i));
       hcorrpt_svd->SetBinError(j, hTrueSVD->GetBinError(i));
       }
-   } // !_jk
+   }
 
   // TUnfold.
 
@@ -603,7 +584,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   //
   TGraphErrors *gfold_bin(0), *gcorrpt_bin(0);
   TGraphErrors *gfold_svd(0), *gcorrpt_svd(0);
-  if (!_jk && !_jet) {
+  if (!_jet) {
 
     gfold_bin = new TGraphErrors(0);
     gfold_bin->SetName(Form("gfold_bin%s",c));
@@ -613,7 +594,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     gfold_svd->SetName(Form("gfold_svd%s",c));
     gcorrpt_svd = new TGraphErrors(0);
     gcorrpt_svd->SetName(Form("gcorrpt_svd%s",c));
-  } // !_jk
+  }
 
   // Normalize hcorrpt
   for (int i = 1; i != hcorrpt_dag->GetNbinsX()+1; ++i) {
@@ -621,7 +602,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     hcorrpt_dag->SetBinContent(i, hcorrpt_dag->GetBinContent(i) / dpt);
     hcorrpt_dag->SetBinError(i, hcorrpt_dag->GetBinError(i) / dpt);
   }
-  if (!_jk && !_jet) {
+  if (!_jet) {
 
     for (int i = 1; i != hcorrpt_bin->GetNbinsX()+1; ++i) {
       double dpt = hcorrpt_bin->GetBinWidth(i);
@@ -633,7 +614,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       hcorrpt_svd->SetBinContent(i, hcorrpt_svd->GetBinContent(i) / dpt);
       hcorrpt_svd->SetBinError(i, hcorrpt_svd->GetBinError(i) / dpt);
     }
-  } // !_jk
+  }
 
   for (int i = 0; i != gpt->GetN(); ++i) {
 
@@ -656,7 +637,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     }
   } // for i
 
-  if (!_jk && !_jet) {
+  if (!_jet) {
 
     for (int i = 0; i != gpt->GetN(); ++i) {
 
@@ -693,7 +674,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       }
 
     } // for i
-  } // !_jk
+  }
 
   outdir->cd();
 
@@ -725,7 +706,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
       tools::SetPoint(gratio, gratio->GetN(), x, y / ys, ex, ey / ys);
   }
 
-  if (!_jk && !_jet) {
+  if (!_jet) {
 
     // Inputs and central method results
     hpt->Write("hpt");
@@ -759,7 +740,6 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     htrue->Write();
     mt->Write();
     mtu->Write();
-    //    K->Write();
     
     // Alternative methods
     gfold_dag->Write();
@@ -780,22 +760,7 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     // Unfolding covariance matrix
     hCov->Write();
   }
-  else if (!_jk) {
-
-    // Main results for jet counting
-    hpt->Write();
-    hcorrpt_dag->Write("hcorrpt_jet");
-    gfold_dag->Write("hcorrpt_jet");
-    hCov->Write();
-  }
-  else {
-
-    // Main results for jackknife
-    //gcorrpt->Write();
-    hcorrpt_dag->Write("hcorrpt");
-  }
-
   
-} // dagostiniUnfold_histo
+}
 
  
