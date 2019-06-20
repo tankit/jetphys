@@ -420,9 +420,9 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   TMatrixD *K = new TMatrixD(mtbinsY,mtbinsX); // K(rows, cols)
   TArrayD mtEntries(nbinstotal);
 
-  for (Int_t j = 1; j <= mt->GetNbinsY(); j++) {
-    for (Int_t i = 1; i <= mt->GetNbinsX(); i++) {
-      mtEntries[(j-1)*mtbinsX+i-1] = mtu->GetBinContent(i,j);
+  for (Int_t j = 1; j <= mt->mtbinsY(); j++) {
+    for (Int_t i = 1; i <= mt->mtbinsX(); i++) {
+      mtEntries[(j-1)*mtbinsX+i-1] = mt->GetBinContent(i,j);
     }
   }
 
