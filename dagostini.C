@@ -164,7 +164,6 @@ void recurseFile(TDirectory *indir, TDirectory *indir2, TDirectory *outdir,
     if (obj->InheritsFrom("TH1") && (string(obj->GetName())=="hpt" || string(obj->GetName())=="hpt_jet" )) {
       cout << "+" << flush;
 
-      _jk = 0;
       _jet = TString(obj->GetName()).Contains("hpt_jet");
 
       TH1D *hpt = (TH1D*)obj;
@@ -420,8 +419,8 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
   TMatrixD *K = new TMatrixD(mtbinsY,mtbinsX); // K(rows, cols)
   TArrayD mtEntries(nbinstotal);
 
-  for (Int_t j = 1; j <= mt->mtbinsY(); j++) {
-    for (Int_t i = 1; i <= mt->mtbinsX(); i++) {
+  for (Int_t j = 1; j <= mtbinsY; j++) {
+    for (Int_t i = 1; i <= mtbinsX; i++) {
       mtEntries[(j-1)*mtbinsX+i-1] = mt->GetBinContent(i,j);
     }
   }
