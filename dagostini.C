@@ -309,20 +309,16 @@ void dagostiniUnfold_histo(TH1D *hpt, TH1D *hnlo, TDirectory *outdir,
     double x2 = hpt->GetBinLowEdge(i+1);
     double y = hpt->GetBinContent(i); 
 
-    // if (x>=jp::unfptminreco && y>0) {     // CORRECT RANGES?
     if (x>=jp::unfptmingen && y>0) {
-      
       if (vx.size()==0) vx.push_back(x1);
       vx.push_back(x2);
     }
 
-    //   if (x>=jp::fitptmin && y>0) {
-     if (x>=jp::unfptminreco && y>0) {
-     //  if (x>=jp::unfptmingen && y>0) {
-      if (vy.size()==0) vy.push_back(x1);
-      vy.push_back(x2);
+      if (x>=jp::unfptminreco && y>0) {
+       if (vy.size()==0) vy.push_back(x1);
+       vy.push_back(x2);
     }
-  } // for i
+  }
 
   // copy over relevant part of hpt
   TH1D *hreco = new TH1D(Form("hreco%s",c),";p_{T,reco} (GeV)",  
