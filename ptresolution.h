@@ -1,3 +1,7 @@
+// For official JME resolutions JetMETCorrections Module needed
+// Available at https://github.com/miquork/jecsys/tree/2018_Moriond19
+// (Download once and make a symlink under jetphys directory.)
+
 #ifndef __ptresolution_h__
 #define __ptresolution_h__
 
