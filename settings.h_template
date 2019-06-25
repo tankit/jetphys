@@ -31,7 +31,7 @@ using std::regex;
 
 // Will assert be used in the programs? More than 1/3 reduction of run time if off.
 // CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
-//#define USEASSERT
+#define USEASSERT
 // New handling for triggers etc. - comment this out if old mode is to be used
 #define NEWMODE
 
@@ -42,9 +42,9 @@ namespace jp {
 
   // Debugging info
   constexpr bool debug = false;
-
+ 
   // Use output-MC-1 instead of MC-2b (or NLOxNP) in dagostini.C
-  constexpr bool dagfile1 = true;
+  constexpr bool dagfile1 = false; // true;
  
   // Save git version info (recommended)
   constexpr bool gitinfo = true;
@@ -59,15 +59,15 @@ namespace jp {
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunC";
+  constexpr const char* run = "RunB";
   // In case of flat MC, choose file (all options given in mcfiles)
-  constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
+  constexpr const char* mcfile = "P8CP5"; //"P8M1" or "P8CP5"
   constexpr const char* hwfile = "HS1";
   constexpr const char* nufile = "NuGun";
   // Do we use pthatbinned MC (if not, we use flat)
   constexpr bool pthatbins = false;
 
-  const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
   // Luminosity weighting options (DATA)
@@ -96,7 +96,7 @@ namespace jp {
   //10; // debug
   //100; //debug
   //1000;
-  //10000; // shorter test run
+  // 10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
   //2500000; // shortish test run
@@ -203,20 +203,20 @@ namespace jp {
   // Trigger ranges (differ from thresholds)
   const array<vector<array<double,2>>,yrs> trigranges_ = {{
     {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,6500}          }},
-    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
+    {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
     {{{0,28},{28,37},{37,49},{49,84},{84,114},{114,196},{196,272}}},
-    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
+    {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
   }}; // V[5,6], AK4
   const vector<array<double,2>> trigranges = trigranges_.at(yid);
 
   // Trigger lumis for weighting in /ub
   const array<vector<double>,yrs> triglumi_ = {{
   // ZB         PFJ40      PFJ60       PFJ80       PFJ140       PFJ200        PFJ260        PFJ320         PFJ400         PFJ450          PFJ500
-    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                }, // 2016
-    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432}, // 2017
+    { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                },
+    { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432},
     {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
-    { 75831.608,231122.765, 764683.719,4998554.8  ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}  // 2018
-   }}; // in /ub
+    { 75831.608,231122.765, 764683.719,4998554.8 ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}
+    }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
     // These are used to find out which year and which era we are living in
@@ -274,29 +274,23 @@ namespace jp {
   // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
   const array<string,yrs> jecgt_ = {
     "Summer16_07Aug2017",
+    "Fall17_17Nov2017_V32_MC/Fall17_17Nov2017", 
     "Fall17_17Nov2017",
-    "Fall17_17Nov2017",
-    //"Fall17_17Nov2017"
-    //"Fall17_09May2018",
-    //"Fall17_09May2018",
-    //"Fall17_09May2018"
-    "Autumn18"
+    "Autumn18_RunB_V10_DATA/Autumn18_Run"
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V18",
     "_V32",
     "_V32",
-    "_V6"
+    "_V10"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
-    "_V15",
     "_V32",
     "_V32",
-    //"_V3",
-    //"_V3",
-    "_V5"
+    "_V7"
+    "_V10"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -306,7 +300,7 @@ namespace jp {
     {"BCD","EF","GH"},
     {"B","C","DE","F"},
     {"F"}, // Run2017F is used for Run2017H (lowpu)
-    {"_RunA","_RunB","_RunC","_RunD"}
+    {"A","B","C","D"}
   }};
   const vector<string> IOVnames = IOVnames_.at(yid);
   // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
@@ -314,7 +308,7 @@ namespace jp {
     { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
     { {297020,299329},{299337,302029},{302030,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
-    { {315000,316999},{317000,319079},{319080,320099},{320100,400000} } // A,B,C,D
+    { {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES and JEC
@@ -331,12 +325,11 @@ namespace jp {
 
   //{ BEGIN DT/MC: File options
 
-  constexpr const char* filepath = "/work/jet_tuples/";
-  //constexpr const char* filepath = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
-
+  constexpr const char* filepath = "/media/lmartika/LaCie/";
+ 
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Final/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
+      {"Data/2016/Final/","Data/2017/Mar18ReRecoMINIAOD/","Data/2017/RRMar18/","Data/2018"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
@@ -387,7 +380,7 @@ namespace jp {
         {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
         {"P8CP5",{"MC/2017/P8CP5/FlatPthat_15to7000.root"}},
         {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
-        {"NuGun",{"MC/2017/NuGun.root"}}
+        {"NuGun",{"/2017/MC/NuGun.root"}}
       },
       {
         {"P8M1",{"MC/2017/P8M1/FlatPthat_15to7000.root"}},
@@ -397,7 +390,7 @@ namespace jp {
       },
       {
         {"P8CP5",{"MC/2018/P8CP5/FlatPthat_15to7000.root"}},
-        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
+        {"HS1",{"MC/2018/HS1/FlatPthat_15to7000.root"}},
         {"NuGun",{"MC/2018/NuGun.root"}}
       }
     }};
@@ -449,8 +442,8 @@ namespace jp {
 
   //{ BEGIN Special HistosFill analyses that are not typically needed
   // Eta phi exclusion due to hot ECAL regions (produced with dataequality.C)
-  constexpr bool doVetoHot = false;
-  const constexpr char HotType[] = ""; // h2hotr (Robert) or h2hotm (Mikko)
+  constexpr bool doVetoHot = true;
+  const constexpr char HotType[] = "filter"; // h2hotr (Robert) or h2hotm (Mikko)
 
   // Check for duplicates (warning: takes a lot of memory!)
   constexpr bool checkduplicates = false;
@@ -461,8 +454,6 @@ namespace jp {
   constexpr bool dotrigeff = false; // CAUTION: Requires output-MC-1.root file
   // Correct pT<114 GeV only, if above dotrigeff=true
   constexpr bool dotrigefflowptonly = false; // CAUTION: Not needed
-  // Correct for trigger efficiency according to a simpler scheme
-  constexpr bool dotrigeffsimple = false;
   // Correct for time-dependence (prescales) in data
   constexpr bool dotimedep = false; // CAUTION: Unknown consequences
   //} END HistosNormalize
@@ -481,19 +472,20 @@ namespace jp {
 
   //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
   // Minimum and maximum pT range to be plotted and fitted
-  constexpr double fitptmin = 114;//43;
+  constexpr double fitptmin = 15;
   // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
   constexpr double xmin57 = 114;//56;
   constexpr double xminpas = 114;//56;
-  constexpr double xmin = 114;//24.;//20.;
-  constexpr double xmax = 1497;//TEMP PATCH for partial data //1999.;
+  
+  constexpr double xmin = 15;//20.;
+  constexpr double xmax = 4037;//TEMP PATCH for partial data //1999.;
   //} END limits
 
   // pT limits for unfolding
-  constexpr double unfptminreco = 15;
-  constexpr double unfptmingen = 15;
+  constexpr double unfptminreco = 60; // recopt; //40; recopt needs to be bigger than genpt
+  constexpr double unfptmingen = 40;
   constexpr double unfptminnlo = 15;
-
+  
   //{ BEGIN Binnings
   // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
   // pT<100 GeV to optimize bin widths for PFJets and b-tagging
