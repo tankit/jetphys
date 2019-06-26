@@ -266,9 +266,10 @@ float relExtraDY = 1.2;
 // ratio of "CMS" and extra text size
 float extraOverCmsTextSize  = 0.76;
 
-TString lumi_13TeV = "20.1 fb^{-1}";
-TString lumi_8TeV  = "19.7 fb^{-1}";
-TString lumi_7TeV  = "5.1 fb^{-1}";
+TString lumi_13TeV = "";
+TString lumi_8TeV  = "";
+TString lumi_7TeV  = "";
+TString lumi_bonus = "";
 
 bool drawLogo      = false;
 
@@ -349,8 +350,10 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
   float extraTextSize = extraOverCmsTextSize*cmsTextSize;
 
   latex.SetTextFont(42);
-  latex.SetTextAlign(31);
   latex.SetTextSize(lumiTextSize*t);
+  latex.SetTextAlign(11);
+  latex.DrawLatex(1.045*l,1-t+lumiTextOffset*t,lumi_bonus);
+  latex.SetTextAlign(31);
   latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText);
 
   if( outOfFrame ) {
@@ -396,7 +399,7 @@ CMS_lumi( TPad* pad, int iPeriod, int iPosX )
         latex.SetTextSize(extraTextSize*t);
         latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText);
         if (extraText2!="") // For Simulation Preliminary
-          latex.DrawLatex(posX_, posY_-relExtraDY*cmsTextSize*t,relExtraDY*extraTextSize*t, extraText2);
+          latex.DrawLatex(posX_, posY_-relExtraDY*cmsTextSize*t,extraText2);
       }
     }
   } else if( writeExtraText ) {

@@ -297,7 +297,7 @@ Long64_t histosInfo::LoadTree(Long64_t entry)
     fCurrent = fChain->GetTreeNumber();
     *ferr << "Opening tree number " << fChain->GetTreeNumber() << endl;
 
-    if (_jp_isdt) {
+    if (jp::isdt) {
       // Reload the triggers and print them
       if (!GetTriggers()) {
         *ferr << "Failed to load DT triggers. Check that the SMPJ tuple has the required histograms. Aborting..." << endl;
@@ -310,21 +310,21 @@ Long64_t histosInfo::LoadTree(Long64_t entry)
         auto trgplace = std::find(_goodTrigs.begin(),_goodTrigs.end(),trigi);
         if (trgplace!=_goodTrigs.end()) *ferr << "_y (" << _goodWgts[trgplace-_goodTrigs.begin()] << ") ";
         else *ferr << "_n ";
-        if (trigi%(_jp_notrigs+1)==_jp_notrigs) *ferr << endl;
+        if (trigi%(jp::notrigs+1)==jp::notrigs) *ferr << endl;
       }
       *ferr << endl << flush;
-    } else if (_jp_pthatbins) {
+    } else if (jp::pthatbins) {
       TString filename = fChain->GetCurrentFile()->GetName();
       // Check the position of the current file in the list of file names
-      unsigned currFile = std::find_if(_jp_pthatfiles.begin(),_jp_pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-_jp_pthatfiles.begin();
-      if (_jp_pthatnevts[currFile]<=0.0 or _jp_pthatsigmas[currFile]<=0) {
-        *ferr << "Suspicious pthat slice information for file " << _jp_pthatfiles[currFile] << ". Aborting..." << endl;
+      unsigned currFile = std::find_if(jp::pthatfiles.begin(),jp::pthatfiles.end(),[&filename] (string s) { return filename.Contains(s); })-jp::pthatfiles.begin();
+      if (jp::pthatnevts[currFile]<=0.0 or jp::pthatsigmas[currFile]<=0) {
+        *ferr << "Suspicious pthat slice information for file " << jp::pthatfiles[currFile] << ". Aborting..." << endl;
         return -3;
       }
-      _pthatweight = _jp_pthatsigmas[currFile]/_jp_pthatnevts[currFile];
-      _pthatweight /= _jp_pthatsigmas[_jp_npthatbins-1]/_jp_pthatnevts[_jp_npthatbins-1]; // Normalize
+      _pthatweight = jp::pthatsigmas[currFile]/jp::pthatnevts[currFile];
+      _pthatweight /= jp::pthatsigmas[jp::npthatbins-1]/jp::pthatnevts[jp::npthatbins-1]; // Normalize
       *ferr << "Pthat bin changing." << endl << "File " << currFile << " " << fChain->GetCurrentFile()->GetName();
-      *ferr << " should correspond to the range [" << _jp_pthatranges[currFile] << "," << _jp_pthatranges[currFile+1] << "]";
+      *ferr << " should correspond to the range [" << jp::pthatranges[currFile] << "," << jp::pthatranges[currFile+1] << "]";
       *ferr << endl << "Weight: " << _pthatweight << endl;
     }
     // slices with pthat bins

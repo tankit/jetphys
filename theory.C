@@ -162,7 +162,7 @@ void theory(string type) {
   while ( (key = itkey.Next()) ) {
 
     obj = ((TKey*)key)->ReadObj(); assert(obj);
-    
+
     // Found a subdirectory
     if (obj->InheritsFrom("TDirectory")
 	&& string(obj->GetName())!="Eta_0.0-1.3"
@@ -199,7 +199,7 @@ void theory(string type) {
       assert(dout0->cd(obj->GetName()));
       dout0->cd(obj->GetName());
       TDirectory *dout = gDirectory;
-      
+
       // Process subdirectory
       //theoryBin(din, dnlo_cteq, dnp, dnlo_ct10, dnlo_mstw, dnlo_nnpdf,
       //	dnlo_hera,
@@ -249,7 +249,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
   assert(sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax)==2);
   sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax);
   int ieta = int((0.5*(etamin+etamax))/0.5);
-  int jeta = (string(_jp_algo)=="AK7" ? min(4,ieta) : ieta);
+  int jeta = (string(jp::algo)=="AK7" ? min(4,ieta) : ieta);
 
   // inclusive jets
   TH1D *hpt = (TH1D*)din->Get("hpt"); assert(hpt);
@@ -267,9 +267,9 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
 
   TH1D *hmc = (TH1D*)dth->Get("hpt_g0tw");
   assert(hmc);
-  
+
   /*
-  int S = (string(_jp_algo)=="AK7" ? 1 : 3);
+  int S = (string(jp::algo)=="AK7" ? 1 : 3);
   TH1D *hnlo_cteq = (TH1D*)dnlo0->Get(Form("h%d00%d00",S,jeta+1));
   assert(hnlo_cteq);
 
@@ -332,13 +332,13 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
     hnlo_mstw = (TH1D*)hnlo_mstw->Clone("hnlo0_mstw");
     hnlo_nnpdf = (TH1D*)hnlo_nnpdf->Clone("hnlo0_nnpdf");
     hnlo_hera = (TH1D*)hnlo_hera->Clone("hnlo0_hera");
-    
+
     // Determine PDF4LHC from CT10, MSTW08, NNPDF10
     hnlo = (TH1D*)hnlo_ct10->Clone("hnlo0"); // central PDF again later
     hpdfup = (TH1D*)hpdfup_ct10->Clone("hpdfup"); // central PDF
     hpdfdw = (TH1D*)hpdfdw_ct10->Clone("hpdfdw"); // central PDF
     for (int i = 1; i != hnlo->GetNbinsX()+1; ++i) {
-      
+
       // Sanity checks
       assert(hpdfup_ct10->GetBinContent(i)>=0);
       assert(hpdfdw_ct10->GetBinContent(i)<=0);
@@ -347,12 +347,12 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
     hscdw = (TH1D*)hscdw_ct10->Clone("hscdw"); // central PDF
     hasup = (TH1D*)hasup->Clone("hasup");
     hasdw = (TH1D*)hasdw->Clone("hasdw");
-    
+
     hnp = (TH1D*)hnp->Clone("hnpcorr");
-    
+
     hnpup = (TH1D*)hnlo->Clone("hnpup");
     hnpdw = (TH1D*)hnlo->Clone("hnpdw");
-    
+
     hsysup = (TH1D*)hnlo->Clone("hsysup");
     hsysdw = (TH1D*)hnlo->Clone("hsysdw");
   }
@@ -376,8 +376,8 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
       double ey2 = hnp->GetBinError(j2);
       double y = y1 + (y2-y1) / (x2-x1) * (x-x1);
       double ey = ey1 + (ey2-ey1) / (x2-x1) * (x-x1);
-      hnp_tmp->SetBinContent(i, y); 
-      hnp_tmp->SetBinError(i, ey); 
+      hnp_tmp->SetBinContent(i, y);
+      hnp_tmp->SetBinError(i, ey);
     } // for i
     delete hnp;
     hnp = hnp_tmp;
@@ -477,7 +477,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
 
   hnlo = hmc;
   hnlo->Fit(fnlo,"QRN");
-  
+
   // Graph of theory points with centered bins
   const double minerr = 0.02;
   TGraphErrors *gnlo = new TGraphErrors(0);
@@ -511,7 +511,7 @@ void theoryBin(TDirectory *din, TDirectory *dth, TDirectory *dout) {
   TGraphErrors *gnlofit = new TGraphErrors(0);
   gnlofit->SetName("gnlofit");
   for (int i = 0; i != gnlo->GetN(); ++i) {
-    
+
     double x, y, ex, ey;
     tools::GetPoint(gnlo, i, x, y, ex, ey);
     double f = fnlo->Eval(x);
@@ -609,7 +609,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
   TH1D *hpt = (TH1D*)din->Get("hpt"); assert(hpt);
 
   // Read in text file
-  if (string(_jp_algo)=="AK7") {
+  if (string(jp::algo)=="AK7") {
     const int nchr = 2048;
     char chr[nchr];
     ifstream fs("fastnlo/InclusiveJets_Table_postCWR.txt", ios::in);
@@ -624,9 +624,9 @@ void dataBin(TDirectory *din, TDirectory *dout) {
     TH1D *hup = (TH1D*)hpt->Clone("hdata2011_up");
     hup->Reset();
     while(fs.getline(chr, nchr)) {
-  
+
       //cout << chr << endl;
-      
+
       float ymin, ymax, xsec, err, err2, uncorr, np;
       int ptmin, ptmax;
       assert(sscanf(chr, "%f %f %d %d %f %f %f %f %f",
@@ -635,7 +635,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       sscanf(chr, "%f %f %d %d %f %f %f %f %f",
 	     &ymin, &ymax, &ptmin, &ptmax,
 	     &xsec, &err, &uncorr, &err2, &np);
-    
+
       // sum up the uncertainty
       float foo;
       stringstream str(chr);
@@ -651,7 +651,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       }
       eup = sqrt(sumeup);
       edw = sqrt(sumedw);
-      
+
       if (fabs(ymin-y1)<0.1 && fabs(ymax-y2)<0.1) {
 	int i = h->FindBin(0.5*(ptmin+ptmax));
 	if (h->GetBinLowEdge(i)==ptmin &&
@@ -664,7 +664,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 	  hdw->SetBinError(i, xsec*(1-edw)*err);
 	}
 	else {
-	  cout << "ymin = " << y1 << " ymax = " << y2 
+	  cout << "ymin = " << y1 << " ymax = " << y2
 	       << "ptmin = " << ptmin << " ptmax = " << ptmax
 	       << " pt1 = " << h->GetBinLowEdge(i)
 	       << " pt2 = " << h->GetBinLowEdge(i+1) << endl;
@@ -674,7 +674,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
     } // while
   } // ak7
 
-  if (string(_jp_algo)=="AK5") {
+  if (string(jp::algo)=="AK5") {
 
     const int nchr = 2048;
     char chr[nchr];
@@ -682,7 +682,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
     assert(fs.is_open());
     // remove header lines
     for (int i = 0; i != 10; ++i) fs.getline(chr, nchr);
-    
+
     dout->cd();
     TH1D *h = (TH1D*)hpt->Clone("hdata2010");
     h->Reset();
@@ -702,7 +702,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 	sscanf(chr, "%f %f %f %f %f %f %f %f",
 	       &pt, &ptmin, &ptmax,
 	       &xsec, &err, &err2, &sys, &sys2);
-    
+
       int i = h->FindBin(0.5*(ptmin+ptmax));
       if (h->GetBinLowEdge(i)==ptmin &&
 	  h->GetBinLowEdge(i+1)==ptmax) {
@@ -714,7 +714,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 	hdw->SetBinError(i, err);
       }
       else {
-	cout << "ymin = " << y1 << " ymax = " << y2 
+	cout << "ymin = " << y1 << " ymax = " << y2
 	     << "ptmin = " << ptmin << " ptmax = " << ptmax
 	     << " pt1 = " << h->GetBinLowEdge(i)
 	     << " pt2 = " << h->GetBinLowEdge(i+1) << endl;
@@ -727,7 +727,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
   if (true) {
     const int nchr = 2048;
     char chr[nchr];
-    ifstream fs(Form("fastnlo/InclusiveJets_Table_%s.txt",_jp_algo));
+    ifstream fs(Form("fastnlo/InclusiveJets_Table_%s.txt",jp::algo));
     assert(fs.is_open());
     fs.getline(chr, nchr);
 
@@ -739,7 +739,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
     TH1D *hup = (TH1D*)hpt->Clone("hdata2013_up");
     hup->Reset();
     while(fs.getline(chr, nchr)) {
-  
+
       float ymin, ymax, xsec, err, err2, uncorr, np;
       int ptmin, ptmax;
       assert(sscanf(chr, "%f %f %d %d %f %f %f %f %f",
@@ -748,7 +748,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       sscanf(chr, "%f %f %d %d %f %f %f %f %f",
 	     &ymin, &ymax, &ptmin, &ptmax,
 	     &xsec, &err, &uncorr, &err2, &np);
-    
+
       // sum up the uncertainty
       float foo;
       stringstream str(chr);
@@ -764,7 +764,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
       }
       eup = sqrt(sumeup);
       edw = sqrt(sumedw);
-      
+
       if (fabs(ymin-y1)<0.1 && fabs(ymax-y2)<0.1) {
 	int i = h->FindBin(0.5*(ptmin+ptmax));
 	if (h->GetBinLowEdge(i)==ptmin &&
@@ -777,7 +777,7 @@ void dataBin(TDirectory *din, TDirectory *dout) {
 	  hdw->SetBinError(i, xsec*(1-edw)*err);
 	}
 	else {
-	  cout << "ymin = " << y1 << " ymax = " << y2 
+	  cout << "ymin = " << y1 << " ymax = " << y2
 	       << "ptmin = " << ptmin << " ptmax = " << ptmax
 	       << " pt1 = " << h->GetBinLowEdge(i)
 	       << " pt2 = " << h->GetBinLowEdge(i+1) << endl;

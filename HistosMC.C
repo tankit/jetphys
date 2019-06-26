@@ -10,10 +10,10 @@ HistosMC::HistosMC(TDirectory *dir, string trigname) {
   bool enter = dir->cd();
   assert(enter);
   this->dir = dir;
-  
+
   // phase space
   this->trigname = trigname;
-  
+
   // Once and for all (even if few too many with Sumw2)
   TH1::SetDefaultSumw2(kTRUE);
 
@@ -21,7 +21,7 @@ HistosMC::HistosMC(TDirectory *dir, string trigname) {
   vector<double> va(na+1);
   for (unsigned int i = 0; i != na+1; ++i)
     va[i] = -1. + 2.*i/na;
-  
+
   const int nb = 200;
   vector<double> vb(nb+1);
   for (unsigned int i = 0; i != nb+1; ++i)
@@ -34,24 +34,24 @@ HistosMC::HistosMC(TDirectory *dir, string trigname) {
     int padding = TMath::Log10(major_alpha);
     padding = 2-padding;
     while (major_alpha%10==0)
-      major_alpha /= 10; 
+      major_alpha /= 10;
     string number = std::to_string(major_alpha);
     for (int i = 0; i < padding; ++i)
       number = string("0")+number;
 
     // Fill all histo types with a corresponding histogram
     hdjasymm.push_back(  new TH3D((string("hdjasymm_a")+number).c_str(),";p_{T,ave};#eta;Asymmetry",
-                                  _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                                  jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjasymmtp.push_back(new TH3D((string("hdjasymmtp_a")+number).c_str(),";p_{T,tag};#eta;Asymmetry",
-                                  _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],na,&va[0]) );
+                                  jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],na,&va[0]) );
     hdjresp_tag.push_back(new TH3D((string("hdjresp_tag_a")+number).c_str(),";p_{T,ave};#eta;R_{tag}",
-                                   _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],nb,&vb[0]) );
+                                   jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],nb,&vb[0]) );
     hdjresptp_tag.push_back(new TH3D((string("hdjresptp_tag_a")+number).c_str(),";p_{T,ave};#eta;R_{tag}",
-                                      _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],nb,&vb[0]) );
+                                      jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],nb,&vb[0]) );
     hdjresp_probe.push_back(new TH3D((string("hdjresp_probe_a")+number).c_str(),";p_{T,ave};#eta;R_{probe}",
-                                     _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],nb,&vb[0]) );
+                                     jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],nb,&vb[0]) );
     hdjresptp_probe.push_back(new TH3D((string("hdjresptp_probe_a")+number).c_str(),";p_{T,ave};#eta;R_{probe}",
-                                       _jp_npts,&_jp_ptrange[0],_jp_nwetas,&_jp_wetarange[0],nb,&vb[0]) );
+                                       jp::npts,&jp::ptrange[0],jp::nwetas,&jp::wetarange[0],nb,&vb[0]) );
   }
 
   // Weights:
@@ -63,7 +63,7 @@ HistosMC::HistosMC(TDirectory *dir, string trigname) {
     hdjresp_probe[i]->Sumw2();
     hdjresptp_probe[i]->Sumw2();
   }
-  
+
   curdir->cd();
 }
 

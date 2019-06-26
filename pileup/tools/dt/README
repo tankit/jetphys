@@ -1,0 +1,18 @@
+Trigger info fetcher by Hannu Siikonen (2018)
+hannu.siikonen@gmail.com (errai- @github)
+
+Step 1: Go to CMS DAS and find the AOD or MINIAOD corresponding to the run era.
+Step 2: Take a txt format list ("plain") of the run,lumi pairs in the run. E.g. "run,lumi dataset=/JetHT/Run2017C-31Mar2018-v1/MINIAOD".
+ das_client --query="run,lumi dataset=/JetHT/Run2016B-07Aug17_ver1-v1/MINIAOD" > B1/lumis.txt
+Step 3: Copy this list into the corresponding folder with the name "lumis.txt". E.g. "B/lumis.txt".
+Step 4: Run init.sh. This produces the corresponding .json files and also goes through luminosities for the given files.
+Step 5: Run triggerlister.sh for each folder. This produces a file that lists all the relevant available trigger versions. E.g. "bash triggerlister.sh". Remember to adjust the correct folders here!
+Step 6: The preparations are done for creating pileup histograms. The preferred method is to use puhistos_versions.sh.
+ - One needs to adjust the pileup file, normtag and datacert here
+ - One needs to check that the min bias xsec has not changed (default) for brilcalc
+ - One needs to configure the list of correct folders and trigger versions here. The required trigger versions are found from the triggerlists.txt file!
+ - Suggesting to run one folder at a time
+Step 7: Go to each folder separately and run "root -l -b -q ../puhistos_combineversions.C". This will create a collection of pileup_DTu.root.
+ - The unnormalized histograms may be safely added with hadd.
+ - This requires the correct weight values to be present in settings.h.
+Step 8: Run "root -l -b -q ../puhistos_normalize.C". This will results in appropriately weighted histos.

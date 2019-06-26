@@ -1,5 +1,6 @@
 #include "TFile.h"
 #include "TH1D.h"
+#include "TH2D.h"
 #include "TF1.h"
 
 #include <map>
@@ -56,28 +57,50 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   trigpts[260] = make_pair<int,int>(330, 395);
   trigpts[320] = make_pair<int,int>(395, 468);
   trigpts[400] = make_pair<int,int>(468, 548);
-  trigpts[450] = make_pair<int,int>(548, 6500);
+  //trigpts[450] = make_pair<int,int>(548, 6500);
+  // custom ranges
+  trigpts[450] = make_pair<int,int>(548, 700);
+  trigpts[600] = make_pair<int,int>(700, 900);
+  trigpts[800] = make_pair<int,int>(900, 1300);
+  trigpts[1200] = make_pair<int,int>(1300, 1600);
+  trigpts[1500] = make_pair<int,int>(1600, 6500);
+
 
   double ptmin = trigpts[trg].first;
   double ptmax = trigpts[trg].second;
+  int trg2 = trg;
+  if (trg>450) trg2=450;
 
   setTDRStyle();
   TDirectory *curdir = gDirectory;
 
-  TFile *fd = new TFile("output-DATA_RunGfull_part-1.root","READ");
+  //TFile *fd = new TFile("output-DATA_RunGfull_part-1.root","READ");
+  TFile *fd = new TFile("rootfiles/output-DATA-Run-GH_newtuple.root","READ");
   assert(fd && !fd->IsZombie());
-  TFile *fm = new TFile("output-MC_30Octlongprobg-1.root","READ");
+  //TFile *fm = new TFile("output-MC_30Octlongprobg-1.root","READ");
+  TFile *fm = new TFile("rootfiles/output-MC-30-inf.root","READ");
   assert(fm && !fm->IsZombie());
 
   //string dir = "Standard/Eta_0.0-0.5/jt80";//mc";
   //string dir = "Standard/Eta_0.0-0.5/jt320";//mc";
   //string dir = "Standard/Eta_3.2-4.7/jt450";//450";//mc";
   //string dir = "Standard/Eta_0.0-1.3/jt260";
-  string dir = Form("Standard/Eta_%1.1f-%1.1f/jt%d",etamin,etamax,trg);
-  TH1D *hg = (TH1D*)fm->Get(Form("%s/hqgl_g",dir.c_str()));
-  assert(hg);
-  TH1D *hq = (TH1D*)fm->Get(Form("%s/hqgl_q",dir.c_str()));
-  assert(hq);
+  string dir = Form("Standard/Eta_%1.1f-%1.1f/jt%d",etamin,etamax,trg2);
+  //TH1D *hg = (TH1D*)fm->Get(Form("%s/hqgl_g",dir.c_str())); // old style
+  //assert(hg);
+  TH2D *h2g = (TH2D*)fm->Get(Form("%s/hqgl2_g",dir.c_str())); // new style
+  assert(h2g);
+  int iptming = h2g->GetXaxis()->FindBin(ptmin+0.5);
+  int iptmaxg = h2g->GetXaxis()->FindBin(ptmax-0.5);
+  TH1D *hg = h2g->ProjectionY(Form("hqgl1m_g_%d",iptming),iptming,iptmaxg);
+  //
+  //TH1D *hq = (TH1D*)fm->Get(Form("%s/hqgl_q",dir.c_str())); // old style
+  //assert(hq);
+  TH2D *h2q = (TH2D*)fm->Get(Form("%s/hqgl2_q",dir.c_str())); // new style
+  assert(h2q);
+  int iptminq = h2q->GetXaxis()->FindBin(ptmin+0.5);
+  int iptmaxq = h2q->GetXaxis()->FindBin(ptmax-0.5);
+  TH1D *hq = h2q->ProjectionY(Form("hqgl1m_q_%d",iptminq),iptminq,iptmaxq);
   //TH1D *hg = (TH1D*)fm->Get(Form("%s/hgpt_g0tw",dir.c_str()));
   //assert(hg);
   //TH1D *hq = (TH1D*)fm->Get(Form("%s/hqpt_g0tw",dir.c_str()));                                                                        
@@ -86,10 +109,24 @@ fitvals drawQGLbin(double etamin = 0, double etamax = 1.3, int trg = 260) {
   //assert(ha);
   //TH1D *hd = (TH1D*)fd->Get(Form("%s/hpt_g0tw",dir.c_str())); 
   //assert(hd);  
-  TH1D *ha = (TH1D*)fm->Get(Form("%s/hqgl",dir.c_str()));
+  /*
+  TH1D *ha = (TH1D*)fm->Get(Form("%s/hqgl",dir.c_str())); // old style
   assert(ha);
-  TH1D *hd = (TH1D*)fd->Get(Form("%s/hqgl",dir.c_str()));
+  */
+  TH2D *h2m = (TH2D*)fm->Get(Form("%s/hqgl2",dir.c_str())); // new style
+  assert(h2m);
+  int iptminm = h2m->GetXaxis()->FindBin(ptmin+0.5);
+  int iptmaxm = h2m->GetXaxis()->FindBin(ptmax-0.5);
+  TH1D *ha = h2m->ProjectionY(Form("hqgl1m_%d",iptminm),iptminm,iptmaxm);
+  /*
+  TH1D *hd = (TH1D*)fd->Get(Form("%s/hqgl",dir.c_str())); // old style
   assert(hd);
+  */
+  TH2D *h2d = (TH2D*)fd->Get(Form("%s/hqgl2",dir.c_str())); // new style
+  assert(h2d);
+  int iptmind = h2d->GetXaxis()->FindBin(ptmin+0.5);
+  int iptmaxd = h2d->GetXaxis()->FindBin(ptmax-0.5);
+  TH1D *hd = h2d->ProjectionY(Form("hqgl1d_%d",iptmind),iptmind,iptmaxd);
 
   curdir->cd();
 
@@ -291,6 +328,11 @@ void drawQGL() {
   trgs.push_back(320);
   trgs.push_back(400);
   trgs.push_back(450);
+  // custom ranges
+  trgs.push_back(600);
+  trgs.push_back(800);
+  trgs.push_back(1200);
+  trgs.push_back(1500);
 
   for (int itrg = 0; itrg != trgs.size(); ++itrg) {
 

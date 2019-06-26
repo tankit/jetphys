@@ -76,16 +76,17 @@ void drawEtaSpectra(string type) {
   const char *t = type.c_str();
 
   // Unfolded data
-  TFile *fin = new TFile(Form("output-%s-3.root",t),"READ");
+  //  TFile *fin = new TFile(Form("output-%s-3.root",t),"READ");
+  TFile *fin = new TFile(Form("output-%s-2c.root",t),"READ"); // unfolded data
   assert(fin && !fin->IsZombie());
   assert(fin->cd("Standard"));
   TDirectory *din = gDirectory;
 
   // Uncertainties
-  TFile *fin2 = new TFile(Form("output-%s-4.root",t),"READ");
-  assert(fin2 && !fin2->IsZombie());
-  assert(fin2->cd("Standard"));
-  TDirectory *din2 = gDirectory;
+  //  TFile *fin2 = new TFile(Form("output-%s-4.root",t),"READ");
+  // assert(fin2 && !fin2->IsZombie());
+  // assert(fin2->cd("Standard"));
+  // TDirectory *din2 = gDirectory;
 
   // Theory
   TFile *fnlo = new TFile(Form("output-%s-2c.root",t),"READ");
@@ -110,8 +111,8 @@ void drawEtaSpectra(string type) {
   c1->SetLogx();
   c1->SetLogy();
 
-  double xmaxeta = _jp_xmax;
-  TH1D *h = new TH1D("h","",int(xmaxeta-_jp_xmin),_jp_xmin,xmaxeta);
+  double xmaxeta = jp::xmax;
+  TH1D *h = new TH1D("h","",int(xmaxeta-jp::xmin),jp::xmin,xmaxeta);
   h->SetMinimum(1.0001e-4);
   h->SetMaximum(5e11);
   h->GetYaxis()->SetTitle("d^{2}#sigma/dp_{T}dy (pb/GeV)");
@@ -134,12 +135,12 @@ void drawEtaSpectra(string type) {
   leg2->Draw();
 
   TLatex *tjet = new TLatex(0.19,0.18,Form("Anti-k_{T} R=%1.1f",
-					   string(_jp_algo)=="AK7" ? 0.7 : 0.5));
+					   string(jp::algo)=="AK7" ? 0.7 : 0.5));
   tjet->SetTextSize(0.04);
   tjet->SetNDC();
   tjet->Draw();
 
-  //cmsPrel(_jp_isdt ? _jp_lumi : 0);
+  //cmsPrel(jp::isdt ? jp::lumi : 0);
 
   vector<TH1D*> vhnlo(etas.size());
   vector<TGraphErrors*> vnlo(etas.size());
@@ -150,22 +151,22 @@ void drawEtaSpectra(string type) {
   vector<TH1D*> vhedw(etas.size());
   vector<TGraphErrors*> vdata(etas.size());
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
 
     assert(dnlo->cd(etas[i].c_str()));
     TDirectory *dt = gDirectory;
 
-    assert(din2->cd(etas[i].c_str()));
-    TDirectory *d2 = gDirectory;
+    //  assert(din2->cd(etas[i].c_str()));
+    //TDirectory *d2 = gDirectory;
 
     float etamin, etamax;
     assert(sscanf(etas[i].c_str(),"Eta_%f-%f",&etamin,&etamax)==2);
 
     // Load and scale central values
-    TGraphErrors *g = (TGraphErrors*)d->Get("gcorrpt"); assert(g);
-    scaleGraph(g, scale[i]);
+    //    TGraphErrors *g = (TGraphErrors*)d->Get("gcorrpt"); assert(g);
+    //scaleGraph(g, scale[i]);
     TF1 *f = (TF1*)d->Get("fus"); assert(f);
     f->SetParameter(0, f->GetParameter(0)*scale[i]);
     vdata[i] = g;
@@ -179,7 +180,7 @@ void drawEtaSpectra(string type) {
     TGraphErrors *gnlodw = new TGraphErrors(0);
     for (int j = 0; j != g->GetN(); ++j) {
       double x = g->GetX()[j];
-      if (x >= _jp_xmin) {//_jp_xminpas) {
+      if (x >= jp::xmin) {//jp::xminpas) {
 	double y = htheory->GetBinContent(htheory->FindBin(x));
 	int n = gnlo->GetN();
 	gnlo->SetPoint(n, x, y * scale[i]);
@@ -209,29 +210,29 @@ void drawEtaSpectra(string type) {
     g->GetPoint(g->GetN()-1, ptmax, yptmax);
 
     // Produce uncertainty band around ansatz fit
-    TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
-    TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
-    ptmax = hpl->GetBinLowEdge(hpl->FindBin(ptmax)+1);
+    //  TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
+    //TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
+    // ptmax = hpl->GetBinLowEdge(hpl->FindBin(ptmax)+1);
 
-    TGraphErrors *gerr = (_jp_centerOnAnsatz ? makeBand(f, hpl, hmn, _jp_xmin, _jp_xmax) :
-			  makeBand(g, hpl, hmn, _jp_xmin, _jp_xmax));
-    vgerr[i] = gerr;
-    vheup[i] = hpl;
-    vhedw[i] = hmn;
+    //  TGraphErrors *gerr = (jp::centerOnAnsatz ? makeBand(f, hpl, hmn, jp::xmin, jp::xmax) :
+    //		  makeBand(g, hpl, hmn, jp::xmin, jp::xmax));
+  //vgerr[i] = gerr;
+  // vheup[i] = hpl;
+  //  vhedw[i] = hmn;
 
     // Find reasonable upper range for fit
     // at 1 TeV range, we require 1 event in a bin of O(100 GeV) width
     // => update to ptmax
     //f->SetRange(1., 3500./cosh(etamin));
     //double x = f->GetX(scale[i]*1./100.);
-    f->SetRange(_jp_xmin, ptmax);//x);
+    f->SetRange(jp::xmin, ptmax);//x);
 
     g->SetMarkerStyle(marker[i]);
-    gerr->SetFillStyle(1001);
-    gerr->SetFillColor(kYellow+1);
+    // gerr->SetFillStyle(1001);
+    // gerr->SetFillColor(kYellow+1);
     f->SetLineColor(kRed);
 
-    gerr->Draw(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    //  gerr->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     if (gnlo) gnlo->Draw("SAME L");
     else      f->Draw("SAME");
     if (gnloup) gnloup->Draw("SAME L");
@@ -247,14 +248,14 @@ void drawEtaSpectra(string type) {
     if (i==0) {
       assert(gnlo);
       leg2->AddEntry(gnlo, "NLO#otimesNP theory", "L"); // cmsFinal
-      leg2->AddEntry(gerr, "Exp. uncertainty", "F"); 
+      //  leg2->AddEntry(gerr, "Exp. uncertainty", "F");
     }
   } // for i
 
 
   cout << endl;
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
     float etamin, etamax;
@@ -289,7 +290,7 @@ void drawEtaSpectra(string type) {
   } // for i
   cout << endl;
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
     float etamin, etamax;
@@ -304,26 +305,26 @@ void drawEtaSpectra(string type) {
 		 fs->GetChisquare(), fs->GetNDF()) << endl;
   } // for i
 
-  const char *a = string(_jp_algo).c_str();
+  const char *a = string(jp::algo).c_str();
   //if(_eps) c1->SaveAs(Form("eps/summaryEtaSpectra_%s_%s.eps",a,t));
-  if(_jp_pdf) c1->SaveAs(Form("pdf/summaryEtaSpectra_%s_%s.pdf",a,t));
+  if(jp::pdf) c1->SaveAs(Form("pdf/summaryEtaSpectra_%s_%s.pdf",a,t));
   //if(_gif) c1->SaveAs(Form("gif/summaryEtaSpectra_%s_%s.gif",a,t));
   //if(_png) c1->SaveAs(Form("png/summaryEtaSpectra_%s_%s.png",a,t));
 
   ///////////////////////////////////////////////////////////////
   // for PAS, cut the NLO line at pT>18 GeV, color band yellow
   for (unsigned int i = 0; i != vnlo.size(); ++i) {
-    pruneGraph(vnlo[i],1e10,-1e10,_jp_xminpas,1e10);
-    pruneGraph(vnloup[i],1e10,-1e10,_jp_xminpas,1e10);
-    pruneGraph(vnlodw[i],1e10,-1e10,_jp_xminpas,1e10);
-    pruneGraph(vgerr[i],1e10,-1e10,_jp_xminpas,1e10);
+    pruneGraph(vnlo[i],1e10,-1e10,jp::xminpas,1e10);
+    pruneGraph(vnloup[i],1e10,-1e10,jp::xminpas,1e10);
+    pruneGraph(vnlodw[i],1e10,-1e10,jp::xminpas,1e10);
+    pruneGraph(vgerr[i],1e10,-1e10,jp::xminpas,1e10);
     vgerr[i]->SetFillColor(kYellow+1);
   } // for i
   //h->SetMaximum(5e11);
   //h->SetMaximum(0.99999e11);
   h->SetMaximum(1e11);
   h->SetMinimum(1e-7);
-  h->GetXaxis()->SetRangeUser(_jp_xminpas,xmaxeta);
+  h->GetXaxis()->SetRangeUser(jp::xminpas,xmaxeta);
 
   // Redraw fully
   h->Draw("AXIS");
@@ -343,9 +344,9 @@ void drawEtaSpectra(string type) {
   //tex->DrawLatex(0.19,0.33+0.03,"#mu_{R} = #mu_{F} = p_{T}");
   tex->DrawLatex(0.19,0.30+0.03,"#mu_{R} = #mu_{F} = p_{T}");
 
-  //if (_jp_isdt and _final) cmsFinal(_jp_lumi);
-  //else cmsPrel(_jp_isdt ? _jp_lumi : 0);
-  
+  //if (jp::isdt and _final) cmsFinal(jp::lumi);
+  //else cmsPrel(jp::isdt ? jp::lumi : 0);
+
   gPad->RedrawAxis();
 
   // Save the histograms for redrawing PAS plots (here, so pT<30 GeV clipped)
@@ -369,7 +370,7 @@ void drawEtaSpectra(string type) {
 //   } // _pas
 
   //if(_eps) c1->SaveAs(Form("eps/summaryEtaSpectraPAS_%s_%s.eps",a,t));
-  if(_jp_pdf) c1->SaveAs(Form("pdf/summaryEtaSpectraPAS_%s_%s.pdf",a,t));
+  if(jp::pdf) c1->SaveAs(Form("pdf/summaryEtaSpectraPAS_%s_%s.pdf",a,t));
   //if(_gif) c1->SaveAs(Form("gif/summaryEtaSpectraPAS_%s_%s.gif",a,t));
   //if(_png) c1->SaveAs(Form("png/summaryEtaSpectraPAS_%s_%s.png",a,t));
 
@@ -377,11 +378,11 @@ void drawEtaSpectra(string type) {
   gROOT->ProcessLine(".! mkdir txt");
   for (unsigned int i = 0; i != vdata.size(); ++i) {
     ofstream fout(Form("txt/CMS_incjet_y%1.1f_%1.1f_%s.txt",0.5*i,0.5*(i+1),
-		       _jp_algo),ios::out);
-    fout << Form("Inclusive jet double-differential cross sections in the |rapidity| range %1.1f to %1.1f, using a jet resolution R value of %1.1f.",0.5*i,0.5*(i+1),string(_jp_algo)=="AK7" ? 0.7 : 0.5) << endl;
+		       jp::algo),ios::out);
+    fout << Form("Inclusive jet double-differential cross sections in the |rapidity| range %1.1f to %1.1f, using a jet resolution R value of %1.1f.",0.5*i,0.5*(i+1),string(jp::algo)=="AK7" ? 0.7 : 0.5) << endl;
     fout << "RE : P P --> JET X" << endl;
     fout << Form("ABS(YRAP) : %1.1f TO %1.1f",0.5*i,0.5*(i+1)) << endl;
-    fout << Form("R : %1.1f",string(_jp_algo)=="AK7" ? 0.7 : 0.5) << endl;
+    fout << Form("R : %1.1f",string(jp::algo)=="AK7" ? 0.7 : 0.5) << endl;
     fout << "SQRT(S) : 7 TeV" << endl;
     fout << "x-axis header: PT IN GEV" << endl;
     fout << "y-axis header: D2(SIG)/DPT/DYRAP IN PB/GEV" << endl;
@@ -415,7 +416,7 @@ void drawEtaSpectra(string type) {
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawEtaSpectra
 
 
@@ -437,7 +438,7 @@ void drawDataTheoryRatioLog() {
   assert(fnlo && !fnlo->IsZombie());
   assert(fnlo->cd("Standard"));
   TDirectory *dnlo = gDirectory;
-  
+
   TFile *finmc = new TFile("output-MC-4c.root","READ");
   assert(finmc && !finmc->IsZombie());
   assert(finmc->cd("Standard"));
@@ -460,7 +461,7 @@ void drawDataTheoryRatioLog() {
   c1->SetLogx();
   c1->SetLogy();
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(pow(c,-1.5));
   h->SetMaximum(pow(c,6));
   h->GetYaxis()->SetTitle("Data / NLO theory");
@@ -502,7 +503,7 @@ void drawDataTheoryRatioLog() {
   txmin->SetTextColor(kBlue);
   txmin->Draw();
 
-  //cmsPrel(_jp_lumi);
+  //cmsPrel(jp::lumi);
 
   TLatex *tjet = new TLatex(0.17,0.22,"Anti-k_{T} R=0.5");// PF");
   tjet->SetTextSize(0.045);
@@ -517,7 +518,7 @@ void drawDataTheoryRatioLog() {
   vector<TH1D*> hpas(etas.size());
 
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
 
@@ -536,7 +537,7 @@ void drawDataTheoryRatioLog() {
     // Load central values
     TGraphErrors *g = (TGraphErrors*)d->Get("gcorrpt"); assert(g);
     TGraphErrors *gmc = (TGraphErrors*)dmc->Get("gcorrpt"); assert(gmc);
-    
+
     // Load theory
     TF1 *fus = (TF1*)d->Get("fus"); assert(fus);
     TH1D *htheory = (TH1D*)dt->Get("hnlo"); assert(htheory);
@@ -565,18 +566,18 @@ void drawDataTheoryRatioLog() {
     if (htheory) ratioGraph(gmc, htheory);
     else         ratioGraph(gmc, fus);
     scaleGraph(gmc, scale[i]);
-    pruneGraph(gmc, 0.50, 0., 10., _jp_xmax);
+    pruneGraph(gmc, 0.50, 0., 10., jp::xmax);
     gmc->SetLineWidth(2);
     gmc->SetLineStyle(kDashed);
 
     // Produce uncertainty band around ansatz fit
     TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
     TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
-    TF1 *f = new TF1(Form("f%d",i),"[0]", _jp_xmin, _jp_xmax);
+    TF1 *f = new TF1(Form("f%d",i),"[0]", jp::xmin, jp::xmax);
     f->SetParameter(0, scale[i]);
-    TGraphErrors *gerr = (_jp_centerOnAnsatz ?
-			  makeBand(f, hpl, hmn, _jp_xmin, f->GetXmax()) :
-			  makeBand(g, hpl, hmn, _jp_xmin, f->GetXmax()));
+    TGraphErrors *gerr = (jp::centerOnAnsatz ?
+			  makeBand(f, hpl, hmn, jp::xmin, f->GetXmax()) :
+			  makeBand(g, hpl, hmn, jp::xmin, f->GetXmax()));
 
     g->SetMarkerStyle(marker[i]);
     gmc->SetMarkerStyle(marker[i]);
@@ -586,7 +587,7 @@ void drawDataTheoryRatioLog() {
     gerr->SetFillColor(kYellow+1);
     f->SetLineColor(kRed);
 
-    gerr->Draw(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    gerr->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     f->Draw("SAME");
     gmc->Draw("SAMEL");
     g->Draw("SAMEP");
@@ -618,18 +619,18 @@ void drawDataTheoryRatioLog() {
   leg2->Draw();
 
   //if(_eps) c1->SaveAs("eps/summaryDataTheoryRatioLog.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryDataTheoryRatioLog.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryDataTheoryRatioLog.pdf");
   //if(_gif) c1->SaveAs("gif/summaryDataTheoryRatioLog.gif");
   //if(_png) c1->SaveAs("png/summaryDataTheoryRatioLog.png");
 
   /////////////////////////////////////////////////////
   // for PAS, cut at pT>30 GeV, color error band yellow
-  h->GetXaxis()->SetRangeUser(30,_jp_xmax);
+  h->GetXaxis()->SetRangeUser(30,jp::xmax);
   h->SetMinimum(2e-2);
   h->Draw("AXIS");
   for (unsigned int i = 0; i != etas.size(); ++i) {
     vgerr[i]->SetFillColor(kYellow+1);
-    vgerr[i]->Draw(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    vgerr[i]->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     vnlo[i]->Draw("SAME");
     vmc[i]->Draw("SAME L");
     vdt[i]->Draw("SAME P");
@@ -640,14 +641,14 @@ void drawDataTheoryRatioLog() {
   leg2->Draw();
 
   //if(_eps) c1->SaveAs("eps/summaryDataTheoryRatioLogPAS.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryDataTheoryRatioLogPAS.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryDataTheoryRatioLogPAS.pdf");
   //if(_gif) c1->SaveAs("gif/summaryDataTheoryRatioLogPAS.gif");
   //if(_png) c1->SaveAs("png/summaryDataTheoryRatioLogPAS.png");
 
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawDataTheoryRatioLog
 
 
@@ -669,7 +670,7 @@ void drawDataTheoryRatio() {
   assert(fnlo && !fnlo->IsZombie());
   assert(fnlo->cd("Standard"));
   TDirectory *dnlo = gDirectory;
-  
+
   //TFile *finmc = new TFile("output-MC-3a.root","READ");
   TFile *finmc = new TFile("output-MC-4c.root","READ");
   assert(finmc && !finmc->IsZombie());
@@ -692,7 +693,7 @@ void drawDataTheoryRatio() {
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
   c1->SetLogx();
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.0);
   h->SetMaximum(9.0*off);
   h->GetYaxis()->SetTitle("Data / NLO theory");
@@ -728,7 +729,7 @@ void drawDataTheoryRatio() {
   t->SetTextAlign(31); // align right
 
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
 
@@ -758,7 +759,7 @@ void drawDataTheoryRatio() {
     TF1 *fdt = new TF1(Form("fdt%d",i),"[0]*exp([1]/x)*pow(x,[2])"
 		       "*pow(1-x*cosh([4])/4000.,[3]) / "
 		       "([5]*exp([6]/x)*pow(x,[7]+[9]*log(0.01*x))"
-		       "*pow(1-x*cosh([4])/4000.,[8]))+[10]", _jp_xmin, _jp_xmax);
+		       "*pow(1-x*cosh([4])/4000.,[8]))+[10]", jp::xmin, jp::xmax);
     fdt->SetParameters(fus->GetParameter(0), fus->GetParameter(1),
 		       fus->GetParameter(2), fus->GetParameter(3),
 		       fus->GetParameter(4),
@@ -780,12 +781,12 @@ void drawDataTheoryRatio() {
     // Produce uncertainty band around ansatz fit
     TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
     TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
-    TF1 *f = new TF1(Form("f%d",i),"[0]", _jp_xmin, _jp_xmax);
+    TF1 *f = new TF1(Form("f%d",i),"[0]", jp::xmin, jp::xmax);
     f->SetParameter(0, 1+offset[i]);
 
-    TGraphErrors *gerr = (_jp_centerOnAnsatz ? 
-			  makeBand(fdt, hpl,hmn, _jp_xmin,g->GetX()[g->GetN()-1]) :
-			  makeBand(g, hpl,hmn, _jp_xmin,g->GetX()[g->GetN()-1]));
+    TGraphErrors *gerr = (jp::centerOnAnsatz ?
+			  makeBand(fdt, hpl,hmn, jp::xmin,g->GetX()[g->GetN()-1]) :
+			  makeBand(g, hpl,hmn, jp::xmin,g->GetX()[g->GetN()-1]));
     fdt->SetParameter(10, offset[i]);
     offsetGraph(gerr, offset[i]);
 
@@ -801,10 +802,10 @@ void drawDataTheoryRatio() {
     f->SetLineColor(kRed);
 
     //TLine *line = new TLine(xmin, offset[i]+off, bxmax, offset[i]+off);
-    TLine *line = new TLine(_jp_xmin, offset[i]+off, _jp_xmax, offset[i]+off);
+    TLine *line = new TLine(jp::xmin, offset[i]+off, jp::xmax, offset[i]+off);
     if (i!=0) line->Draw();
 
-    gerr->Draw(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    gerr->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     f->Draw("SAME");
     gmc->Draw("SAMEL");
     g->Draw("SAMEP");
@@ -840,26 +841,26 @@ void drawDataTheoryRatio() {
   lup->DrawLineNDC(0.19,0.89,0.245,0.89);
 
   //if(_eps) c1->SaveAs("eps/summaryDataTheoryRatio.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryDataTheoryRatio.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryDataTheoryRatio.pdf");
   //if(_gif) c1->SaveAs("gif/summaryDataTheoryRatio.gif");
   //if(_png) c1->SaveAs("png/summaryDataTheoryRatio.png");
 
   /////////////////////////////////////////////////////
   // for PAS, cut at pT>20 GeV, color error band yellow
   TH1D *hpas = (TH1D*)h->DrawClone("AXIS");
-  hpas->GetXaxis()->SetRangeUser(_jp_xmin, _jp_xmax);
+  hpas->GetXaxis()->SetRangeUser(jp::xmin, jp::xmax);
   const int nylab = 12;
   const double ylabels[nylab] = {0, 1, 2, 1, 2, 1, 0, 1, 2, 3, 4, 5};
   for (int i = 0; i != nylab; ++i)
     t->DrawTextNDC(0.14, 0.135+0.0665*i, Form("%1.0f",ylabels[i]));
   for (unsigned int i = 0; i != etas.size(); ++i) {
     vgerr[i]->SetFillColor(kYellow+1);
-    vgerr[i]->Draw(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    vgerr[i]->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
   }
   for (unsigned int i = 0; i != etas.size(); ++i) {
 
-    //TLine *line = new TLine(_jp_xminpas, offset[i]+off, bxmax, offset[i]+off);
-    TLine *line = new TLine(_jp_xminpas, offset[i]+off, _jp_xmax, offset[i]+off);
+    //TLine *line = new TLine(jp::xminpas, offset[i]+off, bxmax, offset[i]+off);
+    TLine *line = new TLine(jp::xminpas, offset[i]+off, jp::xmax, offset[i]+off);
     if (i!=0) line->Draw();
 
     vnlo[i]->Draw("SAME");
@@ -871,30 +872,30 @@ void drawDataTheoryRatio() {
     vdt[i]->Draw("SAME P");
   }
   hpas->Draw("AXIS SAME");
-  //cmsPrel(_jp_lumi);
+  //cmsPrel(jp::lumi);
   leg->Draw();
   leg2->Draw();
-  if (_jp_centerOnAnsatz)
+  if (jp::centerOnAnsatz)
     ta->DrawTextNDC(leg2->GetX1NDC()+0.07, leg2->GetY1NDC()-0.04,//0.02,
 		    "(centered on ansatz)");
   lup->DrawLineNDC(0.19,0.92,0.245,0.92);
   lup->DrawLineNDC(0.19,0.89,0.245,0.89);
 
   //if(_eps) c1->SaveAs("eps/summaryDataTheoryRatioPAS.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryDataTheoryRatioPAS.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryDataTheoryRatioPAS.pdf");
   //if(_gif) c1->SaveAs("gif/summaryDataTheoryRatioPAS.gif");
   //if(_png) c1->SaveAs("png/summaryDataTheoryRatioPAS.png");
 
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawDataTheoryRatio
 
 void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 
   //bool _usejpt = true;
-  bool _ak7 = (string(_jp_algo)=="AK7");
+  bool _ak7 = (string(jp::algo)=="AK7");
 
   TDirectory *curdir = gDirectory;
 
@@ -971,7 +972,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   //string ssv38x = (v38x ? "_38X" : "");
   //string ssid = ssak7 + ssv38x;
   const char *sid = "";//ssid.c_str();
-  //bool _ak7 = (string(_jp_algo)=="AK7");  
+  //bool _ak7 = (string(jp::algo)=="AK7");
 
   TCanvas *c1a = new TCanvas("c1a","c1a",1800,1200);
   c1a->SetTopMargin(0.10);
@@ -989,12 +990,12 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 
   TCanvas *c2 = new TCanvas("c2","c2",600,600);
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.0001);
   h->SetMaximum(1.7999);
   //h->GetYaxis()->SetTitle("Data / NLO#otimesNP (PDF4LHC)"); // cmsFinal
   h->GetYaxis()->SetTitle("Data / NLO#otimesNP (CT10)"); // cmsFinal
-  if (_jp_herapdf) h->GetYaxis()->SetTitle("Data / NLO#otimesNP (HERAPDF1.5)");
+  if (jp::herapdf) h->GetYaxis()->SetTitle("Data / NLO#otimesNP (HERAPDF1.5)");
   h->GetXaxis()->SetTitle("p_{T} (GeV)");
   h->GetXaxis()->SetMoreLogLabels();
   h->GetXaxis()->SetNoExponent();
@@ -1101,7 +1102,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     //TH1D *htheory2011 = (TH1D*)dt->Get("hnlo2011"); assert(htheory2011);
     TH1D *htheory2011 = (TH1D*)dt11->Get("hnlo2011"); assert(htheory2011);
     */
-    if (_jp_herapdf) {
+    if (jp::herapdf) {
       htheory = (TH1D*)dt->Get("hnlo_hera"); assert(htheory); // HERAPDF
     }
     TGraphErrors *gtheory = (TGraphErrors*)dt->Get("gnlofit"); assert(gtheory);
@@ -1145,14 +1146,14 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     TGraphErrors *gus = new TGraphErrors(0);
     TF1 *fusnew = new TF1(Form("fusnew_%d",iy),
 			  "[0]*exp([1]/x)*pow(x,[2])"
-			  "*pow(1-x*cosh([4])/4000.,[3])", 1., _jp_xmax);
+			  "*pow(1-x*cosh([4])/4000.,[3])", 1., jp::xmax);
     for (int i = 0; i != fus->GetNpar(); ++i) {
       fusnew->SetParameter(i, fus->GetParameter(i));
     }
     for (int i = 0; i != g->GetN(); ++i) {
       double x = g->GetX()[i];
       double y = fusnew->Eval(x);
-      if (x >= _jp_xmin) {
+      if (x >= jp::xmin) {
 	int n = gus->GetN();
 	gus->SetPoint(n, x, y);
       }
@@ -1169,11 +1170,11 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     //hpl = (TH1D*)d2->Get("htot_38x_pl"); assert(hpl);
     //hmn = (TH1D*)d2->Get("htot_38x_mn"); assert(hmn);
     //}
-    TGraphErrors *gerr = (_jp_centerOnAnsatz ?
-			  makeBand(gus, hpl, hmn, _jp_xmin, _jp_xmax) :
-			  _jp_centerOnTheory ?
-			  makeBand(gth, hpl, hmn, _jp_xmin, _jp_xmax, true) :
-			  makeBand(g, hpl, hmn, _jp_xmin, _jp_xmax));
+    TGraphErrors *gerr = (jp::centerOnAnsatz ?
+			  makeBand(gus, hpl, hmn, jp::xmin, jp::xmax) :
+			  jp::centerOnTheory ?
+			  makeBand(gth, hpl, hmn, jp::xmin, jp::xmax, true) :
+			  makeBand(g, hpl, hmn, jp::xmin, jp::xmax));
     // Fix for new missing low pT theory
     for (int i = gerr->GetN()-1; i != -1; --i) {
       if (fabs(gerr->GetY()[i]-1)>0.5) gerr->RemovePoint(i);
@@ -1210,24 +1211,24 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     // 3x2 format for AN
     c1a->cd(iy+1);
     gPad->SetLogx();
-    h->GetXaxis()->SetRangeUser(_jp_xmin, _jp_xmax);
+    h->GetXaxis()->SetRangeUser(jp::xmin, jp::xmax);
     h->DrawClone("AXIS");
-    
-    //TObject *gerr_1a = gerr->DrawClone(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+
+    //TObject *gerr_1a = gerr->DrawClone(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     TObject *gerr_1a = gerr->DrawClone("SAME E3");
-    if (_jp_centerOnAnsatz) gus->DrawClone("SAMEL");
-    TLine *l = new TLine(_jp_xmin, 1., _jp_xmax, 1.);
+    if (jp::centerOnAnsatz) gus->DrawClone("SAMEL");
+    TLine *l = new TLine(jp::xmin, 1., jp::xmax, 1.);
     l->DrawClone();
     gthsysup->DrawClone("SAME L");
     gthsysdw->DrawClone("SAME L");
-    if (_jp_plotPythia) gmc->DrawClone("SAMEL");
-    
+    if (jp::plotPythia) gmc->DrawClone("SAMEL");
+
     g->SetMarkerStyle(kFullCircle);
     g->SetMarkerSize(0.7);
     g->DrawClone("SAME PZ");
 
     //TLegend *leg = new TLegend(30, _plotPythia ? 1.2 : 1.3, 150,1.75,"","br");
-    TLegend *leg = new TLegend(60, _jp_plotPythia ? 1.1 : 1.2, 300, 1.8,"","br");
+    TLegend *leg = new TLegend(60, jp::plotPythia ? 1.1 : 1.2, 300, 1.8,"","br");
     leg->SetBorderSize(0);
     leg->SetFillStyle(kNone);
     leg->SetTextFont(43);
@@ -1239,7 +1240,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 				// (_ak7 ? "QCD-11-004" : "QCD-10-010"), "P");
     leg->AddEntry(gthsysup, "Theory uncertainty","L");
     leg->AddEntry(gerr_1a, "Exp. uncertainty","F");
-    if (_jp_plotPythia) leg->AddEntry(gmc, "Pythia D6T","L");
+    if (jp::plotPythia) leg->AddEntry(gmc, "Pythia D6T","L");
     leg->Draw();
 
     TLegend *leg2010 = new TLegend(30, 1.3, 150, 1.75, "", "br");
@@ -1255,11 +1256,11 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     //leg2010->AddEntry(hdataref, (_ak7 ? "QCD-11-004" : "QCD-10-010"), "P");
     leg2010->Draw();
 
-    //TLatex *t = new TLatex(40, 0.15, etamin==0 ? 
+    //TLatex *t = new TLatex(40, 0.15, etamin==0 ?
     //			   Form("|y| < %1.1f",etamax) :
     //			   Form("%1.1f #leq |y| < %1.1f",etamin,etamax));
     // Vivian
-    TLatex *t = new TLatex(100, 0.65, etamin==0 ? 
+    TLatex *t = new TLatex(100, 0.65, etamin==0 ?
     			   Form("|y| < %1.1f",etamax) :
     			   Form("%1.1f #leq |y| < %1.1f",etamin,etamax));
     t->SetTextFont(43);
@@ -1277,13 +1278,13 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     h2a->SetMinimum(0.5);
     h2a->SetMaximum(1.5);
 
-    //gerr->DrawClone(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    //gerr->DrawClone(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     gerr->DrawClone("SAME E3");
-    if (_jp_centerOnAnsatz) gus->DrawClone("SAMEL");
-    l->DrawLine(37,1,_jp_xmax,1);
+    if (jp::centerOnAnsatz) gus->DrawClone("SAMEL");
+    l->DrawLine(37,1,jp::xmax,1);
     gthsysup->DrawClone("SAME L");
     gthsysdw->DrawClone("SAME L");
-    
+
     /*
     if (g2010) {
       g2010->SetMarkerStyle(kOpenCircle);
@@ -1351,15 +1352,15 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     leg2b->AddEntry(gerr, "Exp. uncertainty","F");
     //leg2b->Draw();
 
-    //cmsPrel(_jp_lumi);
+    //cmsPrel(jp::lumi);
     h2->DrawClone("AXIS SAME");
 
     //if(_eps) c2a->SaveAs(Form("eps/compareReco_Rap%d%s.eps",iy,sid));
-    if(_jp_pdf) c2a->SaveAs(Form("pdf/compareReco_Rap%d%s.pdf",iy,sid));
+    if(jp::pdf) c2a->SaveAs(Form("pdf/compareReco_Rap%d%s.pdf",iy,sid));
 
     c2b->cd(iy+1);
     gPad->SetLogx();
-    //h2->GetXaxis()->SetRangeUser(_jp_xmin,xmax);
+    //h2->GetXaxis()->SetRangeUser(jp::xmin,xmax);
     TH2D *h2b = (TH2D*)h2->Clone(Form("%s_2b",h2->GetName()));
     double x7min = 97; double x7max = 2116;
     h2b->GetXaxis()->SetRangeUser(x7min, x7max);
@@ -1368,8 +1369,8 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     h2b->GetYaxis()->SetTitle(iy==0 ? "Data / NLO#otimesNP (CT10)" : "");
     h2b->DrawClone("AXIS");
 
-    gerr->DrawClone(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
-    if (_jp_centerOnAnsatz) gus->DrawClone("SAMEL");
+    gerr->DrawClone(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
+    if (jp::centerOnAnsatz) gus->DrawClone("SAMEL");
     //l->Draw();
     l->DrawLine(x7min, 1, x7max, 1);
     gthsysup->DrawClone("SAME L");
@@ -1386,7 +1387,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     g->SetMarkerSize(1.3);//0.7);
     g->DrawClone("SAME Pz");
 
-    TLatex *t2b = new TLatex(110, 1.40, etamin==0 ? 
+    TLatex *t2b = new TLatex(110, 1.40, etamin==0 ?
 			     Form(" |y| < %1.1f",etamax) :
 			     Form("%1.1f < |y| < %1.1f",etamin,etamax));
     t2b->SetTextFont(43);
@@ -1407,7 +1408,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     //if (iy==2) leg2a->Draw();
     //leg2b->Draw();
     //h2->DrawClone("AXIS SAME");
-    
+
     gPad->RedrawAxis();
 
     fout->cd();
@@ -1415,39 +1416,39 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     hg->Write(Form("HistDataOverNLO_Rap%1.2g-%1.2g%s",0.5*iy,0.5*(iy+1),sid));
     curdir->cd();
 
-    
+
     // 3x2 format for PRL
     c1->cd(iy+1);
     gPad->SetLogx();
-    //h->GetXaxis()->SetRangeUser(_jp_xminpas, xmax);
-    h->GetXaxis()->SetRangeUser(74., _jp_xmax); // Vivian
+    //h->GetXaxis()->SetRangeUser(jp::xminpas, xmax);
+    h->GetXaxis()->SetRangeUser(74., jp::xmax); // Vivian
     h->SetMinimum(0.5+0.001);//0.6001); // Vivian
     h->SetMaximum(1.5-0.001);//1.3999); // Vivian
     h->DrawClone("AXIS");
     h->SetMinimum(0.0001);
     h->SetMaximum(1.7999);
 
-    rangeGraph(gerr,_jp_xminpas,_jp_xmax);
-    rangeGraph(gus,_jp_xminpas,_jp_xmax);
-    rangeGraph(gthsysup,_jp_xminpas,_jp_xmax);
-    rangeGraph(gthsysdw,_jp_xminpas,_jp_xmax);
-    hthsysup->GetXaxis()->SetRangeUser(_jp_xminpas,g->GetX()[g->GetN()-1]);
-    hthsysdw->GetXaxis()->SetRangeUser(_jp_xminpas,g->GetX()[g->GetN()-1]);
-    rangeGraph(gmc,_jp_xminpas,_jp_xmax);
+    rangeGraph(gerr,jp::xminpas,jp::xmax);
+    rangeGraph(gus,jp::xminpas,jp::xmax);
+    rangeGraph(gthsysup,jp::xminpas,jp::xmax);
+    rangeGraph(gthsysdw,jp::xminpas,jp::xmax);
+    hthsysup->GetXaxis()->SetRangeUser(jp::xminpas,g->GetX()[g->GetN()-1]);
+    hthsysdw->GetXaxis()->SetRangeUser(jp::xminpas,g->GetX()[g->GetN()-1]);
+    rangeGraph(gmc,jp::xminpas,jp::xmax);
 
     gerr->SetFillColor(kYellow+1);
     gus->SetLineColor(kYellow+2);
-    //gerr->DrawClone(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    //gerr->DrawClone(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     //gerr->DrawClone("SAME E3");
-    gerr->DrawClone(_jp_centerOnTheory ? "SAME E2" : "SAME E3");
-    if (_jp_centerOnAnsatz) gus->DrawClone("SAMEL");
-    //l->DrawLine(_jp_xminpas, 1., xmax, 1.);
-    l->DrawLine(74, 1., _jp_xmax, 1.);
+    gerr->DrawClone(jp::centerOnTheory ? "SAME E2" : "SAME E3");
+    if (jp::centerOnAnsatz) gus->DrawClone("SAMEL");
+    //l->DrawLine(jp::xminpas, 1., xmax, 1.);
+    l->DrawLine(74, 1., jp::xmax, 1.);
     //gthsysup->DrawClone("SAME L");
     //gthsysdw->DrawClone("SAME L");
     hthsysup->DrawClone("SAME HIST][");
     hthsysdw->DrawClone("SAME HIST][");
-    if (_jp_plotPythia) gmc->DrawClone("SAME L");
+    if (jp::plotPythia) gmc->DrawClone("SAME L");
 
     // Vivian
     l->SetLineStyle(kDotted);
@@ -1515,10 +1516,10 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
 
     g->SetMarkerSize(1.0);//0.7);
     g->DrawClone("PZ");
-    
+
     //TBox *box = new TBox(xmin, 0.4, 56., 1.3);
-    //TBox *box = new TBox(_jp_xminpas, 0.4, _ak7 ? 64 : 56., 1.5);
-    TBox *box = new TBox(_jp_xminpas, 0.4, _ak7 ? 74 : 64., 1.8);
+    //TBox *box = new TBox(jp::xminpas, 0.4, _ak7 ? 64 : 56., 1.5);
+    TBox *box = new TBox(jp::xminpas, 0.4, _ak7 ? 74 : 64., 1.8);
     box->SetFillStyle(kCrossHatch);
     box->SetLineColor(kGray);
     box->SetFillColor(kGray);
@@ -1527,7 +1528,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     tbox->SetTextFont(43);
     tbox->SetTextSize(npix);
     tbox->SetTextColor(kGray+1);
-    //tbox->DrawLatex(_jp_xminpas*1.05, 1.2, "trigger");
+    //tbox->DrawLatex(jp::xminpas*1.05, 1.2, "trigger");
 
     t->SetTextFont(43);
     t->SetTextSize(npix);
@@ -1541,13 +1542,13 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     // Single bins with different jet types
     c2->cd();
     gPad->SetLogx();
-    h2->GetXaxis()->SetRangeUser(_jp_xminpas, _jp_xmax);
+    h2->GetXaxis()->SetRangeUser(jp::xminpas, jp::xmax);
     h2->DrawClone("AXIS");
 
-    //gerr->DrawClone(_jp_centerOnAnsatz ? "SAME E3" : "SAME E3");
+    //gerr->DrawClone(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     gerr->DrawClone("SAME E3");
-    if (_jp_centerOnAnsatz) gus->DrawClone("SAMEL");
-    l->DrawLine(_jp_xminpas, 1., _jp_xmax, 1.);
+    if (jp::centerOnAnsatz) gus->DrawClone("SAMEL");
+    l->DrawLine(jp::xminpas, 1., jp::xmax, 1.);
     gthsysup->DrawClone("SAME L");
     gthsysdw->DrawClone("SAME L");
 
@@ -1574,15 +1575,15 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
     leg2010b->Draw();
 
     h2->DrawClone("AXIS SAME");
-    //if (!ak7 && !v38x && iy==0 && _final) cmsFinal(_jp_lumi);
-    //else 
-    //cmsPrel(_jp_lumi);
+    //if (!ak7 && !v38x && iy==0 && _final) cmsFinal(jp::lumi);
+    //else
+    //cmsPrel(jp::lumi);
 
 
     //if(_eps) c2->SaveAs(Form("eps/compareRecoPAS_Rap%d%s.eps",iy,sid));
-    if(_jp_pdf) c2->SaveAs(Form("pdf/compareRecoPAS_Rap%d%s.pdf",iy,sid));
+    if(jp::pdf) c2->SaveAs(Form("pdf/compareRecoPAS_Rap%d%s.pdf",iy,sid));
   } // for iy
-  
+
   c1a->cd(0);
 
   TLatex *latex = new TLatex();
@@ -1590,7 +1591,7 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   latex->SetTextSize(0.045);
 
   latex->SetTextAlign(11); // align left
-  latex->DrawLatex(0.06,0.96,Form("CMS preliminary, %.2g pb^{-1}",_jp_lumi));
+  latex->DrawLatex(0.06,0.96,Form("CMS preliminary, %.2g pb^{-1}",jp::lumi));
   latex->SetTextAlign(21); // align middle
   //latex->DrawLatex(0.55,0.96,ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
   latex->DrawLatex(0.55,0.96,_ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
@@ -1598,35 +1599,35 @@ void drawDataTheoryRatio3x2() {//bool ak7, bool v38x) {
   latex->DrawLatex(0.98,0.96,"#sqrt{s} = 7 TeV");
 
   //if(_eps) c1a->SaveAs(Form("eps/summaryDataTheoryRatio3x2%s.eps",sid));
-  if(_jp_pdf) c1a->SaveAs(Form("pdf/summaryDataTheoryRatio3x2%s.pdf",sid));
+  if(jp::pdf) c1a->SaveAs(Form("pdf/summaryDataTheoryRatio3x2%s.pdf",sid));
 
   c1->cd();
 
   latex->SetTextAlign(21); // align middle
   latex->DrawLatex(0.55,0.96,_ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
-  //if (!ak7 && !v38x && _final) cmsFinal(_jp_lumi, true);
-  //else 
-  //cmsPrel(_jp_lumi, true);
+  //if (!ak7 && !v38x && _final) cmsFinal(jp::lumi, true);
+  //else
+  //cmsPrel(jp::lumi, true);
 
-  const char *t = string(_jp_algo).c_str();
+  const char *t = string(jp::algo).c_str();
   //if(_eps) c1->SaveAs(Form("eps/summaryDataTheoryRatioPRL3x2%s%s.eps",sid,t));
-  if(_jp_pdf) c1->SaveAs(Form("pdf/summaryDataTheoryRatioPRL3x2%s%s.pdf",sid,t));
+  if(jp::pdf) c1->SaveAs(Form("pdf/summaryDataTheoryRatioPRL3x2%s%s.pdf",sid,t));
 
   c2b->cd(0);
 
   latex->SetTextAlign(11); // align left
-  //latex->DrawLatex(0.06, 0.96, Form("CMS preliminary, %.2g fb^{-1}",_jp_lumi/1e3));
-  latex->DrawLatex(0.06, 0.96, Form("CMS preliminary"));//,_jp_lumi/1e3));
+  //latex->DrawLatex(0.06, 0.96, Form("CMS preliminary, %.2g fb^{-1}",jp::lumi/1e3));
+  latex->DrawLatex(0.06, 0.96, Form("CMS preliminary"));//,jp::lumi/1e3));
   latex->SetTextAlign(21); // align middle
   //latex->DrawLatex(0.55, 0.96, ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
-  //latex->DrawLatex(0.55, 0.96, string(_jp_algo)=="AK7" ?
+  //latex->DrawLatex(0.55, 0.96, string(jp::algo)=="AK7" ?
   latex->DrawLatex(0.52, 0.96, _ak7 ?
 		   "Anti-k_{T} R = 0.7" : "Anti-k_{T} R = 0.5");
   latex->SetTextAlign(31); // align right
   latex->DrawLatex(0.98, 0.96, "#sqrt{s} = 7 TeV");
 
   //if(_eps) c2b->SaveAs(Form("eps/compareReco_AllRap%s.eps",sid));
-  if(_jp_pdf) c2b->SaveAs(Form("pdf/compareReco_AllRap%s.pdf",sid));
+  if(jp::pdf) c2b->SaveAs(Form("pdf/compareReco_AllRap%s.pdf",sid));
 
   fout->Write();
   fout->Close();
@@ -1665,17 +1666,17 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
   string ssv38x = (v38x ? "_38X" : "");
   string ssid = ssak7 + ssv38x;
   const char *sid = ssid.c_str();
-  
+
   TCanvas *c1 = new TCanvas("c1","c1",1800,1200);
   c1->SetTopMargin(0.10);
   c1->Divide(3,2,-1,-1);
 
   const double tscale = 1.0;
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.8001*tscale);
   h->SetMaximum(1.6999*tscale);
   h->GetYaxis()->SetTitle("NLO#otimesNP / Data");
-  if (tscale!=1) 
+  if (tscale!=1)
     h->GetYaxis()->SetTitle(Form("NLO#otimesNP #times %1.2f / Data",tscale));
   h->GetXaxis()->SetTitle("p_{T} (GeV)");
   h->GetXaxis()->SetMoreLogLabels();
@@ -1798,7 +1799,7 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
     // 3x2 format (support for PRL)
     c1->cd(iy+1);
     gPad->SetLogx();
-    h->GetXaxis()->SetRangeUser(_jp_xminpas, _jp_xmax);
+    h->GetXaxis()->SetRangeUser(jp::xminpas, jp::xmax);
     h->DrawClone("AXIS");
 
     hsys->SetFillStyle(1001);
@@ -1822,7 +1823,7 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
     if (iy==0) leg2->AddEntry(hsys,"Exp. #oplus Th. uncertainty","F");
 
     TLine *l = new TLine();
-    l->DrawLine(_jp_xminpas, 1., _jp_xmax, 1.);
+    l->DrawLine(jp::xminpas, 1., jp::xmax, 1.);
 
     hnlo_hera->SetMarkerSize(0.5);
     hnlo_hera->SetMarkerStyle(kFullCircle);
@@ -1867,7 +1868,7 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
     hnlo_nnpdf->Draw("SAME L");
     if (iy==0) leg->AddEntry(hnlo_nnpdf, "NNPDF1.0", "L");
 
-    TLatex *t = new TLatex(40, 0.15, etamin==0 ? 
+    TLatex *t = new TLatex(40, 0.15, etamin==0 ?
 			   Form("|y| < %1.1f",etamax) :
 			   Form("%1.1f #leq |y| < %1.1f",etamin,etamax));
     t->SetTextFont(43);
@@ -1878,7 +1879,7 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
     if (iy==1) leg2->Draw();
     gPad->RedrawAxis();
   } // for iy
-  
+
   c1->cd();
 
   TLatex *latex = new TLatex();
@@ -1886,10 +1887,10 @@ void drawTheoryDataRatio(bool ak7, bool v38x) {
   latex->SetTextSize(0.045);
   latex->SetTextAlign(21); // align middle
   latex->DrawLatex(0.55,0.96,ak7 ? "Anti-k_{T} R=0.7" : "Anti-k_{T} R=0.5");
-  //cmsPrel(_jp_lumi, true);
+  //cmsPrel(jp::lumi, true);
 
   //if(_eps) c1->SaveAs(Form("eps/summaryTheoryDataRatio%s.eps",sid));
-  if(_jp_pdf) c1->SaveAs(Form("pdf/summaryTheoryDataRatio%s.pdf",sid));
+  if(jp::pdf) c1->SaveAs(Form("pdf/summaryTheoryDataRatio%s.pdf",sid));
 } // drawTheoryDataRatio
 
 
@@ -1917,7 +1918,7 @@ void drawUnfoldSummary(string type, string algo) {
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
   c1->SetLogx();
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.40);
   h->SetMaximum(1.00);
   h->GetYaxis()->SetTitle("Correction");
@@ -1945,11 +1946,11 @@ void drawUnfoldSummary(string type, string algo) {
     talgo->Draw();
   }
 
-  //cmsPrel(_jp_isdt ? _jp_lumi : 0);
+  //cmsPrel(jp::isdt ? jp::lumi : 0);
 
   vector<TGraphErrors*> gfolds(etas.size());
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
 
@@ -1992,20 +1993,20 @@ void drawUnfoldSummary(string type, string algo) {
   const char *a = algo.c_str();
   if (algo!="PF") {
     //if(_eps) c1->SaveAs(Form("eps/summaryUnfolding_%s_%s.eps",a,t));
-    if(_jp_pdf) c1->SaveAs(Form("pdf/summaryUnfolding_%s_%s.pdf",a,t));
+    if(jp::pdf) c1->SaveAs(Form("pdf/summaryUnfolding_%s_%s.pdf",a,t));
     //if(_gif) c1->SaveAs(Form("gif/summaryUnfolding_%s_%s.gif",a,t));
     //if(_png) c1->SaveAs(Form("png/summaryUnfolding_%s_%s.png",a,t));
   }
   else {
     //if(_eps) c1->SaveAs(Form("eps/summaryUnfolding_%s.eps",t));
-    if(_jp_pdf) c1->SaveAs(Form("pdf/summaryUnfolding_%s.pdf",t));
+    if(jp::pdf) c1->SaveAs(Form("pdf/summaryUnfolding_%s.pdf",t));
     //if(_gif) c1->SaveAs(Form("gif/summaryUnfolding_%s.gif",t));
     //if(_png) c1->SaveAs(Form("png/summaryUnfolding_%s.png",t));
-  }    
+  }
 
   { // PAS plots
     h->SetMinimum(0.50); // new c-term :/
-    h->GetXaxis()->SetRangeUser(_jp_xminpas,_jp_xmax);
+    h->GetXaxis()->SetRangeUser(jp::xminpas,jp::xmax);
     h->DrawClone("AXIS");
     for (unsigned int i = 0; i != etas.size(); ++i) {
       gfolds[i]->Draw("SAMEPL");
@@ -2014,27 +2015,27 @@ void drawUnfoldSummary(string type, string algo) {
     leg->SetX2NDC(0.63);
     leg->Draw();
     tjet->DrawLatex(0.33,0.18,"Anti-k_{T} R=0.5");
-    //if (_jp_isdt and algo=="PF" && _final) cmsFinal(_jp_lumi);
-    //else cmsPrel(_jp_isdt ? _jp_lumi : 0);
+    //if (jp::isdt and algo=="PF" && _final) cmsFinal(jp::lumi);
+    //else cmsPrel(jp::isdt ? jp::lumi : 0);
 
     if (algo!="PF") {
       //if(_eps) c1->SaveAs(Form("eps/summaryUnfoldingPAS_%s_%s.eps",a,t));
-      if(_jp_pdf) c1->SaveAs(Form("pdf/summaryUnfoldingPAS_%s_%s.pdf",a,t));
+      if(jp::pdf) c1->SaveAs(Form("pdf/summaryUnfoldingPAS_%s_%s.pdf",a,t));
       //if(_gif) c1->SaveAs(Form("gif/summaryUnfoldingPAS_%s_%s.gif",a,t));
       //if(_png) c1->SaveAs(Form("png/summaryUnfoldingPAS_%s_%s.png",a,t));
     }
     else {
       //if(_eps) c1->SaveAs(Form("eps/summaryUnfoldingPAS_%s.eps",t));
-      if(_jp_pdf) c1->SaveAs(Form("pdf/summaryUnfoldingPAS_%s.pdf",t));
+      if(jp::pdf) c1->SaveAs(Form("pdf/summaryUnfoldingPAS_%s.pdf",t));
       //if(_gif) c1->SaveAs(Form("gif/summaryUnfoldingPAS_%s.gif",t));
       //if(_png) c1->SaveAs(Form("png/summaryUnfoldingPAS_%s.png",t));
     }
   }
-    
+
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawUnfolding
 
 
@@ -2065,7 +2066,7 @@ void drawJetIDSummary(string type, string idtype) {
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
   c1->SetLogx();
 
-  TH1D *h = new TH1D("h","",100,_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",100,jp::xmin,jp::xmax);
   if (idtype=="JetID") {
     h->GetYaxis()->SetTitle("Fraction passing Jet ID [%]");
     h->SetMaximum(101.0001);
@@ -2098,10 +2099,10 @@ void drawJetIDSummary(string type, string idtype) {
   tjet->SetNDC();
   tjet->Draw();
 
-  //cmsPrel(type=="DATA" ? _jp_lumi : 0);
+  //cmsPrel(type=="DATA" ? jp::lumi : 0);
 
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din1->cd(etas[i].c_str()));
     TDirectory *d1 = gDirectory;
 
@@ -2143,14 +2144,14 @@ void drawJetIDSummary(string type, string idtype) {
     hid->SetLineWidth(2);
     hid->Draw("SAMEPL");
 
-    TF1 *f = new TF1(Form("fid%d",i),"[0]-[1]*exp([2]*x)",_jp_xmin,_jp_xmax);
+    TF1 *f = new TF1(Form("fid%d",i),"[0]-[1]*exp([2]*x)",jp::xmin,jp::xmax);
     f->SetParameters(100,2,-0.1);
     f->SetParLimits(1,0.,10.);
     f->SetLineColor(color[i]);
     if (idtype=="JetIDPlusMetCut" || (idtype=="MetCut" && etamin>=2.5))
-      f->SetRange(_jp_xmin, 200.);
+      f->SetRange(jp::xmin, 200.);
     hid->Fit(f,i==5 ? "QRNW" : "QRN");
-    f->SetRange(_jp_xmin,_jp_xmax);
+    f->SetRange(jp::xmin,jp::xmax);
     f->Draw("SAME");
 
     const char *seta = (etamin==0 ? Form("|y| < %1.2g",etamax) :
@@ -2161,14 +2162,14 @@ void drawJetIDSummary(string type, string idtype) {
 
   const char *id = idtype.c_str();
   //if (_eps) c1->SaveAs(Form("eps/summary%s_%s.eps",id,t));
-  if (_jp_pdf) c1->SaveAs(Form("pdf/summary%s_%s.pdf",id,t));
+  if (jp::pdf) c1->SaveAs(Form("pdf/summary%s_%s.pdf",id,t));
   //if (_gif) c1->SaveAs(Form("gif/summary%s_%s.gif",id,t));
   //if (_png) c1->SaveAs(Form("png/summary%s_%s.png",id,t));
 
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawJetID
 
 
@@ -2196,7 +2197,7 @@ void drawNPCorr(string type) {
   TCanvas *c1 = new TCanvas("c1","c1",600,600);
   c1->SetLogx();
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.8);
   h->SetMaximum(1.5);
   h->GetYaxis()->SetTitle("Non-perturbative corrections");
@@ -2218,7 +2219,7 @@ void drawNPCorr(string type) {
   vector<TGraph*> vnp(etas.size());
   vector<TH1D*> vhnp(etas.size());
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din->cd(etas[i].c_str()));
     TDirectory *d = gDirectory;
 
@@ -2257,13 +2258,13 @@ void drawNPCorr(string type) {
   leg->Draw();
 
   //if(_eps) c1->SaveAs("eps/summaryNPCorr.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryNPCorr.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryNPCorr.pdf");
   //if(_gif) c1->SaveAs("gif/summaryNPCorr.gif");
   //if(_png) c1->SaveAs("png/summaryNPCorr.png");
 
   /////////////////////////////////////////////////////////////////////////
   // for PAS, cut out the low pT part
-  h->GetXaxis()->SetRangeUser(18.,_jp_xmax);
+  h->GetXaxis()->SetRangeUser(18.,jp::xmax);
   h->SetMaximum(1.45);
   h->SetMinimum(0.85);
   h->Draw("AXIS");
@@ -2284,7 +2285,7 @@ void drawNPCorr(string type) {
   c1->Update();
 
   //if(_eps) c1->SaveAs("eps/summaryNPCorrPAS.eps");
-  if(_jp_pdf) c1->SaveAs("pdf/summaryNPCorrPAS.pdf");
+  if(jp::pdf) c1->SaveAs("pdf/summaryNPCorrPAS.pdf");
   //if(_gif) c1->SaveAs("gif/summaryNPCorrPAS.gif");
   //if(_png) c1->SaveAs("png/summaryNPCorrPAS.png");
 
@@ -2332,7 +2333,7 @@ void drawNPCorr(string type) {
   if (gROOT->IsBatch()) delete c1;
 
   curdir->cd();
-  
+
 } // drawNPCorr
 
 
@@ -2342,7 +2343,7 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
 
   assert(type=="MC" || type=="HW");
   assert(algo=="PF" || algo=="PFAK7" || algo=="JPT" || algo=="CALO");
-  assert(!(isb && algo!="PF")); 
+  assert(!(isb && algo!="PF"));
 
   const char *t = type.c_str();
 
@@ -2405,7 +2406,7 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
   TCanvas *c2 = new TCanvas("c2","c2",600,600);
   c2->SetLogx();
 
-  TH1D *h = new TH1D("h","",int(_jp_xmax-_jp_xmin),_jp_xmin,_jp_xmax);
+  TH1D *h = new TH1D("h","",int(jp::xmax-jp::xmin),jp::xmin,jp::xmax);
   h->SetMinimum(0.5);//isb ? 0.2 : 0.6);
   h->SetMaximum(1.4);//isb ? 1.6 : 1.3);
   //h->GetYaxis()->SetTitle(Form("Reconstructed (%s) / Generated",algo.c_str()));
@@ -2462,17 +2463,17 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
 
 //     //if (i==0)
 //     for (int j = 1; j != up->GetNbinsX()+1; ++j) {
-      
+
 //       if (up->GetBinContent(j) > hup->GetBinContent(j))
 // 	hup->SetBinContent(j, up->GetBinContent(j));
 //       if (dw->GetBinContent(j) < hdw->GetBinContent(j))
 // 	hdw->SetBinContent(j, dw->GetBinContent(j));
 //     }
 //   }
-//   TF1 *fcenter = new TF1("fcenter","1", _jp_xmin, _jp_xmax);
+//   TF1 *fcenter = new TF1("fcenter","1", jp::xmin, jp::xmax);
 //   TH1D *hpl = (TH1D*)hup->Clone("hpl"); offsetGraph(hpl, -1);
 //   TH1D *hmn = (TH1D*)hdw->Clone("hmn"); offsetGraph(hmn, -1);
-//   TGraphErrors *gerr = makeBand(fcenter, hpl, hmn, _jp_xmin, _jp_xmax);
+//   TGraphErrors *gerr = makeBand(fcenter, hpl, hmn, jp::xmin, jp::xmax);
 
 //   gerr->SetFillStyle(1001);
 //   gerr->SetFillColor(kYellow);
@@ -2488,19 +2489,19 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
   //gerr->Draw("SAME E3");
   //hup->Draw("SAMEL");
   //hdw->Draw("SAMEL");
-  l->DrawLine(_jp_xmin,1,_jp_xmax,1);
-  tex->DrawLatex(0.80,0.20,string(_jp_algo).c_str());
+  l->DrawLine(jp::xmin,1,jp::xmax,1);
+  tex->DrawLatex(0.80,0.20,string(jp::algo).c_str());
   c2->cd();
   //gerr->Draw("SAME E3");
   //hup->Draw("SAMEL");
   //hdw->Draw("SAMEL");
-  l->DrawLine(_jp_xmin,1,_jp_xmax,1);
-  tex->DrawLatex(0.80,0.20,string(_jp_algo).c_str());
+  l->DrawLine(jp::xmin,1,jp::xmax,1);
+  tex->DrawLatex(0.80,0.20,string(jp::algo).c_str());
 
   //leg2->AddEntry(gerr, "MC truth JEC", "F");
 
   for (unsigned int i = 0; i != etas.size(); ++i) {
-    
+
     assert(din1mc->cd((etas[i]+"/mc").c_str()));
     TDirectory *d1mc = gDirectory;
     //
@@ -2630,26 +2631,26 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
 
   const char *a = algo.c_str();
   const char *v = (is38x ? "_38X" : "");
-  const char *tc = string(_jp_algo).c_str();
+  const char *tc = string(jp::algo).c_str();
   if (isb) {
     //if(_eps) c1->SaveAs("eps/summaryBClosure.eps");
-    if(_jp_pdf) c1->SaveAs("pdf/summaryBClosure.pdf");
+    if(jp::pdf) c1->SaveAs("pdf/summaryBClosure.pdf");
     //if(_gif) c1->SaveAs("gif/summaryBClosure.gif");
     //if(_png) c1->SaveAs("png/summaryBClosure.png");
 
     //if(_eps) c1->SaveAs("eps/summaryBClosureCorr.eps");
-    if(_jp_pdf) c1->SaveAs("pdf/summaryBClosureCorr.pdf");
+    if(jp::pdf) c1->SaveAs("pdf/summaryBClosureCorr.pdf");
     //if(_gif) c1->SaveAs("gif/summaryBClosureCorr.gif");
     //if(_png) c1->SaveAs("png/summaryBClosureCorr.png");
   }
   else {
     //if(_eps) c1->SaveAs(Form("eps/summaryClosure%s_%s%s%s.eps",t,a,v,tc));
-    if(_jp_pdf) c1->SaveAs(Form("pdf/summaryClosure%s_%s%s%s.pdf",t,a,v,tc));
+    if(jp::pdf) c1->SaveAs(Form("pdf/summaryClosure%s_%s%s%s.pdf",t,a,v,tc));
     //if(_gif) c1->SaveAs(Form("gif/summaryClosure%s_%s%s%s.gif",t,a,v,tc));
     //if(_png) c1->SaveAs(Form("png/summaryClosure%s_%s%s%s.png",t,a,v,tc));
 
     //if(_eps) c2->SaveAs(Form("eps/summaryClosureCorr%s_%s%s%s.eps",t,a,v,tc));
-    if(_jp_pdf) c2->SaveAs(Form("pdf/summaryClosureCorr%s_%s%s%s.pdf",t,a,v,tc));
+    if(jp::pdf) c2->SaveAs(Form("pdf/summaryClosureCorr%s_%s%s%s.pdf",t,a,v,tc));
     //if(_gif) c2->SaveAs(Form("gif/summaryClosureCorr%s_%s%s%s.gif",t,a,v,tc));
     //if(_png) c2->SaveAs(Form("png/summaryClosureCorr%s_%s%s%s.png",t,a,v,tc));
   }
@@ -2659,7 +2660,7 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
   fclosure->Delete();
 
   curdir->cd();
-  
+
 } // drawClosure
 
 // void GetPoint(TGraphErrors *g, int n, double &x, double &y,
@@ -2674,7 +2675,7 @@ void drawClosure(string type, bool isb, string algo="PF", bool is38x=false) {
 //   g->SetPointError(n, ex, ey);
 // }
 void scaleGraph(TGraphErrors *g, double scale) {
-  
+
   for (int i = 0; i != g->GetN(); ++i) {
     double x, y, ex, ey;
     tools::GetPoint(g, i, x, y, ex, ey);
@@ -2682,7 +2683,7 @@ void scaleGraph(TGraphErrors *g, double scale) {
   }
 }
 void offsetGraph(TGraphErrors *g, double offset) {
-  
+
   for (int i = 0; i != g->GetN(); ++i) {
     double x, y, ex, ey;
     tools::GetPoint(g, i, x, y, ex, ey);
@@ -2690,13 +2691,13 @@ void offsetGraph(TGraphErrors *g, double offset) {
   }
 }
 void offsetGraph(TH1D *g, double offset) {
-  
+
   for (int i = 1; i != g->GetNbinsX()+1; ++i) {
     g->SetBinContent(i, g->GetBinContent(i)+offset);
   }
 }
 void ratioGraph(TGraphErrors *g, TF1 *f) {
-  
+
   for (int i = 0; i != g->GetN(); ++i) {
     double x, y, ex, ey;
     tools::GetPoint(g, i, x, y, ex, ey);
@@ -2704,7 +2705,7 @@ void ratioGraph(TGraphErrors *g, TF1 *f) {
   }
 }
 void ratioGraph(TGraphErrors *g, TH1D *h) {
-  
+
   for (int i = 0; i != g->GetN(); ++i) {
     double x, y, ex, ey;
     tools::GetPoint(g, i, x, y, ex, ey);
@@ -2742,14 +2743,14 @@ TGraphErrors *makeBand(TGraph *g, const TH1D *epl, const TH1D *emn,
   TGraphErrors *gerr = new TGraphErrors(0);
   gerr->SetName(Form("eband_%s",epl->GetName()));
   for (int i = 0; i != g->GetN(); ++i) {
-    
+
     double x, y;
     g->GetPoint(i, x, y);
     if (x>=xmin && x<=xmax) {
-      
+
       int jpl = ((TH1D*)epl)->FindBin(x);
       int jmn = ((TH1D*)emn)->FindBin(x);
-      
+
       double ypl = (1. + fabs(epl->GetBinContent(jpl))) * y;
       double ymn = (1. - fabs(emn->GetBinContent(jmn))) * y;
       double ymid = 0.5 * (ypl + ymn);
@@ -2760,7 +2761,7 @@ TGraphErrors *makeBand(TGraph *g, const TH1D *epl, const TH1D *emn,
 	x = epl->GetBinCenter(jpl);
 	ex = 0.5*epl->GetBinWidth(jpl);
       }
-      
+
 
       tools::SetPoint(gerr, gerr->GetN(), x, ymid, ex, ey);
     }

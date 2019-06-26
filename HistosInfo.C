@@ -13,28 +13,28 @@ void histosInfo::Loop()
   if (fChain == 0) return;
   Long64_t _nentries = fChain->GetEntriesFast();
   Long64_t _ntot = fChain->GetEntries();
-  Long64_t nskip = _jp_nskip;//0;
-  _nentries = (_jp_nentries==-1 ? _ntot-nskip : min(_ntot-nskip, _jp_nentries));
+  Long64_t nskip = jp::nskip;//0;
+  _nentries = (jp::nentries==-1 ? _ntot-nskip : min(_ntot-nskip, jp::nentries));
   assert(nskip+_nentries);
 
   map<string, int> _cnt; // efficiency counters
 
-  ferr = new ofstream(Form("reports/histosInfo-%s.log",_jp_type),ios::out);
+  ferr = new ofstream(Form("reports/histosInfo-%s.log",jp::type),ios::out);
 
   MemInfo_t info;
   gSystem->GetMemInfo(&info);
 
   // Initialize _pthatweight. It will be loaded for each tree separately.
-  if (_jp_pthatbins)
+  if (jp::pthatbins)
     _pthatweight = 0;
 
-  if (_jp_quick) { // Activate only some branches
+  if (jp::quick) { // Activate only some branches
     fChain->SetBranchStatus("*",0);
     // Luminosity calculation
-    if (_jp_ismc) fChain->SetBranchStatus("EvtHdr_.mWeight",1); // weight
-    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mRun",1); // run
-    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mEvent",1); // evt
-    if (_jp_isdt) fChain->SetBranchStatus("EvtHdr_.mLumi",1); // lbn
+    if (jp::ismc) fChain->SetBranchStatus("EvtHdr_.mWeight",1); // weight
+    if (jp::isdt) fChain->SetBranchStatus("EvtHdr_.mRun",1); // run
+    if (jp::isdt) fChain->SetBranchStatus("EvtHdr_.mEvent",1); // evt
+    if (jp::isdt) fChain->SetBranchStatus("EvtHdr_.mLumi",1); // lbn
 
     fChain->SetBranchStatus("PFMet_.et_",1); // met
     fChain->SetBranchStatus("PFMet_.phi_",1); // metphi
@@ -44,25 +44,25 @@ void histosInfo::Loop()
     fChain->SetBranchStatus("L1Prescale_",1);
     fChain->SetBranchStatus("HLTPrescale_",1);
 
-    if (_jp_ismc) fChain->SetBranchStatus("EvtHdr_.mTrPu",1); // trpu
+    if (jp::ismc) fChain->SetBranchStatus("EvtHdr_.mTrPu",1); // trpu
   } else {
     fChain->SetBranchStatus("*",1);
   } // quick/slow
 
   // Load latest JSON selection
-  if (_jp_isdt and _jp_dojson and !LoadJSON(_jp_json)) {
+  if (jp::isdt and jp::dojson and !LoadJSON(jp::json)) {
     cout << "Issues loading the JSON file; aborting..." << endl;
     return;
   }
 
   // Load PU profiles for MC reweighing
-  if (_jp_ismc and _jp_reweighPU and !LoadPuProfiles(_jp_pudata, _jp_pumc)) {
+  if (jp::ismc and jp::reweighPU and !LoadPuProfiles(jp::pudata, jp::pumc)) {
     cout << "Issues loading the PU histograms for reweighting; aborting..." << endl;
     return;
   }
 
   // load luminosity tables (prescales now stored in event)
-  if (_jp_isdt and _jp_dolumi and !LoadLumi(_jp_lumifile)) {
+  if (jp::isdt and jp::dolumi and !LoadLumi(jp::lumifile)) {
     cout << "Issues loading the Lumi file; aborting..." << endl;
     return;
   }
@@ -79,26 +79,26 @@ void histosInfo::Loop()
 
   map<string,TH1D*> hltTrigs;
   map<string,TH1D*> aftTrigs;
-  for (int ID = -1; ID < int(_jp_notrigIDs); ++ID) {
-    for (auto i = 0u; i < _jp_notrigs; ++i) {
-      string iname = Form("%s_%d",_jp_triggers[i],ID);
-      string uname = Form("aft%s_%d",_jp_triggers[i],ID);
-      hltTrigs[iname] = new TH1D(iname.c_str(),iname.c_str(),_jp_maxpu,0,_jp_maxpu);
-      aftTrigs[uname] = new TH1D(uname.c_str(),uname.c_str(),_jp_maxpu,0,_jp_maxpu);
+  for (int ID = -1; ID < int(jp::notrigIDs); ++ID) {
+    for (auto i = 0u; i < jp::notrigs; ++i) {
+      string iname = Form("%s_%d",jp::triggers[i],ID);
+      string uname = Form("aft%s_%d",jp::triggers[i],ID);
+      hltTrigs[iname] = new TH1D(iname.c_str(),iname.c_str(),jp::maxpu,0,jp::maxpu);
+      aftTrigs[uname] = new TH1D(uname.c_str(),uname.c_str(),jp::maxpu,0,jp::maxpu);
     }
     string aname = Form("jt500_%d",ID);
     string ename = Form("aftjt500_%d",ID);
-    hltTrigs[aname] = new TH1D(aname.c_str(),aname.c_str(),_jp_maxpu,0,_jp_maxpu);
-    aftTrigs[ename] = new TH1D(ename.c_str(),ename.c_str(),_jp_maxpu,0,_jp_maxpu);
+    hltTrigs[aname] = new TH1D(aname.c_str(),aname.c_str(),jp::maxpu,0,jp::maxpu);
+    aftTrigs[ename] = new TH1D(ename.c_str(),ename.c_str(),jp::maxpu,0,jp::maxpu);
   }
   map<string,TH1D*> versionTrigs;
-  for (auto i = 0u; i < _jp_notrigs; ++i) {
-    string iname = Form("vers%s",_jp_triggers[i]);
+  for (auto i = 0u; i < jp::notrigs; ++i) {
+    string iname = Form("vers%s",jp::triggers[i]);
     versionTrigs[iname] = new TH1D(iname.c_str(),iname.c_str(),25,0,25);
   }
   versionTrigs["versjt500"] = new TH1D("versjt500","versjt500",25,0,25);
 
-  for (Long64_t djentry=0; djentry<nentries;djentry+=1+_jp_skim) { // Event loop
+  for (Long64_t djentry=0; djentry<nentries;djentry+=1+jp::skim) { // Event loop
     Long64_t jentry = djentry+nskip;
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
@@ -130,17 +130,17 @@ void histosInfo::Loop()
     }
 
     // Set auxiliary event variables NOTE: These are kept here, so that the EvtHdr stuff etc.
-    assert(_jp_isdt or !_jp_pthatbins or _pthatweight>0);
+    assert(jp::isdt or !jp::pthatbins or _pthatweight>0);
     weight = EvtHdr__mWeight;
     // Weight is most likely a redundant constant if pthatbins are used, but keep it here just in case.
-    if (_jp_ismc and _jp_pthatbins) weight *= _pthatweight;
+    if (jp::ismc and jp::pthatbins) weight *= _pthatweight;
     // REMOVED: "TEMP PATCH"
     run = EvtHdr__mRun;
     evt = EvtHdr__mEvent;
     lbn = EvtHdr__mLumi;
     trpu = EvtHdr__mTrPu;
 
-    if (_jp_isdt) trpu = _avgpu[run][lbn];
+    if (jp::isdt) trpu = _avgpu[run][lbn];
 
     met = PFMet__et_;
     metphi = PFMet__phi_;
@@ -149,14 +149,14 @@ void histosInfo::Loop()
     ++_cnt["01all"];
 
     // Check if good run/LS, including JSON selection
-    if (_jp_isdt) {
-      if (_jp_dojson) {
+    if (jp::isdt) {
+      if (jp::dojson) {
         // Does the run/LS pass the latest JSON selection?
         if (_json[run][lbn]==0)
           continue;
-      } // _jp_dojson
+      } // jp::dojson
 
-      if (_jp_dolumi) {
+      if (jp::dolumi) {
         // Do we have the run listed in the .csv file?
         auto irun = _lums.find(run);
         if (irun==_lums.end())
@@ -165,8 +165,8 @@ void histosInfo::Loop()
         auto ils = irun->second.find(lbn);
         if (ils==irun->second.end())
           continue;
-      } // _jp_dolumi
-    } // _jp_isdt
+      } // jp::dolumi
+    } // jp::isdt
 
     ++_cnt["02ls"];
 
@@ -182,39 +182,39 @@ void histosInfo::Loop()
 
     // Simulate other triggers for MC, if so wished
     // (this is slow, though)
-    if (_jp_ismc) {
+    if (jp::ismc) {
       // Always insert the generic mc trigger
-      if (_jp_domctrigsim and njt>0) {
+      if (jp::domctrigsim and njt>0) {
         // Only add the greatest trigger present
-        for (int itrg = _jp_notrigs; itrg > 0; --itrg) {
-          if (jtpt[0]>_jp_trigranges[itrg-1][0]) {
-            _trigs.insert(_jp_triggers[itrg-1]);
+        for (int itrg = jp::notrigs; itrg > 0; --itrg) {
+          if (jtpt[0]>jp::trigranges[itrg-1][0]) {
+            _trigs.insert(jp::triggers[itrg-1]);
             break; // Don't add lesser triggers
           }
         }
-      } // _jp_domctrigsim
-    } // _jp_ismc
+      } // jp::domctrigsim
+    } // jp::ismc
 
-    if (_jp_isdt) {
+    if (jp::isdt) {
       // For data, check trigger bits
-      if (_jp_debug) {
+      if (jp::debug) {
         cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
         cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
         cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
       }
       assert(TriggerDecision_.size() == _availTrigs.size());
 
-      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg)
-        _wt[string(_jp_triggers[itrg])] = 1.0;
+      for (auto itrg = 0u; itrg != jp::notrigs; ++itrg)
+        _wt[string(jp::triggers[itrg])] = 1.0;
 
       for (auto goodIdx = 0u; goodIdx < _goodTrigs.size(); ++goodIdx) {
         auto &itrg = _goodTrigs[goodIdx];
         if (TriggerDecision_[itrg]!=1) continue; // -1, 0, 1
         double iwgt = 0.0;
-        if (_jp_useversionlumi) iwgt = _goodWgts[goodIdx];
+        if (jp::useversionlumi) iwgt = _goodWgts[goodIdx];
 
         string trigname = _availTrigs[itrg];
-        if (_jp_debug and TriggerDecision_[itrg]>0)
+        if (jp::debug and TriggerDecision_[itrg]>0)
           cout << trigname << " " << TriggerDecision_[itrg]
                << " " << L1Prescale_[itrg] << " " << HLTPrescale_[itrg] << endl;
 
@@ -226,7 +226,7 @@ void histosInfo::Loop()
                 << "L1  =" << L1Prescale_[itrg]
                 << "HLT =" << HLTPrescale_[itrg] << endl;
           _prescales[trigname][run] = 0;
-          if (_jp_debug) { // check prescale
+          if (jp::debug) { // check prescale
             double prescale = _prescales[trigname][run];
             if (L1Prescale_[itrg]*HLTPrescale_[itrg]!=prescale) {
               cout << "Trigger " << trigname << ", "
@@ -243,7 +243,7 @@ void histosInfo::Loop()
           string newname = Form("%s_%d",trigname.c_str(),_goodNos[goodIdx]);
           string versname = Form("vers%s",trigname.c_str());
           _trigs.insert(newname.c_str());
-          if (_jp_useversionlumi) _wt[trigname] = iwgt;
+          if (jp::useversionlumi) _wt[trigname] = iwgt;
           versionTrigs[versname]->Fill(_goodVNos[goodIdx],_w0 * _wt[trigname]);
           hltTrigs[newname]->Fill(trpu,_w0 * _wt[trigname]);
         } else {
@@ -257,18 +257,18 @@ void histosInfo::Loop()
     _pass = _pass and _trigs.size()>0;
 
     // Retrieve event weight
-    _w0 = (_jp_ismc ? weight : 1);
+    _w0 = (jp::ismc ? weight : 1);
     assert(_w0>0);
     _w = _w0;
 
     // Calculate trigger PU weight
-    if (_jp_ismc) {
-      for (auto itrg = 0u; itrg != _jp_notrigs; ++itrg) {
-        const char *trg_name = string(_jp_triggers[itrg]).c_str();
+    if (jp::ismc) {
+      for (auto itrg = 0u; itrg != jp::notrigs; ++itrg) {
+        const char *trg_name = string(jp::triggers[itrg]).c_str();
         _wt[trg_name] = 1.;
 
         // Reweight in-time pile-up
-        if (_jp_reweighPU) {
+        if (jp::reweighPU) {
           int k = _pudist[trg_name]->FindBin(trpu);
           double wtrue = _pudist[trg_name]->GetBinContent(k);
           _wt[trg_name] *= wtrue;
@@ -320,16 +320,16 @@ bool histosInfo::LoadJSON(const char* filename)
   file.get(c);
   if (c!='{') return false;
   while (file >> s && sscanf(s.c_str(),"\"%d\":",&rn)==1) {
-    if (_jp_debug)
+    if (jp::debug)
       cout << "\"" << rn << "\": " << flush;
 
     while (file.get(c) && c==' ') {};
-    if (_jp_debug) { cout << c << flush; assert(c=='['); }
+    if (jp::debug) { cout << c << flush; assert(c=='['); }
     ++nrun;
 
     bool endrun = false;
     while (!endrun && file >> s >> s2 && sscanf((s+s2).c_str(),"[%d,%d]%s",&ls1,&ls2,s1)==3) {
-      if (_jp_debug)
+      if (jp::debug)
         cout << "["<<ls1<<","<<ls2<<"]"<<s1 << flush;
 
       for (int ls = ls1; ls != ls2+1; ++ls) {
@@ -340,15 +340,15 @@ bool histosInfo::LoadJSON(const char* filename)
       s2 = s1;
       endrun = (s2=="]," || s2=="]}");
       if (!endrun && s2!=",") {
-        if (_jp_debug) { cout<<"s1: "<<s2<<endl<<flush; assert(s2==","); }
+        if (jp::debug) { cout<<"s1: "<<s2<<endl<<flush; assert(s2==","); }
       }
     } // while ls
-    if (_jp_debug)
+    if (jp::debug)
       cout << endl;
 
     if (s2=="]}") continue;
     else if (s2!="],") {
-      if (_jp_debug) { cout<<"s2: "<<s2<<endl<<flush; assert(s2=="],"); }
+      if (jp::debug) { cout<<"s2: "<<s2<<endl<<flush; assert(s2=="],"); }
     }
   } // while run
   if (s2!="]}") { cout<<"s3: "<<s2<<endl<<flush; return false; }
@@ -409,7 +409,7 @@ bool histosInfo::LoadLumi(const char* filename)
         &rn,&fill,&ls,&ifoo, &ifoo,&ifoo,&ifoo,&ifoo,&ifoo,&ifoo, &energy,&del,&rec,&avgpu,sfoo)!=15)
       skip=true;
 
-    if (_jp_debug)
+    if (jp::debug)
       cout << "Run " << rn << " ls " << ls << " lumi " << rec*1e-6 << "/pb" << endl;
 
     if (skip) { // The user should know if this happens, since we can choose to use only STABLE BEAMS
@@ -423,7 +423,7 @@ bool histosInfo::LoadLumi(const char* filename)
     // lumiCalc.py returns lumi in units of mub-1 (=>nb-1=>pb-1)
     double lum = rec*1e-6;
     double lum2 = del*1e-6;
-    if (lum==0 and goodruns.find(rn)!=goodruns.end() and (!_jp_dojson or _json[rn][ls]==1))
+    if (lum==0 and goodruns.find(rn)!=goodruns.end() and (!jp::dojson or _json[rn][ls]==1))
       nolums.insert(pair<int, int>(rn,ls));
 
     _avgpu[rn][ls] = avgpu; // * 69000. / 78400.; // brilcalc --minBiasXsec patch
@@ -432,7 +432,7 @@ bool histosInfo::LoadLumi(const char* filename)
     lumsum += lum;
     if (goodruns.find(rn)!=goodruns.end()) // Apr 17
       lumsum_good += lum;
-    if ((!_jp_dojson || _json[rn][ls]))
+    if ((!jp::dojson || _json[rn][ls]))
       lumsum_json += lum;
     ++nls;
     if (nls>100000000) return false;
@@ -503,8 +503,8 @@ bool histosInfo::LoadPuProfiles(const char *datafile, const char *mcfile)
   int kmc = _pumc->FindBin(33);
 
   // For data, load each trigger separately
-  for (auto itrg = 0u ; itrg != _jp_notrigs; ++itrg) {
-    string t = string(_jp_triggers[itrg]);
+  for (auto itrg = 0u ; itrg != jp::notrigs; ++itrg) {
+    string t = string(jp::triggers[itrg]);
     _pudist[t] = dynamic_cast<TH1D*>(f_pudist->Get(t.c_str()));
     if (!_pudist[t]) return false;
     int nbinsdt = _pudist[t]->GetNbinsX();
@@ -558,21 +558,21 @@ bool histosInfo::GetTriggers()
       trigger=std::regex_replace(trgName, pfjet, "jt$1", std::regex_constants::format_no_copy);
       _goodTrigs.push_back(_availTrigs.size());
       double trigthr = std::stod(std::regex_replace(trgName, pfjet, "$1", std::regex_constants::format_no_copy));
-      unsigned int thrplace = std::find(_jp_trigthr,_jp_trigthr+_jp_notrigs,trigthr)-_jp_trigthr;
-      if (_jp_useversionlumi) {
+      unsigned int thrplace = std::find(jp::trigthr,jp::trigthr+jp::notrigs,trigthr)-jp::trigthr;
+      if (jp::useversionlumi) {
         string trgdummy = std::regex_replace(trgName, pfjet, "$1_$2", std::regex_constants::format_no_copy);
         int versdummy = stoi(std::regex_replace(trgName, pfjet, "$2", std::regex_constants::format_no_copy));
         bool found = false;
-        for (auto IDidx = 0u; IDidx < _jp_notrigIDs; ++IDidx) {
-          for (auto &currTag : _jp_trigtags[IDidx]) {
+        for (auto IDidx = 0u; IDidx < jp::notrigIDs; ++IDidx) {
+          for (auto &currTag : jp::trigtags[IDidx]) {
             if (std::regex_match(trgdummy,currTag)) {
               if (found) {
-                cerr << "Double match for " << trgName << ", check trigger naming in _jp_trigtags. Aborting..." << endl;
+                cerr << "Double match for " << trgName << ", check trigger naming in jp::trigtags. Aborting..." << endl;
                 return false;
               }
               found = true;
-              if (thrplace < _jp_notrigs+1) {
-                _goodWgts.push_back(_jp_trigwgts[IDidx][thrplace]);
+              if (thrplace < jp::notrigs+1) {
+                _goodWgts.push_back(jp::trigwgts[IDidx][thrplace]);
                 _goodNos.push_back(IDidx);
                 _goodVNos.push_back(versdummy);
               } else {
@@ -583,13 +583,13 @@ bool histosInfo::GetTriggers()
           }
         }
         if (!found) {
-          cout << "No info for " << trgName << " in _jp_trigtag. Could be a dummy trigger in the tuple." << endl;
+          cout << "No info for " << trgName << " in jp::trigtag. Could be a dummy trigger in the tuple." << endl;
           _goodWgts.push_back(0.0);
           _goodNos.push_back(-1.0);
           _goodVNos.push_back(-1.0);
         }
       } else {
-        _goodWgts.push_back(_jp_triglumi[_jp_notrigs-1]/_jp_triglumi[thrplace]);
+        _goodWgts.push_back(jp::triglumi[jp::notrigs-1]/jp::triglumi[thrplace]);
         _goodNos.push_back(-1.0);
         _goodVNos.push_back(-1.0);
       }

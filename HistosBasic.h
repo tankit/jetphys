@@ -30,30 +30,6 @@ class HistosBasic {
   double ptmax;
   bool ismcdir;
 
-  // new histograms for quark/gluon study (Ozlem)
-  TH1D *hgpt;
-  TH1D *hgpt0;
-
-  //Ozlem
-  TH1D *hgpt_g0tw;
-  TH1D *hqpt_g0tw;
-  TH1D *hgpt_g0;
-  TH1D *hqpt_g0;
-  TH1D *hgpt_g;
-  TH1D *hqpt_g;
-  //
-  TH1D *hqgl;
-  TH1D *hqgl_q;
-  TH1D *hqgl_g;
-  TH1D *hqgl_dq;
-  TH1D *hqgl_dg;
-  //
-  TH2D *hqgl2;
-  TH2D *hqgl2_g;
-  TH2D *hqgl2_q;
-  TH2D *hqgl2_dg;
-  TH2D *hqgl2_dq;
-
   // raw spectrum
   TH1D *hpt;
   TH1D *hpt_pre;
@@ -84,8 +60,40 @@ class HistosBasic {
   // dijet mass
   TH1D *hdjmass;
   TH1D *hdjmass0;
+  TH1D *hdjmass_a01;
+  TH1D *hdjmass_a02;
+  TH1D *hdjmass_a03;
   TProfile *pdjmass_ptratio;
   TProfile *pdjmass0_ptratio;
+  // jet mass (for the two leading jets)
+  TH1D *hjmass;
+  TH1D *hjmass0;
+  TH1D *hjmass_a01;
+  TH1D *hjmass_a02;
+  TH1D *hjmass_a03;
+
+  // Ozlem: new histograms for quark/gluon study
+  TH1D *hgpt;
+  TH1D *hgpt0;
+
+  TH1D *hgpt_g0tw;
+  TH1D *hqpt_g0tw;
+  TH1D *hgpt_g0;
+  TH1D *hqpt_g0;
+  TH1D *hgpt_g;
+  TH1D *hqpt_g;
+  //
+  TH1D *hqgl;
+  TH1D *hqgl_q;
+  TH1D *hqgl_g;
+  TH1D *hqgl_dq;
+  TH1D *hqgl_dg;
+  //
+  TH2D *hqgl2;
+  TH2D *hqgl2_g;
+  TH2D *hqgl2_q;
+  TH2D *hqgl2_dg;
+  TH2D *hqgl2_dq;
 
   // basic properties
   TProfile *ppt;
@@ -155,9 +163,7 @@ class HistosBasic {
   TProfile *pmuf;
   TProfile *phhf;
   TProfile *phef;
-  TProfile *pbeta;
-  TProfile *pbetastar;
-  TProfile *pbetaprime;
+  TProfile *ppuf;
   TH1D *hncand;
   TH1D *hnch;
   TH1D *hnne;
@@ -173,9 +179,7 @@ class HistosBasic {
   TH1D *hmuf;
   TH1D *hhhf;
   TH1D *hhef;
-  TH1D *hbeta;
-  TH1D *hbetastar;
-  TH1D *hbetaprime;
+  TH1D *hpuf;
   // control plots of components (JEC tag-and-probe)
   TProfile *pncandtp;
   TProfile *pnchtp;
@@ -192,9 +196,17 @@ class HistosBasic {
   TProfile *pmuftp;
   TProfile *phhftp;
   TProfile *pheftp;
-  TProfile *pbetatp;
-  TProfile *pbetastartp;
-  TProfile *pbetaprimetp;
+  TProfile *ppuftp;
+  //
+  TProfile *ppttagptprobe;
+  TProfile *ppttageff;
+  TProfile *ppttagmu;
+  TProfile *ppttagptprobe_noa;
+  TProfile *ppttagmu_noa;
+  TH2D *h2pttagptprobe;
+  TH2D *h2pttagmu;
+  TH2D *h2pttagptprobe_noa;
+  TH2D *h2pttagmu_noa;
   //
   TH1D *hncandtp;
   TH1D *hnchtp;
@@ -211,9 +223,7 @@ class HistosBasic {
   TH1D *hmuftp;
   TH1D *hhhftp;
   TH1D *hheftp;
-  TH1D *hbetatp;
-  TH1D *hbetastartp;
-  TH1D *hbetaprimetp;
+  TH1D *hpuftp;
   // Npv
   TProfile *pncandtp_vsnpv;
   TProfile *pnchtp_vsnpv;
@@ -230,9 +240,7 @@ class HistosBasic {
   TProfile *pmuftp_vsnpv;
   TProfile *phhftp_vsnpv;
   TProfile *pheftp_vsnpv;
-  TProfile *pbetatp_vsnpv;
-  TProfile *pbetastartp_vsnpv;
-  TProfile *pbetaprimetp_vsnpv;
+  TProfile *ppuftp_vsnpv;
   // Pileup
   TProfile *pchftp_vstrpu;
   TProfile *pneftp_vstrpu;
@@ -241,9 +249,7 @@ class HistosBasic {
   TProfile *pmuftp_vstrpu;
   TProfile *phhftp_vstrpu;
   TProfile *pheftp_vstrpu;
-  TProfile *pbetatp_vstrpu;
-  TProfile *pbetastartp_vstrpu;
-  TProfile *pbetaprimetp_vstrpu;
+  TProfile *ppuftp_vstrpu;
   // control plots vs phi ("pos" and "neg" for positive and negative eta values)
   TProfile *pchfpostp_vsphi;
   TProfile *pnefpostp_vsphi;
@@ -252,9 +258,7 @@ class HistosBasic {
   TProfile *pmufpostp_vsphi;
   TProfile *phhfpostp_vsphi;
   TProfile *phefpostp_vsphi;
-  TProfile *pbetapostp_vsphi;
-  TProfile *pbetastarpostp_vsphi;
-  TProfile *pbetaprimepostp_vsphi;
+  TProfile *ppufpostp_vsphi;
   TProfile *pchfnegtp_vsphi;
   TProfile *pnefnegtp_vsphi;
   TProfile *pnhfnegtp_vsphi;
@@ -262,9 +266,7 @@ class HistosBasic {
   TProfile *pmufnegtp_vsphi;
   TProfile *phhfnegtp_vsphi;
   TProfile *phefnegtp_vsphi;
-  TProfile *pbetanegtp_vsphi;
-  TProfile *pbetastarnegtp_vsphi;
-  TProfile *pbetaprimenegtp_vsphi;
+  TProfile *ppufnegtp_vsphi;
 
   // control plots for topology (JEC)
   TH1D *hselpt;
@@ -319,8 +321,6 @@ class HistosBasic {
 
   TH1D *hyeta;
   TH1D *hyeta2;
-  TH2D *hbetabetastar;
-  TH2D *hbetabetaprime;
   TH2D *hetaphi;
 
   // MC checks

@@ -39,6 +39,7 @@
 #include "HistosEta.h"
 #include "HistosMC.h"
 #include "HistosRun.h"
+#include "HistosAll.h"
 #include "tools.h"
 #include "IOV.h"
 
@@ -48,22 +49,16 @@
 
 class HistosFill {
 public :
-  TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+  TChain          *fChain;   //!pointer to the analyzed TTree or TChain
   Int_t           fCurrent; //!current Tree number in a TChain
 
   static const Int_t kMaxGenJets_   = 100;
   static const Int_t kMaxPFJetsCHS_ = 100;
 
-  bool _initsuccess;
-
   // Declaration of leaf types
-  //QCDEvent        *events;
-  vector<vector<int> > filterIdList_;
   Bool_t          EvtHdr__mIsPVgood;
-  Bool_t          EvtHdr__mHCALNoise;
-  Bool_t          EvtHdr__mHCALNoiseNoMinZ;
   Int_t           EvtHdr__mRun;
-  UInt_t          EvtHdr__mEvent; // Int_t -> UInt_t
+  Long64_t        EvtHdr__mEvent;
   Int_t           EvtHdr__mLumi;
   Int_t           EvtHdr__mBunch;
   Int_t           EvtHdr__mNVtx;
@@ -84,24 +79,20 @@ public :
   Float_t         EvtHdr__mWeight;
   Float_t         EvtHdr__mCaloRho;
   Float_t         EvtHdr__mPFRho;
-  Float_t         CaloMet__et_;
-  Float_t         CaloMet__CaloMetPt_;
-  Float_t         CaloMet__sumEt_;
-  Float_t         CaloMet__phi_;
   Float_t         PFMet__et_;
-  Float_t         PFMet__CaloMetPt_;
   Float_t         PFMet__sumEt_;
   Float_t         PFMet__phi_;
-  Float_t         MvaMet__et_;
-  Float_t         MvaMet__CaloMetPt_;
-  Float_t         MvaMet__sumEt_;
-  Float_t         MvaMet__phi_;
+#ifdef NEWMODE
+  Float_t         PFMetT0__et_;
+  Float_t         PFMetT0__sumEt_;
+  Float_t         PFMetT0__phi_;
+  Float_t         PFMetT0T1__et_;
+  Float_t         PFMetT0T1__sumEt_;
+  Float_t         PFMetT0T1__phi_;
+#endif
   vector<int>     TriggerDecision_;
-  vector<string>  triggerList_;
   vector<int>     L1Prescale_;
   vector<int>     HLTPrescale_;
-  //vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > > HLTObj_;
-  //vector<vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > > > L1Obj_;
   Int_t           GenJets__;
   Double_t        GenJets__fCoordinates_fX[kMaxGenJets_];   //[GenJets__]
   Double_t        GenJets__fCoordinates_fY[kMaxGenJets_];   //[GenJets__]
@@ -112,29 +103,37 @@ public :
   Double_t        PFJetsCHS__P4__fCoordinates_fY[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__P4__fCoordinates_fZ[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__P4__fCoordinates_fT[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+#ifdef NEWMODE
+  Int_t           PFJetsCHS__genIdx_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+#else
   Double_t        PFJetsCHS__genP4__fCoordinates_fX[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__genP4__fCoordinates_fY[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__genP4__fCoordinates_fZ[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Double_t        PFJetsCHS__genP4__fCoordinates_fT[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+#endif
   Float_t         PFJetsCHS__genR_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__cor_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  vector<double>  PFJetsCHS__jecLabels_[kMaxPFJetsCHS_];
-  Float_t         PFJetsCHS__unc_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  vector<float>   PFJetsCHS__uncSrc_[kMaxPFJetsCHS_];
   Float_t         PFJetsCHS__area_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Bool_t          PFJetsCHS__looseID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Bool_t          PFJetsCHS__tightID_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__CSVpfPositive_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__CSVpfNegative_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__boosted_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+#ifdef NEWMODE
+  Float_t         PFJetsCHS__QGL_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Float_t         PFJetsCHS__QGAx2_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Int_t           PFJetsCHS__QGMul_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Float_t         PFJetsCHS__QGPtD_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Int_t           PFJetsCHS__partonFlavourPhysicsDef_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Int_t           PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  Int_t           PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  vector<int>     genFlavour_;
+  vector<int>     genFlavourPartonPhysicsDef_;
+  vector<int>     genFlavourHadron_;
+#else
   Float_t         PFJetsCHS__QGtagger_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__partonFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__hadronFlavour_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend1_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend2_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__recommend3_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__pfCombinedCvsL_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Float_t         PFJetsCHS__pfCombinedCvsB_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
+  vector<float>   genFlavour_;
+  vector<float>   genFlavourHadron_;
+#endif
   Float_t         PFJetsCHS__chf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nhf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__nemf_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
@@ -150,124 +149,10 @@ public :
   Int_t           PFJetsCHS__elm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mum_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__ncand_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  //Int_t           PFJetsCHS__cm_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__beta_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__betaStar_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Float_t         PFJetsCHS__betaPrime_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mpuTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mlvTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
   Int_t           PFJetsCHS__mjtTrk_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__hof_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__pujid_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__calojetpt_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  Float_t         PFJetsCHS__calojetef_[kMaxPFJetsCHS_];   //[PFJetsCHS__]
-  vector<float>   genFlavour_;
-  vector<float>   genFlavourHadron_;
-
-  // List of branches
-  TBranch        *b_events_filterIdList_;   //!
-  TBranch        *b_events_EvtHdr__mIsPVgood;   //!
-  TBranch        *b_events_EvtHdr__mHCALNoise;   //!
-  TBranch        *b_events_EvtHdr__mHCALNoiseNoMinZ;   //!
-  TBranch        *b_events_EvtHdr__mRun;   //!
-  TBranch        *b_events_EvtHdr__mEvent;   //!
-  TBranch        *b_events_EvtHdr__mLumi;   //!
-  TBranch        *b_events_EvtHdr__mBunch;   //!
-  TBranch        *b_events_EvtHdr__mNVtx;   //!
-  TBranch        *b_events_EvtHdr__mNVtxGood;   //!
-  TBranch        *b_events_EvtHdr__mOOTPUEarly;   //!
-  TBranch        *b_events_EvtHdr__mOOTPULate;   //!
-  TBranch        *b_events_EvtHdr__mINTPU;   //!
-  TBranch        *b_events_EvtHdr__mNBX;   //!
-  TBranch        *b_events_EvtHdr__mPVndof;   //!
-  TBranch        *b_events_EvtHdr__mTrPu;   //!
-  TBranch        *b_events_EvtHdr__mPVx;   //!
-  TBranch        *b_events_EvtHdr__mPVy;   //!
-  TBranch        *b_events_EvtHdr__mPVz;   //!
-  TBranch        *b_events_EvtHdr__mBSx;   //!
-  TBranch        *b_events_EvtHdr__mBSy;   //!
-  TBranch        *b_events_EvtHdr__mBSz;   //!
-  TBranch        *b_events_EvtHdr__mPthat;   //!
-  TBranch        *b_events_EvtHdr__mWeight;   //!
-  TBranch        *b_events_EvtHdr__mCaloRho;   //!
-  TBranch        *b_events_EvtHdr__mPFRho;   //!
-  TBranch        *b_events_CaloMet__et_;   //!
-  TBranch        *b_events_CaloMet__CaloMetPt_;   //!
-  TBranch        *b_events_CaloMet__sumEt_;   //!
-  TBranch        *b_events_CaloMet__phi_;   //!
-  TBranch        *b_events_PFMet__et_;   //!
-  TBranch        *b_events_PFMet__CaloMetPt_;   //!
-  TBranch        *b_events_PFMet__sumEt_;   //!
-  TBranch        *b_events_PFMet__phi_;   //!
-  TBranch        *b_events_MvaMet__et_;   //!
-  TBranch        *b_events_MvaMet__CaloMetPt_;   //!
-  TBranch        *b_events_MvaMet__sumEt_;   //!
-  TBranch        *b_events_MvaMet__phi_;   //!
-  TBranch        *b_events_TriggerDecision_;   //!
-  TBranch        *b_events_triggerList_;   //!
-  TBranch        *b_events_L1Prescale_;   //!
-  TBranch        *b_events_HLTPrescale_;   //!
-  TBranch        *b_events_GenJets__;   //!
-  TBranch        *b_GenJets__fCoordinates_fX;   //!
-  TBranch        *b_GenJets__fCoordinates_fY;   //!
-  TBranch        *b_GenJets__fCoordinates_fZ;   //!
-  TBranch        *b_GenJets__fCoordinates_fT;   //!
-  TBranch        *b_events_PFJetsCHS__;   //!
-  TBranch        *b_PFJetsCHS__P4__fCoordinates_fX;   //!
-  TBranch        *b_PFJetsCHS__P4__fCoordinates_fY;   //!
-  TBranch        *b_PFJetsCHS__P4__fCoordinates_fZ;   //!
-  TBranch        *b_PFJetsCHS__P4__fCoordinates_fT;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fX;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fY;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fZ;   //!
-  TBranch        *b_PFJetsCHS__genP4__fCoordinates_fT;   //!
-  TBranch        *b_PFJetsCHS__genR_;   //!
-  TBranch        *b_PFJetsCHS__cor_;   //!
-  TBranch        *b_PFJetsCHS__jecLabels_;   //!
-  TBranch        *b_PFJetsCHS__unc_;   //!
-  TBranch        *b_PFJetsCHS__uncSrc_;   //!
-  TBranch        *b_PFJetsCHS__area_;   //!
-  TBranch        *b_PFJetsCHS__looseID_;   //!
-  TBranch        *b_PFJetsCHS__tightID_;   //!
-  TBranch        *b_PFJetsCHS__CSVpfPositive_;   //!
-  TBranch        *b_PFJetsCHS__CSVpfNegative_;   //!
-  //TBranch        *b_PFJetsCHS__boosted_;   //!
-  TBranch        *b_PFJetsCHS__QGtagger_;   //!
-  TBranch        *b_PFJetsCHS__partonFlavour_;   //!
-  TBranch        *b_PFJetsCHS__hadronFlavour_;   //!
-  TBranch        *b_PFJetsCHS__recommend1_;   //!
-  TBranch        *b_PFJetsCHS__recommend2_;   //!
-  TBranch        *b_PFJetsCHS__recommend3_;   //!
-  //TBranch        *b_PFJetsCHS__pfCombinedCvsL_;   //!
-  //TBranch        *b_PFJetsCHS__pfCombinedCvsB_;   //!
-  TBranch        *b_PFJetsCHS__chf_;   //!
-  TBranch        *b_PFJetsCHS__nhf_;   //!
-  TBranch        *b_PFJetsCHS__nemf_;   //!
-  TBranch        *b_PFJetsCHS__cemf_;   //!
-  TBranch        *b_PFJetsCHS__muf_;   //!
-  TBranch        *b_PFJetsCHS__hf_hf_;   //!
-  TBranch        *b_PFJetsCHS__hf_phf_;   //!
-  TBranch        *b_PFJetsCHS__hf_hm_;   //!
-  TBranch        *b_PFJetsCHS__hf_phm_;   //!
-  TBranch        *b_PFJetsCHS__chm_;   //!
-  TBranch        *b_PFJetsCHS__nhm_;   //!
-  TBranch        *b_PFJetsCHS__phm_;   //!
-  TBranch        *b_PFJetsCHS__elm_;   //!
-  TBranch        *b_PFJetsCHS__mum_;   //!
-  TBranch        *b_PFJetsCHS__ncand_;   //!
-  //TBranch        *b_PFJetsCHS__cm_;   //!
-  TBranch        *b_PFJetsCHS__beta_;   //!
-  TBranch        *b_PFJetsCHS__betaStar_;   //!
-  TBranch        *b_PFJetsCHS__betaPrime_;   //!
-  TBranch        *b_PFJetsCHS__mpuTrk_;   //!
-  TBranch        *b_PFJetsCHS__mlvTrk_;   //!
-  TBranch        *b_PFJetsCHS__mjtTrk_;   //!
-  TBranch        *b_PFJetsCHS__hof_;   //!
-  TBranch        *b_PFJetsCHS__pujid_;   //!
-  TBranch        *b_PFJetsCHS__calojetpt_;   //!
-  TBranch        *b_PFJetsCHS__calojetef_;   //!
-  TBranch        *b_events_genFlavour_;   //!
-  TBranch        *b_events_genFlavourHadron_;   //!
 
   /////////////////////////////////////////////////////////////////////////////
   // Following lines added by hand and must come *after* auto-generated header
@@ -282,15 +167,16 @@ public :
     fChain->Show(entry);
   }
   virtual Long64_t LoadTree(Long64_t entry);
+  virtual Int_t    FindPthatIdx(string filename);
   virtual void     PrintInfo(string info, bool printcout = false);
   virtual void     PrintMemInfo(bool printcout = false);
 
   // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
   ~HistosFill() {
-    if (ferr) delete ferr;
+    //if (ferr) delete ferr;
   }
   HistosFill(TChain *tree);
-  virtual bool     Init(TTree *tree); // custom
+  virtual bool     Init(TChain *tree); // custom
 
   virtual void     Loop();
   virtual bool     PreRun();
@@ -303,8 +189,6 @@ public :
   bool             LoadJSON(const char* filename);
   bool             LoadLumi(const char* filename);
   bool             LoadPuProfiles(const char* datafile, const char* mcfile);
-  bool             LoadPrescales(const char* prescalefilename);
-  bool             LoadVetoECAL(const char* filename);
 
   void             InitBasic(string name);
   void             FillBasic(string name);
@@ -325,16 +209,21 @@ public :
   void             FillRun(string name);
   void             WriteRun();
 
+  void             InitAll(string name);
+  void             FillAll(string name);
+  void             WriteAll();
+
   inline double DPhi(double phi1, double phi2) { // Return value between 0 and phi.
     double dphi = fabs(phi1 - phi2);
     return (dphi <= TMath::Pi())? dphi : TMath::TwoPi() - dphi;
   }
 
 private:
-  bool worryHCALHotExcl;
   bool   _pass;
   bool   _pass_qcdmet;
+  bool   _initsuccess;
 
+  int _eraIdx;
   int _nbadevts_dup;
   int _nbadevts_run;
   int _nbadevts_ls;
@@ -343,8 +232,6 @@ private:
   int _nbadevts_veto;
   int _bscounter_bad;
   int _bscounter_good;
-  int _ecalcounter_bad;
-  int _ecalcounter_good;
   int _rhocounter_bad;
   int _rhocounter_good;
   int _trgcounter;
@@ -357,9 +244,8 @@ private:
   double _xsecMinBias;
   double _w, _w0;
   double _pthatweight;
-  double _pthatuplim;
+  int    _pthatrepeats;
 
-  double rangesHCALHotExcl[4];
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
   vector<double> _goodWgts;
@@ -384,18 +270,18 @@ private:
   map<string, vector<HistosEta*> > _etahistos;
   map<string, vector<HistosMC*> > _mchistos;
   map<string, HistosRun*> _runhistos;
+  map<string, HistosAll*> _allhistos;
   map<string, TH1D*> _pudist;
   map<string, int> _cnt; // efficiency counters
 
   TH1D *_pumc;
   TH1D *hmcweight;
-  TH2D *h2ECALHotExcl;
-  TH2F *_ecalveto;
+  TH2D *h2HotExcl;
   TH2F *_h2mu = 0;
   TH3D *_h3probg;
 
   TFile *_outfile;
-  TFile *fECALHotExcl;
+  TFile *fHotExcl;
 
   TLorentzVector p4, gp4, genp4, _j1, _j2;
   jec::IOV _iov;
@@ -408,14 +294,13 @@ private:
   /////////////////////////////////////////////////////////////////////////////
   // Auxiliary variables (declare after TTree variables only)
   /////////////////////////////////////////////////////////////////////////////
-
   Float_t         trpu;
   Float_t         pvrho;
 
   Float_t         &pthat;
   Float_t         &weight;
   Int_t           &run;
-  UInt_t          &evt;
+  Long64_t        &evt;
   Int_t           &lbn;
 
   Int_t           &itpu;
@@ -428,7 +313,6 @@ private:
   Float_t         &pvy;
   Float_t         &pvz;
   Float_t         &pvndof;
-  //UInt_t          pvntrk;
   Float_t         &bsx;
   Float_t         &bsy;
   //
@@ -441,18 +325,15 @@ private:
   Double_t        *jtp4t;//[_maxnjt];   //[njt]
   Float_t         jte[_maxnjt];   //[njt]
   Float_t         jtpt[_maxnjt];   //[njt]
-  //Float_t         jtptuchs[_maxnjt];   //EXTRA
   Float_t         jtptu[_maxnjt];   //EXTRA
-  //Float_t         jteuchs[_maxnjt];   //EXTRA
   Float_t         jteu[_maxnjt];   //EXTRA
   Float_t         jteta[_maxnjt];   //[njt]
   Float_t         jtphi[_maxnjt];   //[njt]
   Float_t         jty[_maxnjt];   //[njt]
+  Float_t         jtpt_nol2l3[_maxnjt];   //[njt]
   Float_t         *jta;//[_maxnjt];   //[njt]
   Float_t         *jtjes;//[_maxnjt];   //[njt]
-  Float_t         *jtbeta;
-  Float_t         *jtbetastar;
-  Float_t         *jtbetaprime;
+  Float_t         *jtbetaprime;//[_maxnjt];   //[njt]
   Float_t         jtjesnew[_maxnjt];   //[njt]
   Float_t         jtjes_l1[_maxnjt];   //[njt]
   Float_t         jtjes_l2l3[_maxnjt];   //[njt]
@@ -460,20 +341,22 @@ private:
   Bool_t          *jtidloose;//[_maxnjt];   //[njt]
   Bool_t          *jtidtight;//[_maxnjt];   //[njt]
 
-  //Short_t         jtgenid[_maxnjt];   //[njt]
-  //Short_t         jtgenflv[_maxnjt];   //[njt]
   Float_t         *jtgenr;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4x;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4y;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4z;//[_maxnjt];   //[njt]
   Double_t        *jtgenp4t;//[_maxnjt];   //[njt]
+  Int_t           *jtgenidx;//[_maxnjt];   //[njt]
   Float_t         jtgenpt[_maxnjt];   //[njt]
   Float_t         jtgeny[_maxnjt];   //EXTRA
   Float_t         jtgeneta[_maxnjt];   //[njt]
   Float_t         jtgenphi[_maxnjt];   //[njt]
 
-  Float_t         *qgl;
-  Float_t         *partonflavor;
+  Float_t         *qgl;//[_maxnjt];   //[njt]
+  Int_t           *partonflavor;//[_maxnjt];   //[njt]
+#ifdef NEWMODE
+  Int_t           *partonflavorphys;
+#endif
 
   Int_t           *jtn;//[_maxnjt];   //[njt]
   Int_t           *jtnch;//[_maxnjt];   //[njt]
@@ -497,7 +380,6 @@ private:
   Double_t        *gen_jtp4y;//[_maxnjt];   //[njt]
   Double_t        *gen_jtp4z;//[_maxnjt];   //[njt]
   Double_t        *gen_jtp4t;//[_maxnjt];   //[njt]
-  //Float_t         gen_jte[_maxnjt];   //[njt]
   Float_t         gen_jtpt[_maxnjt];   //[njt]
   Float_t         gen_jteta[_maxnjt];   //[njt]
   Float_t         gen_jtphi[_maxnjt];   //[njt]
@@ -508,11 +390,19 @@ private:
   Float_t         &met;
   Float_t         &metphi;
   Float_t         &metsumet;
+#ifdef NEWMODE
+  Float_t         &met01;
+  Float_t         &metsumet01;
+#endif
 
   Float_t         met1;
   Float_t         metphi1;
+  Float_t         met1_nol2l3;
+  Float_t         metphi1_nol2l3;
   Float_t         met2;
   Float_t         metphi2;
+
+  string         _runinfo;
 };
 
 #endif

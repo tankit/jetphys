@@ -51,7 +51,6 @@ private:
 
   vector <string> _fracs;
 
-  static const constexpr bool _dobeta = false;
   static const constexpr bool _dofit = false;
   static const constexpr bool _shiftJES = false;
   // } Static settings
@@ -74,13 +73,17 @@ private:
   bool _phipos;
 
   bool _pertrg;
+  bool _usetriglines;
 
   string _sphi;
 
   string _plot_title;
+  string _lumi_title;
   string savedir;
   string _mc_type;
   string _dt_type;
+  string _dt_typeverb;
+  string _mc_typeverb;
 
   vector<double> _x;
 
@@ -101,37 +104,45 @@ public:
   * order:
   *  0 standard
   *  1 reshuffled */
-  Fracs(const char *mc_path, const char *dt_path, string plot_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0) {
+  Fracs(const char *mc_path, const char *dt_path, string plot_title, string lumi_title, string savedir, bool pertrg = false, string mc_type = "MC", string dt_type = "RunG", int order = 0, string tp = "tp") {
     _plot_title = plot_title;
+    _lumi_title = lumi_title;
     _savedir = savedir;
     assert(order==0 or order==1 or order==2 or order==3);
     _order = order;
     // This decides the ordering from bottom to top. Beta and muf are ignored.
     if (order==0)
-      _fracs = {"betaprime","beta","chf","nef","nhf","cef","muf","hhf","hef"};
-      //_fracs = {"betastar","beta","chf","nef","nhf","cef","muf"};
+      _fracs = {"puf","chf","nef","nhf","cef","muf","hhf","hef"};
     else if (order==1)
-      _fracs = {"cef","muf","nef","betaprime","beta","chf","nhf","hhf","hef"};
-      //_fracs = {"cef","muf","nef","betastar","beta","chf","nhf"};
+      _fracs = {"cef","muf","nef","puf","chf","nhf","hhf","hef"};
     else if (order==2)
-      _fracs = {"nhf","betaprime","beta","chf","nef","cef","muf","hhf","hef"};
-      //_fracs = {"nhf","betastar","beta","chf","nef","cef","muf"};
+      _fracs = {"nhf","puf","chf","nef","cef","muf","hhf","hef"};
     else if (order==3)
-      _fracs = {"betaprime","beta","chf","nhf","nef","cef","muf","hhf","hef"};
-      //_fracs = {"betastar","beta","chf","nhf","nef","cef","muf"};
+      _fracs = {"puf","chf","nhf","nef","cef","muf","hhf","hef"};
 
     gSystem->MakeDirectory(_savedir.c_str());
 
     _mc_type = mc_type;
     _dt_type = dt_type;
+    if (_mc_type=="MCNU") _mc_type="MC";
+    else if (_mc_type=="HWNU") _mc_type="HW";
+    else if (_mc_type=="NU") _mc_type="MC";
+    _mc_typeverb = _mc_type;
+    _dt_typeverb = _dt_type;
+    if (_mc_typeverb=="DT") _mc_typeverb = "Data";
+    else if (_mc_typeverb=="MC") _mc_typeverb = "Pythia8";
+    else if (_mc_typeverb=="HW") _mc_typeverb = "Herwig++";
+    if (_dt_typeverb=="DT") _dt_typeverb = "Data";
+    else if (_dt_typeverb=="MC") _dt_typeverb = "Pythia8";
+    else if (_dt_typeverb=="HW") _dt_typeverb = "Herwig++";
 
     _pertrg = pertrg;
 
     bool all_DT = false;
     bool all_MC = false;
-    if (_mc_type!="MC" and _mc_type!="HW")
+    if (_mc_type!="MC" and _mc_type!="HW" and _mc_type!="MCNU" and _mc_type!="HWNU")
       all_DT = true;
-    if (_dt_type=="MC" and _dt_type=="HW")
+    if (_dt_type=="MC" or _dt_type=="HW" or _dt_type=="MCNU" or _dt_type=="HWNU")
       all_MC = true;
     assert(!(all_MC and all_DT));
 
@@ -163,10 +174,8 @@ public:
     _etas.push_back(make_pair<double, double>(3.0, 3.2));
     _etas.push_back(make_pair<double, double>(3.2, 4.7));
 
-    _style["betaprime"] = make_pair<int, int>(kRed+2, kOpenCircle);
-    //_style["betastar"] = make_pair<int, int>(kRed+2, kOpenCircle);
-    _style["chf"] = make_pair<int, int>(_dobeta ? kRed+1 : kRed, _dobeta ? kOpenDiamond : kFullCircle);
-    _style["beta"] = make_pair<int, int>(kRed, kFullCircle);
+    _style["puf"] = make_pair<int, int>(kRed+2, kOpenCircle);
+    _style["chf"] = make_pair<int, int>(kRed, kFullCircle);
     _style["nef"] = make_pair<int, int>(kBlue, kFullSquare);
     _style["nhf"] = make_pair<int, int>(kGreen+1, kFullDiamond);
     _style["cef"] = make_pair<int, int>(kCyan+1, kOpenTriangleUp);
@@ -174,15 +183,11 @@ public:
     _style["hhf"] = make_pair<int, int>(kViolet+2, kOpenDiamond);
     _style["hef"] = make_pair<int, int>(kOrange+2, kOpenSquare);
 
-    _name["betaprime"] = "Charged pileup*";
-    //_name["betastar"] = "Charged pile-up";
-    _name["chf"] = (_dobeta ? "Charged unassoc." : "Charged hadrons");
-    _name["beta"] = "Charged hadrons";
+    _name["puf"] = "Charged pileup (overlaid)";
+    _name["chf"] = "Charged hadrons";
     _name["nef"] = "Photons";
     _name["nhf"] = "Neutral hadrons";
-    //_name["cef"] = "Electrons";
-    _name["muf"] = "Muons";
-    _name["cef"] = "Electrons,muons";
+    _name["cef"] = "Electrons, muons";
     _name["hhf"] = "Forward hadrons";
     _name["hef"] = "Forward photons";
 
@@ -194,12 +199,13 @@ public:
     _fhb->SetParameters(1.03091e+00, -5.11540e-02, -1.54227e-01); // SPRH
 
     _modes = {"","_vstrpu","_vsnpv","_vseta","_vsphi","_vsphi"};
-    _rangemin = {28, 0.5, 0.5,-5,-3.15,-3.15};
+    _rangemin = {15, 0.5, 0.5,-5,-3.15,-3.15};
     _rangemax = {3450, 38.5, 40.5, 5,3.15,3.15};
     _h2min = {-4+1e-5, -4.5+1e-5, -6+1e-5, -5+1e-5, -4.5, -4.5};
     _h2max = { 4-1e-5, 4.5-1e-5, 16-1e-5, 5-1e-5, 4.5, 4.5};
 
-    _tp = "tp"; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
+    _tp = tp; // "tp" for tag and probe, "" for nothing (the latter is seldom used)
+    _usetriglines = true;
   }
 };
 

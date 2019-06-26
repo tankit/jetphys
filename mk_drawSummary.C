@@ -1,13 +1,21 @@
-{
+  #include "settings.h"
+  #include "tools.h"
+
+void mk_drawSummary() {
 
   //gROOT->ProcessLine(".L tdrstyle_mod12.C");
   //setTDRStyle();
 
   //gStyle->SetOptStat(0);
   //gROOT->ProcessLine(".L Config.cpp+");
-  gROOT->ProcessLine(".L tools.C+");
-  gROOT->ProcessLine(".L drawSummary.C+");
+  //  gROOT->ProcessLine(".L tools.C+");
+  //  gROOT->ProcessLine(".L drawSummary.C+");
 
+  R__LOAD_LIBRARY(tools.C+g)
+  R__LOAD_LIBRARY(drawSummary.C+g)
+  
+
+  
   //gSystem->Setenv("CAFE_CONFIG", "pfjet.config");
   //cafe::Config *cfg = new cafe::Config("pfjet");
   //string type = cfg->get("type","DATA");
@@ -15,9 +23,9 @@
 
   //drawDataTheoryRatio3x2(false, false); // AK5 36X
 
-  #include "settings.h"
 
-    drawEtaSpectra(_jp_type);
+
+    drawEtaSpectra(jp::type);
   //drawDataTheoryRatio();
   //drawDataTheoryRatioLog(); // graphs for pasPlots
   //drawDataTheoryRatio3x2(false, false); // AK5 36X
@@ -34,8 +42,8 @@
   //drawNPCorr(type);
 
     /*
-  if (_jp_ismc)
-    drawClosure(_jp_type,false); // Incl jet (PF in 36x)
+  if (jp::ismc)
+    drawClosure(jp::type,false); // Incl jet (PF in 36x)
     */
   //drawClosure("HW",false); // Incl jet (PF in 36x)
   //drawClosure("MC",false,"PFAK7"); // Incl jet
