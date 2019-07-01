@@ -1,17 +1,21 @@
 // Purpose: Fill jet physics analysis histograms
-// Author:  mikko.voutilainen@cern.ch
+// Author:    mikko.voutilainen@cern.ch
+// Co-author: hannu.siikonen@cern.ch
 // Created: March 20, 2010
-// Updated: June 27, 2018
 
 #include "CondFormats/JetMETObjects/src/Utilities.cc"
-
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/SimpleJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 // For JEC uncertainty
 #include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#if JETRESO == 1
+#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#endif
 
+#include "settings.h"
 #include "tools.h"
 #include "HistosRun.h"
 #include "HistosBasic.h"
@@ -20,17 +24,12 @@
 #include "HistosAll.h"
 #include "HistosFill.h"
 
-// Uncomment, if jp::doJetResolution is used
-#define JETRESO
-// Uncomment, if debugging mode
-//#define USEASSERT
-
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectorParameters.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
-#ifdef JETRESO
+#if JETRESO == 1
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetResolutionObject.cc+)
 R__LOAD_LIBRARY(JetMETCorrections/Modules/src/JetResolution.cc+)
 #endif

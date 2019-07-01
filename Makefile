@@ -1,6 +1,7 @@
 
 clean:
 	rm -f ./*_C*
+	rm -f ./JetMETCorrections/Modules/src/*_cc*
 	rm -f ./CondFormats/JetMETObjects/src/*_cc*
 
 distclean:

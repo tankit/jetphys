@@ -119,6 +119,7 @@ bool HistosFill::Init(TChain *tree)
   fChain->SetBranchAddress("PFMet_.et_", &PFMet__et_);
   fChain->SetBranchAddress("PFMet_.sumEt_", &PFMet__sumEt_);
   fChain->SetBranchAddress("PFMet_.phi_", &PFMet__phi_);
+  if (jp::fetchMETFilters and jp::doMETFiltering) fChain->SetBranchAddress("FilterDecision_", &FilterDecision_);
   fChain->SetBranchAddress("TriggerDecision_", &TriggerDecision_);
   fChain->SetBranchAddress("L1Prescale_", &L1Prescale_);
   fChain->SetBranchAddress("HLTPrescale_", &HLTPrescale_);
@@ -249,6 +250,7 @@ bool HistosFill::Init(TChain *tree)
     fChain->SetBranchStatus("PFMet_.sumEt_",1); // metsumet
 #endif
 
+    if (jp::fetchMETFilters and jp::doMETFiltering) fChain->SetBranchStatus("FilterDecision_",1);
     fChain->SetBranchStatus("TriggerDecision_",1);
     fChain->SetBranchStatus("L1Prescale_",1);
     fChain->SetBranchStatus("HLTPrescale_",1);
@@ -812,10 +814,29 @@ bool HistosFill::AcceptEvent()
   // Reset event ID
   _pass = true;
 
-  // This is equal to the SMPJ GoodVertexFilter and is redundant
-  pvrho = tools::oplus(pvx, pvy);
-  _pass = _pass and pvndof > 4 and fabs(pvz) <= 24. and pvrho <= 2. and npvgood>0.;
-  if (_pass) ++_cnt["03vtx"];
+
+  if (jp::fetchMETFilters) {
+    if (FilterDecision_.size()==0) ++_cnt["03METFlt"];
+    else {
+      // If we perform MET filtering, any filter firing will cause the event to be discarded.
+      if (jp::doMETFiltering) return false;
+
+      // If we don't perform MET filtering, we can do something more elaborate with the filter info
+      for (auto FDec : FilterDecision_) {
+        assert(FDec<_availFlts.size());
+        auto &FName = _availFlts[FDec];
+
+        // TODO: Do something interesting?
+
+        if (jp::debug) cout << FName << " " << FDec << endl;
+      } // for FDec (_FilterDecision)
+    }
+  } else {
+    // This is equal to the SMPJ GoodVertexFilter and is redundant with MET filters on
+    pvrho = tools::oplus(pvx, pvy);
+    _pass = _pass and pvndof > 4 and fabs(pvz) <= 24. and pvrho <= 2. and npvgood>0.;
+    if (_pass) ++_cnt["03vtx"];
+  }
 
   // Event cuts against beam backgrounds
   if (_pass) {
@@ -1008,8 +1029,7 @@ bool HistosFill::AcceptEvent()
       ++_rhocounter_bad;
       _pass = false;
       if (jp::debug)
-        cout << Form("\nrun:ev:ls %d:%d:%lld : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",
-                    run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[i0] :0.), metsumet, met) << flush;
+        cout << Form("\nrun:ev:ls %d:%d:%lld : rho=%1.1f njt=%d npv=%d jtpt0=%1.1f sumet=%1.1f met=%1.1f\n",run, lbn, evt, rho, njt, npv, (njt>0 ? jtpt[i0] :0.), metsumet, met) << flush;
     } else {
       ++_rhocounter_good;
       ++_cnt["06rho"];
@@ -1075,22 +1095,21 @@ bool HistosFill::AcceptEvent()
   } else if (jp::isdt) {
     // For data, check trigger bits
     if (jp::debug) {
-      cout << "TriggerDecision_.size()=="<<TriggerDecision_.size()<<endl<<flush;
-      cout << "_availTrigs.size()=="<<_availTrigs.size()<<endl<<flush;
-      cout << "_goodTrigs.size()=="<<_goodTrigs.size()<<endl<<flush;
+      cout << "TriggerDecision_.size()=="<<TriggerDecision_.size() << endl << flush;
+      cout << "_availTrigs.size()=="<<_availTrigs.size() << endl << flush;
+      cout << "_goodTrigs.size()=="<<_goodTrigs.size() << endl << flush;
     }
     #ifndef NEWMODE
     assert(TriggerDecision_.size()==_availTrigs.size());
     #endif
 
     // New and old mode: TriggerDecision and L1/HLT Prescales have the same indexing.
-    for (auto itrg = 0u; itrg != jp::notrigs; ++itrg)
-      _wt[jp::triggers[itrg]] = 1.0;
+    for (auto itrg = 0u; itrg != jp::notrigs; ++itrg) _wt[jp::triggers[itrg]] = 1.0;
 
     #ifdef NEWMODE
     for (unsigned itrg = 0; itrg<TriggerDecision_.size(); ++itrg) {
-      assert(itrg<_availTrigs.size());
       auto &TDec = TriggerDecision_[itrg]; // Location of the current place
+      assert(TDec<_availTrigs.size());
       auto &TName = _availTrigs[TDec];
 
       auto trgPlace = std::find(_goodTrigs.begin(),_goodTrigs.end(),TDec);
@@ -1101,6 +1120,7 @@ bool HistosFill::AcceptEvent()
       auto &itrg = _goodTrigs[goodIdx];
       auto &TDec = TriggerDecision_[itrg]; // Trigger fired or not: -1, 0, 1
       if (TDec!=1) continue;
+      assert(itrg<_availTrigs.size());
       auto &TName = _availTrigs[itrg];
     #endif // NEWMODE
 
@@ -1142,7 +1162,7 @@ bool HistosFill::AcceptEvent()
         // Make sure all info is good! This is crucial if there is something odd with the tuples
         PrintInfo(Form("Missing prescale for %s in run %d",TName.c_str(),run),true);
       }
-    } // for itrg (_goodTrigs)
+    } // for itrg (FilterDecision or _goodTrigs)
   } // if isdt
 
   ++_totcounter;
@@ -3087,17 +3107,25 @@ Int_t HistosFill::FindPthatIdx(string filename)
 // Check that the correct tree is open in the chain
 Long64_t HistosFill::LoadTree(Long64_t entry)
 {
-  if (!fChain)
-    return -5;
+  if (!fChain) return -5;
   Long64_t centry = fChain->LoadTree(entry);
-  if (centry < 0)
-    return centry;
+  if (centry < 0) return centry;
 
   // A new tree is opened
   if (fChain->GetTreeNumber() != fCurrent) {
 
     fCurrent = fChain->GetTreeNumber();
     PrintInfo(Form("Opening tree number %d", fChain->GetTreeNumber()));
+
+    if (jp::fetchMETFilters) {
+      // Reload the MET filters and print them
+      if (!GetFilters()) {
+        PrintInfo("Failed to load DT filters. Check that the SMPJ tuple has the required histograms. Aborting...");
+        return -4;
+      }
+      PrintInfo(Form("Tree %d MET filters:",fCurrent),true);
+      for (auto &flt : _availFlts) PrintInfo(flt,true);
+    }
 
     if (jp::isdt) {
       // Reload the triggers and print them
@@ -3171,6 +3199,35 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
   return centry;
 }
 
+
+// Update the available MET filter types for each new tree
+bool HistosFill::GetFilters()
+{
+  TH1F *filters = dynamic_cast<TH1F*>(fChain->GetCurrentFile()->Get("ak4/FilterActive")); assert(filters);
+  TAxis *xax = filters->GetXaxis();
+  regex filter("Flag_([a-zA-Z0-9]+)");
+
+  _availFlts.clear();
+  for (int fltidx = xax->GetFirst(); fltidx <= xax->GetLast(); ++fltidx) {
+    string fltName = xax->GetBinLabel(fltidx);
+    if (fltName.compare("")==0) continue; // Ignore empty places on x-axis
+
+    if (std::regex_match(fltName,filter)) {
+      string stripName = std::regex_replace(fltName, filter, "$1", std::regex_constants::format_no_copy);
+      _availFlts.push_back(stripName);
+    } else if (fltName=="PassAll") {
+      if (fltidx != xax->GetLast()) {
+        PrintInfo("PassAll MET filter in the wrong position!",true);
+        return false;
+      }
+    } else {
+      PrintInfo(Form("Unknown filter type %s",fltName.c_str()),true);
+      return false;
+    }
+  }
+
+  return _availFlts.size()>0;
+}
 
 // Update the available trigger types for each new tree
 bool HistosFill::GetTriggers()

@@ -46,6 +46,10 @@
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+//#if JETRESO == 1
+//#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
+//#include "JetMETCorrections/Modules/interface/JetResolution.h"
+//#endif
 
 class HistosFill {
 public :
@@ -90,6 +94,7 @@ public :
   Float_t         PFMetT0T1__sumEt_;
   Float_t         PFMetT0T1__phi_;
 #endif
+  vector<int>     FilterDecision_;
   vector<int>     TriggerDecision_;
   vector<int>     L1Prescale_;
   vector<int>     HLTPrescale_;
@@ -184,6 +189,7 @@ public :
   virtual void     Report();
 
   void             FillJetID(vector<bool> &id);
+  bool             GetFilters();
   bool             GetTriggers();
 
   bool             LoadJSON(const char* filename);
@@ -246,6 +252,7 @@ private:
   double _pthatweight;
   int    _pthatrepeats;
 
+  vector<string> _availFlts;
   vector<string> _availTrigs;
   vector<unsigned int> _goodTrigs;
   vector<double> _goodWgts;
