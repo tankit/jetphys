@@ -10,10 +10,6 @@
 // For JEC uncertainty
 #include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-#if JETRESO == 1
-#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
-#include "JetMETCorrections/Modules/interface/JetResolution.h"
-#endif
 
 #include "settings.h"
 #include "tools.h"

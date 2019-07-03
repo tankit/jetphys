@@ -820,9 +820,10 @@ bool HistosFill::AcceptEvent()
     else {
       // If we perform MET filtering, any filter firing will cause the event to be discarded.
       if (jp::doMETFiltering) return false;
+      _pass = false;
 
       // If we don't perform MET filtering, we can do something more elaborate with the filter info
-      for (auto FDec : FilterDecision_) {
+      for (unsigned FDec : FilterDecision_) {
         assert(FDec<_availFlts.size());
         auto &FName = _availFlts[FDec];
 
@@ -1108,7 +1109,7 @@ bool HistosFill::AcceptEvent()
 
     #ifdef NEWMODE
     for (unsigned itrg = 0; itrg<TriggerDecision_.size(); ++itrg) {
-      auto &TDec = TriggerDecision_[itrg]; // Location of the current place
+      unsigned TDec = TriggerDecision_[itrg]; // Location of the current place
       assert(TDec<_availTrigs.size());
       auto &TName = _availTrigs[TDec];
 
@@ -3208,18 +3209,26 @@ bool HistosFill::GetFilters()
   regex filter("Flag_([a-zA-Z0-9]+)");
 
   _availFlts.clear();
+  bool empty  = false;
+  bool passall = false;
   for (int fltidx = xax->GetFirst(); fltidx <= xax->GetLast(); ++fltidx) {
     string fltName = xax->GetBinLabel(fltidx);
-    if (fltName.compare("")==0) continue; // Ignore empty places on x-axis
 
-    if (std::regex_match(fltName,filter)) {
-      string stripName = std::regex_replace(fltName, filter, "$1", std::regex_constants::format_no_copy);
-      _availFlts.push_back(stripName);
+    if (fltName=="") {
+      empty = true;
     } else if (fltName=="PassAll") {
-      if (fltidx != xax->GetLast()) {
+      if (empty) {
         PrintInfo("PassAll MET filter in the wrong position!",true);
         return false;
       }
+      passall = true;
+    } else if (std::regex_match(fltName,filter)) {
+      if (empty or passall) {
+        PrintInfo(Form("MET filter %s in the wrong position!",fltName.c_str()),true);
+        return false;
+      }
+      string stripName = std::regex_replace(fltName, filter, "$1", std::regex_constants::format_no_copy);
+      _availFlts.push_back(stripName);
     } else {
       PrintInfo(Form("Unknown filter type %s",fltName.c_str()),true);
       return false;

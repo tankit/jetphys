@@ -46,10 +46,10 @@
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-//#if JETRESO == 1
-//#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
-//#include "JetMETCorrections/Modules/interface/JetResolution.h"
-//#endif
+#if JETRESO == 1
+#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#endif
 
 class HistosFill {
 public :
