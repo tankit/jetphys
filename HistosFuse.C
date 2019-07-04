@@ -20,30 +20,30 @@ using namespace std;
 #include "settings.h"
 
 
-void recurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir);
+void FuseRecurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir);
 
-// Use this to fix luminosity
-std::map<std::string, double> triglumi;
-
-void HistosFuse()
+void HistosFuse(string type = "")
 {
-  if (!jp::ispy and !jp::ishw) return;
+  if (type=="") {
+    type = jp::type;
+    if (!jp::ispy and !jp::ishw) return;
+  }
 
-  TFile *fin = new TFile(Form("output-%s-2a.root",jp::type),"READ");
+  TFile *fin = new TFile(Form("output-%s-2a.root",type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
   TFile *fin_nu = new TFile("output-NU-2a.root","READ");
   assert(fin_nu && !fin_nu->IsZombie());
 
-  TFile *fout = new TFile(Form("output-%sNU-2a.root",jp::type),"RECREATE");
+  TFile *fout = new TFile(Form("output-%sNU-2a.root",type.c_str()),"RECREATE");
   assert(fout and !fout->IsZombie());
 
-  cout << "Calling HistosFuse("<<jp::type<<");" << endl;
+  cout << "Calling HistosFuse("<<type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursive loop. This may take a minute" << endl << flush;
 
   // Loop over all the directories recursively
-  recurseFile(fin, fin_nu, fout);
+  FuseRecurseFile(fin, fin_nu, fout);
 
   cout << endl;
   cout << "Recursive loop done." << endl;
@@ -58,7 +58,7 @@ void HistosFuse()
 } // HistosNormalize
 
 
-void recurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir) {
+void FuseRecurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir) {
   TDirectory *curdir = gDirectory;
 
   // Automatically go through the list of keys (directories)
@@ -102,7 +102,7 @@ void recurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir) {
       cout << endl;
       indir2->cd();
 
-      recurseFile(indir2, indir2_nu, outdir2);
+      FuseRecurseFile(indir2, indir2_nu, outdir2);
     } else {
       outdir->cd();
 
@@ -118,4 +118,4 @@ void recurseFile(TDirectory *indir, TDirectory *indir_nu, TDirectory *outdir) {
   } // while key
 
   curdir->cd();
-} // recurseFile
+} // FuseRecurseFile

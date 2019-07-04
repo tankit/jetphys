@@ -228,7 +228,7 @@ private:
   vector<int> _jkmore;
 
   TLorentzVector p4, gp4, genp4;
-  jec::IOV _iov;
+  IOV _iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
   JetCorrectionUncertainty *_jecUnc;
   //L3Corr *_jecUnc2;

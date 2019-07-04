@@ -570,11 +570,11 @@ bool HistosFill::PreRun()
     if (jp::isdt and jp::useIOV) {
       // If multiple IOV's are used, we set _JEC etc for each event separately, checking that the IOV is correct
       for (unsigned iovidx=0; iovidx<jp::IOVnames.size(); ++iovidx)
-        _iov.add(jp::IOVnames[iovidx],jp::IOVranges.at(iovidx).at(0),jp::IOVranges.at(iovidx).at(1));
+        _iov.addJEC(jp::IOVnames[iovidx],jp::IOVranges.at(iovidx).at(0),jp::IOVranges.at(iovidx).at(1));
     } else {
       // If only one great IOV is used, we can set _JEC etc. directly here.
-      _iov.add("");
-      bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc);
+      _iov.addJEC("");
+      bool setcorrection = _iov.setJEC(&_JEC,&_L1RC,&_jecUnc);
       if (!setcorrection or !_JEC or !_L1RC or (jp::isdt and !_jecUnc)) {
         cout << "Issues while loading JEC; aborting..." << endl;
         return false;
@@ -852,7 +852,7 @@ bool HistosFill::AcceptEvent()
 
   // load correct IOV for JEC
   if (jp::redojes and jp::isdt and jp::useIOV) {
-    bool setcorrection = _iov.setCorr(&_JEC,&_L1RC,&_jecUnc,run);
+    bool setcorrection = _iov.setJEC(&_JEC,&_L1RC,&_jecUnc,run);
     if (!setcorrection or !_JEC or !_L1RC or !_jecUnc) {
       cout << "Issues while loading JEC; aborting..." << endl;
       assert(false);

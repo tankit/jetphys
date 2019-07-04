@@ -64,12 +64,13 @@ void recurseFile(TDirectory *indir, TDirectory *outdir,
 // Use this to fix luminosity
 std::map<std::string, double> triglumi;
 
-void HistosNormalize()
+void HistosNormalize(string type = "")
 {
-  TFile *fin = new TFile(Form("output-%s-1.root",jp::type),"READ");
-  assert(fin && !fin->IsZombie());
+  if (type=="") type = jp::type;
+  TFile *fin = new TFile(Form("output-%s-1.root",type.c_str()),"READ");
+  assert(fin and !fin->IsZombie());
 
-  TFile *fout = new TFile(Form("output-%s-2a.root",jp::type),"RECREATE");
+  TFile *fout = new TFile(Form("output-%s-2a.root",type.c_str()),"RECREATE");
   assert(fout and !fout->IsZombie());
 
   if (jp::isdt and jp::usetriglumi) { // Setting up lumis
@@ -94,7 +95,7 @@ void HistosNormalize()
     }
   }
 
-  cout << "Calling HistosNormalize("<<jp::type<<");" << endl;
+  cout << "Calling HistosNormalize("<<type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursive loop. This may take a minute" << endl << flush;

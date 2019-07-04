@@ -39,17 +39,18 @@ vector<string> _ignoretrgs;
 // global variables (not pretty, but works)
 TDirectory *_top = 0;
 
-void HistosCombine() {
+void HistosCombine(string type = "") {
   TDirectory *curdir = gDirectory;
+  if (type=="") type = jp::type;
 
-  TFile *fin = new TFile(Form("output-%s-2a.root",jp::type),"READ");
+  TFile *fin = new TFile(Form("output-%s-2a.root",type.c_str()),"READ");
   assert(fin and !fin->IsZombie());
   _top = gDirectory;
 
-  TFile *fout = new TFile(Form("output-%s-2b.root",jp::type),"RECREATE");
+  TFile *fout = new TFile(Form("output-%s-2b.root",type.c_str()),"RECREATE");
   assert(fout and !fout->IsZombie());
 
-  cout << "Calling HistosCombine("<<jp::type<<");" << endl;
+  cout << "Calling HistosCombine("<<type<<");" << endl;
   cout << "Input file " << fin->GetName() << endl;
   cout << "Output file " << fout->GetName() << endl;
   cout << "Starting recursions. These may take a few seconds" << endl << flush;

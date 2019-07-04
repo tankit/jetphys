@@ -177,9 +177,7 @@ public :
   virtual void     PrintMemInfo(bool printcout = false);
 
   // We don't delete that much stuff here, since ROOT takes care of garbage collection (and gets very easily angry!!!)
-  ~HistosFill() {
-    //if (ferr) delete ferr;
-  }
+  ~HistosFill() {}
   HistosFill(TChain *tree);
   virtual bool     Init(TChain *tree); // custom
 
@@ -291,7 +289,7 @@ private:
   TFile *fHotExcl;
 
   TLorentzVector p4, gp4, genp4, _j1, _j2;
-  jec::IOV _iov;
+  IOV _iov;
   FactorizedJetCorrector *_JEC, *_L1RC;
   JetCorrectionUncertainty *_jecUnc;
 
