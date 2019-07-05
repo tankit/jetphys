@@ -172,7 +172,7 @@ public :
     fChain->Show(entry);
   }
   virtual Long64_t LoadTree(Long64_t entry);
-  virtual Int_t    FindPthatIdx(string filename);
+  virtual Int_t    FindMCSliceIdx(string filename);
   virtual void     PrintInfo(string info, bool printcout = false);
   virtual void     PrintMemInfo(bool printcout = false);
 
@@ -247,8 +247,8 @@ private:
   Long64_t _nskip;;
   double _xsecMinBias;
   double _w, _w0;
-  double _pthatweight;
-  int    _pthatrepeats;
+  double _binnedmcweight;
+  int    _binnedmcrepeats;
 
   vector<string> _availFlts;
   vector<string> _availTrigs;

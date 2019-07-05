@@ -66,7 +66,7 @@ namespace jp {
   // Do we use pthat binned MC (if not, we use flat or htbinned)
   constexpr bool pthatbins = false;
   // Do we use ht binned MC (if not, we use flat; if yes pthatbins must be set to false)
-  constexpr bool htbins = false;
+  constexpr bool htbins = true;
   //} END fundamental settings
 
   //{ BEGIN run settings
@@ -301,14 +301,14 @@ namespace jp {
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
-    "_V11",
+    "_V20",
     "_V32",
     "_V32",
     "_V6"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
-    "_V11",
+    "_V20",
     "_V32",
     "_V32",
     //"_V3",
@@ -450,10 +450,10 @@ namespace jp {
     //{ BEGIN MC: Process HTbinned file options
     // All the following values need to be updated, if other source tuples are used.
     const array<const char*,yrs> htpath_ = {
-      "MC/2016/MGP8/",
-      "MC/2017/MGP8/",
-      "MC/2017/MGP8/",
-      "MC/2018/MGP8/"
+      "MC/2016/MGP8M1/",
+      "MC/2017/MGP8CP5/",
+      "MC/2017/MGP8CP5/",
+      "MC/2018/MGP8CP5/"
     };
     const char* htpath = htpath_.at(yid);
     // The corresponding ranges, the last number is ~inf
@@ -474,12 +474,13 @@ namespace jp {
       { 19380000,19380000,1559000,311900,29070,5962,1005,101.8,20.54}
     }};
     const vector<double> htsigmas = htsigmas_.at(yid);
-    // These can be obtained using GetSliceEvts.C: the 3200toInf number of events
+    // These can be obtained using GetSliceEvts.C: the 3200toInf number of events.
+    // The magic here is that in the ntuplizer we make no cuts.
     const array<double,yrs> htnormalevts_ = {{
+      1991645,
+      5180754,
       1,
-      1,
-      1,
-      1
+      5475677
     }};
     const double htnormalevts = htnormalevts_.at(yid);
 
