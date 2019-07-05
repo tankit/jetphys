@@ -916,19 +916,9 @@ bool HistosFill::AcceptEvent()
       jtjes_res[jetidx] = 1.;
     }
 
-    if (jp::debug) cout << "Reapplying JEC!" << endl;
-    if (jp::redojes) p4 *= jtjesnew[jetidx];
-
-    jte[jetidx] = p4.E();
-    jtpt[jetidx] = p4.Pt();
-    jteta[jetidx] = p4.Eta();
-    jtphi[jetidx] = p4.Phi();
-    jty[jetidx] = p4.Rapidity();
-    if (jp::doMpfHistos) jtpt_nol2l3[jetidx] = p4.Pt()/jec_res;
-
-    if (jp::debug) cout << "Gen info!" << endl;
     // Calculate gen level info
     if (jp::ismc) {
+      if (jp::debug) cout << "Gen info!" << endl;
 #ifdef NEWMODE
       auto &gjetidx = jtgenidx[jetidx];
       if (gjetidx>=0 and gjetidx<GenJets__)
@@ -943,6 +933,31 @@ bool HistosFill::AcceptEvent()
       jtgeneta[jetidx] = gp4.Eta();
       jtgenphi[jetidx] = gp4.Phi();
     }
+
+    if (jp::debug) cout << "Reapplying JEC!" << endl;
+    if (jp::redojes) p4 *= jtjesnew[jetidx];
+
+#if JETRESO == 1
+    // For DATA, we have redundant scale factor files, which return a "1" for SF.
+    // We save the processing time by skipping this.
+    if (jp::ismc) {
+      double genpt = gp4.Pt();
+      // We enforce the gen match, see https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetResolution
+      if (genpt>0) {
+        double genDR = p4.DeltaR(gp4);
+        // We require the match to be closer than half cone, otherwise gen Pt is worthless
+        if (genDR>0.2) genpt = -4;
+      }
+      p4 *= _iov.getJERCF(p4.Pt(),p4.Eta(),p4.E(),rho,genpt);
+    }
+#endif
+
+    jte[jetidx] = p4.E();
+    jtpt[jetidx] = p4.Pt();
+    jteta[jetidx] = p4.Eta();
+    jtphi[jetidx] = p4.Phi();
+    jty[jetidx] = p4.Rapidity();
+    if (jp::doMpfHistos) jtpt_nol2l3[jetidx] = p4.Pt()/jec_res;
 
     if (jp::debug) cout << "Jet " << jetidx << " corrected!" << endl;
 

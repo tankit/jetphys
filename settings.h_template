@@ -3,6 +3,12 @@
 // Co-author: hannu.siikonen@cern.ch
 // Created: June 1, 2015
 
+// The structure of this file is such that various macros and flags are introduced in the order of decreasing frequency of changes.
+// In the beginning of this file are flags that the user might need to configure for each run, and in the end flags that
+// need (or should) not be touched. In the middle of this file one can find various file name settings and lists of binnings.
+// Near the end of this files the user can also find binnings, which should staty static,
+// in general. Having a more or less static binning enables us to make better comparison between historical and present results.
+
 #ifndef STNGS
 #define STNGS
 
@@ -29,64 +35,39 @@ using std::cout;
 using std::endl;
 using std::regex;
 
-// Will assert be used in the programs? More than 1/3 reduction of run time if off.
-// CAUTION: this is an expert option - comment this out if you are certain that no problems occur.
-//#define USEASSERT
-// New handling for triggers etc. - comment this out if old mode is to be used
+// Values 0/1. Set to 0 if no debug, and to 1 if debug.
+#define DEBUG 0
+// Values 0/1. This flag should not be set to one, unless the user understands all the consequences.
+// This resembles "DEBUG" in the way that it acts as a safeguard against naive mistakes, but eats performance.
+#define EXPERT 0
+// Values 0/1. Set to 1 to perform jet resolution correction in MC, 0 otherwise.
+#define JETRESO EXPERT
+// New handling for triggers etc.; possibility to comment this out is left for legacy use.
 #define NEWMODE
 
 namespace jp {
-  constexpr bool strings_equal(char const * a, char const * b) {
-    return *a == *b and (*a == '\0' or strings_equal(a + 1, b + 1));
-  }
-
-  // Debugging info
-  constexpr bool debug = false;
-
-  // Save git version info (recommended)
-  constexpr bool gitinfo = true;
 
   //{ BEGIN fundamental file settings
-  // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
-  constexpr const char* chs = "CHS";
-  // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
-  constexpr const char* algo = "AK4PFchs";
-  // Data type ("DATA", "MC", "HW", or "NU")
-  constexpr const char* type = "DATA";
+  // Data type "DATA"/"MC"/"HW"/"NU".
+  // "MC" stands for Pythia8 for flat ntuples and pthat binned ntuples, and Madgraph+Pythia8 for htbinned ntuples.
+  constexpr const char* type = "MC";
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunC";
-  // In case of flat MC, choose file (all options given in mcfiles)
-  constexpr const char* mcfile = "P8M1"; //"P8M1" or "P8CP5"
-  constexpr const char* hwfile = "HS1";
-  constexpr const char* nufile = "NuGun";
+  constexpr const char* run = "RunG";
+  // The base location of files that are to be used. The user should check that the listings under "*path_" and "*files_" are found
+  // under this base location. The complete path is of the form 'filepath+dt/mcpath+filename' (see mk_HistosFill.C).
+  constexpr const char* filepath = "/work/jet_tuples/"; // "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
+
+  // Which run year are we analyzing?
+  const unsigned int   yid = 0; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yrs = 4; // Number of supported Run years
+
   // Do we use pthat binned MC (if not, we use flat or htbinned)
   constexpr bool pthatbins = false;
   // Do we use ht binned MC (if not, we use flat; if yes pthatbins must be set to false)
   constexpr bool htbins = false;
-
-  const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
-  const unsigned int   yrs = 4; // Number of supported Run years
-
-  // Luminosity weighting options (DATA)
-  // Do we use trigger lumi weighting (see triglumi or triglumiera)
-  constexpr bool usetriglumi = true;
-  // Use per-era values in HistosNormalize (not recommmended)
-  // That is, use values from the correct triglumiera instead of triglumi values.
-  constexpr bool usetriglumiera = false;
-  // Do a "psuedo-weighting" procedure within histosFill.
-  // When this setting is on, we weight by w_era/w_year (pseudo-weight) in HistosFill.
-  // Then, in HistosNormalize we apply w_year.
-  constexpr bool useeraweights = true;
-  // So, what is the difference between usetriglumiera and useeraweights?
-  // The former applies the correction within HistosNormalize.
-  // The latter runs a per-run correction within HistosFill and then further applies the common correction in HistosNormalize.
-  // This allows us to "glue" output-*-1.root files together, if several runs are given at the same time.
-  // Thus, with the latter option we have a "per-Era" kind of weighting procedure - and all the files behave quite as normally.
-  // In HistosFill we apply only small corrections that revolve around one, which is basically just fine-tuning.
   //} END fundamental settings
-
 
   //{ BEGIN run settings
   // Number of events to process (-1 for all)
@@ -106,16 +87,7 @@ namespace jp {
   constexpr Long64_t skim = 0; // "prescale", off if zero
   // Only load selected branches (large speedup, but be careful!)
   constexpr bool quick = true;
-  // Save the infos at times. Setting this to true might help with long runs. (Not recommended)
-  constexpr bool save = false;
   //} END run settings
-
-  // Simple helper
-  constexpr bool isdt = strings_equal(type,"DATA");
-  constexpr bool ismc = !isdt;
-  constexpr bool ispy = strings_equal(type,"MC");
-  constexpr bool ishw = strings_equal(type,"HW");
-  constexpr bool isnu = strings_equal(type,"NU");
 
   //{ BEGIN A group of constexpr switches and their settings to turn some parts of the code on/off
   // If the output files grow too much, processing becomes more difficult.
@@ -135,17 +107,24 @@ namespace jp {
   // Toggle development histos
   constexpr bool doMpfHistos = false;
 
+  // In the newest ntuples (mid 2019 onwards), MET filters may be saved separately, as before these
+  constexpr bool fetchMETFilters = true;
+  constexpr bool doMETFiltering = true;
+
+  //{ BEGIN Special HistosFill analyses that are not typically needed
+  // Eta phi exclusion due to hot ECAL regions (produced with dataequality.C).
+  // Note: the output-*.root files are originally used for the production of the exclusion zones.
+  // Hence, the user should no whether she/he is producing or applying the hot zone vetos.
+  constexpr bool doVetoHot = false;
+  const constexpr char HotType[] = ""; // h2hotr (Robert) or h2hotm (Mikko)
+
+  // Check for duplicates (warning: takes a lot of memory!)
+  constexpr bool checkduplicates = false;
+  //} END Special analyses that are not typically needed
+
   // QGL studies by Ozlem (use an external file for qgl studies)
   constexpr bool doqglfile = false;
   constexpr const char qglfile[] = "output-DATA_RunGfullpart-1.root";
-
-  // At some point of time Kostas stored UNCORRECTED four-vector. Current status: CORRECTED
-  // NOTE: this is a source of constant anxiety, should be rechecked from time to time
-  constexpr bool undojes = true;
-  // We can choose also not to apply the new jes onto a four-vector
-  constexpr bool redojes = true;
-  // For debugging
-  constexpr bool skipl2l3res = false;
 
   // Reapply json selection based on the latest one (check lumicalc if false!).
   constexpr bool dojson = true;
@@ -167,6 +146,8 @@ namespace jp {
   };
   const constexpr char* lumifile = lumifile_.at(yid);
 
+  // For debugging, allows the user to skip L2L3Res JEC in Data.
+  constexpr bool skipl2l3res = false;
   // Decide whether or not to simulate triggers from MC (this is slow)
   constexpr bool domctrigsim = true;
   // Use "mc" trigger for whole pT range instead of stiching triggers together in HistosCombine (false requires trigsim)
@@ -218,14 +199,14 @@ namespace jp {
   }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
-    // These are used to find out which year and which era we are living in
-    const array<vector<regex>,yrs> eras_ = {{
-      {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
-      {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunF")},
-      {regex("^RunH[a-zA-Z0-9_]*Fwd$"),regex("^RunH")},
-      {regex("^RunA"),regex("^RunB"),regex("^RunC"),regex("^RunD")}
-    }};
-    const vector<regex> eras = eras_.at(yid);
+  // These are used to find out which year and which era we are living in
+  const array<vector<regex>,yrs> eras_ = {{
+    {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunFe"),regex("^RunFl"),regex("^RunG"),regex("^RunH")},
+    {regex("^RunB"),regex("^RunC"),regex("^RunD"),regex("^RunE"),regex("^RunF")},
+    {regex("^RunH[a-zA-Z0-9_]*Fwd$"),regex("^RunH")},
+    {regex("^RunA"),regex("^RunB"),regex("^RunC"),regex("^RunD")}
+  }};
+  const vector<regex> eras = eras_.at(yid);
   // CAUTION: The next are expert options and better to leave untouched if one does not know exactly what is going on.
   // Overrides the above routines with a more intricate weighting scheme. When this is on, output-*1.root is weighted to match the era results.
   // In the version treatment we give the weights directly to induce better comparability
@@ -269,8 +250,45 @@ namespace jp {
   }};
   const vector<vector<double>> triglumiera = triglumiera_.at(yid);
 
-  //{ JEC and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
+  //{ JEC, JER and IOV settings. In the modern world we have a group of IOV's for which different corrections are applied.
   // https://github.com/cms-jet/JECDatabase/tree/master/tarballs
+
+  // Location for jet resolution information.
+  const string JERDBLoc = "/work/jet_tuples/JRDatabase";
+
+  const array<string,yrs> jergt_ = {
+    "Summer16",
+    "Fall17",
+    "Fall17",
+    "Autumn18"
+  };
+  const string jergt = jergt_.at(yid);
+  const array<string,yrs> jervers_ = {
+    "_25nsV1",
+    "_V3",
+    "_V3",
+    "_V4"
+  };
+  const string jervers = jervers_.at(yid);
+
+  const unsigned int JERpos = 0;
+  // Use Intervals-Of-Validity for JER
+  const array<vector<string>,yrs> JERIOVnames_ = {{
+    {""},
+    {""},
+    {""}, // Run2017F is used for Run2017H (lowpu)
+    {"RunABC_","RunD_"}
+  }};
+  const vector<string> JERIOVnames = JERIOVnames_.at(yid);
+  // Trigger IOVs: the 1 for -inf and 400000 for inf (currently)
+
+  // Use a direct path to JECDatabase instead of copy-pasting the files to CondFormats/JetMETObjects/data/
+  // Using this setting makes things much more simple and clean.
+  // The "old way" is left here for legacy use
+  constexpr bool useJECDB = EXPERT;
+  // Location for JEC information.
+  const string JECDBLoc = "/work/jet_tuples/JECDatabase";
+
   const array<string,yrs> jecgt_ = {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
@@ -283,14 +301,14 @@ namespace jp {
   };
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
-    "_V18",
+    "_V11",
     "_V32",
     "_V32",
     "_V6"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
-    "_V15",
+    "_V11",
     "_V32",
     "_V32",
     //"_V3",
@@ -300,7 +318,7 @@ namespace jp {
   const string jecversmc = jecversmc_.at(yid);
 
   // Use Intervals-Of-Validity for JEC
-  constexpr const bool useIOV = true ;
+  constexpr bool useIOV = true ;
   const array<vector<string>,yrs> IOVnames_ = {{
     {"BCD","EF","GH"},
     {"B","C","DE","F"},
@@ -316,26 +334,13 @@ namespace jp {
     { {315000,316999},{317000,319079},{319080,320099},{320100,400000} } // A,B,C,D
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
-  //} END JES and JEC
-
-
-  //{ BEGIN For MC reweighting purposes, PU profiles for data and MC
-  constexpr bool reweighPU = true;
-  constexpr const char* pudata = "pileup/curr/pileup_DT.root";
-  constexpr const char* pumc   = "pileup/curr/pileup_MC.root";
-  constexpr const char* puhw   = "pileup/curr/pileup_HW.root";
-  constexpr const char* punu   = "pileup/curr/pileup_NU.root";
-  constexpr const double maxpu = 80.0;
-  //} END PU profiles
+  //} END JES, JER and JEC
 
   //{ BEGIN DT/MC: File options
 
-  constexpr const char* filepath = "/work/jet_tuples/";
-  //constexpr const char* filepath = "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
-
     //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
-      {"Data/2016/Final/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
+      {"Data/2016/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
     constexpr const char* dtpath = dtpath_.at(yid);
 
     const array<map<string,vector<const char*>>,yrs> dtfiles_ = {{
@@ -396,7 +401,7 @@ namespace jp {
       },
       {
         {"P8CP5",{"MC/2018/P8CP5/FlatPthat_15to7000.root"}},
-        {"HS1",{"MC/2017/HS1/FlatPthat_15to7000.root"}},
+        {"H7",{"MC/2018/H7/FlatPthat_15to7000.root"}},
         {"NuGun",{"MC/2018/NuGun.root"}}
       }
     }};
@@ -486,56 +491,6 @@ namespace jp {
     //} END htbins stuff
 
   //} END DT/MC: File names
-
-  //{ BEGIN RUN2 params
-  constexpr double sqrts = 13000.; // GeV
-  constexpr double emax = sqrts/2.; // Max possible jet pt
-  constexpr double recopt = 15; // Min observed jet pt
-  constexpr double xsecMinBias = 7.126E+10;
-  constexpr double lumi = -4; // Unprescaled luminosity for plots in /fb
-  //} END Run2
-
-  //{ BEGIN Special HistosFill analyses that are not typically needed
-  // Eta phi exclusion due to hot ECAL regions (produced with dataequality.C)
-  constexpr bool doVetoHot = false;
-  const constexpr char HotType[] = ""; // h2hotr (Robert) or h2hotm (Mikko)
-
-  // Check for duplicates (warning: takes a lot of memory!)
-  constexpr bool checkduplicates = false;
-  //} END Special analyses that are not typically needed
-
-  //{ BEGIN HistosNormalize (leave these off if not interested on details)
-  // Correct for trigger efficiency based on MC
-  constexpr bool dotrigeff = false; // CAUTION: Requires output-MC-1.root file
-  // Correct pT<114 GeV only, if above dotrigeff=true
-  constexpr bool dotrigefflowptonly = false; // CAUTION: Not needed
-  // Correct for trigger efficiency according to a simpler scheme
-  constexpr bool dotrigeffsimple = false;
-  // Correct for time-dependence (prescales) in data
-  constexpr bool dotimedep = false; // CAUTION: Unknown consequences
-  //} END HistosNormalize
-
-  //{ BEGIN drawSummary
-  // Center uncertainties around ansatz (true) or data (false)
-  constexpr bool centerOnAnsatz = false;
-  constexpr bool centerOnTheory = false;
-  // Plot Pythia for final PRL results
-  constexpr bool plotPythia = false;
-  // Draw againts HERAPDF1.7 instead of PDF4LHC (drawSummary)
-  constexpr bool herapdf = false;
-  // Produce plots (also drawRunHistos)
-  constexpr bool pdf = true;
-  //} END drawSummary
-
-  //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
-  // Minimum and maximum pT range to be plotted and fitted
-  constexpr double fitptmin = 114;//43;
-  // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
-  constexpr double xmin57 = 114;//56;
-  constexpr double xminpas = 114;//56;
-  constexpr double xmin = 114;//24.;//20.;
-  constexpr double xmax = 1497;//TEMP PATCH for partial data //1999.;
-  //} END limits
 
   //{ BEGIN Binnings
   // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
@@ -712,5 +667,113 @@ namespace jp {
   constexpr const unsigned int nwposphis = sizeof(wposphirange)/sizeof(wposphirange[0])-1;
 
   //} END Binnings
+
+  //{ BEGIN Important handles that should not be touched most of the time.
+
+  //{ BEGIN RUN2 params
+  constexpr double sqrts = 13000.; // GeV
+  constexpr double emax = sqrts/2.; // Max possible jet pt
+  constexpr double recopt = 15; // Min observed jet pt
+  constexpr double xsecMinBias = 7.126E+10;
+  constexpr double lumi = -4; // Unprescaled luminosity for plots in /fb
+  //} END Run2
+
+  // At some point of time Kostas stored UNCORRECTED four-vector. Current status: CORRECTED
+  // NOTE: this is a source of constant anxiety, should be rechecked from time to time
+  constexpr bool undojes = true;
+  // We can choose also not to apply the new jes onto a four-vector
+  constexpr bool redojes = true;
+
+  // A string comparison function for the use of this file.
+  constexpr bool strings_equal(char const * a, char const * b) { return *a == *b and (*a == '\0' or strings_equal(a + 1, b + 1)); }
+
+  // Simple helper for dataset type
+  constexpr bool isdt = strings_equal(type,"DATA");
+  constexpr bool ismc = !isdt;
+  constexpr bool ispy = strings_equal(type,"MC");
+  constexpr bool ishw = strings_equal(type,"HW");
+  constexpr bool isnu = strings_equal(type,"NU");
+  // In case of a flat MC, choose file (all options given in mcfiles).
+  constexpr const char* mcfile = yid==0 ? "P8M1" : "P8CP5";
+  constexpr const char* hwfile = yid==4 ? "H7" : "HS1";
+  constexpr const char* nufile = "NuGun";
+  //{ BEGIN For MC reweighting purposes. MC PU profile is reweighted to match Data.
+  constexpr bool reweighPU = true;
+  constexpr const char* pudata = "pileup/curr/pileup_DT.root";
+  constexpr const char* pumc   = "pileup/curr/pileup_MC.root";
+  constexpr const char* puhw   = "pileup/curr/pileup_HW.root";
+  constexpr const char* punu   = "pileup/curr/pileup_NU.root";
+  constexpr const double maxpu = 80.0;
+  //} END PU profiles
+
+  // Luminosity weighting options (DATA)
+  // Do we use trigger lumi weighting (see triglumi or triglumiera)
+  constexpr bool usetriglumi = true;
+  // Use per-era values in HistosNormalize (not recommmended)
+  // That is, use values from the correct triglumiera instead of triglumi values.
+  constexpr bool usetriglumiera = false;
+  // Do a "pseudo-weighting" procedure within histosFill.
+  // When this setting is on, we weight by w_era/w_year (pseudo-weight) in HistosFill.
+  // Then, in HistosNormalize we apply w_year.
+  constexpr bool useeraweights = true;
+  // So, what is the difference between usetriglumiera and useeraweights?
+  // The former applies the correction within HistosNormalize.
+  // The latter runs a per-run correction within HistosFill and then further applies the common correction in HistosNormalize.
+  // This allows us to "glue" output-*-1.root files together with hadd, if several runs are given at the same time.
+  // Thus, with the latter option we have a "per-Era" kind of weighting procedure - and all the files behave quite as normally.
+  // In HistosFill we apply only small corrections that revolve around one, which is basically just fine-tuning.
+
+  //{ BEGIN HistosNormalize (leave these off if not interested on details)
+  // Correct for trigger efficiency based on MC
+  constexpr bool dotrigeff = false; // CAUTION: Requires output-MC-1.root file
+  // Correct pT<114 GeV only, if above dotrigeff=true
+  constexpr bool dotrigefflowptonly = false; // CAUTION: Not needed
+  // Correct for trigger efficiency according to a simpler scheme
+  constexpr bool dotrigeffsimple = false;
+  // Correct for time-dependence (prescales) in data
+  constexpr bool dotimedep = false; // CAUTION: Unknown consequences
+  //} END HistosNormalize
+
+  // Save the infos at times. Setting this to true might help with long runs. (Not recommended)
+  constexpr bool save = false;
+
+  // Do we use CHS jets? ("CHS" for yes, "", for legacy/no)
+  constexpr const char* chs = "CHS";
+  // Algorithm to use ("AK4PF" or "AK8PF" + "chs" for chs jets)
+  constexpr const char* algo = "AK4PFchs";
+  // Debugging info
+  constexpr bool debug = DEBUG;
+  // Save git version info (recommended)
+  constexpr bool gitinfo = !EXPERT;
+
+  // Will assert be used in the programs? More than 1/3 reduction of run time if off.
+  #if EXPERT == 1
+  #define USEASSERT
+  #endif
+  //} END Important handles that should not be touched most of the time
+
+  //{ BEGIN Legacy settings that might not work anymore
+  //{ BEGIN drawSummary
+  // Center uncertainties around ansatz (true) or data (false)
+  constexpr bool centerOnAnsatz = false;
+  constexpr bool centerOnTheory = false;
+  // Plot Pythia for final PRL results
+  constexpr bool plotPythia = false;
+  // Draw againts HERAPDF1.7 instead of PDF4LHC (drawSummary)
+  constexpr bool herapdf = false;
+  // Produce plots (also drawRunHistos)
+  constexpr bool pdf = true;
+  //} END drawSummary
+
+  //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
+  // Minimum and maximum pT range to be plotted and fitted
+  constexpr double fitptmin = 114;//43;
+  // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
+  constexpr double xmin57 = 114;//56;
+  constexpr double xminpas = 114;//56;
+  constexpr double xmin = 114;//24.;//20.;
+  constexpr double xmax = 1497;//TEMP PATCH for partial data //1999.;
+  //} END limits
+  //} END Legacy settings that might not work anymore
 }
 #endif // STNGS
