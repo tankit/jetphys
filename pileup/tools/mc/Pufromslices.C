@@ -32,16 +32,18 @@
 void Pufromslices() {
   //TString dirname="/eos/cms/store/group/phys_smp/Multijet/13TeV/MC/P825ns80X_Moriond17";
   //TString dirname="/work/jet_tuples/MC/P825ns80X_Moriond17";
-  TString dirname="/work/jet_tuples/MC/2016/P8M1";
+  //TString dirname="/work/jet_tuples/MC/2016/P8M1";
+  TString dirname="/work/jet_tuples/SIM/2016/MGP8M1/";
   //std::regex fileformat("QCD_Pt_([0-9]*)to([0-9]*|Inf)_TuneCUETP8M_13TeV_pythia8.root");
-  std::regex fileformat("Pthat_([0-9]*)to([0-9]*|Inf).root");
+  std::regex fileformat("HT_([0-9]*)to([0-9]*|Inf).root");
+  vector<int> minval = {50,100,200,300,500,700,1000,1500,2000};
+  //std::regex fileformat("Pthat_([0-9]*)to([0-9]*|Inf).root");
+  //vector<int> minval = {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200};
   bool debughistos = true;
 
   std::cmatch match;
   TFile *output = new TFile("pileup_MC.root","RECREATE");
   TH1D *summary = new TH1D("pileupmc","",jp::maxpu,0,jp::maxpu);
-  vector<int> pthatmin =
-    {30,50,80,120,170,300,470,600,800,1000,1400,1800,2400,3200};
   vector<TH1D*> individuals;
 
   TSystemDirectory dir(dirname.Data(), dirname.Data());
@@ -61,8 +63,7 @@ void Pufromslices() {
           TH1D *hist = new TH1D(histname,"",jp::maxpu,0,jp::maxpu);
           t->Draw(Form("EvtHdr_.mTrPu>>%s",histname));
           int pos = 0;
-          while (pthatmin[pos]!=number)
-            ++pos;
+          while (minval[pos]!=number) ++pos;
           hist->Scale(jp::pthatsigmas[pos]/t->GetEntries());
           summary->Add(hist);
           individuals.push_back(hist);
