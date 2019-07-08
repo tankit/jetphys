@@ -58,7 +58,7 @@ vector<string> hptlike = {"hpt",
                           "hdjmass",
                           "hdjmass0"};
 
-void recurseFile(TDirectory *indir, TDirectory *outdir,
+void recurseNormFile(TDirectory *indir, TDirectory *outdir, bool isdt,
                  double etawid = 1., double etamid = 0., int lvl = 0);
 
 // Use this to fix luminosity
@@ -66,14 +66,16 @@ std::map<std::string, double> triglumi;
 
 void HistosNormalize(string type = "")
 {
+  bool isdt = jp::isdt;
   if (type=="") type = jp::type;
+  else          isdt = (type=="DATA");
   TFile *fin = new TFile(Form("output-%s-1.root",type.c_str()),"READ");
   assert(fin and !fin->IsZombie());
 
   TFile *fout = new TFile(Form("output-%s-2a.root",type.c_str()),"RECREATE");
   assert(fout and !fout->IsZombie());
 
-  if (jp::isdt and jp::usetriglumi) { // Setting up lumis
+  if (isdt and jp::usetriglumi) { // Setting up lumis
     cout << "Reading trigger luminosity from settings.h" << endl;
     int eraIdx = -1;
     if (jp::usetriglumiera) {
@@ -101,7 +103,7 @@ void HistosNormalize(string type = "")
   cout << "Starting recursive loop. This may take a minute" << endl << flush;
 
   // Loop over all the directories recursively
-  recurseFile(fin, fout);
+  recurseNormFile(fin, fout, isdt);
 
   cout << endl;
   cout << "Recursive loop done." << endl;
@@ -116,7 +118,7 @@ void HistosNormalize(string type = "")
 } // HistosNormalize
 
 
-void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double etamid, int lvl) {
+void recurseNormFile(TDirectory *indir, TDirectory *outdir, bool isdt, double etawid, double etamid, int lvl) {
   TDirectory *curdir = gDirectory;
 
   // Automatically go through the list of keys (directories)
@@ -157,7 +159,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       }
       if (loclvl==1) cout << endl << "Entering: " << indir2->GetName();
 
-      recurseFile(indir2, outdir2, etawid, etamid, loclvl);
+      recurseNormFile(indir2, outdir2, isdt, etawid, etamid, loclvl);
       // inherits from TDirectory
     } else if (obj->InheritsFrom("TH1")) { // Normalize (or just pass on) histogrammish objects
       outdir->cd();
@@ -169,7 +171,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
       double lumi = 1;
       double lumiref = 1;
 
-      if (jp::isdt) {
+      if (isdt) {
         if (jp::usetriglumi) { // Use lumi info from settings.h
           if (name=="hlumi") {
             // Overwrite hlumi
@@ -210,7 +212,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
         double norm0 = etawid;
 
         // Let's divide by a magical number. This is totally OK (disabled).
-        // if (jp::ismc and !jp::pthatbins) norm0 /= 2500.; //(xsecw / (sumw * adhocw) ); // equals 2551.;
+        // if (!isdt and !jp::pthatbins) norm0 /= 2500.; //(xsecw / (sumw * adhocw) ); // equals 2551.;
 
         bool isgen = TString(obj2->GetName()).Contains("pt_g");
         bool isoth = (TString(obj2->GetName()).Contains("pt_no") ||
@@ -221,7 +223,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
         bool hptstuff = (string(obj2->GetName())=="hpt") or isjk or isjet;
 
         // Normalization for luminosity
-        if (jp::isdt and lumiref>0) {
+        if (isdt and lumiref>0) {
           bool ispre = (TString(obj2->GetName()).Contains("_pre"));
           if (ispre)
             norm0 *= lumiref;
@@ -275,7 +277,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
             }
 
             // Add data/MC scale factor for trigger efficiency
-            if (jp::isdt and !htrigeffsf) {
+            if (isdt and !htrigeffsf) {
               bool enterdir = dmc->cd(indir->GetName());
               assert(enterdir);
               TDirectory *dirmc = dmc->GetDirectory(indir->GetName());
@@ -294,8 +296,8 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
             if (htrigeffmc) { // not available for 'mc' directory
               outdir->cd();
               htrigeff = dynamic_cast<TH1D*>(htrigeffmc->Clone("htrigeff"));
-              assert(jp::ismc || htrigeffsf);
-              if (jp::isdt) htrigeff->Multiply(htrigeffsf);
+              assert(!isdt or htrigeffsf);
+              if (isdt) htrigeff->Multiply(htrigeffsf);
 
               TH1D *h = dynamic_cast<TH1D*>(indir->Get("hpt"));
               assert(outdir->FindObject("hpt_notrigeff")==0);
@@ -445,7 +447,7 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
             }
           }
         } // for binidx
-      } else if (jp::isdt) { // TH3, TH2 and TH1 that is not a hpt object
+      } else if (isdt) { // TH3, TH2 and TH1 that is not a hpt object
         // This we do only for data - there are no lumi weights to be applied for MC
         TString namehandle(name);
         TRegexp re_profile("^p");
@@ -488,4 +490,4 @@ void recurseFile(TDirectory *indir, TDirectory *outdir, double etawid, double et
   } // while key
 
   curdir->cd();
-} // recurseFile
+} // recurseNormFile
