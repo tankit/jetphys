@@ -1,5 +1,6 @@
 lumicalc/
 CondFormats
+JetMETCorrections
 *.root*
 *_C*
 *.log
@@ -10,6 +11,7 @@ CondFormats
 *.json*
 *.svn
 *.rootmap
+*.csv
 *doc*
 *tmp*
 *pdf
