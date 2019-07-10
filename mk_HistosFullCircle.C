@@ -15,27 +15,32 @@ R__LOAD_LIBRARY(DrawFracs.C+g)
 void mk_HistosFullCircle() {
   // Quick configuration settings:
   bool dodt    = false;
-  bool dopy    = true;
-  bool dohw    = true;
+  bool dopy    = false;
+  bool dohw    = false;
   bool donu    = true;
-  bool doall   = false;
+  bool doht    = true;
+  bool doall   = true;
   bool doplots = true;
   // Choose one: 0:16BCD,1:16EF,2:16GH,3:17B,4:17C,5:17DE,6:17F,7:18A,8:18B,9:18C,10:19D
   int lumidx = 2;
 
   // Output-*-2*.root files:
-  if (dodt) HistosNormalize("DATA");
-  if (dopy) HistosNormalize("MC");
-  if (dohw) HistosNormalize("HW");
-  if (donu) HistosNormalize("NU");
-  if (dopy) HistosFuse("MC");
-  if (dohw) HistosFuse("HW");
-  if (dodt)           HistosCombine("DATA");
-  if (!donu or doall) HistosCombine("MC");
-  if (!donu or doall) HistosCombine("HW");
-  if (donu and doall) HistosCombine("NU");
-  if (donu and dopy)  HistosCombine("MCNU");
-  if (donu and dohw)  HistosCombine("HWNU");
+  //if (dodt) HistosNormalize("DATA");
+  //if (dopy) HistosNormalize("MC");
+  //if (dohw) HistosNormalize("HW");
+  //if (donu) HistosNormalize("NU");
+  //if (doht) HistosNormalize("HT");
+  //if (donu and dopy) HistosFuse("MC");
+  //if (donu and dohw) HistosFuse("HW");
+  //if (donu and doht) HistosFuse("HT");
+  //if (dodt)                      HistosCombine("DATA");
+  //if ((!donu or doall) and dopy) HistosCombine("MC");
+  //if ((!donu or doall) and dohw) HistosCombine("HW");
+  //if ((!donu or doall) and dohw) HistosCombine("HW");
+  //if (donu and doall)            HistosCombine("NU");
+  //if (donu and dopy)             HistosCombine("MCNU");
+  //if (donu and dohw)             HistosCombine("HWNU");
+  //if (donu and doht)             HistosCombine("HTNU");
 
   // Plotting:
   if (doplots) {
@@ -58,6 +63,11 @@ void mk_HistosFullCircle() {
         mctypes.push_back("HWNU");
         dotfracs.push_back(false);
       }
+      if (doht) {
+        savedirs.push_back("htnupdf");
+        mctypes.push_back("HTNU");
+        dotfracs.push_back(false);
+      }
     }
     if (!donu or doall) {
       if (dopy) {
@@ -66,8 +76,13 @@ void mk_HistosFullCircle() {
         dotfracs.push_back(true);
       }
       if (dohw) {
-        savedirs.push_back("pypdf");
-        mctypes.push_back("MC");
+        savedirs.push_back("hwpdf");
+        mctypes.push_back("HW");
+        dotfracs.push_back(true);
+      }
+      if (dohw) {
+        savedirs.push_back("htpdf");
+        mctypes.push_back("HT");
         dotfracs.push_back(true);
       }
     }

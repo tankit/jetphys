@@ -152,8 +152,7 @@ bool IOV::setJEC(FactorizedJetCorrector** corr,FactorizedJetCorrector** l1rc,Jet
     *corr = _jecs[0].corr;
     *l1rc = _jecs[0].l1rc;
     if (jp::isdt) *unc = _jecs[0].unc;
-    for (auto &name: _jecs[0].names)
-      cout << "Loading ... " << name << endl;
+    for (auto &name: _jecs[0].names) cout << "Loading ... " << name << endl;
     return true;
   } else {
     // If the current IOV was not fine, search through all the IOVs

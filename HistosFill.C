@@ -1199,16 +1199,19 @@ bool HistosFill::AcceptEvent()
 
   // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 
+  bool doht = jp::isnu or (jp::htbins and !jp::pthatbins);
   if (jp::ismc) {
     ///////////////
     // Gen Jet loop
     ///////////////
+    double htsum = 0.0;
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
       genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
       gen_jtpt[gjetidx] = genp4.Pt();
       gen_jteta[gjetidx] = genp4.Eta(); // for matching
       gen_jtphi[gjetidx] = genp4.Phi(); // for matching
       gen_jty[gjetidx] = genp4.Rapidity();
+      if (doht) htsum += genp4.Pt();
 
       // Ozlem: loop for finding partonflavor by matching genjets and jets
       int ireco = -1;
@@ -1222,24 +1225,31 @@ bool HistosFill::AcceptEvent()
       else
         gen_partonflavor[gjetidx] = -1;
     } // for gjetidx
+    if (doht) pthat = htsum;
   } // MC
 
   _jetids.resize(njt);
-  for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid)
-    _jetids[jetid] = true;
+  for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid) _jetids[jetid] = true;
   FillJetID(_jetids);
 
 
   if (_pass) {
     // Check if overweight PU event
     if (jp::ismc and _pass) {
-      if (jtpt[i0] < 1.5*jtgenpt[i0] or jp::isnu) ++_cnt["09ptgenlim"];
-      else _pass = false;
-
-      if (_pass and (!jp::htbins or jp::pthatbins)) {
-        double lim = (pthat < 100) ? 2.0 : 1.5;
-        if (jtpt[i0] < lim*pthat or jp::isnu) ++_cnt["10pthatlim"];
+      if (!jp::isnu) {
+        if (jtpt[i0] < 1.5*jtgenpt[i0] or jp::isnu) ++_cnt["09ptgenlim"];
         else _pass = false;
+      }
+
+      if (_pass) {
+        if (doht) {
+          if (jtpt[i0] < pthat) ++_cnt["10htlim"];
+          else _pass = false;
+        } else {
+          double lim = (pthat < 100) ? 2.0 : 1.5;
+          if (jtpt[i0] < lim*pthat) ++_cnt["10pthatlim"];
+          else _pass = false;
+        }
       }
     }
     if (_pass and _jetids[i0]) // Non-restrictive
@@ -1478,8 +1488,10 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
   if (jp::debug) cout << Form("Subdirectory Eta_%1.1f-%1.1f/%s",h->etamin,h->etamax,h->trigname.c_str()) << endl;
   if (jp::debug) cout << "Calculate and fill dijet mass" << endl << flush;
 
-  if (h->ismcdir) h->hpthat->Fill(pthat, _w);
-  if (h->ismcdir) h->hpthatnlo->Fill(pthat);
+  if (h->ismcdir) {
+    h->hpthat->Fill(pthat, _w);
+    h->hpthatnlo->Fill(pthat);
+  }
 
   //{ Pre-calculate some nice garden tools
   int i0 = jt3leads[0];
@@ -1857,7 +1869,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           h->prho->Fill(pt, rho, _w);
           h->pnpv->Fill(pt, npvgood, _w);
           h->pnpvall->Fill(pt, npv, _w);
-          if (pt >= h->ptmin && pt < h->ptmax) { // Trigger pt range
+          if (pt >= h->ptmin and pt < h->ptmax) { // Trigger pt range
             h->htrpu2->Fill(trpu, _w);
             //
             h->pnpvvsrho->Fill(rho, npvgood, _w);
@@ -2953,7 +2965,7 @@ bool HistosFill::LoadLumi(const char* filename)
   cout << endl << "string: " << s << " !" << endl << flush;
 
   // HOX: the lumi file format has been changing. Change the conditions when needed.
-  if (s!="#Data tag : v2 , Norm tag: None") return false;
+  if (s!="#Data tag : 19v2 , Norm tag: None") return false;
 
   bool getsuccess2 = static_cast<bool>(getline(f, s, '\n'));
   if (!getsuccess2) return false;

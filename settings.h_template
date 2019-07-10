@@ -129,10 +129,10 @@ namespace jp {
   // Reapply json selection based on the latest one (check lumicalc if false!).
   constexpr bool dojson = true;
   const constexpr array<const char*,yrs> json_ = {
-    "lumicalc/Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt",
+    "lumicalc/Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON.txt",
     "lumicalc/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON_v1mod.txt",
     "lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
-    "lumicalc/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
+    "lumicalc/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt"
   };
   const constexpr char* json = json_.at(yid);
 
