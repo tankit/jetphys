@@ -816,7 +816,7 @@ bool HistosFill::AcceptEvent()
 
 
   if (jp::fetchMETFilters) {
-    if (FilterDecision_.size()==0) ++_cnt["03METFlt"];
+    if (jp::isnu or FilterDecision_.size()==0) ++_cnt["03METFlt"];
     else {
       // If we perform MET filtering, any filter firing will cause the event to be discarded.
       if (jp::doMETFiltering) return false;
@@ -1199,11 +1199,11 @@ bool HistosFill::AcceptEvent()
 
   // TODO: implement reweighing for k-factor (NLO*NP/LOMC)
 
-  bool doht = jp::isnu or (jp::htbins and !jp::pthatbins);
   if (jp::ismc) {
     ///////////////
     // Gen Jet loop
     ///////////////
+    bool doht = jp::isnu or (jp::htbins and !jp::pthatbins);
     double htsum = 0.0;
     for (int gjetidx = 0; gjetidx != gen_njt; ++gjetidx) {
       genp4.SetPxPyPzE(gen_jtp4x[gjetidx],gen_jtp4y[gjetidx],gen_jtp4z[gjetidx],gen_jtp4t[gjetidx]);
@@ -1225,17 +1225,12 @@ bool HistosFill::AcceptEvent()
       else
         gen_partonflavor[gjetidx] = -1;
     } // for gjetidx
-    if (doht) pthat = htsum;
-  } // MC
+    // In NuGun samples, we don't have gen jets
+    for (int jetidx = 0; jetidx != njt; ++jetidx) htsum += jtpt[jetidx];
+    if (doht) pthat = htsum/2.0;
 
-  _jetids.resize(njt);
-  for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid) _jetids[jetid] = true;
-  FillJetID(_jetids);
-
-
-  if (_pass) {
     // Check if overweight PU event
-    if (jp::ismc and _pass) {
+    if (_pass) {
       if (!jp::isnu) {
         if (jtpt[i0] < 1.5*jtgenpt[i0] or jp::isnu) ++_cnt["09ptgenlim"];
         else _pass = false;
@@ -1243,7 +1238,7 @@ bool HistosFill::AcceptEvent()
 
       if (_pass) {
         if (doht) {
-          if (jtpt[i0] < pthat) ++_cnt["10htlim"];
+          if (jtpt[i0] < 2.0*pthat) ++_cnt["10htlim"];
           else _pass = false;
         } else {
           double lim = (pthat < 100) ? 2.0 : 1.5;
@@ -1252,9 +1247,13 @@ bool HistosFill::AcceptEvent()
         }
       }
     }
-    if (_pass and _jetids[i0]) // Non-restrictive
-      ++_cnt["11jtid"];
-  }
+  } // MC
+
+  _jetids.resize(njt);
+  for (unsigned int jetid = 0; jetid != _jetids.size(); ++jetid) _jetids[jetid] = true;
+  FillJetID(_jetids);
+
+  if (_pass and _jetids[i0]) ++_cnt["11jtid"]; // Non-restrictive
 #ifdef NEWMODE
   // Equipped in FillBasic and FillRun
   _pass_qcdmet = met01 < 45. or met01 < 0.4 * metsumet01; // QCD-11-004
@@ -3221,13 +3220,15 @@ Long64_t HistosFill::LoadTree(Long64_t entry)
           ++_binnedmcrepeats;
         }
         // Normalization with the amount of entries within the current tree
-        _binnedmcweight  = (htmode ? jp::htsigmas[sliceIdx]/noevts : jp::pthatsigmas[sliceIdx]/noevts);
+        double sigmacurr = htmode ? jp::htsigmas[sliceIdx  ] : jp::pthatsigmas[sliceIdx  ];
+        double slicecurr = htmode ? jp::htranges[sliceIdx  ] : jp::pthatranges[sliceIdx  ];
+        double slicenext = htmode ? jp::htranges[sliceIdx+1] : jp::pthatranges[sliceIdx+1];
+        _binnedmcweight  = sigmacurr/noevts;
         // This is a normalization procedure by the luminosity of the furthest PtHat/HT bin.
         // In practice, it does not hurt if the normalevts number is arbitrary.
         _binnedmcweight /= (htmode ? (jp::htsigmas.back()/jp::htnormalevts) : (jp::pthatsigmas.back()/jp::pthatnormalevts));
-        PrintInfo(Form("The given slice has the %s range [%f,%f]\nWeight: %f, with a total of %lld events.",bintag,
-                  htmode ? jp::htranges[sliceIdx]   : jp::pthatranges[sliceIdx],
-                  htmode ? jp::htranges[sliceIdx+1] : jp::pthatranges[sliceIdx+1],_binnedmcweight,noevts),true);
+        PrintInfo(Form("The given slice has the %s range [%f,%f]\nWeight: %f, with a total x-sec %f pb and %lld events.",
+                  bintag,slicecurr,slicenext,_binnedmcweight,sigmacurr,noevts),true);
       } else {
         --_binnedmcrepeats;
         PrintInfo(Form("%s bin remains the same while file is changing.\nFile %s\nWeight: %f",
