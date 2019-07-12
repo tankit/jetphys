@@ -136,9 +136,9 @@ bool HistosFill::Init(TChain *tree)
   fChain->SetBranchAddress(Form("PFJets%s_.genP4_.fCoordinates.fT",jp::chs), PFJetsCHS__genP4__fCoordinates_fT);
 #endif
 #ifdef NEWMODE
-    fChain->SetBranchAddress(Form("PFJets%s_.QGL_",jp::chs), PFJetsCHS__QGL_); // qgl
+  fChain->SetBranchAddress(Form("PFJets%s_.QGL_",jp::chs), PFJetsCHS__QGL_); // qgl
 #else
-    fChain->SetBranchAddress(Form("PFJets%s_.QGtagger_",jp::chs), PFJetsCHS__QGL_); // qgl
+  fChain->SetBranchAddress(Form("PFJets%s_.QGtagger_",jp::chs), PFJetsCHS__QGtagger_); // qgl
 #endif
   fChain->SetBranchAddress(Form("PFJets%s_",jp::chs), &PFJetsCHS__);
   fChain->SetBranchAddress(Form("PFJets%s_.P4_.fCoordinates.fX",jp::chs), PFJetsCHS__P4__fCoordinates_fX);
@@ -214,6 +214,7 @@ bool HistosFill::Init(TChain *tree)
     fChain->SetBranchStatus(Form("PFJets%s_.QGtagger_",jp::chs),1); // qgl
 #endif
     if (jp::ismc) fChain->SetBranchStatus(Form("PFJets%s_.partonFlavour_",jp::chs),1);
+    if (jp::ismc) fChain->SetBranchStatus(Form("PFJets%s_.partonFlavourPhysicsDef_",jp::chs),1);
 
     // Component fractions
     fChain->SetBranchStatus(Form("PFJets%s_.chf_",jp::chs),1); // jtchf
@@ -669,7 +670,7 @@ bool HistosFill::PreRun()
     assert(h2HotExcl and "erroneous eta-phi exclusion type");
     PrintInfo(Form("Loading hot zone corrections rootfiles/hotjets-run%s.root with h2hot %s",HotTag.c_str(),jp::HotType));
   }
-
+/*
   // Qgl: load quark/gluon probability histos (Ozlem)
   // 1. open the previous output-MC-1_iteration1.root in the beginning
   // 2. get the hqgl_q and hqgl_g for each eta bin, store in array
@@ -718,7 +719,7 @@ bool HistosFill::PreRun()
       } // for ipt
     } // for ieta
   }
-
+*/
   PrintInfo("Finished pre-run processing!",true);
   return true;
 }
@@ -1187,7 +1188,11 @@ bool HistosFill::AcceptEvent()
           ireco = j;
       } // for j
       if (ireco!=-1)
-        gen_partonflavor[gjetidx] = Int_t(partonflavor[ireco]+0.25);
+#ifdef NEWMODE
+        gen_partonflavor[gjetidx] = Int_t(partonflavorphys[ireco]+0.25); //qglokan
+#else
+	gen_partonflavor[gjetidx] = Int_t(partonflavor[ireco]+0.25); //qglokan
+#endif
       else
         gen_partonflavor[gjetidx] = -1;
     } // for gjetidx
@@ -1903,7 +1908,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           h->pmpf1->Fill(pt, 1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
           h->pmpf2->Fill(pt, 1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
 
-          // Histograms for quark/gluon study (Ozlem)
+         /* // Histograms for quark/gluon study (Ozlem)
           double probg = 1. - qgl[jetidx]; // First approximation
           if (jp::doqglfile) { // If we loaded a previous file to _h3probg, use this for a better probg value
             assert(_h3probg);
@@ -1912,15 +1917,26 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           if (probg>=0 and probg<=1) {
             assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
             assert(h->hgpt0); h->hgpt0->Fill(pt, _w*probg);
+*/	  if (true) {
 
             assert(h->hqgl);  h->hqgl->Fill(qgl[jetidx], _w);
             assert(h->hqgl2); h->hqgl2->Fill(pt, qgl[jetidx], _w);
             if (jp::ismc) {
               assert(h->hqgl_g);
               assert(h->hqgl_q);
-              bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5);
-              bool isquark = (fabs(partonflavor[jetidx])<7);
-              assert(isgluon || isquark);
+#ifdef NEWMODE
+              //bool isgluon = (fabs(partonflavorphys[jetidx]-21)<0.5); //qglokan
+              //bool isquark = (fabs(partonflavorphys[jetidx])<7); //qglokan
+	      //we need unmatched ones
+              bool isgluon = (fabs(partonflavorphys[jetidx]-21)<0.5); //qglokan
+              bool isquark = (fabs(partonflavorphys[jetidx])<6 && partonflavorphys[jetidx]!=0); //qglokan why we are ingnoring t(6) b'(7) t'(8)
+              bool isunmatch=((fabs(partonflavorphys[jetidx])>=6 && partonflavorphys[jetidx]!=21) || partonflavorphys[jetidx]==0);
+#else
+              bool isgluon = (fabs(partonflavor[jetidx]-21)<0.5); //qglokan
+              bool isquark = (fabs(partonflavor[jetidx])<6 && partonflavor[jetidx]!=0); //qglokan why we are ingnoring t(6) b'(7) t'(8)
+              bool isunmatch=(fabs(partonflavor[jetidx])<7); //qglokan
+#endif
+              assert(isgluon || isquark || isunmatch);
 
               // For data templates from scaling Pythia (wq & wg), see instructions at
               // https://twiki.cern.ch/twiki/bin/viewauth/CMS/QuarkGluonLikelihood#Systematics
@@ -1939,7 +1955,14 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(wq>0);
                 h->hqgl_dq->Fill(x, _w*wq);
                 h->hqgl2_dq->Fill(pt, x, _w*wq);
-              } else {
+              } else if(isunmatch){
+                h->hqgl_u->Fill(x, _w);
+                h->hqgl2_u->Fill(pt, x, _w);
+                double wg = 1;//-55.7067*pow(x,7) + 113.218*pow(x,6) -21.1421*pow(x,5) -99.927*pow(x,4) + 92.8668*pow(x,3) -34.3663*x*x + 6.27*x + 0.612992;
+                assert(wg>0);
+                h->hqgl_du->Fill(x, _w*wg);
+                h->hqgl2_du->Fill(pt, x, _w*wg);
+              }else {
                 PrintInfo("Quark/Gluon status missing from partonflavor");
               }
             }
@@ -1957,8 +1980,15 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
 
             h->hpt_gtw->Fill(ptgen, _w);
             // Ozlem: (gluon vs quark)
-            if (partonflavor[jetidx]==21) h->hgpt_g->Fill(ptgen, _w);
-            else h->hqpt_g->Fill(ptgen, _w);
+#ifdef NEWMODE
+            if (partonflavorphys[jetidx]==21) h->hgpt_g->Fill(ptgen, _w); //qglokan we need unmatched ones
+	    else if (abs(partonflavorphys[jetidx])<6 && partonflavorphys[jetidx]!=0) h->hqpt_g->Fill(ptgen, _w);
+	    else h->hupt_g->Fill(ptgen, _w); 
+#else
+            if (partonflavor[jetidx]==21) h->hgpt_g->Fill(ptgen, _w); //qglokan
+            else if (abs(partonflavor[jetidx])<6 && partonflavor[jetidx]!=0) h->hqpt_g->Fill(ptgen, _w);
+            else h->hupt_g->Fill(ptgen, _w);
+#endif
 
             h->ppt_r->Fill(pt, pt, _w);
             h->ppt_g->Fill(ptgen, ptgen, _w);
@@ -2014,8 +2044,9 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
 
         h->hpt_g0tw->Fill(ptgen, _w);
         // Ozlem: (gluon vs quark)
-        if (gen_partonflavor[gjetidx]==21) h->hgpt_g0tw->Fill(ptgen, _w);
-        else h->hqpt_g0tw->Fill(ptgen, _w);
+        if (gen_partonflavor[gjetidx]==21) h->hgpt_g0tw->Fill(ptgen, _w); //qglokan
+	else if(abs(gen_partonflavor[gjetidx])<6 && gen_partonflavor[gjetidx]!=0) h->hqpt_g0tw->Fill(ptgen, _w);
+        else h->hupt_g0tw->Fill(ptgen, _w);
 
         // unfolding studies (Mikael)
         if (h->ismcdir) { // Only the 'mc' trigger
@@ -2028,8 +2059,9 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
 
           h->hpt_g0->Fill(gen_jtpt[gjetidx], _w);
           // Ozlem: (gluon vs quark)
-          if (gen_partonflavor[gjetidx]==21) h->hgpt_g0->Fill(gen_jtpt[gjetidx], _w);
-          else h->hqpt_g0->Fill(gen_jtpt[gjetidx], _w);
+          if (gen_partonflavor[gjetidx]==21) h->hgpt_g0->Fill(gen_jtpt[gjetidx], _w); //qglokan
+          else if(abs(gen_partonflavor[gjetidx])<6 && gen_partonflavor[gjetidx]!=0) h->hqpt_g0->Fill(gen_jtpt[gjetidx], _w);
+          else h->hupt_g0->Fill(gen_jtpt[gjetidx], _w);
 
           assert(h->hpt_g0_tmp); h->hpt_g0_tmp->Fill(gen_jtpt[gjetidx]);
         } // mcdir (a subset of jp::ismc)

@@ -78,22 +78,29 @@ class HistosBasic {
 
   TH1D *hgpt_g0tw;
   TH1D *hqpt_g0tw;
+  TH1D *hupt_g0tw; // unmatched
   TH1D *hgpt_g0;
   TH1D *hqpt_g0;
-  TH1D *hgpt_g;
+  TH1D *hupt_g0; // unmatched 
+  TH1D *hgpt_g; // gluons vs get pT
   TH1D *hqpt_g;
+  TH1D *hupt_g; // unmatched vs gen pT
   //
   TH1D *hqgl;
   TH1D *hqgl_q;
   TH1D *hqgl_g;
+  TH1D *hqgl_u;
   TH1D *hqgl_dq;
   TH1D *hqgl_dg;
+  TH1D *hqgl_du;
   //
   TH2D *hqgl2;
   TH2D *hqgl2_g;
   TH2D *hqgl2_q;
+  TH2D *hqgl2_u;
   TH2D *hqgl2_dg;
   TH2D *hqgl2_dq;
+  TH2D *hqgl2_du;
 
   // basic properties
   TProfile *ppt;
