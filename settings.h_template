@@ -65,19 +65,24 @@ namespace jp {
   const unsigned int   yid = 0; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
+  // Choose DT pileup era to be used with MC
+  // 16: 0=BCD, 1=EF, 2=GH, 3=BCDEFGH
+  // 17: 0=B, 1=C, 2=DE, 3=F, 4=BCDEF
+  // 18: 0=A, 1=B, 2=C, 3=D, 4=ABCD
+  const unsigned int PUIOVidx = 2;
   // Do we use pthat binned MC (if not, we use flat or htbinned)
   constexpr bool pthatbins = false;
   // Do we use ht binned MC (if not, we use flat; if yes pthatbins must be set to false)
-  constexpr bool htbins = true;
+  constexpr bool htbins = false;
   //} END fundamental settings
 
   //{ BEGIN run settings
   // Number of events to process (-1 for all)
   constexpr Long64_t nentries =
-  -1; // all
+  //-1; // all
   //10; // debug
   //100; //debug
-  //1000;
+  1000;
   //10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
@@ -403,7 +408,7 @@ namespace jp {
     const map<string,vector<const char*>> mcfiles = mcfiles_.at(yid);
     //}
 
-    //{ BEGIN MC: Process pThatbinned file options
+    //{ BEGIN MC: Process pThat binned file options
     // All the following values need to be updated, if other source tuples are used.
     const array<const char*,yrs> pthatpath_ = {
       "MC/2016/P8M1/",
@@ -423,8 +428,14 @@ namespace jp {
     // Hints for the correct file names can be found here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/InclusiveJetsLegacy
     // If the information is not to be found, check the file names from here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/InclusiveJetsLegacy
     // If the cross section info is not showing up, click on the "Dataset name" link.
-    const vector<double> pthatsigmas =
-      {1837410000,140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445};
+    const array<vector<double>,yrs> pthatsigmas_ = {{
+      {1820000000,138900000,19100000,2735000,467500,117400,7753,642.1,185.9,32.05,9.365,0.8398,0.1124 ,0.006752,0.0001626},
+      {1246000000,106900000,15710000,2336000,407300,103500,6830,552.1,156.5,26.28,7.47 ,0.6484,0.08743,0.005236,0.0001357},
+      {1246000000,106900000,15710000,2336000,407300,103500,6830,552.1,156.5,26.28,7.47 ,0.6484,0.08743,0.005236,0.0001357},
+      {1246000000,106900000,15710000,2336000,407300,103500,6830,552.1,156.5,26.28,7.47 ,0.6484,0.08743,0.005236,0.0001357},
+//    {1837410000,140932000,19204300,2762530,471100,117276,7823,648.2,186.9,32.293,9.4183,0.84265,0.114943,0.00682981,0.000165445}
+    }};
+    const vector<double> pthatsigmas = pthatsigmas_.at(yid);
     // These can be obtained using GetSliceEvts.C: the 3200toInf number of events
     const array<double,yrs> pthatnormalevts_ = {{
       391735,
@@ -440,7 +451,7 @@ namespace jp {
       "Pthat_300to470","Pthat_470to600","Pthat_600to800","Pthat_800to1000","Pthat_1000to1400",
       "Pthat_1400to1800","Pthat_1800to2400","Pthat_2400to3200","Pthat_3200toInf"
     };
-    //} END pthatbins stuff
+    //} END MC pThat bins stuff
 
     //{ BEGIN MC: Process HTbinned file options
     // All the following values need to be updated, if other source tuples are used.
@@ -463,10 +474,11 @@ namespace jp {
     // If the information is not to be found, check the file names from here: https://twiki.cern.ch/twiki/bin/viewauth/CMS/InclusiveJetsLegacy
     // If the cross section info is not showing up, click on the "Dataset name" link.
     const array<vector<double>,yrs> htsigmas_ = {{
-      {278700000,33610000,1123000,526100,25920,7922,1600,108.1,29.02},
-      { 19380000,19380000,1559000,311900,29070,5962,1005,101.8,20.54},
-      { 19380000,19380000,1559000,311900,29070,5962,1005,101.8,20.54},
-      { 19380000,19380000,1559000,311900,29070,5962,1005,101.8,20.54}
+      {246300000,28060000,1710000,347500,32060,6829,1207,120.0,25.25},
+      { 23700000,23700000,1547000,322600,29980,6334,1088,99.11,20.23},
+      { 23700000,23700000,1547000,322600,29980,6334,1088,99.11,20.23},
+      { 23700000,23700000,1547000,322600,29980,6334,1088,99.11,20.23},
+//    { 19380000,19380000,1559000,311900,29070,5962,1005,101.8,20.54},
     }};
     const vector<double> htsigmas = htsigmas_.at(yid);
     // These can be obtained using GetSliceEvts.C: the 3200toInf number of events.
@@ -484,7 +496,34 @@ namespace jp {
       "HT_50to100","HT_100to200","HT_200to300","HT_300to500","HT_500to700",
       "HT_700to1000","HT_1000to1500","HT_1500to2000","HT_2000toInf"
     };
-    //} END htbins stuff
+    //} END MC htbins stuff
+
+    //{ BEGIN MC pileup files for reweighting purposes. MC PU profile is reweighted to match Data.
+    constexpr bool reweighPU = true;
+    constexpr const double maxpu = 80.0;
+
+    const array<vector<string>,yrs> PUIOVs_ = {{
+      {"BCD/","EF/","GH/","BCDEFGH/"},
+      {"B/","C/","DE/","F/","BCDEF/"},
+      {"F/"}, // Run2017F is used for Run2017H (lowpu)
+      {"A/","B/","C/","D/","ABCD/"},
+    }};
+    const vector<string> PUIOVs = PUIOVs_.at(yid);
+
+    const array<string,yrs> pudtpath_ =
+      {"pileup/DT/16_LRRAUG/","pileup/DT/17_RRMAR/","pileup/DT/17_RRMAR/","pileup/DT/18_Impro/"};
+    const string pudtpath = pudtpath_.at(yid);
+    const array<string,yrs> pumcpath_ =
+      {"pileup/MC/16/","pileup/MC/17/","pileup/MC/17/","pileup/MC/18/"};
+    const string pumcpath = pumcpath_.at(yid);
+    const array<string,yrs> pup8file_ =
+      {"pileup_P8M1.root","pileup_P8CP5.root","pileup_P8CP5.root","pileup_P8CP5.root"};
+    const string pup8file = pup8file_.at(yid);
+    const array<string,yrs> puhwfile_ =
+      {"pileup_HS1.root","pileup_HS1.root","pileup_HS1.root","pileup_H7.root"};
+    const string puhwfile = puhwfile_.at(yid);
+    //} END MC pileup files
+
   //} END DT/MC: File names
 
   // pT limits for unfolding
@@ -697,14 +736,6 @@ namespace jp {
   constexpr const char* mcfile = yid==0 ? "P8M1" : "P8CP5";
   constexpr const char* hwfile = yid==4 ? "H7" : "HS1";
   constexpr const char* nufile = "NuGun";
-  //{ BEGIN For MC reweighting purposes. MC PU profile is reweighted to match Data.
-  constexpr bool reweighPU = true;
-  constexpr const char* pudata = "pileup/curr/pileup_DT.root";
-  constexpr const char* pumc   = "pileup/curr/pileup_MC.root";
-  constexpr const char* puhw   = "pileup/curr/pileup_HW.root";
-  constexpr const char* punu   = "pileup/curr/pileup_NU.root";
-  constexpr const double maxpu = 80.0;
-  //} END PU profiles
 
   // Luminosity weighting options (DATA)
   // Do we use trigger lumi weighting (see triglumi or triglumiera)
