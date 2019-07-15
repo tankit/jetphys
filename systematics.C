@@ -15,6 +15,16 @@
 #include "ptresolution.h"
 #include "tools.h"
 #include "settings.h"
+
+#include "CondFormats/JetMETObjects/src/Utilities.cc"
+
+// #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/SimpleJetCorrector.h"
+#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
+// For JEC uncertainty
+#include "CondFormats/JetMETObjects/interface/SimpleJetCorrectionUncertainty.h"
+
+
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
@@ -29,7 +39,7 @@ Double_t smearedAnsatzKernel(Double_t *x, Double_t *p) {
   const double res = ptresolution(pt, eta+1e-3) * pt * (1. + p[6]);
   const double s = TMath::Gaus(p[0], pt, res, kTRUE);
   const double f = p[1] * exp(p[2]/pt) * pow(pt, p[3])
-    * pow(1 - pt*cosh(eta)/jp::emax., p[4]);
+    * pow(1 - pt*cosh(eta)/jp::emax, p[4]);
 
   return (f * s);
 }
@@ -52,7 +62,9 @@ Double_t smearedAnsatz(Double_t *x, Double_t *p) {
   const double par[7] = {pt, p[0], p[1], p[2], p[3], p[4], p[5]};
   _kernel->SetParameters(&par[0]);
 
-  return ( _kernel->Integral(xmin, xmax, &par[0], _epsilon) );
+  //  return ( _kernel->Integral(xmin, xmax, &par[0], _epsilon) );
+ return ( _kernel->Integral(xmin, xmax, _epsilon) );
+
 }
 
 // JEC systematics are evaluated in two ways:
@@ -108,7 +120,8 @@ void systematics(string type) {
   // due to correlations between unfolding and JEC
 
   // Unfolded data
-  TFile *fin = new TFile(Form("output-%s-3.root",type.c_str()),"READ");
+  //   TFile *fin = new TFile(Form("output-%s-3.root",type.c_str()),"READ");
+ TFile *fin = new TFile(Form("output-%s-2c.root",type.c_str()),"READ");
   assert(fin && !fin->IsZombie());
 
   // Raw data
@@ -165,7 +178,7 @@ void systematics(string type) {
 
       // Process subdirectory
       sysc *cjec  = jec_systematics(dzr,dunc,dpl,dmn, dout, type, "tot");
-      if(cjec);
+     //  if(cjec)  //;
       sysc *cjec1 = jec_systematics(dzr,dunc,dpl,dmn, dout, type, "abs");
       sysc *cjec2 = jec_systematics(dzr,dunc,dpl,dmn, dout, type, "rel");
       sysc *cjec3 = jec_systematics(dzr,dunc,dpl,dmn, dout, type, "bjt");
@@ -202,7 +215,9 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
   // Load the uncertainty
   TH1D *hunc = (TH1D*)dunc->Get("punc"); assert(hunc);
   //JetCorrectionUncertainty *func = new JetCorrectionUncertainty(Form("CondFormats/JetMETObjects/data/GR_R_42_V23_Uncertainty_%sPF.txt",jp::algo));
-  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", jp::jecgt, jp::type, jp::algo);
+  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", jp::jecgt.c_str(), jp::type, jp::algo);
+  //const char s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt", jp::jecgt, jp::type, jp::algo);
+
   cout << s << endl << flush;
   JetCorrectionUncertainty *func = new JetCorrectionUncertainty(s.c_str());
   const char *jt = jectype.c_str();
@@ -262,10 +277,10 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
   TH1D *hjav = (TH1D*)hzr->Clone(Form("hjec_%s_av", jt));
   hjav->Reset();
 
-  string s = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt",
-                  jp::jecgt, jp::type, jp::algo);
-  cout << s << endl << flush;
-  JetCorrectionUncertainty *rjet = new JetCorrectionUncertainty(s.c_str());
+  string s2 = Form("CondFormats/JetMETObjects/data/%s_%s_Uncertainty_%sPF.txt",
+		   jp::jecgt.c_str(), jp::type, jp::algo);
+  cout << s2 << endl << flush;
+  JetCorrectionUncertainty *rjet = new JetCorrectionUncertainty(s2.c_str());
 
   for (int i = 1; i != hzr->GetNbinsX()+1; ++i) {
 
@@ -305,7 +320,7 @@ sysc *jec_systematics(TDirectory *dzr, TDirectory *dunc,
 
 	double djec0 = djec;
 	double djec1 = djec;
-	if (type==""); // suppress warning
+	//	if (type==""); // suppress warning
 
 	assert(xmax!=xmin);
 	double ypl = fpt->Integral(xmin/(1+djec0), xmax/(1+djec1)) / (xmax-xmin);
@@ -448,11 +463,18 @@ sysc *jer_systematics(TDirectory *din, TDirectory *dout,
   assert(sscanf(din->GetName(),"Eta_%f-%f",&etamin,&etamax)==2);
 
   TH1D *hzr = (TH1D*)din->Get(_th ? "hnlo" : "hpt"); assert(hzr);
-
+  
   TF1 *fpt0 = (TF1*)din->Get(_th ? "fnlo" : "fus"); assert(fpt0);
   fpt0->SetName("fpt0");
+
+
+  double xmin =jp::recopt;
+  double xmax =  jp::emax; // Guess xmin and xmax to fix this error
+
+  
   TF1 *fpt = new TF1("fpt2","[0]*exp([1]/x)*pow(x,[2])"
 		     "*pow(1-x*cosh([4])/[5].,[3])",xmin,xmax);
+
   fpt->SetParameters(fpt0->GetParameter(0), fpt0->GetParameter(1),
 		     fpt0->GetParameter(2), fpt0->GetParameter(3),
 		     fpt0->GetParameter(4), fpt0->GetParameter(5));
@@ -739,11 +761,11 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
   TH1D *hnlo = (TH1D*)dth->Get("hnlo"); assert(hnlo);
   TF1 *fnlo0 = (TF1*)dth->Get("fnlo"); assert(fnlo0); fnlo0->SetName("fnlo0");
   TF1 *fnlo = new TF1("fnlo","[0]*exp([1]/x)*pow(x,[2])"
-		     "*pow(1-x*cosh([4])/[5], [3])",
+		     "*pow(1-x*cosh([4])/3500, [3])",
 		      jp::recopt, jp::emax);
   fnlo->SetParameters(fnlo0->GetParameter(0), fnlo0->GetParameter(1),
 		      fnlo0->GetParameter(2), fnlo0->GetParameter(3),
-		      fnlo0->GetParameter(4), fnlo0->GetParamater(5));
+		      fnlo0->GetParameter(4)); //, fnlo0->GetParamater(5));
 
   // make sure new histograms get created in the output file
   dout->cd();
@@ -763,7 +785,7 @@ void sourceBin(TDirectory *dth, TDirectory *dout) {
   for (int isrc = 0; isrc != nsrc; ++isrc) {
 
     string s = Form("CondFormats/JetMETObjects/data/%s_%s_UncertaintySources_%sPF.txt",
-                    jp::jecgt, jp::type, jp::algo);
+                    jp::jecgt.c_str(), jp::type, jp::algo);
     cout << s << endl << flush;
     JetCorrectorParameters *p = new JetCorrectorParameters(s.c_str(),
 							   srcnames[isrc]);

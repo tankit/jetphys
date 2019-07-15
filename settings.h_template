@@ -46,6 +46,8 @@ using std::regex;
 #define NEWMODE
 
 namespace jp {
+  // Use output-MC-1 instead of MC-2b (or NLOxNP) in dagostini.C
+  constexpr bool dagfile1 = false; // true;
 
   //{ BEGIN fundamental file settings
   // Data type "DATA"/"MC"/"HW"/"NU".
@@ -76,7 +78,7 @@ namespace jp {
   //10; // debug
   //100; //debug
   //1000;
-  //10000; // shorter test run
+  // 10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
   //2500000; // shortish test run
@@ -183,9 +185,9 @@ namespace jp {
   // Trigger ranges (differ from thresholds)
   const array<vector<array<double,2>>,yrs> trigranges_ = {{
     {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,6500}          }},
-    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
+    {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}},
     {{{0,28},{28,37},{37,49},{49,84},{84,114},{114,196},{196,272}}},
-    {{{0,49},{49,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
+    {{{0,64},{64,84},{84,114},{114,196},{196,272},{272,330},{330,395},{395,468},{468,548},{548,686},{686,6500}}}
   }}; // V[5,6], AK4
   const vector<array<double,2>> trigranges = trigranges_.at(yid);
 
@@ -195,7 +197,7 @@ namespace jp {
     { 29036.821,250019.11 , 676345.122,2602658.803,22609385.05 , 96089534.929,559334225.38 ,1663980103.656,4870543838.98 ,34184232596.775                }, // 2016
     { 75086.268,340487.186, 998075.452,4171433.311,39740193.824,218749681.165,555199860.716,1407215678.758,4213837750.579,10451819594.184,41521111348.432}, // 2017
     {     1.   ,     1.   ,      1.   ,      1.   ,       1.   ,        1.   ,        1.}, // H Dummy values
-    { 75831.608,231122.765, 764683.719,4998554.8  ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}  // 2018
+    { 75831.608,231122.765, 764683.719,4998554.8 ,46417090.061,199877328.665,455315402.462,1751671521.33 ,3618303294.319, 7193355038.764,57269453309.189}   // 2018
   }}; // in /ub
   const vector<double> triglumi = triglumi_.at(yid);
 
@@ -293,10 +295,6 @@ namespace jp {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
     "Fall17_17Nov2017",
-    //"Fall17_17Nov2017"
-    //"Fall17_09May2018",
-    //"Fall17_09May2018",
-    //"Fall17_09May2018"
     "Autumn18"
   };
   const string jecgt = jecgt_.at(yid);
@@ -304,16 +302,14 @@ namespace jp {
     "_V20",
     "_V32",
     "_V32",
-    "_V6"
+    "_V10"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V20",
     "_V32",
-    "_V32",
-    //"_V3",
-    //"_V3",
-    "_V5"
+    "_V7"
+    "_V10"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -331,14 +327,13 @@ namespace jp {
     { {272760,276811},{276831,278801},{278802,284045} }, // BCD, EF(early), (Flate)GH
     { {297020,299329},{299337,302029},{302030,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
-    { {315000,316999},{317000,319079},{319080,320099},{320100,400000} } // A,B,C,D
+    { {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES, JER and JEC
 
   //{ BEGIN DT/MC: File options
 
-    //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
       {"Data/2016/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
     constexpr const char* dtpath = dtpath_.at(yid);
@@ -490,8 +485,12 @@ namespace jp {
       "HT_700to1000","HT_1000to1500","HT_1500to2000","HT_2000toInf"
     };
     //} END htbins stuff
-
   //} END DT/MC: File names
+
+  // pT limits for unfolding
+  constexpr double unfptminreco = 60; // recopt; //40; recopt needs to be bigger than genpt
+  constexpr double unfptmingen = 40;
+  constexpr double unfptminnlo = 15;
 
   //{ BEGIN Binnings
   // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
@@ -768,7 +767,7 @@ namespace jp {
 
   //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
   // Minimum and maximum pT range to be plotted and fitted
-  constexpr double fitptmin = 114;//43;
+  constexpr double fitptmin = 15;
   // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
   constexpr double xmin57 = 114;//56;
   constexpr double xminpas = 114;//56;
