@@ -1960,8 +1960,6 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           if (probg>=0 and probg<=1) {
             assert(h->hgpt);  h->hgpt->Fill(pt,_w*probg);
             assert(h->hgpt0); h->hgpt0->Fill(pt, _w*probg);
-        if (true) {
-
             assert(h->hqgl);  h->hqgl->Fill(qgl[jetidx], _w);
             assert(h->hqgl2); h->hqgl2->Fill(pt, qgl[jetidx], _w);
             if (jp::ismc) {

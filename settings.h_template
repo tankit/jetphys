@@ -442,7 +442,6 @@ namespace jp {
     };
     //} END pthatbins stuff
 
-<<<<<<< HEAD
     //{ BEGIN MC: Process HTbinned file options
     // All the following values need to be updated, if other source tuples are used.
     const array<const char*,yrs> htpath_ = {
