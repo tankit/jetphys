@@ -190,9 +190,9 @@ public :
   bool             GetFilters();
   bool             GetTriggers();
 
-  bool             LoadJSON(const char* filename);
-  bool             LoadLumi(const char* filename);
-  bool             LoadPuProfiles(const char* datafile, const char* mcfile);
+  bool             LoadJSON();
+  bool             LoadLumi();
+  bool             LoadPuProfiles();
 
   void             InitBasic(string name);
   void             FillBasic(string name);
