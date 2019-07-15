@@ -224,11 +224,8 @@ void recurseNormFile(TDirectory *indir, TDirectory *outdir, bool isdt, double et
 
         // Normalization for luminosity
         if (isdt and lumiref>0) {
-          bool ispre = (TString(obj2->GetName()).Contains("_pre"));
-          if (ispre)
-            norm0 *= lumiref;
-          else if (lumi>0)
-            norm0 *= lumi/lumiref;
+          if (TString(obj2->GetName()).Contains("_pre")) norm0 *= lumiref;
+          else if (lumi>0)                               norm0 *= lumi/lumiref;
         }
 
         // Scale normalization for jackknife (but why?)
@@ -406,9 +403,8 @@ void recurseNormFile(TDirectory *indir, TDirectory *outdir, bool isdt, double et
           double norm = hpt->GetBinWidth(binidx) * norm0;
           double trigeff = 1.;
           double pt = hpt->GetBinCenter(binidx);
-          // Normalization for all the common efficiencies
-          if (jp::dotrigeffsimple and !isgen and peff->GetBinContent(binidx)!=0)
-            norm *= peff->GetBinContent(binidx);
+          // Normalization for all the common efficiencies (by default, off)
+          if (jp::dotrigeffsimple and !isgen and peff->GetBinContent(binidx)!=0) norm *= peff->GetBinContent(binidx);
 
           // Test MC-based normalization for trigger efficiency
           if (htrigeff) {
@@ -440,12 +436,9 @@ void recurseNormFile(TDirectory *indir, TDirectory *outdir, bool isdt, double et
             hpt_withtimedep->SetBinError(binidx, hpt_withtimedep->GetBinError(binidx)/ norm_notime);
           }
 
-          if (jp::dotrigeffsimple and !isgen and !isoth) {
-            if (peff->GetBinContent(binidx)==0 and hpt->GetBinContent(binidx)!=0) { // Zero peff but non-zero hpt
-              if (hpt->GetBinCenter(binidx)>jp::recopt and hpt->GetBinCenter(binidx)*cosh(etamid)<3500.) // Good pt and eta region
-                cerr << "Hist " << hpt->GetName() << " " << indir->GetName() << " pt=" << hpt->GetBinCenter(binidx) << " etamid = " << etamid << endl << flush;
-            }
-          }
+          // By default off, done for some data histos, require Zero peff but non-zero hpt and a good pt & eta region
+          if (jp::dotrigeffsimple and !isgen and !isoth and peff->GetBinContent(binidx)==0 and hpt->GetBinContent(binidx)!=0 and hpt->GetBinCenter(binidx)>jp::recopt and hpt->GetBinCenter(binidx)*cosh(etamid)<3500.)
+            cerr << "Hist " << hpt->GetName() << " " << indir->GetName() << " pt=" << hpt->GetBinCenter(binidx) << " etamid = " << etamid << endl << flush;
         } // for binidx
       } else if (isdt) { // TH3, TH2 and TH1 that is not a hpt object
         // This we do only for data - there are no lumi weights to be applied for MC

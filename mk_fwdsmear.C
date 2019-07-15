@@ -17,12 +17,20 @@
   #include "RooUnfold/src/RooUnfoldResponse.h"
 
   R__LOAD_LIBRARY(RooUnfold/libRooUnfold.so)
-  R__LOAD_LIBRARY(dagostini.C+)
-  R__LOAD_LIBRARY(drawdagostini.C+)
+  R__LOAD_LIBRARY(fwdsmear.C+)
+
+
 
   #include "settings.h"
 
- void mk_dagostini() {
- dagostiniUnfold(jp::type);
- drawDagostini(jp::type);
+ void mk_fwdsmear() {
+
+
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/Utilities.cc+g");
+  gROOT->ProcessLine(".L CondFormats/JetMETObjects/src/JetResolutionObject.cc+g");
+  gROOT->ProcessLine(".L JetMETCorrections/Modules/src/JetResolution.cc+g");
+
+     
+ fwdsmearUnfold(jp::type);
+
 }

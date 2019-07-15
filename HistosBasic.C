@@ -53,8 +53,10 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   hpt_g0tw = new TH1D("hpt_g0tw","",nx,&x[0]); // _mc per trigger
   hgpt_g0tw = new TH1D("hgpt_g0tw","",nx,&x[0]);//Ozlem
   hqpt_g0tw = new TH1D("hqpt_g0tw","",nx,&x[0]);//Ozlem
+  hupt_g0tw = new TH1D("hupt_g0tw","",nx,&x[0]);//// unmatched
   hgpt_g0 = new TH1D("hgpt_g0","",nx,&x[0]);//Ozlem
   hqpt_g0 = new TH1D("hqpt_g0","",nx,&x[0]);//Ozlem
+  hupt_g0 = new TH1D("hupt_g0","",nx,&x[0]);// unmatched 
   hcopt = new TH1D("hcopt","",nx,&x[0]);
 
 
@@ -274,15 +276,19 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   hqgl = new TH1D("hqgl","",101,0,1.01);
   hqgl_q = new TH1D("hqgl_q","",101,0,1.01);
   hqgl_g = new TH1D("hqgl_g","",101,0,1.01);
+  hqgl_u = new TH1D("hqgl_u","",101,0,1.01);
   hqgl_dq = new TH1D("hqgl_dq","",101,0,1.01);
   hqgl_dg = new TH1D("hqgl_dg","",101,0,1.01);
+  hqgl_du = new TH1D("hqgl_du","",101,0,1.01);
 
   // add TH2Ds for pT bins here
   hqgl2 =  new TH2D("hqgl2","",nx,&x[0],101,0,1.01);
   hqgl2_g =  new TH2D("hqgl2_g","",nx,&x[0],101,0,1.01);
   hqgl2_q =  new TH2D("hqgl2_q","",nx,&x[0],101,0,1.01);
+  hqgl2_u =  new TH2D("hqgl2_u","",nx,&x[0],101,0,1.01);
   hqgl2_dg =  new TH2D("hqgl2_dg","",nx,&x[0],101,0,1.01);
   hqgl2_dq =  new TH2D("hqgl2_dq","",nx,&x[0],101,0,1.01);
+  hqgl2_du =  new TH2D("hqgl2_du","",nx,&x[0],101,0,1.01);
   //} QGL study
 
   // control plots for topology (JEC)
@@ -325,6 +331,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   const int na = 200;
   vector<double> va(na+1);
   for (unsigned int i = 0; i != na+1; ++i) va[i] = -1. + 2.*i/na;
+if (jp::do3dHistos) {
   hdjasymm = new TH3D("hdjasymm",";p_{T,ave};p_{T,3rd}/p_{T,ave};Asymmetry",
                       nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpf = new TH3D("hdjmpf",";p_{T,ave};p_{T,3rd}/p_{T,ave};MPF",
@@ -333,7 +340,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
                         nx,&x[0],n3,&v3[0],na,&va[0]);
   hdjmpftp = new TH3D("hdjmpftp",";p_{T,tag};p_{T,3rd}/p_{T,tag};MPF",
                       nx,&x[0],n3,&v3[0],na,&va[0]);
-
+}
   hr21 = new TH1D("hr21",";pt2/pt1",50,0.,1.);
   hr31 = new TH1D("hr31",";pt3/pt1",50,0.,1.);
   hr32 = new TH1D("hr32",";pt3/pt2",50,0.,1.);
@@ -353,12 +360,12 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pmpf1->Sumw2();
   pmpf2->Sumw2();
   pmpfx->Sumw2();
-
+if (jp::do3dHistos) {
   hdjasymm->Sumw2();
   hdjmpf->Sumw2();
   hdjasymmtp->Sumw2();
   hdjmpftp->Sumw2();
-
+}
   ppt_probepertag = new TProfile("ppt_probepertag","",nx,&x[0]);
 
   // MC checks
@@ -398,6 +405,7 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
     hpt_g0 = new TH1D("hpt_g0","",nx,&x[0]);
     hgpt_g = new TH1D("hgpt_g","",nx,&x[0]);//Ozlem
     hqpt_g = new TH1D("hqpt_g","",nx,&x[0]);//Ozlem
+    hupt_g = new TH1D("hupt_g","",nx,&x[0]); // unmatched partons vs gen pT
     hpt_g0_tmp = new TH1D("hpt_g0_tmp","",nx,&x[0]);
     ppt_r = new TProfile("ppt_r","",nx,&x[0]);
     ppt_g = new TProfile("ppt_g","",nx,&x[0]);

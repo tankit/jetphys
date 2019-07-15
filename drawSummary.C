@@ -76,16 +76,17 @@ void drawEtaSpectra(string type) {
   const char *t = type.c_str();
 
   // Unfolded data
-  TFile *fin = new TFile(Form("output-%s-3.root",t),"READ");
+  //  TFile *fin = new TFile(Form("output-%s-3.root",t),"READ");
+  TFile *fin = new TFile(Form("output-%s-2c.root",t),"READ"); // unfolded data
   assert(fin && !fin->IsZombie());
   assert(fin->cd("Standard"));
   TDirectory *din = gDirectory;
 
   // Uncertainties
-  TFile *fin2 = new TFile(Form("output-%s-4.root",t),"READ");
-  assert(fin2 && !fin2->IsZombie());
-  assert(fin2->cd("Standard"));
-  TDirectory *din2 = gDirectory;
+  //  TFile *fin2 = new TFile(Form("output-%s-4.root",t),"READ");
+  // assert(fin2 && !fin2->IsZombie());
+  // assert(fin2->cd("Standard"));
+  // TDirectory *din2 = gDirectory;
 
   // Theory
   TFile *fnlo = new TFile(Form("output-%s-2c.root",t),"READ");
@@ -157,15 +158,15 @@ void drawEtaSpectra(string type) {
     assert(dnlo->cd(etas[i].c_str()));
     TDirectory *dt = gDirectory;
 
-    assert(din2->cd(etas[i].c_str()));
-    TDirectory *d2 = gDirectory;
+    //  assert(din2->cd(etas[i].c_str()));
+    //TDirectory *d2 = gDirectory;
 
     float etamin, etamax;
     assert(sscanf(etas[i].c_str(),"Eta_%f-%f",&etamin,&etamax)==2);
 
     // Load and scale central values
-    TGraphErrors *g = (TGraphErrors*)d->Get("gcorrpt"); assert(g);
-    scaleGraph(g, scale[i]);
+    //    TGraphErrors *g = (TGraphErrors*)d->Get("gcorrpt"); assert(g);
+    //scaleGraph(g, scale[i]);
     TF1 *f = (TF1*)d->Get("fus"); assert(f);
     f->SetParameter(0, f->GetParameter(0)*scale[i]);
     vdata[i] = g;
@@ -209,15 +210,15 @@ void drawEtaSpectra(string type) {
     g->GetPoint(g->GetN()-1, ptmax, yptmax);
 
     // Produce uncertainty band around ansatz fit
-    TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
-    TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
-    ptmax = hpl->GetBinLowEdge(hpl->FindBin(ptmax)+1);
+    //  TH1D *hpl = (TH1D*)d2->Get("htot_pl"); assert(hpl);
+    //TH1D *hmn = (TH1D*)d2->Get("htot_mn"); assert(hmn);
+    // ptmax = hpl->GetBinLowEdge(hpl->FindBin(ptmax)+1);
 
-    TGraphErrors *gerr = (jp::centerOnAnsatz ? makeBand(f, hpl, hmn, jp::xmin, jp::xmax) :
-			  makeBand(g, hpl, hmn, jp::xmin, jp::xmax));
-    vgerr[i] = gerr;
-    vheup[i] = hpl;
-    vhedw[i] = hmn;
+    //  TGraphErrors *gerr = (jp::centerOnAnsatz ? makeBand(f, hpl, hmn, jp::xmin, jp::xmax) :
+    //		  makeBand(g, hpl, hmn, jp::xmin, jp::xmax));
+  //vgerr[i] = gerr;
+  // vheup[i] = hpl;
+  //  vhedw[i] = hmn;
 
     // Find reasonable upper range for fit
     // at 1 TeV range, we require 1 event in a bin of O(100 GeV) width
@@ -227,11 +228,11 @@ void drawEtaSpectra(string type) {
     f->SetRange(jp::xmin, ptmax);//x);
 
     g->SetMarkerStyle(marker[i]);
-    gerr->SetFillStyle(1001);
-    gerr->SetFillColor(kYellow+1);
+    // gerr->SetFillStyle(1001);
+    // gerr->SetFillColor(kYellow+1);
     f->SetLineColor(kRed);
 
-    gerr->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
+    //  gerr->Draw(jp::centerOnAnsatz ? "SAME E3" : "SAME E3");
     if (gnlo) gnlo->Draw("SAME L");
     else      f->Draw("SAME");
     if (gnloup) gnloup->Draw("SAME L");
@@ -247,7 +248,7 @@ void drawEtaSpectra(string type) {
     if (i==0) {
       assert(gnlo);
       leg2->AddEntry(gnlo, "NLO#otimesNP theory", "L"); // cmsFinal
-      leg2->AddEntry(gerr, "Exp. uncertainty", "F");
+      //  leg2->AddEntry(gerr, "Exp. uncertainty", "F");
     }
   } // for i
 
