@@ -75,7 +75,10 @@ bool HistosFill::Init(TChain *tree)
     PrintInfo("No tree given, processing makes no sense.",true);
     return false; // With no tree, Loop will be interrupted
   }
-  _outfile = new TFile(Form("output-%s-1.root",jp::type), "NEW");
+  string type = jp::type;
+  if (jp::pthatbins) type = "Pthat";
+  else if (jp::htbins) type = "HT";
+  _outfile = new TFile(Form("output-%s-1.root",type.c_str()), "NEW");
   if (!_outfile or _outfile->IsZombie()) {
     PrintInfo(Form("Opening the output file output-%s-1.root failed. Check if the file already exists.",jp::type),false);
     return false;

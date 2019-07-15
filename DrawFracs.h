@@ -126,10 +126,12 @@ public:
     _dt_type = dt_type;
     if (_mc_type=="MCNU") _mc_type="MC";
     else if (_mc_type=="HWNU") _mc_type="HW";
+    else if (_mc_type=="PthatNU") _mc_type="Pthat";
     else if (_mc_type=="HTNU") _mc_type="HT";
     else if (_mc_type=="NU") _mc_type="MC";
     if (_dt_type=="MCNU") _dt_type="MC";
     else if (_dt_type=="HWNU") _dt_type="HW";
+    else if (_dt_type=="PthatNU") _dt_type="Pthat";
     else if (_dt_type=="HTNU") _dt_type="HT";
     else if (_dt_type=="NU") _dt_type="MC";
     _mc_typeverb = _mc_type;
@@ -137,19 +139,21 @@ public:
     if (_mc_typeverb=="DT") _mc_typeverb = "Data";
     else if (_mc_typeverb=="MC") _mc_typeverb = "Pythia8";
     else if (_mc_typeverb=="HW") _mc_typeverb = "Herwig++";
+    else if (_mc_typeverb=="Pthat") _mc_typeverb = "P8 (binned)";
     else if (_mc_typeverb=="HT") _mc_typeverb = "Madgraph+P8";
     if (_dt_typeverb=="DT") _dt_typeverb = "Data";
     else if (_dt_typeverb=="MC") _dt_typeverb = "Pythia8";
     else if (_dt_typeverb=="HW") _dt_typeverb = "Herwig++";
+    else if (_dt_typeverb=="Pthat") _dt_typeverb = "P8 (binned)";
     else if (_dt_typeverb=="HT") _dt_typeverb = "Madgraph+P8";
 
     _pertrg = pertrg;
 
     bool all_DT = false;
     bool all_MC = false;
-    if (_mc_type!="MC" and _mc_type!="HW" and _mc_type!="HT")
+    if (_mc_type!="MC" and _mc_type!="HW" and _mc_type!="Pthat" and _mc_type!="HT")
       all_DT = true;
-    if (_dt_type=="MC" or _dt_type=="HW" or _dt_type=="HT")
+    if (_dt_type=="MC" or _dt_type=="HW" or _dt_type=="Pthat" or _dt_type=="HT")
       all_MC = true;
     assert(!(all_MC and all_DT));
 
