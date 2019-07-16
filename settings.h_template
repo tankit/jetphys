@@ -79,10 +79,10 @@ namespace jp {
   //{ BEGIN run settings
   // Number of events to process (-1 for all)
   constexpr Long64_t nentries =
-  //-1; // all
+  -1; // all
   //10; // debug
   //100; //debug
-  1000;
+  //1000;
   //10000; // shorter test run
   //100000; // short test run
   //1000000; // shortish test run
@@ -299,6 +299,7 @@ namespace jp {
   const array<string,yrs> jecgt_ = {
     "Summer16_07Aug2017",
     "Fall17_17Nov2017",
+    //"Fall17_09May2018"
     "Fall17_17Nov2017",
     "Autumn18"
   };
@@ -307,14 +308,15 @@ namespace jp {
     "_V20",
     "_V32",
     "_V32",
-    "_V10"
+    "_V15"
   };
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V20",
     "_V32",
-    "_V7"
-    "_V10"
+    //"_V3", (RunF 09May2018)
+    "_V32",
+    "_V15"
   };
   const string jecversmc = jecversmc_.at(yid);
 
@@ -339,6 +341,7 @@ namespace jp {
 
   //{ BEGIN DT/MC: File options
 
+    //{ BEGIN DT: Files
     constexpr const array<const char*,yrs> dtpath_ =
       {"Data/2016/","Data/2017/RRMar18/","Data/2017/RRMar18/","Data/2018/"};
     constexpr const char* dtpath = dtpath_.at(yid);
@@ -525,11 +528,6 @@ namespace jp {
     //} END MC pileup files
 
   //} END DT/MC: File names
-
-  // pT limits for unfolding
-  constexpr double unfptminreco = 60; // recopt; //40; recopt needs to be bigger than genpt
-  constexpr double unfptmingen = 40;
-  constexpr double unfptminnlo = 15;
 
   //{ BEGIN Binnings
   // Binning agreed within JTF: pT>100 GeV from CaloJet resolutions,
@@ -798,6 +796,11 @@ namespace jp {
 
   //{ BEGIN limits for HistosNormalize, dagostini, drawSummary, drawRunHistos
   // Minimum and maximum pT range to be plotted and fitted
+  // pT limits for unfolding
+  constexpr double unfptminreco = 60; // recopt; //40; recopt needs to be bigger than genpt
+  constexpr double unfptmingen = 40;
+  constexpr double unfptminnlo = 15;
+
   constexpr double fitptmin = 15;
   // Changed on 2013-05-020: analysis from 49 GeV to 56 GeV
   constexpr double xmin57 = 114;//56;

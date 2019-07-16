@@ -1,7 +1,6 @@
 // Purpose: Combine different triggers into a single spectrum
-// Author:  mikko.voutilainen@cern.ch
-// Created: March 22, 2010
-// Updated: June 2, 2015
+// Author:  hannu.siikonen@cern.ch
+// Created: May 25, 2018
 
 // We throw a name to recurseFile and the function loops over all directories.
 // As we reach a certain level, a new histogram is declared.
