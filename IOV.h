@@ -96,7 +96,7 @@ void IOV::addJECLvl(JECIOV &jec, vector<JetCorrectorParameters> &vpar, string ta
 #if JETRESO == 1
 void IOV::addJERLvl(bool isSF) {
   string path = _jerpath+_jername+"_"+(isSF ? "SF" : "PtResolution")+"_"+jp::algo+".txt";
-  if(isSF and jp::UL17) path = (jp::CXL1) ? "../Summer19UL17_V1_MC/JERSF_ComplexL1.txt" : "../Summer19UL17_V1_MC/JERSF_SimpleL1.txt";
+  if(isSF and jp::UL17) path = (jp::CXL1) ? "./Summer19UL17_V0_MC/JERSF_ComplexL1.txt" : "./Summer19UL17_V0_MC/JERSF_SimpleL1.txt";
   if (access(path.c_str(), F_OK)==-1) {
     cout << "The JER IOV file " << path << " was not found" << endl;
   } else {
@@ -191,7 +191,7 @@ double IOV::getJER(double jPt, double jEta, double rho) {
 double IOV::getJERCF(double jPt, double jEta, double jE, double rho, double jPtGen) {
   double Reso = getJER(jPt,jEta,rho);
   double SF = _jer.SF->getScaleFactor({{JME::Binning::JetEta, jEta}, {JME::Binning::JetPt, jPt}, {JME::Binning::Rho, rho}}, Variation::NOMINAL);
-  if(jPtGen==0) SF = 1;
+  if(jPtGen==0) SF = 1; //Impossible to smear this jet due to ptgen = 0 (i.e pileup jet)
 
   // Case 0: by default the JER correction factor is equal to 1
   double CF = 1.;
