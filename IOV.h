@@ -96,6 +96,7 @@ void IOV::addJECLvl(JECIOV &jec, vector<JetCorrectorParameters> &vpar, string ta
 #if JETRESO == 1
 void IOV::addJERLvl(bool isSF) {
   string path = _jerpath+_jername+"_"+(isSF ? "SF" : "PtResolution")+"_"+jp::algo+".txt";
+  if(isSF and jp::UL17) path = (jp::CXL1) ? "../Summer19UL17_V1_MC/JERSF_ComplexL1.txt" : "../Summer19UL17_V1_MC/JERSF_SimpleL1.txt";
   if (access(path.c_str(), F_OK)==-1) {
     cout << "The JER IOV file " << path << " was not found" << endl;
   } else {
@@ -119,7 +120,8 @@ void IOV::addJEC(string id, int runmin, int runmax) {
     for (auto it = _jecs.begin(); it != _jecs.end(); ++it) assert(runmax<it->low or runmin>it->up);
   }
 
-  _jecname = jp::jecgt + id + (jp::ismc ? jp::jecversmc : jp::jecversdt) + (jp::ismc ? "_MC" : "_DATA");
+  string _jectag = jp::jectag; if(jp::UL17 and jp::CXL1 and jp::jectag=="_SimpleL1") _jectag = "_ComplexL1";
+  _jecname = jp::jecgt + id + (jp::ismc ? jp::jecversmc : jp::jecversdt) + _jectag + (jp::ismc ? "_MC" : "_DATA");
   _jecpath = jp::useJECDB ? (jp::JECDBLoc+"/textFiles/"+_jecname+"/") : "CondFormats/JetMETObjects/data/";
 
   addJECLvl(jec,vpar,"L1FastJet"); // L1Offset for others than AK*PF
@@ -127,7 +129,10 @@ void IOV::addJEC(string id, int runmin, int runmax) {
   addJECLvl(jec,vpar,"L3Absolute");
 
   if (jp::isdt) {
-    if (!jp::skipl2l3res) addJECLvl(jec,vpar,"L2L3Residual");
+    if (!jp::skipl2l3res) {
+      if(jp::usel2res) addJECLvl(jec,vpar,"L2Residual"); else addJECLvl(jec,vpar,"L2L3Residual");
+      cout << Form("*** For data only, using %s ",jp::usel2res ? "L2RES" : "L2L3RES") << endl;
+    }
     addJECLvl(jec,vpar,"Uncertainty",true);
   }
   jec.corr = new FactorizedJetCorrector(vpar);
@@ -185,7 +190,8 @@ double IOV::getJER(double jPt, double jEta, double rho) {
 // and the corresponding code in https://github.com/cms-sw/cmssw/blob/CMSSW_8_0_25/PhysicsTools/PatUtils/interface/SmearedJetProducerT.h
 double IOV::getJERCF(double jPt, double jEta, double jE, double rho, double jPtGen) {
   double Reso = getJER(jPt,jEta,rho);
-  double SF = _jer.SF->getScaleFactor({{JME::Binning::JetEta, jEta}, {JME::Binning::Rho, rho}}, Variation::NOMINAL);
+  double SF = _jer.SF->getScaleFactor({{JME::Binning::JetEta, jEta}, {JME::Binning::JetPt, jPt}, {JME::Binning::Rho, rho}}, Variation::NOMINAL);
+  if(jPtGen==0) SF = 1;
 
   // Case 0: by default the JER correction factor is equal to 1
   double CF = 1.;

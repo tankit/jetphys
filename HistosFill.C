@@ -7,6 +7,7 @@
 
 #define HistosFill_cxx
 #include "HistosFill.h"
+#include "ptresolution.h"
 
 
 // Set the shortcuts for variables
@@ -78,6 +79,14 @@ bool HistosFill::Init(TChain *tree)
   string type = jp::type;
   if (jp::pthatbins) type = "Pthat";
   else if (jp::htbins) type = "HT";
+  if (! gSystem->AccessPathName(Form("oldoutput-%s-1.root",type.c_str()))) {
+    PrintInfo(Form("Deleting the old output file oldoutput-%s-1.root",type.c_str()));
+    gSystem->Exec(Form("rm oldoutput-%s-1.root",type.c_str()));
+  }
+  if (! gSystem->AccessPathName(Form("output-%s-1.root",type.c_str()))) {
+    //PrintInfo(Form("Moving the previous output file output-%s-1.root to oldoutput-%s-1.root",type.c_str(),type.c_str()));
+    gSystem->Exec(Form("mv output-%s-1.root oldoutput-%s-1.root",type.c_str(),type.c_str()));
+  }
   _outfile = new TFile(Form("output-%s-1.root",type.c_str()), "NEW");
   if (!_outfile or _outfile->IsZombie()) {
     PrintInfo(Form("Opening the output file output-%s-1.root failed. Check if the file already exists.",jp::type),false);
@@ -381,6 +390,8 @@ void HistosFill::Loop()
   stop.Start();
   TDatime bgn;
 
+  gRandom->SetSeed(0);
+
   ///////////////
   // Event loop
   ///////////////
@@ -395,7 +406,7 @@ void HistosFill::Loop()
     int testval = djentry;
     if (jp::skim>0) testval /= 1+jp::skim;
 
-    if (testval%hopval==repval) { // 1M report (first report timed to be early)
+    if (testval%hopval==repval or (_jentry)%100000==1) { // 1M report (first report timed to be early)
       // Report memory usage to avoid malloc problems when writing file
       PrintInfo(Form("Doing Loop(), %dM events:",int(_jentry/1e6 + 0.5)),true);
       PrintMemInfo();
@@ -534,7 +545,11 @@ bool HistosFill::PreRun()
   PrintInfo(Form("Running over %s",jp::ismc?"MC":"data"));
   PrintInfo(Form("%s time-dependent JEC (IOV)",jp::useIOV ? "Applying" : "Not applying"));
   PrintInfo(Form("%s Hot zone exclusion in eta-phi plane",jp::doVetoHot ? "Doing" : "Not doing"));
+  PrintInfo(Form("%s HEM issue exclusion in eta-phi plane",jp::doVetoHEM ? "Doing" : "Not doing"));
+  PrintInfo(Form("%s Forward jet exclusion in recoil system",jp::doVetoEC ? "Doing" : "Not doing"));
   *ferr << endl;
+
+  cout << Form("%s Forward jet exclusion in recoil system",jp::doVetoEC ? "Doing" : "Not doing") << endl;
 
   _eraIdx = -1;
   if (jp::isdt) {
@@ -584,6 +599,30 @@ bool HistosFill::PreRun()
       }
     } // JEC redone
   }
+
+  // Use official JME resolutions
+  if(jp::usejerUP) _usejmeUp = true; else if(jp::usejerDW) _usejmeDown = true;
+  _jer_iov = none;
+
+  const char* iovNames[] = {"none", "run1", "run2016", "run2017", "run2018", "run2018abc", "run2018d",
+               "run2016bcd", "run2016ef", "run2016gh",
+               "run2017b", "run2017c", "run2017d", "run2017e", "run2017f", "run2017de"};
+
+  if (jp::yid==3) {
+    _jer_iov = run2018abc; //updated with JERV 4 for 2018ABC and 2018D
+    if (std::regex_search(jp::run,regex("^RunD"))) _jer_iov = run2018d;
+    if (std::regex_search(jp::run,regex("^RunABCD"))) _jer_iov = run2018;
+  }
+  if (jp::yid==1) _jer_iov = run2017;
+  if (jp::yid==0) {
+    _jer_iov = run2016;
+    // Commented the followings because of no need (Oct 23, 2019)
+    //if (std::regex_search(jp::run,regex("^Run[BCD]"))) _jer_iov = run2016bcd;
+    //else if (std::regex_search(jp::run,regex("^Run[EF]"))) _jer_iov = run2016ef;
+    //else if (std::regex_search(jp::run,regex("^Run[GH]"))) _jer_iov = run2016gh;
+  }
+  if (jp::UL17) _ul17 = true; if (jp::CXL1) _complexL1 = true;
+  if (jp::ismc) cout << Form("*** For MC only, JER and IOV settings: %s %s with Scale factors (%s%s%s)",_ul17 ? "UL17" : "",iovNames[_jer_iov],_usejmeUp or _usejmeDown ? "" : "Normal",_usejmeUp ? "Up" : "",_usejmeDown ? "Down" : "") << endl;
 
   // Load latest JSON selection
   if (jp::isdt and jp::dojson) {
@@ -663,16 +702,38 @@ bool HistosFill::PreRun()
       HotYr = "17";
       if      (std::regex_search(jp::run,regex("^RunB"))) HotTag = "B";
       else if (std::regex_search(jp::run,regex("^RunC"))) HotTag = "C";
-      else if (std::regex_search(jp::run,regex("^RunD"))) HotTag = "D";
-      else if (std::regex_search(jp::run,regex("^RunE"))) HotTag = "E";
+      else if (std::regex_search(jp::run,regex("^Run[DE]"))) HotTag = "DE";
       else if (std::regex_search(jp::run,regex("^RunF"))) HotTag = "F";
+      //if (jp::UL17) {
+      //  if (std::regex_search(jp::run,regex("^RunD"))) HotTag = "D";
+      //  if (std::regex_search(jp::run,regex("^RunE"))) HotTag = "E";
+      //}
+    } else if (jp::yid==3) {
+      HotYr = "18";
+      if      (std::regex_search(jp::run,regex("^RunA"))) HotTag = "A";
+      else if (std::regex_search(jp::run,regex("^RunB"))) HotTag = "B";
+      else if (std::regex_search(jp::run,regex("^RunC"))) HotTag = "C"; //updated on Jun 6, 2019 (whole RunC ReReco)
+      else if (std::regex_search(jp::run,regex("^RunD"))) HotTag = "D";
+      //added on Sep 11, 2019 for MC
+      if (std::regex_search(jp::run,regex("^RunABC")))  HotTag = "ABC";
+      if (std::regex_search(jp::run,regex("^RunABCD"))) HotTag = "ABCD";
     }
     assert(HotTag!="");
-    fHotExcl = new TFile(Form("rootfiles/hotjets-%srun%s.root",HotYr.c_str(),HotTag.c_str()),"READ");
-    assert(fHotExcl and !fHotExcl->IsZombie() and Form("file rootfiles/hotjets-run%s.root missing",HotTag.c_str()));
-    h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",jp::HotType));
+    string HotMap = Form("hotcoldjets/hotjets-%srun%s.root",HotYr.c_str(),HotTag.c_str());
+    if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17.root");
+    fHotExcl = new TFile(Form("%s",HotMap.c_str()),"READ");
+    assert(fHotExcl and !fHotExcl->IsZombie() and Form("file %s missing",HotMap.c_str()));
+    if(jp::UL17) {
+      h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",jp::HotType));
+      PrintInfo(Form("Loading hot zone corrections %s with h2hot %s",HotMap.c_str(),jp::HotType));
+    } else {
+      h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hotfilter"));
+      PrintInfo(Form("Loading hot zone corrections %s with h2hot filter",HotMap.c_str()));
+    }
     assert(h2HotExcl and "erroneous eta-phi exclusion type");
-    PrintInfo(Form("Loading hot zone corrections rootfiles/hotjets-run%s.root with h2hot %s",HotTag.c_str(),jp::HotType));
+  }
+  if (jp::doVetoHEM) {
+    if (jp::yid==3 and (std::regex_search(jp::run,regex("^RunC")) || std::regex_search(jp::run,regex("^RunD")))) PrintInfo(Form("Removing events with jets in HEM issue: -3.0 < eta < -1.4 and -1.57 < phi < -0.87"));
   }
   // Qgl: load quark/gluon probability histos (Ozlem)
   // 1. open the previous output-MC-1_iteration1.root in the beginning
@@ -872,6 +933,7 @@ bool HistosFill::AcceptEvent()
   double mey_nol2l3 = mey;
   double ucx = mex;
   double ucy = mey;
+  double uncl_ex = 0, uncl_ey = 0;
   // Find leading jets (residual JEC may change ordering)
   // CAUTION: for less than 3 jets, we input -1 on the place of the index
   // NOTE: Above this we only use the initial corrections. This serves as a good approximation,
@@ -884,6 +946,7 @@ bool HistosFill::AcceptEvent()
     p4.SetPxPyPzE(jtp4x[jetidx],jtp4y[jetidx],jtp4z[jetidx],jtp4t[jetidx]);
     // Divide by the original JES
     if (jp::debug) PrintInfo("Entering jet loop!",true);
+    double jtptold = p4.Pt();
     if (jp::undojes) p4 *= 1/jtjes[jetidx];
 
     jtptu[jetidx] = p4.Pt();
@@ -952,8 +1015,68 @@ bool HistosFill::AcceptEvent()
         // We require the match to be closer than half cone, otherwise gen Pt is worthless
         if (genDR>0.2) genpt = -4;
       }
-      p4 *= _iov.getJERCF(p4.Pt(),p4.Eta(),p4.E(),rho,genpt);
+      //double recopt = p4.Pt();
+      p4 *= _iov.getJERCF(p4.Pt(),p4.Rapidity(),p4.E(),rho,genpt);
+      //PrintInfo(Form("jetidx = %2i, jtpt = %8.3f (ptold = %8.3f, ptgen = %8.3f) -> jtpt_new = %8.3f",jetidx,recopt,jtptold,genpt,p4.Pt()));
     }
+#else
+    if (jp::ismc) {
+
+      double ptgen = gp4.Pt();
+      double ptreco = p4.Pt();
+      double eta = p4.Rapidity();
+      double energy = p4.E();
+
+      _ismcjer = true; // to calculate MC JER
+      double ptresmc = ptresolution(ptgen, eta);
+      double resmc = ptresmc * ptgen;
+      //double sigmamc = max(0.10, min(resmc/ptgen, 0.30));
+      //https://github.com/cms-sw/cmssw/blob/CMSSW_8_0_25/PhysicsTools/PatUtils/interface/SmearedJetProducerT.h#L212
+      double jet_resolution = ptresolution(ptreco, eta); //sigmamc_ptreco
+      _ismcjer = false; // to calculate data JER
+      double ptresdt = ptresolution(ptgen, eta);
+      double resdt = ptresdt * ptgen;
+      double jer_sf = (resmc!=0) ? resdt / resmc : 1; // data JER = MC JER * SF
+      double deltaR = p4.DeltaR(gp4);
+
+      double deltapt = (ptreco - ptgen)*(jer_sf - 1.0);
+////      double ptsmear = max(0.0, (ptreco + deltapt)/ptreco); //1 + (jer_sf - 1.) * dPt/ptreco = smearFactor (C_jer)
+
+      double smearFactor = 1.; double dPt = ptreco - ptgen;
+
+      jtptsmearNew[jetidx] = -1;
+      jtptsf[jetidx] = jer_sf;
+      //--https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution#Smearing_procedures
+      double halfCone = 0.2; //vs. 0.4
+      double sigmaCut = 3*resmc;
+
+////      double rndm0 = gRandom->Gaus(0,sigmamc);
+////      double jer_sf2 = max(jer_sf*jer_sf - 1, 0.0); //caution: max(jer_sf*jer_sf,0.0) used in 1st try
+////      double cjer0 = 1 + rndm0*sqrt(jer_sf2);
+
+      if (ptgen > 0 and deltaR < halfCone and fabs(dPt) < sigmaCut) {
+        // Case 1: we have a "good" gen jet matched to the reco jet
+        smearFactor = (ptreco + deltapt)/ptreco;
+      } else if (jer_sf > 1) {
+        // Case 2: we don't have a gen jet. Smaer jet pt using a random gaussian variation
+        double sigma = jet_resolution * sqrt(max(jer_sf * jer_sf - 1, 0.0));
+        double rndm = gRandom->Gaus(0,sigma);
+        smearFactor = 1. + rndm;
+      } //else cout << " Impossible to smear this jet due to ptgen = 0 (i.e pileup jet)" << endl;
+
+      const double MIN_JET_ENERGY = 1e-2;
+      if(energy * smearFactor < MIN_JET_ENERGY) {
+        // Negative or too small smearFactor. We would change direction of the jet and this is not what we want.
+        // Recompute the smear factor in order to have jet.energy() == MIN_JET_ENERGY
+        double newSmearFactor = MIN_JET_ENERGY / jte[jetidx];
+        smearFactor = newSmearFactor;
+      }
+
+      p4 *= smearFactor; jtptsmearNew[jetidx] = smearFactor;
+      //PrintInfo(Form("jetidx = %2i, jtpt = %8.3f (ptold = %8.3f, ptgen = %8.3f) -> jtpt_new = %8.3f (CF = %6.3f)",jetidx,ptreco,jtptold,ptgen,p4.Pt(),smearFactor));
+
+    }
+    if (jp::debug) PrintInfo(Form("Jet %2d smeared! jtpt = %8.3f GeV",jetidx,p4.Pt()),true);
 #endif
 
     jte[jetidx] = p4.E();
@@ -965,8 +1088,7 @@ bool HistosFill::AcceptEvent()
 
     if (jp::debug) PrintInfo(Form("Jet %d corrected!",jetidx),true);
 
-    // Only use jets with corr. pT>recopt GeV to equalize data and MC thresholds
-    if (jtpt[jetidx] > jp::recopt and fabs(jteta[jetidx])<4.7) {
+    if (jtpt[jetidx] > 15 and fabs(jteta[jetidx])<4.7) { //baseline from discussion with Mikko on Sep 12, 2019
       // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
       // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
       double l1corr = 1.;
@@ -997,6 +1119,10 @@ bool HistosFill::AcceptEvent()
       double dptu = -ue + l1corr*jtptu[jetidx];
       ucx += dptu * cos(jtphi[jetidx]);
       ucy += dptu * sin(jtphi[jetidx]);
+
+      // Unclustered energy: subtract "corrected jet pT and L1RC offset"
+      uncl_ex = mex + jtpt[jetidx]*cos(jtphi[jetidx]);
+      uncl_ey = mey + jtpt[jetidx]*sin(jtphi[jetidx]);
     }
 
     if (jt3leads[0]==-1 or jtpt[jt3leads[0]]<jtpt[jetidx]) {
@@ -1021,12 +1147,20 @@ bool HistosFill::AcceptEvent()
 
   // Correct unclustered energy; jec for 10 GeV jets varies between 1.1-1.22 at |y|<2.5,
   // 2.5-3.0 even goes up to 1.35 => assume 1.15  => try 1.5 => to 1.25 (high pT threshold on jets)
-  mex += 0.25*ucx;
-  mey += 0.25*ucy;
+  // Updated for UL17 CP5: ru = 0.65, C_MC = 1/ru = 1.5385 -> corr_uncl = C_mc - 1 = 0.5385 (data/MC=0.983, C_data = 1/(0.65*0.983) = 1.5651) Mar 31, 2020
+  double corr_uncl = 0.25;
+  if(jp::UL17) { corr_uncl = 0.5385; if(jp::ismc) corr_uncl = 0.5651; }
+  mex += corr_uncl*ucx;
+  mey += corr_uncl*ucy;
   // Type II MET witch C = 1.25 (This is not recommended for pfJets.
   // met2 = met1 - C*uncl.ptsum = met1 + 0.25*(l1corr*jtptu[jetidx]-ue[jetidx]) = 1.25*metraw + 1.25*l1corr*jtptu[jetidx] - jtpt[jetidx] - 0.25ue[jetidx]
   met2 = tools::oplus(mex, mey);
   metphi2 = atan2(mey, mex);
+
+  // Unclustered energy (Added on Mar 23, 2020)
+  uncl_et = tools::oplus(uncl_ex, uncl_ey);
+  uncl_phi = atan2(uncl_ey, uncl_ex);
+  //PrintInfo(Form(" MET1 = %8.3f (%4.1f) vs. MET2 = %8.3f (%4.1f) vs. MET3 = %8.3f (%4.1f) [uncl_ex = %8.3f and uncl_ey = %8.3f]",met1,metphi1,met2,metphi2,uncl_et,uncl_phi,uncl_ex,uncl_ey));
 
   // The leading indices
   int i0 = jt3leads[0];
@@ -1508,6 +1642,504 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
   double alpha = pt3/ptave;
   //} Garden tools
 
+  // Multijet analysis
+  if (i2>=0 and i1>=0 and i0>=0 and _jetids[i0] and jtpt[i0]>jp::recopt and fabs(jteta[i0])<5.0) { // First leading jet
+    if (_jetids[i1] and jtpt[i1]>jp::recopt and fabs(jteta[i1])<5.0 and _jetids[i2] and jtpt[i2]>jp::recopt and fabs(jteta[i2])<5.0) { // Second and third leading jets
+      //-- The eta sectors are filled according to leading jet eta
+      if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) {
+        assert(h->hnjet_pre); h->hnjet_pre->Fill(njt, _w);
+        assert(h->hj0pt_pre); h->hj0pt_pre->Fill(jtpt[i0], _w);
+        assert(h->hj0phi_pre); h->hj0phi_pre->Fill(jtphi[i0], _w);
+        assert(h->hj1pt_pre); h->hj1pt_pre->Fill(jtpt[i1], _w);
+        assert(h->hj2pt_pre); h->hj2pt_pre->Fill(jtpt[i2], _w);
+        if(jp::ismc) {
+          assert(h->hj0genpt_pre); h->hj0genpt_pre->Fill(jtgenpt[i0], _w);
+          assert(h->hj0genr_pre); h->hj0genr_pre->Fill(jtgenr[i0], _w);
+        }
+
+        bool goodevt[3] = {true, true, true};
+        int recoilnjt[3] = {0,0,0};
+        double dphi_recoilmin[3] = {TMath::Pi(),TMath::Pi(),TMath::Pi()}, dphi_recoilmax[3] = {0,0,0};
+        double dphi2 = (i2>=0 ? DPhi(jtphi[i0], jtphi[i2]) : 0.);
+        int ptCut[3] = {15,20,30}, recoiljets[3] = {0,0,0}; 
+        double rex[3] = {0,0,0}, rey[3] = {0,0,0}, rex_gen[3] = {0,0,0}, rey_gen[3] = {0,0,0};
+        for(int jpt=0; jpt<3; ++jpt) {
+          for (int jetidx = 0; jetidx != njt; ++jetidx) {
+            if (jpt==0 and h->ismcdir and _jetids[jetidx] and jtpt[jetidx] > ptCut[jpt] and fabs(jteta[jetidx])<4.7) {
+              if (jtpt[jetidx] >= h->ptmin && jtpt[jetidx] < h->ptmax) {
+                h->hjtptsf->Fill(jtptsf[jetidx], _w); h->hjtptsmearNew->Fill(jtptsmearNew[jetidx], _w);
+              }
+            }
+
+            if (jetidx!=i0 and jtpt[jetidx] > ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) > 2.5 : fabs(jteta[jetidx]) > 4.7)) { goodevt[jpt] = false; break; }
+            if (jetidx!=i0 and jp::doVetoHot and jtpt[jetidx] > ptCut[jpt] and h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) > 0) { goodevt[jpt] = false; break; }
+            if (jetidx!=i0 and jp::doVetoHEM and (jp::yid==3 and (std::regex_search(jp::run,regex("^RunC")) || std::regex_search(jp::run,regex("^RunD")))) and jtpt[jetidx] > ptCut[jpt] and ((jteta[jetidx] < -1.4 and jteta[jetidx] > -3.0) and (jtphi[jetidx] < -0.87 and jtphi[jetidx] > -1.57))) { goodevt[jpt] = false; break; }
+
+            if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx])<4.7)) {
+              double dphi_recoiljet = DPhi(jtphi[i0], jtphi[jetidx]);
+              if (dphi_recoiljet < 1) { goodevt[jpt] = false; continue; }
+              ++recoilnjt[jpt];
+              dphi_recoilmin[jpt] = (dphi_recoiljet < dphi_recoilmin[jpt]) ? dphi_recoiljet : dphi_recoilmin[jpt];
+              dphi_recoilmax[jpt] = (dphi_recoiljet > dphi_recoilmax[jpt]) ? dphi_recoiljet : dphi_recoilmax[jpt];
+              double genpt = jtgenpt[jetidx];
+              if (dphi_recoiljet > 1) {
+                if(jtpt[jetidx] > ptCut[jpt]) {
+                  ++recoiljets[jpt];
+                  rex[jpt] += jtpt[jetidx] * cos(jtphi[jetidx]); rey[jpt] += jtpt[jetidx] * sin(jtphi[jetidx]);
+                  rex_gen[jpt] += genpt * cos(jtgenphi[jetidx]); rey_gen[jpt] += genpt * sin(jtgenphi[jetidx]);
+                }
+                double resp_jet = (genpt!=0) ? jtpt[jetidx] / genpt : 0;
+                //double _weight = jtpt[jetidx] * cos(dphi_recoiljet);
+                if (jpt==0 && jtpt[jetidx] >= h->ptmin && jtpt[jetidx] < h->ptmax) {
+                  assert(h->hdphi_recoiljetsel); h->hdphi_recoiljetsel->Fill(dphi_recoiljet, _w);
+                  if(resp_jet) { assert(h->hresp_jetsel); h->hresp_jetsel->Fill(resp_jet, _w); }
+                  //assert(h->hweight_recoiljetsel); h->hweight_recoiljetsel->Fill(_weight);
+                  //assert(h->h2etapt_recoiljetsel); h->h2etapt_recoiljetsel->Fill(jteta[jetidx], jtpt[jetidx]);
+                  //assert(h->h2etapt_recoiljetsel_weight); h->h2etapt_recoiljetsel_weight->Fill(jteta[jetidx], jtpt[jetidx], _weight);
+                }
+
+              }
+            }
+          } //jet loop
+          if (jpt==0 and goodevt[jpt] and recoilnjt[jpt] >= 2 and (jtpt[i0] >= h->ptmin && jtpt[i0] < h->ptmax)) { // Trigger pt range 
+            assert(h->hdphi_recoilmin); h->hdphi_recoilmin->Fill(dphi_recoilmin[jpt], _w);
+            assert(h->hdphi_recoilmax); h->hdphi_recoilmax->Fill(dphi_recoilmax[jpt], _w);
+            assert(h->hdphi_recoilcol); h->hdphi_recoilcol->Fill(dphi_recoilmin[jpt], dphi_recoilmax[jpt], _w);
+          }
+          double dphi_jet12 = DPhi(jtphi[i0],jtphi[i1]), dphi_jet23 = DPhi(jtphi[i1],jtphi[i2]);
+          //bool pass_angularcut = (dphi_jet12 > 2 and dphi_jet12 < 2.9) and dphi_jet23 < 1; //May 23
+          if (goodevt[jpt] and dphi_recoilmin[jpt] > 1 and recoiljets[jpt] >= 2) {
+            double leadinggenpt = jtgenpt[i0];
+            double recoilpt     = tools::oplus(rex[jpt],rey[jpt]);
+            double recoilphi    = atan2(rey[jpt], rex[jpt]);
+            double recoilrat    = (recoilpt!=0) ? jtpt[i1]/recoilpt : 0;
+            double recoildphi   = DPhi(jtphi[i0], recoilphi);
+            double recoilmjb    = (recoilpt!=0) ? jtpt[i0]/recoilpt : 0;
+            double recoilmjbinv = (jtpt[i0]!=0) ? recoilpt/jtpt[i0] : 0;
+            double recoilmpf    = met1*cos(DPhi(metphi1,recoilphi));
+            double recoilmpftp  = 1 + recoilmpf/recoilpt;
+            double recoilmpftpinv  = 1 - recoilmpf/recoilpt;
+            double recoilmpf2   = met2*cos(DPhi(metphi2,recoilphi));
+            double recoilmpftp2 = 1 + recoilmpf2/recoilpt;
+            double recoilmpftpinv2 = 1 - recoilmpf2/recoilpt;
+            double recoilgenpt  = tools::oplus(rex_gen[jpt],rey_gen[jpt]);
+            double recoilgenphi = atan2(rey_gen[jpt], rex_gen[jpt]);
+            double recoilgenmjb = (recoilgenpt!=0) ? leadinggenpt / recoilgenpt : 0;
+            double resp_leading = (leadinggenpt!=0) ? jtpt[i0] / leadinggenpt : 0;
+            double resp_recoil  = (recoilgenpt>0) ? recoilpt / recoilgenpt : 0;
+            double resp_mjb     = recoilmjb / recoilgenmjb;
+
+            double leadmpf    = met1*cos(DPhi(metphi1,jtphi[i0]));
+            double leadmpftp  = 1 - leadmpf/jtpt[i0];
+            double leadmpf2   = met2*cos(DPhi(metphi2,jtphi[i0]));
+            double leadmpftp2 = 1 - leadmpf2/jtpt[i0];
+            double leadmpf_ue   = uncl_et*cos(DPhi(uncl_phi,jtphi[i0]));
+            double leadmpftp_ue = 1 - leadmpf_ue/jtpt[i0];
+
+            double leadmpftpinv  = 1 + leadmpf/jtpt[i0];
+            double leadmpftpinv2 = 1 + leadmpf2/jtpt[i0];
+            double leadmpftpinv_ue = 1 + leadmpf_ue/jtpt[i0];
+
+            double newptsum  = jtpt[i0] + recoilpt;
+            double newptave  = 0.5 * newptsum;  
+            double ptavemjb = (jtpt[i0] - recoilpt) / newptsum; //0.5 - recoilpt/newptave (or -0.5 + jtpt[i0]/newptave)
+            double ptavemjbinv = (1 + ptavemjb) / (1 - ptavemjb);
+
+            double vec_px  = jtpt[i0] * cos(jtphi[i0]) - rex[jpt];
+            double vec_py  = jtpt[i0] * sin(jtphi[i0]) - rey[jpt];
+            double vec_pt  = tools::oplus(vec_px, vec_py);
+            double vec_phi = atan2(vec_py, vec_px); 
+            double ptavempf = -met1*cos(DPhi(metphi1, vec_phi)) / newptsum;
+            double ptavempf2 = -met2*cos(DPhi(metphi2, vec_phi)) / newptsum;
+            // ptavemjb = (pTlead - pTrecoil) / (pTread + pTrecoil) = MPF_ptave -> ptavempftp
+            double ptavempftp = (1 + ptavempf) / (1 - ptavempf); //or MPF_ptave/(2-MPF_ptave)
+            double ptavempftp2 = (1 + ptavempf2) / (1 - ptavempf2);
+
+            if (jpt==0) {
+              assert(h->prho_recoil); h->prho_recoil->Fill(recoilpt, rho, _w);
+              assert(h->prho_leading); h->prho_leading->Fill(jtpt[i0], rho, _w);
+              assert(h->prho_ptave); h->prho_ptave->Fill(newptave, rho, _w);
+              assert(h->h2rho_recoil); h->h2rho_recoil->Fill(recoilpt, rho, _w);
+              assert(h->h2rho_leading); h->h2rho_leading->Fill(jtpt[i0], rho, _w);
+              assert(h->h2rho_ptave); h->h2rho_ptave->Fill(newptave, rho, _w);
+            }
+
+            if (recoilrat < 0.6 and fabs(recoildphi - TMath::Pi()) < 0.3) {
+              double recoilstuff = 0, byConstruct = 0;
+              double recoilstuff_ptcl = 0, byConstruct_ptcl = 0;
+              for (int jetidx = 0; jetidx != njt; ++jetidx) {
+                if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx])<4.7)) {
+                  double dphi_recoiljet = DPhi(jtphi[i0], jtphi[jetidx]);
+                  if (dphi_recoiljet > 1) { //recoil basic
+                    double func_i = jtpt[jetidx]/(double)recoilpt;
+                    double F_i = func_i * cos(DPhi(recoilphi, jtphi[jetidx])); //Func_i => Sum(Func_i) = 1
+                    byConstruct += F_i;
+                    recoilstuff += F_i * log(func_i);
+                    if(jp::ismc) {
+                      double func_i_ptcl = jtgenpt[jetidx]/(double)recoilgenpt;
+                      double F_i_ptcl = func_i_ptcl * cos(DPhi(recoilgenphi, jtgenphi[jetidx]));
+                      byConstruct_ptcl += F_i_ptcl; recoilstuff_ptcl += F_i_ptcl * log(func_i_ptcl);
+                      //PrintInfo(Form(" jetidx=%2i with eta=%5.2f and pt=%6.2f (genpt=%6.2f): Sum(F_i) = %6.2f",jetidx,jteta[jetidx],jtpt[jetidx],jtgenpt[jetidx],byConstruct),true);
+                      if(jpt==0) {
+                        assert(h->pjtptsf_recoil); h->pjtptsf_recoil->Fill(jtpt[jetidx],jtptsf[jetidx], _w);
+                        assert(h->pjtgenptsf_recoil); h->pjtgenptsf_recoil->Fill(jtgenpt[jetidx],jtptsf[jetidx], _w);
+                      }
+                    }
+                  }
+                }
+              }
+              double CRecoil = exp(recoilstuff);
+
+              if (jpt==0) {
+                assert(h->prho_recoil0); h->prho_recoil0->Fill(recoilpt, rho, _w);
+                assert(h->prho_leading0); h->prho_leading0->Fill(jtpt[i0], rho, _w);
+                assert(h->prho_ptave0); h->prho_ptave0->Fill(newptave, rho, _w);
+                assert(h->h2rho_recoil0); h->h2rho_recoil0->Fill(recoilpt, rho, _w);
+                assert(h->h2rho_leading0); h->h2rho_leading0->Fill(jtpt[i0], rho, _w);
+                assert(h->h2rho_ptave0); h->h2rho_ptave0->Fill(newptave, rho, _w);
+ 
+                assert(h->pmjb_ptave0); h->pmjb_ptave0->Fill(newptave, ptavemjb, _w);
+                assert(h->pmjbinv_ptave0); h->pmjbinv_ptave0->Fill(newptave, ptavemjbinv, _w);
+                assert(h->pmpf_ptave0); h->pmpf_ptave0->Fill(newptave, ptavempf, _w);
+                assert(h->pmpf_ptave20); h->pmpf_ptave20->Fill(newptave, ptavempf2, _w);
+                assert(h->pmpfinv_ptave0); h->pmpfinv_ptave0->Fill(newptave, ptavempftp, _w);
+                assert(h->pmpfinv_ptave20); h->pmpfinv_ptave20->Fill(newptave, ptavempftp2, _w);
+                assert(h->h2mjb_ptave0); h->h2mjb_ptave0->Fill(newptave, ptavemjb, _w);
+                assert(h->h2mjbinv_ptave0); h->h2mjbinv_ptave0->Fill(newptave, ptavemjbinv, _w);
+                assert(h->h2mpf_ptave0); h->h2mpf_ptave0->Fill(newptave, ptavempf, _w);
+                assert(h->h2mpf_ptave20); h->h2mpf_ptave20->Fill(newptave, ptavempf2, _w);
+                assert(h->h2mpfinv_ptave0); h->h2mpfinv_ptave0->Fill(newptave, ptavempftp, _w);
+                assert(h->h2mpfinv_ptave20); h->h2mpfinv_ptave20->Fill(newptave, ptavempftp2, _w);
+ 
+                assert(h->hleadmpf_ue0); h->hleadmpf_ue0->Fill(leadmpf_ue, _w);
+                assert(h->hleadmpftp_ue0); h->hleadmpftp_ue0->Fill(leadmpftp_ue, _w);
+                assert(h->pmpflead_leading_ue0); h->pmpflead_leading_ue0->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->pmpfleadinv_leading_ue0); h->pmpfleadinv_leading_ue0->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+                assert(h->h2mpflead_leading_ue0); h->h2mpflead_leading_ue0->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->h2mpfleadinv_leading_ue0); h->h2mpfleadinv_leading_ue0->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+ 
+                assert(h->hnjet0); h->hnjet0->Fill(njt, _w);
+                assert(h->hj0pt0); h->hj0pt0->Fill(jtpt[i0], _w);
+                assert(h->hj0phi0); h->hj0phi0->Fill(jtphi[i0], _w);
+                assert(h->hj1pt0); h->hj1pt0->Fill(jtpt[i1], _w);
+                assert(h->hj2pt0); h->hj2pt0->Fill(jtpt[i2], _w);
+                assert(h->hrecoilpt0); h->hrecoilpt0->Fill(recoilpt, _w);
+                assert(h->hrecoilphi0); h->hrecoilphi0->Fill(recoilphi, _w);
+                assert(h->hrecoilrat0); h->hrecoilrat0->Fill(recoilrat, _w);
+                assert(h->hrecoildphi0); h->hrecoildphi0->Fill(recoildphi, _w);
+                assert(h->hrecoiljets0); h->hrecoiljets0->Fill(recoiljets[jpt], _w);
+                assert(h->hrecoilmjb0); h->hrecoilmjb0->Fill(recoilmjb, _w);
+                assert(h->hrecoilmjbinv0); h->hrecoilmjbinv0->Fill(recoilmjbinv, _w);
+                assert(h->hrecoilmpftpinv0); h->hrecoilmpftpinv0->Fill(recoilmpftpinv, _w);
+                assert(h->hrecoilmpftpinv20); h->hrecoilmpftpinv20->Fill(recoilmpftpinv2, _w);
+                assert(h->hrecoilmpf0); h->hrecoilmpf0->Fill(recoilmpf, _w);
+                assert(h->hrecoilmpftp0); h->hrecoilmpftp0->Fill(recoilmpftp, _w);
+                assert(h->hrecoilmpf20); h->hrecoilmpf20->Fill(recoilmpf2, _w);
+                assert(h->hrecoilmpftp20); h->hrecoilmpftp20->Fill(recoilmpftp2, _w);
+                assert(h->hleadmpf0); h->hleadmpf0->Fill(leadmpf, _w);
+                assert(h->hleadmpftp0); h->hleadmpftp0->Fill(leadmpftp, _w);
+                assert(h->hleadmpf20); h->hleadmpf20->Fill(leadmpf2, _w);
+                assert(h->hleadmpftp20); h->hleadmpftp20->Fill(leadmpftp2, _w);
+                assert(h->pmjb_recoil0); h->pmjb_recoil0->Fill(recoilpt, recoilmjb, _w);
+                assert(h->pmjb_leading0); h->pmjb_leading0->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->pmjbinv_leading0); h->pmjbinv_leading0->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->pmpfinv_leading0); h->pmpfinv_leading0->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->pmpfinv_leading20); h->pmpfinv_leading20->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->pmpf_recoil0); h->pmpf_recoil0->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->pmpf_recoil20); h->pmpf_recoil20->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->pmpf_leading0); h->pmpf_leading0->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->pmpf_leading20); h->pmpf_leading20->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->pmpflead_leading0); h->pmpflead_leading0->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->pmpflead_leading20); h->pmpflead_leading20->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->pmpfleadinv_leading0); h->pmpfleadinv_leading0->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->pmpfleadinv_leading20); h->pmpfleadinv_leading20->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->pmjbinv_recoil0); h->pmjbinv_recoil0->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->pmpflead_recoil0); h->pmpflead_recoil0->Fill(recoilpt, leadmpftp, _w);
+                assert(h->pmpflead_recoil20); h->pmpflead_recoil20->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->h2mjb_recoil0); h->h2mjb_recoil0->Fill(recoilpt, recoilmjb, _w);
+                assert(h->h2mjb_leading0); h->h2mjb_leading0->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->h2mjbinv_leading0); h->h2mjbinv_leading0->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->h2mpfinv_leading0); h->h2mpfinv_leading0->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->h2mpfinv_leading20); h->h2mpfinv_leading20->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->h2mpf_recoil0); h->h2mpf_recoil0->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->h2mpf_recoil20); h->h2mpf_recoil20->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->h2mpf_leading0); h->h2mpf_leading0->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->h2mpf_leading20); h->h2mpf_leading20->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->h2mpflead_leading0); h->h2mpflead_leading0->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->h2mpflead_leading20); h->h2mpflead_leading20->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->h2mpfleadinv_leading0); h->h2mpfleadinv_leading0->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->h2mpfleadinv_leading20); h->h2mpfleadinv_leading20->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->h2mjbinv_recoil0); h->h2mjbinv_recoil0->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->h2mpflead_recoil0); h->h2mpflead_recoil0->Fill(recoilpt, leadmpftp, _w);
+                assert(h->h2mpflead_recoil20); h->h2mpflead_recoil20->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->hdphi_jet120); h->hdphi_jet120->Fill(dphi_jet12, _w);
+                assert(h->hdphi_jet230); h->hdphi_jet230->Fill(dphi_jet23, _w);
+                if (i2>=0 and _jetids[i2] and jtpt[i2] > ptCut[jpt]) {
+                  double recoilrat2 = (recoilpt!=0) ? jtpt[i2]/recoilpt : 0;
+                  assert(h->hrecoilrat20); h->hrecoilrat20->Fill(recoilrat2, _w);
+                }
+                if (jp::ismc) {
+                  assert(h->hj0genpt0); h->hj0genpt0->Fill(jtgenpt[i0], _w);
+                  assert(h->hj0genr0); h->hj0genr0->Fill(jtgenr[i0], _w);
+                  assert(h->hrecoilgenpt0); h->hrecoilgenpt0->Fill(recoilgenpt, _w);
+                  assert(h->hrecoilgenphi0); h->hrecoilgenphi0->Fill(recoilgenphi, _w);
+                  assert(h->hresp_leading0); h->hresp_leading0->Fill(resp_leading, _w);
+                  assert(h->hresp_recoil0); h->hresp_recoil0->Fill(resp_recoil, _w);
+                  assert(h->hresp_mjb0); h->hresp_mjb0->Fill(resp_mjb, _w);
+                  assert(h->presp_leading0); h->presp_leading0->Fill(jtpt[i0], resp_leading, _w);
+                  assert(h->presp_recoil0); h->presp_recoil0->Fill(recoilpt, resp_recoil, _w);
+                  assert(h->pjtgenptsf0); h->pjtgenptsf0->Fill(jtgenpt[i0],jtptsf[i0], _w);
+                  assert(h->pjtptsf0); h->pjtptsf0->Fill(jtpt[i0],jtptsf[i0], _w);
+                }
+                if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil0); h->hCRecoil0->Fill(CRecoil, _w);
+                assert(h->pCRecoil0); h->pCRecoil0->Fill(recoilpt, CRecoil, _w);
+                assert(h->pCRecoil_leading0); h->pCRecoil_leading0->Fill(jtpt[i0], CRecoil, _w);
+                assert(h->pCRecoil_ptave0); h->pCRecoil_ptave0->Fill(newptave, CRecoil, _w);
+                if(jp::ismc and TMath::IsNaN(recoilstuff_ptcl)==0) {
+                  double CRecoil_ptcl = exp(recoilstuff_ptcl);
+                  if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil_ptcl0); h->hCRecoil_ptcl0->Fill(CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl0); h->pCRecoil_ptcl0->Fill(recoilpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl20); h->pCRecoil_ptcl20->Fill(recoilgenpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_leading0); h->pCRecoil_ptcl2_leading0->Fill(jtgenpt[i0], CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_ptave0); h->pCRecoil_ptcl2_ptave0->Fill(0.5*(recoilgenpt+jtgenpt[i0]), CRecoil_ptcl, _w);
+                }
+ 
+              } else if (jpt==1) {
+                assert(h->prho_recoil1); h->prho_recoil1->Fill(recoilpt, rho, _w);
+                assert(h->prho_leading1); h->prho_leading1->Fill(jtpt[i0], rho, _w);
+                assert(h->prho_ptave1); h->prho_ptave1->Fill(newptave, rho, _w);
+                assert(h->h2rho_recoil1); h->h2rho_recoil1->Fill(recoilpt, rho, _w);
+                assert(h->h2rho_leading1); h->h2rho_leading1->Fill(jtpt[i0], rho, _w);
+                assert(h->h2rho_ptave1); h->h2rho_ptave1->Fill(newptave, rho, _w);
+ 
+                assert(h->pmjb_ptave1); h->pmjb_ptave1->Fill(newptave, ptavemjb, _w);
+                assert(h->pmjbinv_ptave1); h->pmjbinv_ptave1->Fill(newptave, ptavemjbinv, _w);
+                assert(h->pmpf_ptave1); h->pmpf_ptave1->Fill(newptave, ptavempf, _w);
+                assert(h->pmpf_ptave21); h->pmpf_ptave21->Fill(newptave, ptavempf2, _w);
+                assert(h->pmpfinv_ptave1); h->pmpfinv_ptave1->Fill(newptave, ptavempftp, _w);
+                assert(h->pmpfinv_ptave21); h->pmpfinv_ptave21->Fill(newptave, ptavempftp2, _w);
+                assert(h->h2mjb_ptave1); h->h2mjb_ptave1->Fill(newptave, ptavemjb, _w);
+                assert(h->h2mjbinv_ptave1); h->h2mjbinv_ptave1->Fill(newptave, ptavemjbinv, _w);
+                assert(h->h2mpf_ptave1); h->h2mpf_ptave1->Fill(newptave, ptavempf, _w);
+                assert(h->h2mpf_ptave21); h->h2mpf_ptave21->Fill(newptave, ptavempf2, _w);
+                assert(h->h2mpfinv_ptave1); h->h2mpfinv_ptave1->Fill(newptave, ptavempftp, _w);
+                assert(h->h2mpfinv_ptave21); h->h2mpfinv_ptave21->Fill(newptave, ptavempftp2, _w);
+ 
+                assert(h->hleadmpf_ue1); h->hleadmpf_ue1->Fill(leadmpf_ue, _w);
+                assert(h->hleadmpftp_ue1); h->hleadmpftp_ue1->Fill(leadmpftp_ue, _w);
+                assert(h->pmpflead_leading_ue1); h->pmpflead_leading_ue1->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->pmpfleadinv_leading_ue1); h->pmpfleadinv_leading_ue1->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+                assert(h->h2mpflead_leading_ue1); h->h2mpflead_leading_ue1->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->h2mpfleadinv_leading_ue1); h->h2mpfleadinv_leading_ue1->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+ 
+                assert(h->hnjet1); h->hnjet1->Fill(njt, _w);
+                assert(h->hj0pt1); h->hj0pt1->Fill(jtpt[i0], _w);
+                assert(h->hj0phi1); h->hj0phi1->Fill(jtphi[i0], _w);
+                assert(h->hj1pt1); h->hj1pt1->Fill(jtpt[i1], _w);
+                assert(h->hj2pt1); h->hj2pt1->Fill(jtpt[i2], _w);
+                assert(h->hrecoilpt1); h->hrecoilpt1->Fill(recoilpt, _w);
+                assert(h->hrecoilphi1); h->hrecoilphi1->Fill(recoilphi, _w);
+                assert(h->hrecoilrat1); h->hrecoilrat1->Fill(recoilrat, _w);
+                assert(h->hrecoildphi1); h->hrecoildphi1->Fill(recoildphi, _w);
+                assert(h->hrecoiljets1); h->hrecoiljets1->Fill(recoiljets[jpt], _w);
+                assert(h->hrecoilmjb1); h->hrecoilmjb1->Fill(recoilmjb, _w);
+                assert(h->hrecoilmjbinv1); h->hrecoilmjbinv1->Fill(recoilmjbinv, _w);
+                assert(h->hrecoilmpftpinv1); h->hrecoilmpftpinv1->Fill(recoilmpftpinv, _w);
+                assert(h->hrecoilmpftpinv21); h->hrecoilmpftpinv21->Fill(recoilmpftpinv2, _w);
+                assert(h->hrecoilmpf1); h->hrecoilmpf1->Fill(recoilmpf, _w);
+                assert(h->hrecoilmpftp1); h->hrecoilmpftp1->Fill(recoilmpftp, _w);
+                assert(h->hrecoilmpf21); h->hrecoilmpf21->Fill(recoilmpf2, _w);
+                assert(h->hrecoilmpftp21); h->hrecoilmpftp21->Fill(recoilmpftp2, _w);
+                assert(h->hleadmpf1); h->hleadmpf1->Fill(leadmpf, _w);
+                assert(h->hleadmpftp1); h->hleadmpftp1->Fill(leadmpftp, _w);
+                assert(h->hleadmpf21); h->hleadmpf21->Fill(leadmpf2, _w);
+                assert(h->hleadmpftp21); h->hleadmpftp21->Fill(leadmpftp2, _w);
+                assert(h->pmjb_recoil1); h->pmjb_recoil1->Fill(recoilpt, recoilmjb, _w);
+                assert(h->pmjb_leading1); h->pmjb_leading1->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->pmjbinv_leading1); h->pmjbinv_leading1->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->pmpfinv_leading1); h->pmpfinv_leading1->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->pmpfinv_leading21); h->pmpfinv_leading21->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->pmpf_recoil1); h->pmpf_recoil1->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->pmpf_recoil21); h->pmpf_recoil21->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->pmpf_leading1); h->pmpf_leading1->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->pmpf_leading21); h->pmpf_leading21->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->pmpflead_leading1); h->pmpflead_leading1->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->pmpflead_leading21); h->pmpflead_leading21->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->pmpfleadinv_leading1); h->pmpfleadinv_leading1->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->pmpfleadinv_leading21); h->pmpfleadinv_leading21->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->pmjbinv_recoil1); h->pmjbinv_recoil1->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->pmpflead_recoil1); h->pmpflead_recoil1->Fill(recoilpt, leadmpftp, _w);
+                assert(h->pmpflead_recoil21); h->pmpflead_recoil21->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->h2mjb_recoil1); h->h2mjb_recoil1->Fill(recoilpt, recoilmjb, _w);
+                assert(h->h2mjb_leading1); h->h2mjb_leading1->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->h2mjbinv_leading1); h->h2mjbinv_leading1->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->h2mpfinv_leading1); h->h2mpfinv_leading1->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->h2mpfinv_leading21); h->h2mpfinv_leading21->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->h2mpf_recoil1); h->h2mpf_recoil1->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->h2mpf_recoil21); h->h2mpf_recoil21->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->h2mpf_leading1); h->h2mpf_leading1->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->h2mpf_leading21); h->h2mpf_leading21->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->h2mpflead_leading1); h->h2mpflead_leading1->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->h2mpflead_leading21); h->h2mpflead_leading21->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->h2mpfleadinv_leading1); h->h2mpfleadinv_leading1->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->h2mpfleadinv_leading21); h->h2mpfleadinv_leading21->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->h2mjbinv_recoil1); h->h2mjbinv_recoil1->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->h2mpflead_recoil1); h->h2mpflead_recoil1->Fill(recoilpt, leadmpftp, _w);
+                assert(h->h2mpflead_recoil21); h->h2mpflead_recoil21->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->hdphi_jet121); h->hdphi_jet121->Fill(dphi_jet12, _w);
+                assert(h->hdphi_jet231); h->hdphi_jet231->Fill(dphi_jet23, _w);
+                if (i2>=0 and _jetids[i2] and jtpt[i2] > ptCut[jpt]) {
+                  double recoilrat2 = (recoilpt!=1) ? jtpt[i2]/recoilpt : 0;
+                  assert(h->hrecoilrat21); h->hrecoilrat21->Fill(recoilrat2, _w);
+                }
+                if (jp::ismc) {
+                  assert(h->hj0genpt1); h->hj0genpt1->Fill(jtgenpt[i0], _w);
+                  assert(h->hj0genr1); h->hj0genr1->Fill(jtgenr[i0], _w);
+                  assert(h->hrecoilgenpt1); h->hrecoilgenpt1->Fill(recoilgenpt, _w);
+                  assert(h->hrecoilgenphi1); h->hrecoilgenphi1->Fill(recoilgenphi, _w);
+                  assert(h->hresp_leading1); h->hresp_leading1->Fill(resp_leading, _w);
+                  assert(h->hresp_recoil1); h->hresp_recoil1->Fill(resp_recoil, _w);
+                  assert(h->hresp_mjb1); h->hresp_mjb1->Fill(resp_mjb, _w);
+                  assert(h->presp_leading1); h->presp_leading1->Fill(jtpt[i0], resp_leading, _w);
+                  assert(h->presp_recoil1); h->presp_recoil1->Fill(recoilpt, resp_recoil, _w);
+                  assert(h->pjtgenptsf1); h->pjtgenptsf1->Fill(jtgenpt[i0],jtptsf[i0], _w);
+                  assert(h->pjtptsf1); h->pjtptsf1->Fill(jtpt[i0],jtptsf[i0], _w);
+                }
+                if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil1); h->hCRecoil1->Fill(CRecoil, _w);
+                assert(h->pCRecoil1); h->pCRecoil1->Fill(recoilpt, CRecoil, _w);
+                assert(h->pCRecoil_leading1); h->pCRecoil_leading1->Fill(jtpt[i0], CRecoil, _w);
+                assert(h->pCRecoil_ptave1); h->pCRecoil_ptave1->Fill(newptave, CRecoil, _w);
+                if(jp::ismc and TMath::IsNaN(recoilstuff_ptcl)==1) {
+                  double CRecoil_ptcl = exp(recoilstuff_ptcl);
+                  if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil_ptcl1); h->hCRecoil_ptcl1->Fill(CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl1); h->pCRecoil_ptcl1->Fill(recoilpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl21); h->pCRecoil_ptcl21->Fill(recoilgenpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_leading1); h->pCRecoil_ptcl2_leading1->Fill(jtgenpt[i0], CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_ptave1); h->pCRecoil_ptcl2_ptave1->Fill(0.5*(recoilgenpt+jtgenpt[i0]), CRecoil_ptcl, _w);
+                }
+ 
+              } else if (jpt==2) {
+                assert(h->prho_recoil2); h->prho_recoil2->Fill(recoilpt, rho, _w);
+                assert(h->prho_leading2); h->prho_leading2->Fill(jtpt[i0], rho, _w);
+                assert(h->prho_ptave2); h->prho_ptave2->Fill(newptave, rho, _w);
+                assert(h->h2rho_recoil2); h->h2rho_recoil2->Fill(recoilpt, rho, _w);
+                assert(h->h2rho_leading2); h->h2rho_leading2->Fill(jtpt[i0], rho, _w);
+                assert(h->h2rho_ptave2); h->h2rho_ptave2->Fill(newptave, rho, _w);
+ 
+                assert(h->pmjb_ptave); h->pmjb_ptave->Fill(newptave, ptavemjb, _w);
+                assert(h->pmjbinv_ptave); h->pmjbinv_ptave->Fill(newptave, ptavemjbinv, _w);
+                assert(h->pmpf_ptave); h->pmpf_ptave->Fill(newptave, ptavempf, _w);
+                assert(h->pmpf_ptave2); h->pmpf_ptave2->Fill(newptave, ptavempf2, _w);
+                assert(h->pmpfinv_ptave); h->pmpfinv_ptave->Fill(newptave, ptavempftp, _w);
+                assert(h->pmpfinv_ptave2); h->pmpfinv_ptave2->Fill(newptave, ptavempftp2, _w);
+                assert(h->h2mjb_ptave); h->h2mjb_ptave->Fill(newptave, ptavemjb, _w);
+                assert(h->h2mjbinv_ptave); h->h2mjbinv_ptave->Fill(newptave, ptavemjbinv, _w);
+                assert(h->h2mpf_ptave); h->h2mpf_ptave->Fill(newptave, ptavempf, _w);
+                assert(h->h2mpf_ptave2); h->h2mpf_ptave2->Fill(newptave, ptavempf2, _w);
+                assert(h->h2mpfinv_ptave); h->h2mpfinv_ptave->Fill(newptave, ptavempftp, _w);
+                assert(h->h2mpfinv_ptave2); h->h2mpfinv_ptave2->Fill(newptave, ptavempftp2, _w);
+ 
+                assert(h->hleadmpf_ue); h->hleadmpf_ue->Fill(leadmpf_ue, _w);
+                assert(h->hleadmpftp_ue); h->hleadmpftp_ue->Fill(leadmpftp_ue, _w);
+                assert(h->pmpflead_leading_ue); h->pmpflead_leading_ue->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->pmpfleadinv_leading_ue); h->pmpfleadinv_leading_ue->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+                assert(h->h2mpflead_leading_ue); h->h2mpflead_leading_ue->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->h2mpfleadinv_leading_ue); h->h2mpfleadinv_leading_ue->Fill(jtpt[i0], leadmpftpinv_ue, _w);
+ 
+                assert(h->hnjet); h->hnjet->Fill(njt, _w);
+                assert(h->hj0pt); h->hj0pt->Fill(jtpt[i0], _w);
+                assert(h->hj0phi); h->hj0phi->Fill(jtphi[i0], _w);
+                assert(h->hj1pt); h->hj1pt->Fill(jtpt[i1], _w);
+                assert(h->hj2pt); h->hj2pt->Fill(jtpt[i2], _w);
+                assert(h->hrecoilpt); h->hrecoilpt->Fill(recoilpt, _w);
+                assert(h->hrecoilphi); h->hrecoilphi->Fill(recoilphi, _w);
+                assert(h->hrecoilrat); h->hrecoilrat->Fill(recoilrat, _w);
+                assert(h->hrecoildphi); h->hrecoildphi->Fill(recoildphi, _w);
+                assert(h->hrecoiljets); h->hrecoiljets->Fill(recoiljets[jpt], _w);
+                assert(h->hrecoilmjb); h->hrecoilmjb->Fill(recoilmjb, _w);
+                assert(h->hrecoilmjb2); h->hrecoilmjb2->Fill(recoilmjb, _w); //x-axis range up to 4
+                assert(h->hrecoilmjbinv); h->hrecoilmjbinv->Fill(recoilmjbinv, _w);
+                assert(h->hrecoilmpftpinv); h->hrecoilmpftpinv->Fill(recoilmpftpinv, _w);
+                assert(h->hrecoilmpftpinv2); h->hrecoilmpftpinv2->Fill(recoilmpftpinv2, _w);
+                assert(h->hrecoilmpf); h->hrecoilmpf->Fill(recoilmpf, _w);
+                assert(h->hrecoilmpftp); h->hrecoilmpftp->Fill(recoilmpftp, _w);
+                assert(h->hrecoilmpf2); h->hrecoilmpf2->Fill(recoilmpf2, _w);
+                assert(h->hrecoilmpftp2); h->hrecoilmpftp2->Fill(recoilmpftp2, _w);
+                assert(h->hleadmpf); h->hleadmpf->Fill(leadmpf, _w);
+                assert(h->hleadmpftp); h->hleadmpftp->Fill(leadmpftp, _w);
+                assert(h->hleadmpf2); h->hleadmpf2->Fill(leadmpf2, _w);
+                assert(h->hleadmpftp2); h->hleadmpftp2->Fill(leadmpftp2, _w);
+                assert(h->pmjb_recoil); h->pmjb_recoil->Fill(recoilpt, recoilmjb, _w);
+                assert(h->pmjb_leading); h->pmjb_leading->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->pmjbinv_leading); h->pmjbinv_leading->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->pmpfinv_leading); h->pmpfinv_leading->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->pmpfinv_leading2); h->pmpfinv_leading2->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->pmpf_recoil); h->pmpf_recoil->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->pmpf_recoil2); h->pmpf_recoil2->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->pmpf_leading); h->pmpf_leading->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->pmpf_leading2); h->pmpf_leading2->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->pmpflead_leading); h->pmpflead_leading->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->pmpflead_leading2); h->pmpflead_leading2->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->pmpfleadinv_leading); h->pmpfleadinv_leading->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->pmpfleadinv_leading2); h->pmpfleadinv_leading2->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->pmjbinv_recoil); h->pmjbinv_recoil->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->pmpflead_recoil); h->pmpflead_recoil->Fill(recoilpt, leadmpftp, _w);
+                assert(h->pmpflead_recoil2); h->pmpflead_recoil2->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->h2mjb_recoil); h->h2mjb_recoil->Fill(recoilpt, recoilmjb, _w);
+                assert(h->h2mjb_leading); h->h2mjb_leading->Fill(jtpt[i0], recoilmjb, _w);
+                assert(h->h2mjbinv_leading); h->h2mjbinv_leading->Fill(jtpt[i0], recoilmjbinv, _w);
+                assert(h->h2mpfinv_leading); h->h2mpfinv_leading->Fill(jtpt[i0], recoilmpftpinv, _w);
+                assert(h->h2mpfinv_leading2); h->h2mpfinv_leading2->Fill(jtpt[i0], recoilmpftpinv2, _w);
+                assert(h->h2mpf_recoil); h->h2mpf_recoil->Fill(recoilpt, recoilmpftp, _w);
+                assert(h->h2mpf_recoil2); h->h2mpf_recoil2->Fill(recoilpt, recoilmpftp2, _w);
+                assert(h->h2mpf_leading); h->h2mpf_leading->Fill(jtpt[i0], recoilmpftp, _w);
+                assert(h->h2mpf_leading2); h->h2mpf_leading2->Fill(jtpt[i0], recoilmpftp2, _w);
+                assert(h->h2mpflead_leading); h->h2mpflead_leading->Fill(jtpt[i0], leadmpftp, _w);
+                assert(h->h2mpflead_leading2); h->h2mpflead_leading2->Fill(jtpt[i0], leadmpftp2, _w);
+                assert(h->h2mpfleadinv_leading); h->h2mpfleadinv_leading->Fill(jtpt[i0], leadmpftpinv, _w);
+                assert(h->h2mpfleadinv_leading2); h->h2mpfleadinv_leading2->Fill(jtpt[i0], leadmpftpinv2, _w);
+                assert(h->h2mjbinv_recoil); h->h2mjbinv_recoil->Fill(recoilpt, recoilmjbinv, _w);
+                assert(h->h2mpflead_recoil); h->h2mpflead_recoil->Fill(recoilpt, leadmpftp, _w);
+                assert(h->h2mpflead_recoil2); h->h2mpflead_recoil2->Fill(recoilpt, leadmpftp2, _w);
+                assert(h->hdphi_jet12); h->hdphi_jet12->Fill(dphi_jet12, _w);
+                assert(h->hdphi_jet23); h->hdphi_jet23->Fill(dphi_jet23, _w);
+                if (i2>=0 and _jetids[i2] and jtpt[i2] > ptCut[jpt]) {
+                  double recoilrat2 = (recoilpt!=0) ? jtpt[i2]/recoilpt : 0;
+                  assert(h->hrecoilrat2); h->hrecoilrat2->Fill(recoilrat2, _w);
+                }
+                if (jp::ismc) {
+                  assert(h->hj0genpt); h->hj0genpt->Fill(jtgenpt[i0], _w);
+                  assert(h->hj0genr); h->hj0genr->Fill(jtgenr[i0], _w);
+                  assert(h->hrecoilgenpt); h->hrecoilgenpt->Fill(recoilgenpt, _w);
+                  assert(h->hrecoilgenphi); h->hrecoilgenphi->Fill(recoilgenphi, _w);
+                  assert(h->hresp_leading); h->hresp_leading->Fill(resp_leading, _w);
+                  assert(h->hresp_recoil); h->hresp_recoil->Fill(resp_recoil, _w);
+                  assert(h->hresp_mjb); h->hresp_mjb->Fill(resp_mjb, _w);
+                  assert(h->presp_leading); h->presp_leading->Fill(jtpt[i0], resp_leading, _w);
+                  assert(h->presp_recoil); h->presp_recoil->Fill(recoilpt, resp_recoil, _w);
+                  assert(h->pjtgenptsf); h->pjtgenptsf->Fill(jtgenpt[i0],jtptsf[i0], _w);
+                  assert(h->pjtptsf); h->pjtptsf->Fill(jtpt[i0],jtptsf[i0], _w);
+                }
+                if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil); h->hCRecoil->Fill(CRecoil, _w);
+                assert(h->pCRecoil); h->pCRecoil->Fill(recoilpt, CRecoil, _w);
+                assert(h->pCRecoil_leading); h->pCRecoil_leading->Fill(jtpt[i0], CRecoil, _w);
+                assert(h->pCRecoil_ptave); h->pCRecoil_ptave->Fill(newptave, CRecoil, _w);
+                if(jp::ismc and TMath::IsNaN(recoilstuff_ptcl)==0) {
+                  double CRecoil_ptcl = exp(recoilstuff_ptcl);
+                  if (fabs(jteta[i0]) >= h->etamin and fabs(jteta[i0]) < h->etamax) assert(h->hCRecoil_ptcl); h->hCRecoil_ptcl->Fill(CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl); h->pCRecoil_ptcl->Fill(recoilpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2); h->pCRecoil_ptcl2->Fill(recoilgenpt, CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_leading); h->pCRecoil_ptcl2_leading->Fill(jtgenpt[i0], CRecoil_ptcl, _w);
+                  assert(h->pCRecoil_ptcl2_ptave); h->pCRecoil_ptcl2_ptave->Fill(0.5*(recoilgenpt+jtgenpt[i0]), CRecoil_ptcl, _w);
+                }
+              } //jpt==2
+            } //recoil basic
+          }
+        } //recopt loop
+      }
+    }
+  }
+/*
   if (_pass_qcdmet and i0>=0 and _jetids[i0] and jtpt[i0]>jp::recopt) { // First leading jet
     if (i1>=0 and _jetids[i1] and jtpt[i1]>jp::recopt) { // Second leading jet
       //{ Calculate and fill dijet mass.
@@ -1918,6 +2550,9 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             h->hmpf->Fill(1 + met * cos(DPhi(metphi, phi)) / pt, _w);
             h->hmpf1->Fill(1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
             h->hmpf2->Fill(1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
+            h->hmpfinv->Fill(1 - met * cos(DPhi(metphi, phi)) / pt, _w);
+            h->hmpfinv1->Fill(1 - met1 * cos(DPhi(metphi1, phi)) / pt, _w);
+            h->hmpfinv2->Fill(1 - met2 * cos(DPhi(metphi2, phi)) / pt, _w);
             // Component fractions
             h->hncand->Fill(jtn[jetidx], _w);
             h->hnch->Fill(jtnch[jetidx], _w);
@@ -1945,6 +2580,9 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           h->pmpf->Fill(pt, 1 + met * cos(DPhi(metphi, phi)) / pt, _w);
           h->pmpf1->Fill(pt, 1 + met1 * cos(DPhi(metphi1, phi)) / pt, _w);
           h->pmpf2->Fill(pt, 1 + met2 * cos(DPhi(metphi2, phi)) / pt, _w);
+          h->pmpfinv->Fill(pt, 1 - met * cos(DPhi(metphi, phi)) / pt, _w);
+          h->pmpfinv1->Fill(pt, 1 - met1 * cos(DPhi(metphi1, phi)) / pt, _w);
+          h->pmpfinv2->Fill(pt, 1 - met2 * cos(DPhi(metphi2, phi)) / pt, _w);
 
           // Histograms for quark/gluon study (Ozlem)
           double probg = 1. - qgl[jetidx]; // First approximation
@@ -2099,6 +2737,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
       } // gen jet eta
     } // genjet loop
   } // MC
+*/
 } // FillSingleBasic
 
 
@@ -2895,6 +3534,13 @@ void HistosFill::FillJetID(vector<bool> &id)
       bool good = h2HotExcl->GetBinContent(h2HotExcl->FindBin(jteta[jetidx],jtphi[jetidx])) <= 0;
       id[jetidx] = (id[jetidx] and good);
     }
+    //--added by Minsuk on Sep 16: HEM issue -> veto events with jets having pT > 30 GeV, -3.0 < eta < -1.4 && -1.57 < phi < -0.87
+    if (jp::doVetoHEM) {
+      if (jp::yid==3 and (std::regex_search(jp::run,regex("^RunC")) || std::regex_search(jp::run,regex("^RunD")))) {
+        bool goodHEM = (jteta[jetidx] >= -1.4 or jteta[jetidx] <= -3.0) or (jtphi[jetidx] >= -0.87 or jtphi[jetidx] <= -1.57);
+        id[jetidx] = (id[jetidx] and goodHEM);
+      }
+    }
   }
 } // FillJetID
 
@@ -3060,7 +3706,7 @@ bool HistosFill::LoadPuProfiles()
   else if (jp::ishw) mcfile += jp::puhwfile;
   else if (jp::ispy) {
     if (jp::pthatbins)   mcfile += "pileup_Pthat.root";
-    else if (jp::htbins) mcfile += "pileup_P8MG.root";
+    else if (jp::htbins) { if(jp::UL17) mcfile += "pileup_P8MG_UL17.root"; else mcfile += "pileup_P8MG.root"; }
     else                 mcfile += jp::pup8file;
   } else {
     PrintInfo("Problems with PU file types!",true);

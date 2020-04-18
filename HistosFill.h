@@ -356,6 +356,9 @@ private:
   Float_t         jtgeny[_maxnjt];   //EXTRA
   Float_t         jtgeneta[_maxnjt];   //[njt]
   Float_t         jtgenphi[_maxnjt];   //[njt]
+  Float_t         jtptsf[_maxnjt];
+  Float_t         jtptsmearNew[_maxnjt];
+
 
   Float_t         *qgl;//[_maxnjt];   //[njt]
   Int_t           *partonflavor;//[_maxnjt];   //[njt]
@@ -406,6 +409,8 @@ private:
   Float_t         metphi1_nol2l3;
   Float_t         met2;
   Float_t         metphi2;
+  Float_t         uncl_et;
+  Float_t         uncl_phi;
 
   string         _runinfo;
 };

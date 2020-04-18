@@ -1,7 +1,3 @@
-// For official JME resolutions JetMETCorrections Module needed
-// Available at https://github.com/miquork/jecsys/tree/2018_Moriond19
-// (Download once and make a symlink under jetphys directory.)
-
 #ifndef __ptresolution_h__
 #define __ptresolution_h__
 
@@ -16,7 +12,10 @@ using std::string;
 // Switch MC truth or data resolutions
 bool _ismcjer = true;
 // Use official JME resolutions
-bool _usejme = false; // true;
+bool _usejme = true;
+bool _usejmeUp = false; //Scale factors (Normal / Up / Down)
+bool _usejmeDown = false;
+bool _ul17 = false, _complexL1 = false;
 //bool _jerkscale = true;//false;
 // Define cone size (default Run I AK5)
 //bool _ak7 = false;
@@ -24,7 +23,7 @@ bool _usejme = false; // true;
 enum jer_iov { none, run1, run2016, run2017, run2018, run2018abc, run2018d,
 	       run2016bcd, run2016ef, run2016gh,
 	       run2017b, run2017c, run2017d, run2017e, run2017f, run2017de};
-jer_iov _jer_iov = run2017; //none;
+jer_iov _jer_iov = none;
 
 const int _nres = 8;
 
@@ -266,36 +265,44 @@ double ptresolution(double pt, double eta) {
 	"Fall17_V3_MC_PtResolution_AK4PFchs.txt";
       string scaleFactorFile = "../JRDatabase/textFiles/Fall17_V3_MC/"
 	"Fall17_V3_MC_SF_AK4PFchs.txt";
+      if(_ul17) {
+        if(_complexL1) scaleFactorFile = "./Summer19UL17_V0_MC/JERSF_ComplexL1.txt";
+        else scaleFactorFile = "./Summer19UL17_V0_MC/JERSF_SimpleL1.txt";
+      }
       string weightFile = "rootfiles/jerweights.root";
+      cout << " ******************************************************************************* " << endl
+           << " * Loading resolutionFile  ... \"" << resolutionFile  << "\" * " << endl 
+           << " * Loading scaleFactorFile ... \"" << scaleFactorFile << "\" Please check SimpleL1 or ComplexL1? * " << endl
+           << " ******************************************************************************* " << endl;
 
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
     }
     if (_jer_iov==run2018 && !_jer && !_jer_sf) {
-      string resolutionFile = "../JRDatabase/textFiles/Autumn18_V4_MC/"
-      "Autumn18_V4_MC_PtResolution_AK4PFchs.txt";
-      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V4_MC/"
-	"Autumn18_V4_MC_SF_AK4PFchs.txt";
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_V7_MC/"
+      "Autumn18_V7_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V7_MC/"
+	"Autumn18_V7_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
 
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
     }
     if (_jer_iov==run2018abc && !_jer && !_jer_sf) {
-      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunABC_V4_MC/"
-      "Autumn18_RunABC_V4_MC_PtResolution_AK4PFchs.txt";
-      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunABC_V4_MC/"
-	"Autumn18_RunABC_V4_MC_SF_AK4PFchs.txt";
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunABC_V7_MC/"
+      "Autumn18_RunABC_V7_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunABC_V7_MC/"
+	"Autumn18_RunABC_V7_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
 
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
     }
     if (_jer_iov==run2018d && !_jer && !_jer_sf) {
-      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunD_V4_MC/"
-      "Autumn18_RunD_V4_MC_PtResolution_AK4PFchs.txt";
-      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunD_V4_MC/"
-	"Autumn18_RunD_V4_MC_SF_AK4PFchs.txt";
+      string resolutionFile = "../JRDatabase/textFiles/Autumn18_RunD_V7_MC/"
+      "Autumn18_RunD_V7_MC_PtResolution_AK4PFchs.txt";
+      string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_RunD_V7_MC/"
+	"Autumn18_RunD_V7_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
 
       _jer = new JME::JetResolution(resolutionFile);
@@ -316,7 +323,9 @@ double ptresolution(double pt, double eta) {
 
     //double rho = 19.31; // Data-Fall17V8-D, jt500 hrho
     double jet_resolution = _jer->getResolution({{JME::Binning::JetPt, pt}, {JME::Binning::JetEta, eta}, {JME::Binning::Rho, _rho}});
-    double jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}}, Variation::NOMINAL);//m_systematic_variation);
+    double jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}, {JME::Binning::JetPt, pt}}, Variation::NOMINAL);//m_systematic_variation);
+    if(_usejmeUp) jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}, {JME::Binning::JetPt, pt}}, Variation::UP);
+    else if(_usejmeDown) jer_sf = _jer_sf->getScaleFactor({{JME::Binning::JetEta, eta}, {JME::Binning::JetPt, pt}}, Variation::DOWN);
 
     res = jet_resolution;
     if (!_ismcjer) res *= jer_sf;
