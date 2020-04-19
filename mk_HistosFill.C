@@ -25,10 +25,10 @@ R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/FactorizedJetCorrector.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/SimpleJetCorrectionUncertainty.cc+)
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetCorrectionUncertainty.cc+)
-#if JETRESO == 1
+//#if JETRESO == 1
 R__LOAD_LIBRARY(CondFormats/JetMETObjects/src/JetResolutionObject.cc+)
 R__LOAD_LIBRARY(JetMETCorrections/Modules/src/JetResolution.cc+)
-#endif
+//#endif
 #ifdef USEASSERT
 R__LOAD_LIBRARY(tools.C+g)
 R__LOAD_LIBRARY(HistosRun.C+g)
