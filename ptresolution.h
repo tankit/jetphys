@@ -266,13 +266,15 @@ double ptresolution(double pt, double eta) {
       string scaleFactorFile = "../JRDatabase/textFiles/Fall17_V3_MC/"
 	"Fall17_V3_MC_SF_AK4PFchs.txt";
       if(_ul17) {
-        if(_complexL1) scaleFactorFile = "./Summer19UL17_V0_MC/JERSF_ComplexL1.txt";
-        else scaleFactorFile = "./Summer19UL17_V0_MC/JERSF_SimpleL1.txt";
+        resolutionFile = "../JRDatabase/textFiles/Summer19UL17_JRV2_MC/"
+          "Summer19UL17_JRV2_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL17_JRV2_MC/"
+          "Summer19UL17_JRV2_MC_SF_AK4PFchs.txt";
       }
       string weightFile = "rootfiles/jerweights.root";
       cout << " ******************************************************************************* " << endl
            << " * Loading resolutionFile  ... \"" << resolutionFile  << "\" * " << endl 
-           << " * Loading scaleFactorFile ... \"" << scaleFactorFile << "\" Please check SimpleL1 or ComplexL1? * " << endl
+           << " * Loading scaleFactorFile ... \"" << scaleFactorFile << "\" * " << endl
            << " ******************************************************************************* " << endl;
 
       _jer = new JME::JetResolution(resolutionFile);

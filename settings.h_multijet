@@ -276,15 +276,15 @@ namespace jp {
 
   const array<string,yrs> jergt_ = {
     "Summer16",
-    "Fall17",
-    "Fall17",
+    "Summer19UL17",
+    "Summer19UL17",
     "Autumn18"
   };
   const string jergt = jergt_.at(yid);
   const array<string,yrs> jervers_ = {
     "_25nsV1",
-    "_V3",
-    "_V3",
+    "_JRV2",
+    "_JRV2",
     "_V4"
   };
   const string jervers = jervers_.at(yid);
@@ -319,8 +319,8 @@ namespace jp {
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V20",
-    "_V3",
-    "_V3",
+    "_V4",
+    "_V4",
     //"_V32",
     //"_V32",
     "_V19"
@@ -328,8 +328,8 @@ namespace jp {
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V20",
-    "_V3",
-    "_V3",
+    "_V4",
+    "_V4",
     //"_V32",
     ////"_V3", (RunF 09May2018)
     //"_V32",
