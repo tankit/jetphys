@@ -3712,6 +3712,10 @@ bool HistosFill::LoadPuProfiles()
     PrintInfo("Problems with PU file types!",true);
     return false;
   }
+  if (jp::doPU80mb) {
+    datafile = jp::pudtpath + jp::PUIOVs[jp::PUIOVidx] + "pileup_DT_80mb.root";
+    if(jp::htbins and jp::UL17) mcfile = jp::pumcpath+"pileup_P8MG_UL17_maxpu200.root";
+  }
 
   PrintInfo(Form("Processing LoadPuProfiles() using %s and %s ...",datafile.c_str(),mcfile.c_str()),true);
 

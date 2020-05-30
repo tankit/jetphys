@@ -62,6 +62,7 @@ namespace jp {
   constexpr const char* filepath = "./jet_tuples/"; // "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
   constexpr bool UL17 = true;
   constexpr bool CXL1 = false;
+  constexpr bool doPU80mb = false;
 
   // Which run year are we analyzing?
   const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
