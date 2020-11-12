@@ -16,6 +16,7 @@ bool _usejme = true;
 bool _usejmeUp = false; //Scale factors (Normal / Up / Down)
 bool _usejmeDown = false;
 bool _ul17 = false, _complexL1 = false;
+bool _ul18 = false;
 //bool _jerkscale = true;//false;
 // Define cone size (default Run I AK5)
 //bool _ak7 = false;
@@ -285,7 +286,17 @@ double ptresolution(double pt, double eta) {
       "Autumn18_V7_MC_PtResolution_AK4PFchs.txt";
       string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V7_MC/"
 	"Autumn18_V7_MC_SF_AK4PFchs.txt";
+      if(_ul18) {
+        resolutionFile = "../JRDatabase/textFiles/Summer19UL18_JRV2_MC/"
+          "Summer19UL18_JRV2_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL18_JRV2_MC/"
+          "Summer19UL18_JRV2_MC_SF_AK4PFchs.txt";
+      }
       string weightFile = "rootfiles/jerweights.root";
+      cout << " ******************************************************************************* " << endl
+           << " * Loading resolutionFile  ... \"" << resolutionFile  << "\" * " << endl
+           << " * Loading scaleFactorFile ... \"" << scaleFactorFile << "\" * " << endl
+           << " ******************************************************************************* " << endl;
 
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);

@@ -612,6 +612,7 @@ bool HistosFill::PreRun()
     _jer_iov = run2018abc; //updated with JERV 4 for 2018ABC and 2018D
     if (std::regex_search(jp::run,regex("^RunD"))) _jer_iov = run2018d;
     if (std::regex_search(jp::run,regex("^RunABCD"))) _jer_iov = run2018;
+    if(jp::UL18) { _jer_iov = run2018; _ul18 = true; }
   }
   if (jp::yid==1) _jer_iov = run2017;
   if (jp::yid==0) {
@@ -622,7 +623,7 @@ bool HistosFill::PreRun()
     //else if (std::regex_search(jp::run,regex("^Run[GH]"))) _jer_iov = run2016gh;
   }
   if (jp::UL17) _ul17 = true; if (jp::CXL1) _complexL1 = true;
-  if (jp::ismc) cout << Form("*** For MC only, JER and IOV settings: %s %s with Scale factors (%s%s%s)",_ul17 ? "UL17" : "",iovNames[_jer_iov],_usejmeUp or _usejmeDown ? "" : "Normal",_usejmeUp ? "Up" : "",_usejmeDown ? "Down" : "") << endl;
+  if (jp::ismc) cout << Form("*** For MC only, JER and IOV settings: %s %s with Scale factors (%s%s%s)",_ul17 ? "UL17" : "UL18",iovNames[_jer_iov],_usejmeUp or _usejmeDown ? "" : "Normal",_usejmeUp ? "Up" : "",_usejmeDown ? "Down" : "") << endl;
 
   // Load latest JSON selection
   if (jp::isdt and jp::dojson) {
@@ -720,12 +721,17 @@ bool HistosFill::PreRun()
     }
     assert(HotTag!="");
     string HotMap = Form("hotcoldjets/hotjets-%srun%s.root",HotYr.c_str(),HotTag.c_str());
-    if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17.root");
+    //if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17.root"); //used for UL17 residual study
+    if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17_v2.root"); //added Nov 7, 2020 (but, never used before)
+    if(jp::UL18) HotMap = Form("hotcoldjets/hotjets-UL18.root");
+    //else if(jp::UL16) HotMap = Form("hotcoldjets/hotjets-UL16.root");
     fHotExcl = new TFile(Form("%s",HotMap.c_str()),"READ");
     assert(fHotExcl and !fHotExcl->IsZombie() and Form("file %s missing",HotMap.c_str()));
-    if(jp::UL17) {
-      h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",jp::HotType));
-      PrintInfo(Form("Loading hot zone corrections %s with h2hot %s",HotMap.c_str(),jp::HotType));
+    if(jp::UL17 or jp::UL18) {
+      string hotzone = jp::HotType; if(jp::UL18 and jp::doVetoHEM) hotzone = "_ul18_plus_hem1516_and_hbp2m1";
+      h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",hotzone.c_str()));
+      PrintInfo(Form("Loading hot zone corrections %s with h2hot %s",HotMap.c_str(),hotzone.c_str()));
+      if(jp::UL17 and jp::UL18) PrintInfo("Checking because of UL17=true and UL18=true");
     } else {
       h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hotfilter"));
       PrintInfo(Form("Loading hot zone corrections %s with h2hot filter",HotMap.c_str()));
@@ -1149,7 +1155,7 @@ bool HistosFill::AcceptEvent()
   // 2.5-3.0 even goes up to 1.35 => assume 1.15  => try 1.5 => to 1.25 (high pT threshold on jets)
   // Updated for UL17 CP5: ru = 0.65, C_MC = 1/ru = 1.5385 -> corr_uncl = C_mc - 1 = 0.5385 (data/MC=0.983, C_data = 1/(0.65*0.983) = 1.5651) Mar 31, 2020
   double corr_uncl = 0.25;
-  if(jp::UL17) { corr_uncl = 0.5385; if(jp::ismc) corr_uncl = 0.5651; }
+  if(jp::UL17 or jp::UL18 or jp::UL16) { corr_uncl = 0.5385; if(jp::ismc) corr_uncl = 0.5651; }
   mex += corr_uncl*ucx;
   mey += corr_uncl*ucy;
   // Type II MET witch C = 1.25 (This is not recommended for pfJets.
@@ -3620,7 +3626,7 @@ bool HistosFill::LoadLumi()
   PrintInfo(string("\nstring: ") + s + " !",true);
 
   // HOX: the lumi file format has been changing. Change the conditions when needed.
-  if (s!="#Data tag : 19v2 , Norm tag: None") return false;
+  if (s!="#Data tag : 19v3 , Norm tag: None") return false;
 
   bool getsuccess2 = static_cast<bool>(getline(f, s, '\n'));
   if (!getsuccess2) return false;
@@ -3706,7 +3712,13 @@ bool HistosFill::LoadPuProfiles()
   else if (jp::ishw) mcfile += jp::puhwfile;
   else if (jp::ispy) {
     if (jp::pthatbins)   mcfile += "pileup_Pthat.root";
-    else if (jp::htbins) { if(jp::UL17) mcfile += "pileup_P8MG_UL17.root"; else mcfile += "pileup_P8MG.root"; }
+    //else if (jp::htbins) { if(jp::UL17) mcfile += "pileup_P8MG_UL17.root"; else mcfile += "pileup_P8MG.root"; }
+    else if (jp::htbins) {
+      if(jp::UL17) mcfile += "pileup_P8MG_UL17.root";
+      else if(jp::UL18) mcfile = "pileup/MC/ul18/pileup_P8MG.root";
+      else if(jp::UL16) { if(jp::APV) mcfile = "pileup/MC/ul16/pileup_P8MGAPV.root"; else mcfile = "pileup/MC/ul16/pileup_P8MG.root"; }
+      else mcfile += "pileup_P8MG.root";
+    }
     else                 mcfile += jp::pup8file;
   } else {
     PrintInfo("Problems with PU file types!",true);
