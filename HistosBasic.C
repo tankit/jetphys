@@ -576,6 +576,26 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   pmpfinv_ptave     = new TProfile("pmpfinv_ptave",";p_{T,ave} (GeV);R_{MPF}",nx,&x[0]);
   pmpfinv_ptave2    = new TProfile("pmpfinv_ptave2",";p_{T,ave} (GeV);R_{MPF}",nx,&x[0]);
 
+  pmpf_ptave_ue0    = new TProfile("pmpf_ptave_ue0",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpf_ptave_one0   = new TProfile("pmpf_ptave_one0",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpf_ptave_n0     = new TProfile("pmpf_ptave_n0",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+  pmpf_ptave_ue1    = new TProfile("pmpf_ptave_ue1",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpf_ptave_one1   = new TProfile("pmpf_ptave_one1",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpf_ptave_n1     = new TProfile("pmpf_ptave_n1",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+  pmpf_ptave_ue     = new TProfile("pmpf_ptave_ue",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpf_ptave_one    = new TProfile("pmpf_ptave_one",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpf_ptave_n      = new TProfile("pmpf_ptave_n",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+
+  pmpfinv_ptave_ue0  = new TProfile("pmpfinv_ptave_ue0",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpfinv_ptave_one0 = new TProfile("pmpfinv_ptave_one0",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpfinv_ptave_n0   = new TProfile("pmpfinv_ptave_n0",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+  pmpfinv_ptave_ue1  = new TProfile("pmpfinv_ptave_ue1",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpfinv_ptave_one1 = new TProfile("pmpfinv_ptave_one1",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpfinv_ptave_n1   = new TProfile("pmpfinv_ptave_n1",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+  pmpfinv_ptave_ue   = new TProfile("pmpfinv_ptave_ue",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0]);
+  pmpfinv_ptave_one  = new TProfile("pmpfinv_ptave_one",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0]);
+  pmpfinv_ptave_n    = new TProfile("pmpfinv_ptave_n",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0]);
+
   h2mjb_ptave0       = new TH2D("h2mjb_ptave0",";p_{T,ave} (GeV);R_{MJB} = p_{T,leading}/p_{T,recoil}",nx,&x[0],100,-4,6);
   h2mjbinv_ptave0    = new TH2D("h2mjbinv_ptave0",";p_{T,ave} (GeV);R_{MJB} = p_{T,leading}/p_{T,recoil}",nx,&x[0],100,-4,6);
   h2mpf_ptave0       = new TH2D("h2mpf_ptave0",";p_{T,ave} (GeV);R_{MPF}",nx,&x[0],100,-4,6);
@@ -595,24 +615,65 @@ HistosBasic::HistosBasic(TDirectory *dir, string trigname, double etamin, double
   h2mpfinv_ptave     = new TH2D("h2mpfinv_ptave",";p_{T,ave} (GeV);R_{MPF}",nx,&x[0],100,-4,6);
   h2mpfinv_ptave2    = new TH2D("h2mpfinv_ptave2",";p_{T,ave} (GeV);R_{MPF}",nx,&x[0],100,-4,6);
 
+  h2mpf_ptave_ue0    = new TH2D("h2mpf_ptave_ue0",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_one0   = new TH2D("h2mpf_ptave_one0",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_n0     = new TH2D("h2mpf_ptave_n0",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_ue1    = new TH2D("h2mpf_ptave_ue1",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_one1   = new TH2D("h2mpf_ptave_one1",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_n1     = new TH2D("h2mpf_ptave_n1",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_ue     = new TH2D("h2mpf_ptave_ue",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_one    = new TH2D("h2mpf_ptave_one",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpf_ptave_n      = new TH2D("h2mpf_ptave_n",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+
+  h2mpfinv_ptave_ue0  = new TH2D("h2mpfinv_ptave_ue0",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_one0 = new TH2D("h2mpfinv_ptave_one0",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_n0   = new TH2D("h2mpfinv_ptave_n0",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_ue1  = new TH2D("h2mpfinv_ptave_ue1",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_one1 = new TH2D("h2mpfinv_ptave_one1",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_n1   = new TH2D("h2mpfinv_ptave_n1",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_ue   = new TH2D("h2mpfinv_ptave_ue",";p_{T,ave} (GeV);R_{MPF_u}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_one  = new TH2D("h2mpfinv_ptave_one",";p_{T,ave} (GeV);R_{MPF_1}",nx,&x[0],100,-4,6);
+  h2mpfinv_ptave_n    = new TH2D("h2mpfinv_ptave_n",";p_{T,ave} (GeV);R_{MPF_n}",nx,&x[0],100,-4,6);
+
   hleadmpf_ue0          = new TH1D("hleadmpf_ue0","",100,-100,100);
-  hleadmpftp_ue0        = new TH1D("hleadmpftp_ue0",";MPF(unclustered,leading);",100,-1.,3.);
-  h2mpflead_leading_ue0 = new TH2D("h2mpflead_leading_ue0",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  h2mpfleadinv_leading_ue0 = new TH2D("h2mpfleadinv_leading_ue0",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  pmpflead_leading_ue0  = new TProfile("pmpflead_leading_ue0",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0]);
-  pmpfleadinv_leading_ue0  = new TProfile("pmpfleadinv_leading_ue0",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0]);
   hleadmpf_ue1          = new TH1D("hleadmpf_ue1","",100,-100,100);
-  hleadmpftp_ue1        = new TH1D("hleadmpftp_ue1",";MPF(unclustered,leading);",100,-1.,3.);
-  h2mpflead_leading_ue1 = new TH2D("h2mpflead_leading_ue1",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  h2mpfleadinv_leading_ue1 = new TH2D("h2mpfleadinv_leading_ue1",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  pmpflead_leading_ue1  = new TProfile("pmpflead_leading_ue1",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0]);
-  pmpfleadinv_leading_ue1  = new TProfile("pmpfleadinv_leading_ue1",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0]);
   hleadmpf_ue           = new TH1D("hleadmpf_ue","",100,-100,100);
-  hleadmpftp_ue         = new TH1D("hleadmpftp_ue",";MPF(unclustered,leading);",100,-1.,3.);
-  h2mpflead_leading_ue  = new TH2D("h2mpflead_leading_ue",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  h2mpfleadinv_leading_ue = new TH2D("h2mpfleadinv_leading_ue",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0],100,-4,6);
-  pmpflead_leading_ue   = new TProfile("pmpflead_leading_ue",";p_{T,leading} (GeV);1 - MPF_{uncl.e}",nx,&x[0]);
-  pmpfleadinv_leading_ue  = new TProfile("pmpfleadinv_leading_ue",";p_{T,leading} (GeV);1 + MPF_{uncl.e}",nx,&x[0]);
+  hleadmpf_one0         = new TH1D("hleadmpf_one0","",100,-100,100);
+  hleadmpf_one1         = new TH1D("hleadmpf_one1","",100,-100,100);
+  hleadmpf_one          = new TH1D("hleadmpf_one","",100,-100,100);
+  hleadmpf_n0           = new TH1D("hleadmpf_n0","",100,-100,100);
+  hleadmpf_n1           = new TH1D("hleadmpf_n1","",100,-100,100);
+  hleadmpf_n            = new TH1D("hleadmpf_n","",100,-100,100);
+
+  //hleadmpftp_ue0        = new TH1D("hleadmpftp_ue0",";MPF(ue,leading);",100,-3.,3.);
+  //hleadmpftp_ue1        = new TH1D("hleadmpftp_ue1",";MPF(ue,leading);",100,-3.,3.);
+  //hleadmpftp_ue         = new TH1D("hleadmpftp_ue",";MPF(ue,leading);",100,-3.,3.);
+  //hleadmpftp_one0       = new TH1D("hleadmpftp_one0",";MPF(leading,leading);",100,-3.,3.);
+  //hleadmpftp_one1       = new TH1D("hleadmpftp_one1",";MPF(leading,leading);",100,-3.,3.);
+  //hleadmpftp_one        = new TH1D("hleadmpftp_one",";MPF(leading,leading);",100,-3.,3.);
+  //hleadmpftp_n0         = new TH1D("hleadmpftp_n0",";MPF(recoil,leading);",100,-3.,3.);
+  //hleadmpftp_n1         = new TH1D("hleadmpftp_n1",";MPF(recoil,leading);",100,-3.,3.);
+  //hleadmpftp_n          = new TH1D("hleadmpftp_n",";MPF(recoil,leading);",100,-3.,3.);
+
+  pmpflead_leading_ue0  = new TProfile("pmpflead_leading_ue0",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0]);
+  pmpflead_leading_one0 = new TProfile("pmpflead_leading_one0",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0]);
+  pmpflead_leading_n0   = new TProfile("pmpflead_leading_n0",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0]);
+  pmpflead_leading_ue1  = new TProfile("pmpflead_leading_ue1",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0]);
+  pmpflead_leading_one1 = new TProfile("pmpflead_leading_one1",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0]);
+  pmpflead_leading_n1   = new TProfile("pmpflead_leading_n1",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0]);
+  pmpflead_leading_ue   = new TProfile("pmpflead_leading_ue",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0]);
+  pmpflead_leading_one  = new TProfile("pmpflead_leading_one",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0]);
+  pmpflead_leading_n    = new TProfile("pmpflead_leading_n",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0]);
+
+  h2mpflead_leading_ue0  = new TH2D("h2mpflead_leading_ue0",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_one0 = new TH2D("h2mpflead_leading_one0",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_n0   = new TH2D("h2mpflead_leading_n0",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_ue1  = new TH2D("h2mpflead_leading_ue1",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_one1 = new TH2D("h2mpflead_leading_one1",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_n1   = new TH2D("h2mpflead_leading_n1",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_ue   = new TH2D("h2mpflead_leading_ue",";p_{T,leading} (GeV);MPF_{ue}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_one  = new TH2D("h2mpflead_leading_one",";p_{T,leading} (GeV);1 + MPF_{1}",nx,&x[0],100,-5,5);
+  h2mpflead_leading_n    = new TH2D("h2mpflead_leading_n",";p_{T,leading} (GeV);MPF_{n}",nx,&x[0],100,-5,5);
 
   prho_recoil        = new TProfile("prho_recoil",";p_{T,recoil} (GeV);#rho",nx,&x[0]);
   prho_leading       = new TProfile("prho_leading",";p_{T,leading} (GeV);#rho",nx,&x[0]);

@@ -6,7 +6,8 @@ void drawMultijetUL18(TString dtfile="2018ABCD", int jer = 0, bool usel2res = fa
   //gROOT->ForceStyle(kTRUE);
   //gStyle->SetImageScaling(3.);
 
-  bool UL18IOVs = false; //reweight each IOV separately
+  bool UL18IOVs = false; //for both 20201111 and 20201119 (before and after fixing MPFue_leading_MG and MPF0_leading_MG, respectively) 
+  //bool UL18IOVs = (dtfile=="2018AB" or dtfile=="2018CD" or dtfile=="2018ABCD") ? false : true; //reweight each IOV separately
   if(jer!=0 and dtfile!="2018ABCD") { cout << " No MC inputs with JER up/down for " << dtfile << ". Use 2018ABCD! " << endl; return 0; }
 
   TString ver = "_JECV5JRV2";
@@ -22,7 +23,7 @@ void drawMultijetUL18(TString dtfile="2018ABCD", int jer = 0, bool usel2res = fa
   TString mcfile = "MGP8CP5";
   TString sample = "MGP8CP5"+ver, suffix = "_MG";
 
-  bool drawMC = true; //since Mar 27, 2020
+  bool drawMC = false; //since Mar 27, 2020
   bool noRebin = false; //true; //for test purpose (Mar 27, 2020)
 
 //  bool usemcDir = false; //NOT USE ANY MORE from Sep 13 !! //usemcDir = true;
@@ -38,7 +39,7 @@ void drawMultijetUL18(TString dtfile="2018ABCD", int jer = 0, bool usel2res = fa
 
   bool writeOutput = false, writeMC = true;
   //writeOutput = true;
-  TString writeDate = "Rebin2_20201111";
+  TString writeDate = "Rebin2_20201119"; //"Rebin2_20201111";
 
   if(writeOutput) {
     cout << " Making input files for global fits"; if(writeMC) cout << " and storing the histos from MC";
@@ -107,6 +108,7 @@ void drawMultijetUL18(TString dtfile="2018ABCD", int jer = 0, bool usel2res = fa
     hmin = 0.68, hminRat = 0.8;
     //if(xmin<50) hmin = 0.66, hminRat = 0.65, hmaxRat = 1.25;
     if(xmin<50) hmax = 1.25, hmin = 0.45, hminRat = 0.68, hmaxRat = 1.32;
+    hmin = 0.5;
     //if(xmin==32) hmin = 0.56, hminRat = 0.9;
     //leg_xmin = 0.54, leg_xmax = 0.77;
   }
@@ -304,14 +306,14 @@ if(ptlead_mcDir) {
   inputMC->GetObject(mcDir+"/pmpflead_leading"+ipt,pmpf_leading_mc); pmpf_leading_mc->Rebin(rebin); //testing -> using (confirmed on Sep 16, 2020)
   inputMC->GetObject(mcDir+"/pmpflead_leading2"+ipt,pmpf_leading2_mc); pmpf_leading2_mc->Rebin(rebin); //testing -> using (confirmed on Sep 16, 2020)
 
-  inputMC->GetObject(mcDir+"/pmpfleadinv_leading",pmpfleadinv_leading_mc); pmpfleadinv_leading_mc->Rebin(rebin);
-  inputMC->GetObject(mcDir+"/pmpfleadinv_leading2",pmpfleadinv_leading2_mc); pmpfleadinv_leading2_mc->Rebin(rebin);
-  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading",h2mpfleadinv_leading_mc);
-  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading2",h2mpfleadinv_leading2_mc);
-  inputMC->GetObject(mcDir+"/pmpflead_leading_ue",pmpflead_leading_ue_mc); pmpflead_leading_ue_mc->Rebin(rebin); hmc_mpflead_leading_ue = pmpflead_leading_ue_mc->ProjectionX();
-  inputMC->GetObject(mcDir+"/h2mpflead_leading_ue",h2mpflead_leading_ue_mc);
-  inputMC->GetObject(mcDir+"/pmpfleadinv_leading_ue",pmpfleadinv_leading_ue_mc); pmpfleadinv_leading_ue_mc->Rebin(rebin); hmc_mpfleadinv_leading_ue = pmpfleadinv_leading_ue_mc->ProjectionX();
-  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading_ue",h2mpfleadinv_leading_ue_mc);
+  inputMC->GetObject(mcDir+"/pmpfleadinv_leading"+ipt,pmpfleadinv_leading_mc); pmpfleadinv_leading_mc->Rebin(rebin);
+  inputMC->GetObject(mcDir+"/pmpfleadinv_leading2"+ipt,pmpfleadinv_leading2_mc); pmpfleadinv_leading2_mc->Rebin(rebin);
+  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading"+ipt,h2mpfleadinv_leading_mc);
+  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading2"+ipt,h2mpfleadinv_leading2_mc);
+  inputMC->GetObject(mcDir+"/pmpflead_leading_ue"+ipt,pmpflead_leading_ue_mc); pmpflead_leading_ue_mc->Rebin(rebin); hmc_mpflead_leading_ue = pmpflead_leading_ue_mc->ProjectionX();
+  inputMC->GetObject(mcDir+"/h2mpflead_leading_ue"+ipt,h2mpflead_leading_ue_mc);
+  inputMC->GetObject(mcDir+"/pmpfleadinv_leading_ue"+ipt,pmpfleadinv_leading_ue_mc); pmpfleadinv_leading_ue_mc->Rebin(rebin); hmc_mpfleadinv_leading_ue = pmpfleadinv_leading_ue_mc->ProjectionX();
+  inputMC->GetObject(mcDir+"/h2mpfleadinv_leading_ue"+ipt,h2mpfleadinv_leading_ue_mc);
   hmc_mpflead_leading_ue->SetStats(0); hmc_mpflead_leading_ue->SetMarkerStyle(1); hmc_mpfleadinv_leading_ue->SetStats(0); hmc_mpfleadinv_leading_ue->SetMarkerStyle(1);
 } else {
   inputMCtrig->GetObject(trigDir+"/pmjb_leading"+ipt,pmjb_leading_mc); pmjb_leading_mc->Rebin(rebin);
@@ -320,14 +322,14 @@ if(ptlead_mcDir) {
   inputMCtrig->GetObject(trigDir+"/pmpflead_leading"+ipt,pmpf_leading_mc); pmpf_leading_mc->Rebin(rebin); //testing
   inputMCtrig->GetObject(trigDir+"/pmpflead_leading2"+ipt,pmpf_leading2_mc); pmpf_leading2_mc->Rebin(rebin); //testing
 
-  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading",pmpfleadinv_leading_mc); pmpfleadinv_leading_mc->Rebin(rebin);
-  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading2",pmpfleadinv_leading2_mc); pmpfleadinv_leading2_mc->Rebin(rebin);
-  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading",h2mpfleadinv_leading_mc);
-  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading2",h2mpfleadinv_leading2_mc);
-  inputMCtrig->GetObject(trigDir+"/pmpflead_leading_ue",pmpflead_leading_ue_mc); pmpflead_leading_ue_mc->Rebin(rebin); hmc_mpflead_leading_ue = pmpflead_leading_ue_mc->ProjectionX();
-  inputMCtrig->GetObject(trigDir+"/h2mpflead_leading_ue",h2mpflead_leading_ue_mc);
-  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading_ue",pmpfleadinv_leading_ue_mc); pmpfleadinv_leading_ue_mc->Rebin(rebin); hmc_mpfleadinv_leading_ue = pmpfleadinv_leading_ue_mc->ProjectionX();
-  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading_ue",h2mpfleadinv_leading_ue_mc);
+  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading"+ipt,pmpfleadinv_leading_mc); pmpfleadinv_leading_mc->Rebin(rebin);
+  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading2"+ipt,pmpfleadinv_leading2_mc); pmpfleadinv_leading2_mc->Rebin(rebin);
+  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading"+ipt,h2mpfleadinv_leading_mc);
+  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading2"+ipt,h2mpfleadinv_leading2_mc);
+  inputMCtrig->GetObject(trigDir+"/pmpflead_leading_ue"+ipt,pmpflead_leading_ue_mc); pmpflead_leading_ue_mc->Rebin(rebin); hmc_mpflead_leading_ue = pmpflead_leading_ue_mc->ProjectionX();
+  inputMCtrig->GetObject(trigDir+"/h2mpflead_leading_ue"+ipt,h2mpflead_leading_ue_mc);
+  inputMCtrig->GetObject(trigDir+"/pmpfleadinv_leading_ue"+ipt,pmpfleadinv_leading_ue_mc); pmpfleadinv_leading_ue_mc->Rebin(rebin); hmc_mpfleadinv_leading_ue = pmpfleadinv_leading_ue_mc->ProjectionX();
+  inputMCtrig->GetObject(trigDir+"/h2mpfleadinv_leading_ue"+ipt,h2mpfleadinv_leading_ue_mc);
   hmc_mpflead_leading_ue->SetStats(0); hmc_mpflead_leading_ue->SetMarkerStyle(1); hmc_mpfleadinv_leading_ue->SetStats(0); hmc_mpfleadinv_leading_ue->SetMarkerStyle(1);
 }
 

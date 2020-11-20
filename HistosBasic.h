@@ -539,23 +539,83 @@ class HistosBasic {
   TH2D *h2mpfinv_ptave2;
 
   TH1D *hleadmpf_ue0;
-  TH1D *hleadmpftp_ue0;
+  //TH1D *hleadmpftp_ue0;
   TH2D *h2mpflead_leading_ue0;
-  TH2D *h2mpfleadinv_leading_ue0;
   TProfile *pmpflead_leading_ue0;
-  TProfile *pmpfleadinv_leading_ue0;
   TH1D *hleadmpf_ue1;
-  TH1D *hleadmpftp_ue1;
+  //TH1D *hleadmpftp_ue1;
   TH2D *h2mpflead_leading_ue1;
-  TH2D *h2mpfleadinv_leading_ue1;
   TProfile *pmpflead_leading_ue1;
-  TProfile *pmpfleadinv_leading_ue1;
   TH1D *hleadmpf_ue;
-  TH1D *hleadmpftp_ue;
+  //TH1D *hleadmpftp_ue;
   TH2D *h2mpflead_leading_ue;
-  TH2D *h2mpfleadinv_leading_ue;
   TProfile *pmpflead_leading_ue;
-  TProfile *pmpfleadinv_leading_ue;
+
+  TH1D *hleadmpf_one0;
+  //TH1D *hleadmpftp_one0;
+  TH2D *h2mpflead_leading_one0;
+  TProfile *pmpflead_leading_one0;
+  TH1D *hleadmpf_one1;
+  //TH1D *hleadmpftp_one1;
+  TH2D *h2mpflead_leading_one1;
+  TProfile *pmpflead_leading_one1;
+  TH1D *hleadmpf_one;
+  //TH1D *hleadmpftp_one;
+  TH2D *h2mpflead_leading_one;
+  TProfile *pmpflead_leading_one;
+
+  TH1D *hleadmpf_n0;
+  //TH1D *hleadmpftp_n0;
+  TH2D *h2mpflead_leading_n0;
+  TProfile *pmpflead_leading_n0;
+  TH1D *hleadmpf_n1;
+  //TH1D *hleadmpftp_n1;
+  TH2D *h2mpflead_leading_n1;
+  TProfile *pmpflead_leading_n1;
+  TH1D *hleadmpf_n;
+  //TH1D *hleadmpftp_n;
+  TH2D *h2mpflead_leading_n;
+  TProfile *pmpflead_leading_n;
+
+  TProfile *pmpf_ptave_ue0;
+  TProfile *pmpf_ptave_one0;
+  TProfile *pmpf_ptave_n0;
+  TProfile *pmpf_ptave_ue1;
+  TProfile *pmpf_ptave_one1;
+  TProfile *pmpf_ptave_n1;
+  TProfile *pmpf_ptave_ue;
+  TProfile *pmpf_ptave_one;
+  TProfile *pmpf_ptave_n;
+
+  TProfile *pmpfinv_ptave_ue0;
+  TProfile *pmpfinv_ptave_one0;
+  TProfile *pmpfinv_ptave_n0;
+  TProfile *pmpfinv_ptave_ue1;
+  TProfile *pmpfinv_ptave_one1;
+  TProfile *pmpfinv_ptave_n1;
+  TProfile *pmpfinv_ptave_ue;
+  TProfile *pmpfinv_ptave_one;
+  TProfile *pmpfinv_ptave_n;
+
+  TH2D *h2mpf_ptave_ue0;
+  TH2D *h2mpf_ptave_one0;
+  TH2D *h2mpf_ptave_n0;
+  TH2D *h2mpf_ptave_ue1;
+  TH2D *h2mpf_ptave_one1;
+  TH2D *h2mpf_ptave_n1;
+  TH2D *h2mpf_ptave_ue;
+  TH2D *h2mpf_ptave_one;
+  TH2D *h2mpf_ptave_n;
+
+  TH2D *h2mpfinv_ptave_ue0;
+  TH2D *h2mpfinv_ptave_one0;
+  TH2D *h2mpfinv_ptave_n0;
+  TH2D *h2mpfinv_ptave_ue1;
+  TH2D *h2mpfinv_ptave_one1;
+  TH2D *h2mpfinv_ptave_n1;
+  TH2D *h2mpfinv_ptave_ue;
+  TH2D *h2mpfinv_ptave_one;
+  TH2D *h2mpfinv_ptave_n;
 
   TH1D *hdphi_jet120;
   TH1D *hdphi_jet230;
