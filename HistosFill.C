@@ -1775,7 +1775,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double ptavempftp2 = (1 + ptavempf2) / (1 - ptavempf2);
 
             double leadmpf_unc   = uncE_et*cos(DPhi(uncE_phi,jtphi[i0]));
-            double leadmpftp_unc = leadmpf_u/jtpt[i0];
+            double leadmpftp_unc = leadmpf_unc/jtpt[i0];
 
             double vecsum_px  = jtpt[i0] * cos(jtphi[i0]) + rex[jpt];
             double vecsum_py  = jtpt[i0] * sin(jtphi[i0]) + rey[jpt];
