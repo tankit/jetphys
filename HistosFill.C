@@ -1094,7 +1094,7 @@ bool HistosFill::AcceptEvent()
 
     if (jp::debug) PrintInfo(Form("Jet %d corrected!",jetidx),true);
 
-    if (jtpt[jetidx] > 15 and fabs(jteta[jetidx])<4.7) { //baseline from discussion with Mikko on Sep 12, 2019
+    if (jtpt[jetidx] > 15) { //baseline from discussion with Mikko on Sep 12, 2019. Update: no eta cut for consistency between corrected and uncorrected jets (Nov 27, 2020) 
       // MET 1: the one where JEC is applied. MET1 needs to be recalculated as JEC changes.
       // Subtract uncorrected jet pT from met, put back corrected & add L1RC offset to keep PU isotropic.
       double l1corr = 1.;
@@ -1146,7 +1146,7 @@ bool HistosFill::AcceptEvent()
   // Unclustered energy for MPFu (Nov 19, 2020)
   double uncE_ex = mex, uncE_ey = mey;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
-    if (jtpt[jetidx] < 15 and fabs(jteta[jetidx])<4.7) {
+    if (jtpt[jetidx] > 15) {
       uncE_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
       uncE_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
     }
@@ -1692,7 +1692,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             if (jetidx!=i0 and jp::doVetoHEM and (jp::yid==3 and (std::regex_search(jp::run,regex("^RunC")) || std::regex_search(jp::run,regex("^RunD")))) and jtpt[jetidx] > ptCut[jpt] and ((jteta[jetidx] < -1.4 and jteta[jetidx] > -3.0) and (jtphi[jetidx] < -0.87 and jtphi[jetidx] > -1.57))) { goodevt[jpt] = false; break; }
 
             // For MPF composition variables: MPFn from extra jets with 15-30 GeV (Nov 20, 2020)
-            if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > 15 and jtpt[jetidx] < ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx]) < 4.7)) {
+            if (jtpt[jetidx] > 15 and jtpt[jetidx] < ptCut[jpt]) {
               nex[jpt] += jtpt[jetidx] * cos(jtphi[jetidx]); ney[jpt] += jtpt[jetidx] * sin(jtphi[jetidx]);
             }
             if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx])<4.7)) {

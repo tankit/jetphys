@@ -409,8 +409,8 @@ private:
   Float_t         metphi1_nol2l3;
   Float_t         met2;
   Float_t         metphi2;
-  Float_t         uncl_et;
-  Float_t         uncl_phi;
+  Float_t         uncE_et;
+  Float_t         uncE_phi;
 
   string         _runinfo;
 };
