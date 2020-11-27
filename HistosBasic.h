@@ -538,18 +538,18 @@ class HistosBasic {
   TH2D *h2mpfinv_ptave;
   TH2D *h2mpfinv_ptave2;
 
-  TH1D *hleadmpf_ue0;
-  //TH1D *hleadmpftp_ue0;
-  TH2D *h2mpflead_leading_ue0;
-  TProfile *pmpflead_leading_ue0;
-  TH1D *hleadmpf_ue1;
-  //TH1D *hleadmpftp_ue1;
-  TH2D *h2mpflead_leading_ue1;
-  TProfile *pmpflead_leading_ue1;
-  TH1D *hleadmpf_ue;
-  //TH1D *hleadmpftp_ue;
-  TH2D *h2mpflead_leading_ue;
-  TProfile *pmpflead_leading_ue;
+  TH1D *hleadmpf_unc0;
+  //TH1D *hleadmpftp_unc0;
+  TH2D *h2mpflead_leading_unc0;
+  TProfile *pmpflead_leading_unc0;
+  TH1D *hleadmpf_unc1;
+  //TH1D *hleadmpftp_unc1;
+  TH2D *h2mpflead_leading_unc1;
+  TProfile *pmpflead_leading_unc1;
+  TH1D *hleadmpf_unc;
+  //TH1D *hleadmpftp_unc;
+  TH2D *h2mpflead_leading_unc;
+  TProfile *pmpflead_leading_unc;
 
   TH1D *hleadmpf_one0;
   //TH1D *hleadmpftp_one0;
@@ -577,43 +577,63 @@ class HistosBasic {
   TH2D *h2mpflead_leading_n;
   TProfile *pmpflead_leading_n;
 
-  TProfile *pmpf_ptave_ue0;
+  TProfile *pmpf_recoil_unc0;
+  TProfile *pmpf_recoil_unc1;
+  TProfile *pmpf_recoil_unc;
+  TProfile *pmpf_recoil_one0;
+  TProfile *pmpf_recoil_one1;
+  TProfile *pmpf_recoil_one;
+  TProfile *pmpf_recoil_n0;
+  TProfile *pmpf_recoil_n1;
+  TProfile *pmpf_recoil_n;
+
+  TH2D *h2mpf_recoil_unc0;
+  TH2D *h2mpf_recoil_unc1;
+  TH2D *h2mpf_recoil_unc;
+  TH2D *h2mpf_recoil_one0;
+  TH2D *h2mpf_recoil_one1;
+  TH2D *h2mpf_recoil_one;
+  TH2D *h2mpf_recoil_n0;
+  TH2D *h2mpf_recoil_n1;
+  TH2D *h2mpf_recoil_n;
+
+  TProfile *pmpf_ptave_unc0;
   TProfile *pmpf_ptave_one0;
   TProfile *pmpf_ptave_n0;
-  TProfile *pmpf_ptave_ue1;
+  TProfile *pmpf_ptave_unc1;
   TProfile *pmpf_ptave_one1;
   TProfile *pmpf_ptave_n1;
-  TProfile *pmpf_ptave_ue;
+  TProfile *pmpf_ptave_unc;
   TProfile *pmpf_ptave_one;
   TProfile *pmpf_ptave_n;
 
-  TProfile *pmpfinv_ptave_ue0;
+  TProfile *pmpfinv_ptave_unc0;
   TProfile *pmpfinv_ptave_one0;
   TProfile *pmpfinv_ptave_n0;
-  TProfile *pmpfinv_ptave_ue1;
+  TProfile *pmpfinv_ptave_unc1;
   TProfile *pmpfinv_ptave_one1;
   TProfile *pmpfinv_ptave_n1;
-  TProfile *pmpfinv_ptave_ue;
+  TProfile *pmpfinv_ptave_unc;
   TProfile *pmpfinv_ptave_one;
   TProfile *pmpfinv_ptave_n;
 
-  TH2D *h2mpf_ptave_ue0;
+  TH2D *h2mpf_ptave_unc0;
   TH2D *h2mpf_ptave_one0;
   TH2D *h2mpf_ptave_n0;
-  TH2D *h2mpf_ptave_ue1;
+  TH2D *h2mpf_ptave_unc1;
   TH2D *h2mpf_ptave_one1;
   TH2D *h2mpf_ptave_n1;
-  TH2D *h2mpf_ptave_ue;
+  TH2D *h2mpf_ptave_unc;
   TH2D *h2mpf_ptave_one;
   TH2D *h2mpf_ptave_n;
 
-  TH2D *h2mpfinv_ptave_ue0;
+  TH2D *h2mpfinv_ptave_unc0;
   TH2D *h2mpfinv_ptave_one0;
   TH2D *h2mpfinv_ptave_n0;
-  TH2D *h2mpfinv_ptave_ue1;
+  TH2D *h2mpfinv_ptave_unc1;
   TH2D *h2mpfinv_ptave_one1;
   TH2D *h2mpfinv_ptave_n1;
-  TH2D *h2mpfinv_ptave_ue;
+  TH2D *h2mpfinv_ptave_unc;
   TH2D *h2mpfinv_ptave_one;
   TH2D *h2mpfinv_ptave_n;
 

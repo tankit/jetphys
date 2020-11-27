@@ -939,7 +939,7 @@ bool HistosFill::AcceptEvent()
   double mey_nol2l3 = mey;
   double ucx = mex;
   double ucy = mey;
-  //double uncl_ex = mex, uncl_ey = mey;
+  //double uncE_ex = mex, uncE_ey = mey;
   // Find leading jets (residual JEC may change ordering)
   // CAUTION: for less than 3 jets, we input -1 on the place of the index
   // NOTE: Above this we only use the initial corrections. This serves as a good approximation,
@@ -1127,8 +1127,8 @@ bool HistosFill::AcceptEvent()
       ucy += dptu * sin(jtphi[jetidx]);
 
       // Unclustered energy: subtract "corrected jet pT and L1RC offset"
-      //uncl_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
-      //uncl_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
+      //uncE_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
+      //uncE_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
     }
 
     if (jt3leads[0]==-1 or jtpt[jt3leads[0]]<jtpt[jetidx]) {
@@ -1144,10 +1144,12 @@ bool HistosFill::AcceptEvent()
   } // for jetidx
 
   // Unclustered energy for MPFu (Nov 19, 2020)
-  double uncl_ex = mex, uncl_ey = mey;
+  double uncE_ex = mex, uncE_ey = mey;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
-    uncl_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
-    uncl_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
+    if (jtpt[jetidx] < 15 and fabs(jteta[jetidx])<4.7) {
+      uncE_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
+      uncE_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
+    }
   }
 
   // Type I MET (this is the best one we've got; works optimally if we keep T0Txy MET as the raw MET and apply here the newest JEC)
@@ -1171,9 +1173,9 @@ bool HistosFill::AcceptEvent()
   metphi2 = atan2(mey, mex);
 
   // Unclustered energy (Added on Mar 23, 2020)
-  uncl_et = tools::oplus(uncl_ex, uncl_ey);
-  uncl_phi = atan2(uncl_ey, uncl_ex);
-  //PrintInfo(Form(" MET1 = %8.3f (%4.1f) vs. MET2 = %8.3f (%4.1f) vs. MET3 = %8.3f (%4.1f) [uncl_ex = %8.3f and uncl_ey = %8.3f]",met1,metphi1,met2,metphi2,uncl_et,uncl_phi,uncl_ex,uncl_ey));
+  uncE_et = tools::oplus(uncE_ex, uncE_ey);
+  uncE_phi = atan2(uncE_ey, uncE_ex);
+  //PrintInfo(Form(" MET1 = %8.3f (%4.1f) vs. MET2 = %8.3f (%4.1f) vs. MET3 = %8.3f (%4.1f) [uncE_ex = %8.3f and uncE_ey = %8.3f]",met1,metphi1,met2,metphi2,uncE_et,uncE_phi,uncE_ex,uncE_ey));
 
   // The leading indices
   int i0 = jt3leads[0];
@@ -1690,10 +1692,11 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             if (jetidx!=i0 and jp::doVetoHEM and (jp::yid==3 and (std::regex_search(jp::run,regex("^RunC")) || std::regex_search(jp::run,regex("^RunD")))) and jtpt[jetidx] > ptCut[jpt] and ((jteta[jetidx] < -1.4 and jteta[jetidx] > -3.0) and (jtphi[jetidx] < -0.87 and jtphi[jetidx] > -1.57))) { goodevt[jpt] = false; break; }
 
             // For MPF composition variables: MPFn from extra jets with 15-30 GeV (Nov 20, 2020)
-            if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > 15 and jtpt[jetidx] < ptCut[jpt] and fabs(jteta[jetidx])<4.7) {
+            if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > 15 and jtpt[jetidx] < ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx]) < 4.7)) {
               nex[jpt] += jtpt[jetidx] * cos(jtphi[jetidx]); ney[jpt] += jtpt[jetidx] * sin(jtphi[jetidx]);
             }
             if (jetidx!=i0 and _jetids[jetidx] and jtpt[jetidx] > ptCut[jpt] and (jp::doVetoEC ? fabs(jteta[jetidx]) < 2.5 : fabs(jteta[jetidx])<4.7)) {
+
               double dphi_recoiljet = DPhi(jtphi[i0], jtphi[jetidx]);
               if (dphi_recoiljet < 1) { goodevt[jpt] = false; continue; }
               ++recoilnjt[jpt];
@@ -1727,6 +1730,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
           double dphi_jet12 = DPhi(jtphi[i0],jtphi[i1]), dphi_jet23 = DPhi(jtphi[i1],jtphi[i2]);
           //bool pass_angularcut = (dphi_jet12 > 2 and dphi_jet12 < 2.9) and dphi_jet23 < 1; //May 23
           if (goodevt[jpt] and dphi_recoilmin[jpt] > 1 and recoiljets[jpt] >= 2) {
+
             double leadinggenpt = jtgenpt[i0];
             double recoilpt     = tools::oplus(rex[jpt],rey[jpt]);
             double recoilphi    = atan2(rey[jpt], rex[jpt]);
@@ -1770,8 +1774,8 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double ptavempftp = (1 + ptavempf) / (1 - ptavempf); //or MPF_ptave/(2-MPF_ptave)
             double ptavempftp2 = (1 + ptavempf2) / (1 - ptavempf2);
 
-            double leadmpf_ue   = uncl_et*cos(DPhi(uncl_phi,jtphi[i0]));
-            double leadmpftp_ue = leadmpf_ue/jtpt[i0];
+            double leadmpf_unc   = uncE_et*cos(DPhi(uncE_phi,jtphi[i0]));
+            double leadmpftp_unc = leadmpf_u/jtpt[i0];
 
             double vecsum_px  = jtpt[i0] * cos(jtphi[i0]) + rex[jpt];
             double vecsum_py  = jtpt[i0] * sin(jtphi[i0]) + rey[jpt];
@@ -1785,12 +1789,19 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double leadmpf_n     = extrapt*cos(DPhi(extraphi,jtphi[i0]));
             double leadmpftp_n   = leadmpf_n/jtpt[i0];
 
-            double ptavempf_ue    = -uncl_et*cos(DPhi(uncl_phi, vec_phi)) / newptsum;
+            double ptavempf_unc    = -uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum;
             double ptavempf_one   = -vecsum_pt*cos(DPhi(vecsum_phi, vec_phi)) / newptsum;
             double ptavempf_n     = -extrapt*cos(DPhi(extraphi, vec_phi)) / newptsum;
-            double ptavempftp_ue  = (1 + ptavempf_ue) / (1 - ptavempf_ue);
+            double ptavempftp_unc  = (1 + ptavempf_unc) / (1 - ptavempf_unc);
             double ptavempftp_one = (1 + ptavempf_one) / (1 - ptavempf_one);
             double ptavempftp_n   = (1 + ptavempf_n) / (1 - ptavempf_n);
+
+            double recoilmpf_unc   = uncE_et*cos(DPhi(uncE_phi,recoilphi));
+            double recoilmpftp_unc = recoilmpf_u/recoilpt;
+            double recoilmpf_one   = vecsum_pt*cos(DPhi(vecsum_phi,recoilphi));
+            double recoilmpftp_one = 1 - recoilmpf_one/recoilpt;
+            double recoilmpf_n     = extrapt*cos(DPhi(extraphi,recoilphi));
+            double recoilmpftp_n   = recoilmpf_n/recoilpt;
 
             if (jpt==0) {
               assert(h->prho_recoil); h->prho_recoil->Fill(recoilpt, rho, _w);
@@ -1848,24 +1859,24 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->h2mpfinv_ptave0); h->h2mpfinv_ptave0->Fill(newptave, ptavempftp, _w);
                 assert(h->h2mpfinv_ptave20); h->h2mpfinv_ptave20->Fill(newptave, ptavempftp2, _w);
 
-                assert(h->pmpf_ptave_ue0); h->pmpf_ptave_ue0->Fill(newptave, ptavempf_ue, _w);
+                assert(h->pmpf_ptave_unc0); h->pmpf_ptave_unc0->Fill(newptave, ptavempf_unc, _w);
                 assert(h->pmpf_ptave_one0); h->pmpf_ptave_one0->Fill(newptave, ptavempf_one, _w);
                 assert(h->pmpf_ptave_n0); h->pmpf_ptave_n0->Fill(newptave, ptavempf_n, _w);
-                assert(h->h2mpf_ptave_ue0); h->h2mpf_ptave_ue0->Fill(newptave, ptavempf_ue, _w);
+                assert(h->h2mpf_ptave_unc0); h->h2mpf_ptave_unc0->Fill(newptave, ptavempf_unc, _w);
                 assert(h->h2mpf_ptave_one0); h->h2mpf_ptave_one0->Fill(newptave, ptavempf_one, _w);
                 assert(h->h2mpf_ptave_n0); h->h2mpf_ptave_n0->Fill(newptave, ptavempf_n, _w);
 
-                assert(h->pmpfinv_ptave_ue0); h->pmpfinv_ptave_ue0->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->pmpfinv_ptave_unc0); h->pmpfinv_ptave_unc0->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->pmpfinv_ptave_one0); h->pmpfinv_ptave_one0->Fill(newptave, ptavempftp_one, _w); 
                 assert(h->pmpfinv_ptave_n0); h->pmpfinv_ptave_n0->Fill(newptave, ptavempftp_n, _w);
-                assert(h->h2mpfinv_ptave_ue0); h->h2mpfinv_ptave_ue0->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->h2mpfinv_ptave_unc0); h->h2mpfinv_ptave_unc0->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->h2mpfinv_ptave_one0); h->h2mpfinv_ptave_one0->Fill(newptave, ptavempftp_one, _w);
                 assert(h->h2mpfinv_ptave_n0); h->h2mpfinv_ptave_n0->Fill(newptave, ptavempftp_n, _w);
 
-                assert(h->hleadmpf_ue0); h->hleadmpf_ue0->Fill(leadmpf_ue, _w);
-                //assert(h->hleadmpftp_ue0); h->hleadmpftp_ue0->Fill(leadmpftp_ue, _w);
-                assert(h->pmpflead_leading_ue0); h->pmpflead_leading_ue0->Fill(jtpt[i0], leadmpftp_ue, _w);
-                assert(h->h2mpflead_leading_ue0); h->h2mpflead_leading_ue0->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->hleadmpf_unc0); h->hleadmpf_unc0->Fill(leadmpf_unc, _w);
+                //assert(h->hleadmpftp_unc0); h->hleadmpftp_unc0->Fill(leadmpftp_unc, _w);
+                assert(h->pmpflead_leading_unc0); h->pmpflead_leading_unc0->Fill(jtpt[i0], leadmpftp_unc, _w);
+                assert(h->h2mpflead_leading_unc0); h->h2mpflead_leading_unc0->Fill(jtpt[i0], leadmpftp_unc, _w);
 
                 assert(h->hleadmpf_one0); h->hleadmpf_one0->Fill(leadmpf_one, _w);
                 //assert(h->hleadmpftp_one0); h->hleadmpftp_one0->Fill(leadmpftp_one, _w);
@@ -1876,6 +1887,13 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 //assert(h->hleadmpftp_n0); h->hleadmpftp_n0->Fill(leadmpftp_n, _w);
                 assert(h->pmpflead_leading_n0); h->pmpflead_leading_n0->Fill(jtpt[i0], leadmpftp_n, _w);
                 assert(h->h2mpflead_leading_n0); h->h2mpflead_leading_n0->Fill(jtpt[i0], leadmpftp_n, _w);
+
+                assert(h->pmpf_recoil_unc0); h->pmpf_recoil_unc0->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->h2mpf_recoil_unc0); h->h2mpf_recoil_unc0->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->pmpf_recoil_one0); h->pmpf_recoil_one0->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->h2mpf_recoil_one0); h->h2mpf_recoil_one0->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->pmpf_recoil_n0); h->pmpf_recoil_n0->Fill(recoilpt, recoilmpftp_n, _w);
+                assert(h->h2mpf_recoil_n0); h->h2mpf_recoil_n0->Fill(recoilpt, recoilmpftp_n, _w);
 
                 assert(h->hnjet0); h->hnjet0->Fill(njt, _w);
                 assert(h->hj0pt0); h->hj0pt0->Fill(jtpt[i0], _w);
@@ -1984,24 +2002,24 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->h2mpfinv_ptave1); h->h2mpfinv_ptave1->Fill(newptave, ptavempftp, _w);
                 assert(h->h2mpfinv_ptave21); h->h2mpfinv_ptave21->Fill(newptave, ptavempftp2, _w);
 
-                assert(h->pmpf_ptave_ue1); h->pmpf_ptave_ue1->Fill(newptave, ptavempf_ue, _w);
+                assert(h->pmpf_ptave_unc1); h->pmpf_ptave_unc1->Fill(newptave, ptavempf_unc, _w);
                 assert(h->pmpf_ptave_one1); h->pmpf_ptave_one1->Fill(newptave, ptavempf_one, _w);
                 assert(h->pmpf_ptave_n1); h->pmpf_ptave_n1->Fill(newptave, ptavempf_n, _w);
-                assert(h->h2mpf_ptave_ue1); h->h2mpf_ptave_ue1->Fill(newptave, ptavempf_ue, _w);
+                assert(h->h2mpf_ptave_unc1); h->h2mpf_ptave_unc1->Fill(newptave, ptavempf_unc, _w);
                 assert(h->h2mpf_ptave_one1); h->h2mpf_ptave_one1->Fill(newptave, ptavempf_one, _w);
                 assert(h->h2mpf_ptave_n1); h->h2mpf_ptave_n1->Fill(newptave, ptavempf_n, _w);
  
-                assert(h->pmpfinv_ptave_ue1); h->pmpfinv_ptave_ue1->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->pmpfinv_ptave_unc1); h->pmpfinv_ptave_unc1->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->pmpfinv_ptave_one1); h->pmpfinv_ptave_one1->Fill(newptave, ptavempftp_one, _w);
                 assert(h->pmpfinv_ptave_n1); h->pmpfinv_ptave_n1->Fill(newptave, ptavempftp_n, _w);
-                assert(h->h2mpfinv_ptave_ue1); h->h2mpfinv_ptave_ue1->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->h2mpfinv_ptave_unc1); h->h2mpfinv_ptave_unc1->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->h2mpfinv_ptave_one1); h->h2mpfinv_ptave_one1->Fill(newptave, ptavempftp_one, _w);
                 assert(h->h2mpfinv_ptave_n1); h->h2mpfinv_ptave_n1->Fill(newptave, ptavempftp_n, _w);
 
-                assert(h->hleadmpf_ue1); h->hleadmpf_ue1->Fill(leadmpf_ue, _w);
-                //assert(h->hleadmpftp_ue1); h->hleadmpftp_ue1->Fill(leadmpftp_ue, _w);
-                assert(h->pmpflead_leading_ue1); h->pmpflead_leading_ue1->Fill(jtpt[i0], leadmpftp_ue, _w);
-                assert(h->h2mpflead_leading_ue1); h->h2mpflead_leading_ue1->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->hleadmpf_unc1); h->hleadmpf_unc1->Fill(leadmpf_unc, _w);
+                //assert(h->hleadmpftp_unc1); h->hleadmpftp_unc1->Fill(leadmpftp_unc, _w);
+                assert(h->pmpflead_leading_unc1); h->pmpflead_leading_unc1->Fill(jtpt[i0], leadmpftp_unc, _w);
+                assert(h->h2mpflead_leading_unc1); h->h2mpflead_leading_unc1->Fill(jtpt[i0], leadmpftp_unc, _w);
 
                 assert(h->hleadmpf_one1); h->hleadmpf_one1->Fill(leadmpf_one, _w);
                 //assert(h->hleadmpftp_one1); h->hleadmpftp_one1->Fill(leadmpftp_one, _w);
@@ -2012,6 +2030,13 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 //assert(h->hleadmpftp_n1); h->hleadmpftp_n1->Fill(leadmpftp_n, _w);
                 assert(h->pmpflead_leading_n1); h->pmpflead_leading_n1->Fill(jtpt[i0], leadmpftp_n, _w);
                 assert(h->h2mpflead_leading_n1); h->h2mpflead_leading_n1->Fill(jtpt[i0], leadmpftp_n, _w);
+
+                assert(h->pmpf_recoil_unc1); h->pmpf_recoil_unc1->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->h2mpf_recoil_unc1); h->h2mpf_recoil_unc1->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->pmpf_recoil_one1); h->pmpf_recoil_one1->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->h2mpf_recoil_one1); h->h2mpf_recoil_one1->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->pmpf_recoil_n1); h->pmpf_recoil_n1->Fill(recoilpt, recoilmpftp_n, _w);
+                assert(h->h2mpf_recoil_n1); h->h2mpf_recoil_n1->Fill(recoilpt, recoilmpftp_n, _w);
 
                 assert(h->hnjet1); h->hnjet1->Fill(njt, _w);
                 assert(h->hj0pt1); h->hj0pt1->Fill(jtpt[i0], _w);
@@ -2120,24 +2145,24 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 assert(h->h2mpfinv_ptave); h->h2mpfinv_ptave->Fill(newptave, ptavempftp, _w);
                 assert(h->h2mpfinv_ptave2); h->h2mpfinv_ptave2->Fill(newptave, ptavempftp2, _w);
 
-                assert(h->pmpf_ptave_ue); h->pmpf_ptave_ue->Fill(newptave, ptavempf_ue, _w);
+                assert(h->pmpf_ptave_unc); h->pmpf_ptave_unc->Fill(newptave, ptavempf_unc, _w);
                 assert(h->pmpf_ptave_one); h->pmpf_ptave_one->Fill(newptave, ptavempf_one, _w);
                 assert(h->pmpf_ptave_n); h->pmpf_ptave_n->Fill(newptave, ptavempf_n, _w);
-                assert(h->h2mpf_ptave_ue); h->h2mpf_ptave_ue->Fill(newptave, ptavempf_ue, _w);
+                assert(h->h2mpf_ptave_unc); h->h2mpf_ptave_unc->Fill(newptave, ptavempf_unc, _w);
                 assert(h->h2mpf_ptave_one); h->h2mpf_ptave_one->Fill(newptave, ptavempf_one, _w);
                 assert(h->h2mpf_ptave_n); h->h2mpf_ptave_n->Fill(newptave, ptavempf_n, _w);
 
-                assert(h->pmpfinv_ptave_ue); h->pmpfinv_ptave_ue->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->pmpfinv_ptave_unc); h->pmpfinv_ptave_unc->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->pmpfinv_ptave_one); h->pmpfinv_ptave_one->Fill(newptave, ptavempftp_one, _w);
                 assert(h->pmpfinv_ptave_n); h->pmpfinv_ptave_n->Fill(newptave, ptavempftp_n, _w);
-                assert(h->h2mpfinv_ptave_ue); h->h2mpfinv_ptave_ue->Fill(newptave, ptavempftp_ue, _w);
+                assert(h->h2mpfinv_ptave_unc); h->h2mpfinv_ptave_unc->Fill(newptave, ptavempftp_unc, _w);
                 assert(h->h2mpfinv_ptave_one); h->h2mpfinv_ptave_one->Fill(newptave, ptavempftp_one, _w);
                 assert(h->h2mpfinv_ptave_n); h->h2mpfinv_ptave_n->Fill(newptave, ptavempftp_n, _w); 
 
-                assert(h->hleadmpf_ue); h->hleadmpf_ue->Fill(leadmpf_ue, _w);
-                //assert(h->hleadmpftp_ue); h->hleadmpftp_ue->Fill(leadmpftp_ue, _w);
-                assert(h->pmpflead_leading_ue); h->pmpflead_leading_ue->Fill(jtpt[i0], leadmpftp_ue, _w);
-                assert(h->h2mpflead_leading_ue); h->h2mpflead_leading_ue->Fill(jtpt[i0], leadmpftp_ue, _w);
+                assert(h->hleadmpf_unc); h->hleadmpf_unc->Fill(leadmpf_unc, _w);
+                //assert(h->hleadmpftp_unc); h->hleadmpftp_unc->Fill(leadmpftp_unc, _w);
+                assert(h->pmpflead_leading_unc); h->pmpflead_leading_unc->Fill(jtpt[i0], leadmpftp_unc, _w);
+                assert(h->h2mpflead_leading_unc); h->h2mpflead_leading_unc->Fill(jtpt[i0], leadmpftp_unc, _w);
 
                 assert(h->hleadmpf_one); h->hleadmpf_one->Fill(leadmpf_one, _w);
                 //assert(h->hleadmpftp_one); h->hleadmpftp_one->Fill(leadmpftp_one, _w);
@@ -2148,6 +2173,13 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
                 //assert(h->hleadmpftp_n); h->hleadmpftp_n->Fill(leadmpftp_n, _w);
                 assert(h->pmpflead_leading_n); h->pmpflead_leading_n->Fill(jtpt[i0], leadmpftp_n, _w);
                 assert(h->h2mpflead_leading_n); h->h2mpflead_leading_n->Fill(jtpt[i0], leadmpftp_n, _w);
+
+                assert(h->pmpf_recoil_unc); h->pmpf_recoil_unc->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->h2mpf_recoil_unc); h->h2mpf_recoil_unc->Fill(recoilpt, recoilmpftp_unc, _w);
+                assert(h->pmpf_recoil_one); h->pmpf_recoil_one->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->h2mpf_recoil_one); h->h2mpf_recoil_one->Fill(recoilpt, recoilmpftp_one, _w);
+                assert(h->pmpf_recoil_n); h->pmpf_recoil_n->Fill(recoilpt, recoilmpftp_n, _w);
+                assert(h->h2mpf_recoil_n); h->h2mpf_recoil_n->Fill(recoilpt, recoilmpftp_n, _w);
 
                 assert(h->hnjet); h->hnjet->Fill(njt, _w);
                 assert(h->hj0pt); h->hj0pt->Fill(jtpt[i0], _w);
