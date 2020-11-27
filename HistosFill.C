@@ -1797,7 +1797,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double ptavempftp_n   = (1 + ptavempf_n) / (1 - ptavempf_n);
 
             double recoilmpf_unc   = uncE_et*cos(DPhi(uncE_phi,recoilphi));
-            double recoilmpftp_unc = recoilmpf_u/recoilpt;
+            double recoilmpftp_unc = recoilmpf_unc/recoilpt;
             double recoilmpf_one   = vecsum_pt*cos(DPhi(vecsum_phi,recoilphi));
             double recoilmpftp_one = 1 - recoilmpf_one/recoilpt;
             double recoilmpf_n     = extrapt*cos(DPhi(extraphi,recoilphi));
