@@ -1775,7 +1775,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double ptavempftp2 = (1 + ptavempf2) / (1 - ptavempf2);
 
             double leadmpf_unc   = uncE_et*cos(DPhi(uncE_phi,jtphi[i0]));
-            double leadmpftp_unc = leadmpf_unc/jtpt[i0];
+            double leadmpftp_unc = -leadmpf_unc/jtpt[i0]; //for MPF(pT,leading) = MPF1 + MPFn + MPFu (Nov 30, 2020)
 
             double vecsum_px  = jtpt[i0] * cos(jtphi[i0]) + rex[jpt];
             double vecsum_py  = jtpt[i0] * sin(jtphi[i0]) + rey[jpt];
@@ -1789,9 +1789,10 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double leadmpf_n     = extrapt*cos(DPhi(extraphi,jtphi[i0]));
             double leadmpftp_n   = leadmpf_n/jtpt[i0];
 
-            double ptavempf_unc    = -uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum;
-            double ptavempf_one   = -vecsum_pt*cos(DPhi(vecsum_phi, vec_phi)) / newptsum;
-            double ptavempf_n     = -extrapt*cos(DPhi(extraphi, vec_phi)) / newptsum;
+            // Fixed: -met1 = vecsum + exrapt + uncE (Nov 30, 2020)
+            double ptavempf_unc    = uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum;
+            double ptavempf_one   = vecsum_pt*cos(DPhi(vecsum_phi, vec_phi)) / newptsum;
+            double ptavempf_n     = extrapt*cos(DPhi(extraphi, vec_phi)) / newptsum;
             double ptavempftp_unc  = (1 + ptavempf_unc) / (1 - ptavempf_unc);
             double ptavempftp_one = (1 + ptavempf_one) / (1 - ptavempf_one);
             double ptavempftp_n   = (1 + ptavempf_n) / (1 - ptavempf_n);
@@ -1801,7 +1802,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double recoilmpf_one   = vecsum_pt*cos(DPhi(vecsum_phi,recoilphi));
             double recoilmpftp_one = 1 - recoilmpf_one/recoilpt;
             double recoilmpf_n     = extrapt*cos(DPhi(extraphi,recoilphi));
-            double recoilmpftp_n   = recoilmpf_n/recoilpt;
+            double recoilmpftp_n   = -recoilmpf_n/recoilpt; //for MPF(pT,recoil) = MPF1 + MPFn + MPFu (Nov 30, 2020)
 
             if (jpt==0) {
               assert(h->prho_recoil); h->prho_recoil->Fill(recoilpt, rho, _w);
