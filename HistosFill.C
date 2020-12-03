@@ -1790,10 +1790,10 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double leadmpftp_n   = leadmpf_n/jtpt[i0];
 
             // Updated: -met1 + uncE = vecsum + exrapt (Dec 2, 2020)
-            double ptavempf_unc   = -uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum; //for MPF(pT,ave) = MPF1 + MPFn + MPFu (at 22:50, Dec 2, 2020)
+            double ptavempf_unc   = uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum; //for MPF(pT,ave) = MPF1 + MPFn + MPFu (Dec 3, 2020)
             double ptavempf_one   = vecsum_pt*cos(DPhi(vecsum_phi, vec_phi)) / newptsum;
             double ptavempf_n     = extrapt*cos(DPhi(extraphi, vec_phi)) / newptsum;
-            double ptavempftp_unc = 2 / (1 - ptavempf_unc);                  // 1 + (1 + ptavempf_unc) / (1 - ptavempf_unc);
+            double ptavempftp_unc = -2*ptavempf_unc / (1 - ptavempf_unc);    // 1 - (1 + ptavempf_unc) / (1 - ptavempf_unc);
             double ptavempftp_one = (1 + ptavempf_one) / (1 - ptavempf_one);
             double ptavempftp_n   = 2*ptavempf_n / (1 - ptavempf_n);         //-1 + (1 + ptavempf_n)   / (1 - ptavempf_n);
 
