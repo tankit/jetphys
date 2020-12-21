@@ -56,26 +56,25 @@ namespace jp {
   // In case of DATA, choose run (all options given in dtfiles).
   // This also affects the hot zone cuts done in MC.
   // The naming format is "RunX...", where X should be chosen correctly.
-  constexpr const char* run = "RunABCD";
+  constexpr const char* run = "RunBCDEF";
   // The base location of files that are to be used. The user should check that the listings under "*path_" and "*files_" are found
   // under this base location. The complete path is of the form 'filepath+dt/mcpath+filename' (see mk_HistosFill.C).
   constexpr const char* filepath = "./jet_tuples/"; // "root://eoscms.cern.ch//eos/cms/store/group/phys_smp/Multijet/13TeV/";
-  constexpr bool UL17 = false;
-  constexpr bool CXL1 = false;
+  constexpr bool UL17 = true;
   constexpr bool doPU80mb = false;
-  constexpr bool UL18 = true;
+  constexpr bool UL18 = false;
   constexpr bool UL16 = false;
   constexpr bool APV = false;
 
   // Which run year are we analyzing?
-  const unsigned int   yid = 3; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
+  const unsigned int   yid = 1; // 0:2016, 1:2017, 2:2017 LowPU, 3:2018
   const unsigned int   yrs = 4; // Number of supported Run years
 
   // Choose DT pileup era to be used with MC
   // 16: 0=BCD, 1=EF, 2=GH, 3=BCDEFGH
   // 17: 0=B, 1=C, 2=D, 3=E, 4=F, 5=BCDEF
   // 18: 0=A, 1=B, 2=C, 3=D, 4=ABCD
-  const unsigned int PUIOVidx = 4;
+  const unsigned int PUIOVidx = 5;
   // Do we use pthat binned MC (if not, we use flat or htbinned)
   constexpr bool pthatbins = false;
   // Do we use ht binned MC (if not, we use flat; if yes pthatbins must be set to false)
@@ -132,7 +131,9 @@ namespace jp {
 //  const constexpr char HotType[] = "filter"; // h2hotr (Robert) or h2hotm (Mikko)
   //const constexpr char HotType[] = "_ul17_plus_hep17"; // _ul17 or _ul17_plus_hep17
   ////const constexpr char HotType[] = "_ul17_plus_hep17_plus_hbpw89"; //JECDatabase/jet_veto_maps/Summer19UL17_V2/hotjets-UL17_v2.root (added Nov 7, 2020, but never used before)
-  const constexpr char HotType[] = "_ul18_plus_hbp2m1"; // '_ul18_plus_hem1516_and_hbp2m1 by doVetoHEM = true' (_ul18 or _ul18_plus_hem1516) 
+  //const constexpr char HotType[] = "_ul18_plus_hbp2m1"; // '_ul18_plus_hem1516_and_hbp2m1 by doVetoHEM = true' (_ul18 or _ul18_plus_hem1516) 
+  //const constexpr char HotType[] = "_ul16_plus_hbm2_hbp12_qie11"; //need to h2hot_mc
+  const constexpr char HotType[] = ""; //according to the UL reprocessing
 
   // Check for duplicates (warning: takes a lot of memory!)
   constexpr bool checkduplicates = false;
@@ -150,7 +151,7 @@ namespace jp {
     //"lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
     //"lumicalc/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt"
     "lumicalc/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt",
-    "lumicalc/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON_mod.txt",
+    "lumicalc/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSONmod.txt",
     "lumicalc/Cert_306896-307082_13TeV_EOY2017ReReco_Collisions17_JSON_LowPU.txt",
     "lumicalc/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
   };
@@ -318,8 +319,8 @@ namespace jp {
   const string jergt = jergt_.at(yid);
   const array<string,yrs> jervers_ = {
     "_25nsV1",
-    "_JRV2",
-    "_JRV2",
+    "_JRV3",
+    "_JRV3",
     //"_V4"
     "_JRV2"
   };
@@ -357,8 +358,8 @@ namespace jp {
   const string jecgt = jecgt_.at(yid);
   const array<string,yrs> jecversdt_ = {
     "_V20",
-    "_V4",
-    "_V4",
+    "_V6",
+    "_V6",
     //"_V32",
     //"_V32",
 //    "_V19"
@@ -367,8 +368,8 @@ namespace jp {
   const string jecversdt = jecversdt_.at(yid);
   const array<string,yrs> jecversmc_ = {
     "_V20",
-    "_V4",
-    "_V4",
+    "_V6",
+    "_V6",
     //"_V32",
     ////"_V3", (RunF 09May2018)
     //"_V32",
@@ -401,7 +402,7 @@ namespace jp {
     { {297020,299329},{299337,302029},{302030,303434},{303435,304826},{304911,306460} }, // B,C,DE,F: DE fused at 303434},{303435,
     { {306926,307082} }, // H
     //{ {315000,316999},{317000,319499},{319500,320399},{320400,400000} } // A,B,C,D
-    { {315000,316999},{317000,319320},{319320,320399},{320400,326000} } // A,B,C,D (Nov 10, 2020)
+    { {315000,316999},{317000,319319},{319320,320399},{320400,326000} } // A,B,C,D (Nov 10, 2020)
   }};
   const vector<array<int,2>> IOVranges = IOVranges_.at(yid);
   //} END JES, JER and JEC
@@ -588,7 +589,7 @@ namespace jp {
       {"pileup/DT/16_UL/","pileup/DT/17_UL/","pileup/DT/17_UL/","pileup/DT/18_UL/"};
     const string pudtpath = pudtpath_.at(yid);
     const array<string,yrs> pumcpath_ =
-      {"pileup/MC/16/","pileup/MC/17/","pileup/MC/17/","pileup/MC/18/"};
+      {"pileup/MC/ul16/","pileup/MC/ul17/","pileup/MC/ul17/","pileup/MC/ul18/"};
     const string pumcpath = pumcpath_.at(yid);
     const array<string,yrs> pup8file_ =
       {"pileup_P8M1.root","pileup_P8CP5.root","pileup_P8CP5.root","pileup_P8CP5.root"};

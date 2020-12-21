@@ -96,7 +96,6 @@ void IOV::addJECLvl(JECIOV &jec, vector<JetCorrectorParameters> &vpar, string ta
 #if JETRESO == 1
 void IOV::addJERLvl(bool isSF) {
   string path = _jerpath+_jername+"_"+(isSF ? "SF" : "PtResolution")+"_"+jp::algo+".txt";
-  if(isSF and jp::UL17) path = (jp::CXL1) ? "./Summer19UL17_V0_MC/JERSF_ComplexL1.txt" : "./Summer19UL17_V0_MC/JERSF_SimpleL1.txt";
   if (access(path.c_str(), F_OK)==-1) {
     cout << "The JER IOV file " << path << " was not found" << endl;
   } else {
@@ -120,7 +119,7 @@ void IOV::addJEC(string id, int runmin, int runmax) {
     for (auto it = _jecs.begin(); it != _jecs.end(); ++it) assert(runmax<it->low or runmin>it->up);
   }
 
-  string _jectag = jp::jectag; if(jp::UL17 and jp::CXL1 and jp::jectag=="_SimpleL1") _jectag = "_ComplexL1";
+  string _jectag = jp::jectag;
   _jecname = jp::jecgt + id + (jp::ismc ? jp::jecversmc : jp::jecversdt) + _jectag + (jp::ismc ? "_MC" : "_DATA");
   _jecpath = jp::useJECDB ? (jp::JECDBLoc+"/textFiles/"+_jecname+"/") : "CondFormats/JetMETObjects/data/";
 

@@ -616,13 +616,13 @@ bool HistosFill::PreRun()
   }
   if (jp::yid==1) _jer_iov = run2017;
   if (jp::yid==0) {
-    _jer_iov = run2016;
+    _jer_iov = run2016; if(jp::UL16) _ul16 = true;
     // Commented the followings because of no need (Oct 23, 2019)
     //if (std::regex_search(jp::run,regex("^Run[BCD]"))) _jer_iov = run2016bcd;
     //else if (std::regex_search(jp::run,regex("^Run[EF]"))) _jer_iov = run2016ef;
     //else if (std::regex_search(jp::run,regex("^Run[GH]"))) _jer_iov = run2016gh;
   }
-  if (jp::UL17) _ul17 = true; if (jp::CXL1) _complexL1 = true;
+  if (jp::UL17) _ul17 = true;
   if (jp::ismc) cout << Form("*** For MC only, JER and IOV settings: %s %s with Scale factors (%s%s%s)",_ul17 ? "UL17" : "UL18",iovNames[_jer_iov],_usejmeUp or _usejmeDown ? "" : "Normal",_usejmeUp ? "Up" : "",_usejmeDown ? "Down" : "") << endl;
 
   // Load latest JSON selection
@@ -705,10 +705,6 @@ bool HistosFill::PreRun()
       else if (std::regex_search(jp::run,regex("^RunC"))) HotTag = "C";
       else if (std::regex_search(jp::run,regex("^Run[DE]"))) HotTag = "DE";
       else if (std::regex_search(jp::run,regex("^RunF"))) HotTag = "F";
-      //if (jp::UL17) {
-      //  if (std::regex_search(jp::run,regex("^RunD"))) HotTag = "D";
-      //  if (std::regex_search(jp::run,regex("^RunE"))) HotTag = "E";
-      //}
     } else if (jp::yid==3) {
       HotYr = "18";
       if      (std::regex_search(jp::run,regex("^RunA"))) HotTag = "A";
@@ -722,14 +718,18 @@ bool HistosFill::PreRun()
     assert(HotTag!="");
     string HotMap = Form("hotcoldjets/hotjets-%srun%s.root",HotYr.c_str(),HotTag.c_str());
     //if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17.root"); //used for UL17 residual study
-    if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17_v2.root"); //added Nov 7, 2020 (but, never used before)
+    if(jp::UL17) HotMap = Form("hotcoldjets/hotjets-UL17_v2.root"); //added Nov 7, 2020 and used from JEC-V6 and JR-V3
     if(jp::UL18) HotMap = Form("hotcoldjets/hotjets-UL18.root");
-    //else if(jp::UL16) HotMap = Form("hotcoldjets/hotjets-UL16.root");
+    if(jp::UL16) HotMap = Form("hotcoldjets/hotjets-UL16.root"); //added Dec 5, 2020 (https://indico.cern.ch/event/975622/)
     fHotExcl = new TFile(Form("%s",HotMap.c_str()),"READ");
     assert(fHotExcl and !fHotExcl->IsZombie() and Form("file %s missing",HotMap.c_str()));
-    if(jp::UL17 or jp::UL18) {
-      string hotzone = jp::HotType; if(jp::UL18 and jp::doVetoHEM) hotzone = "_ul18_plus_hem1516_and_hbp2m1";
+    if(jp::UL17 or jp::UL18 or jp::UL16) {
+      string hotzone = jp::HotType;
+      if(jp::UL17) hotzone = "_ul17_plus_hep17_plus_hbpw89";
+      if(jp::UL18) hotzone = (jp::doVetoHEM) ? "_ul18_plus_hem1516_and_hbp2m1" : "_ul18_plus_hbp2m1";
+      if(jp::UL16) hotzone = "_ul16_plus_hbm2_hbp12_qie11";
       h2HotExcl = (TH2D*)fHotExcl->Get(Form("h2hot%s",hotzone.c_str()));
+      if(jp::UL16) { TH2D *h2HotExclMC = (TH2D*)fHotExcl->Get("h2hot_mc"); h2HotExcl->Add(h2HotExclMC); h2HotExclMC->Delete(); }
       PrintInfo(Form("Loading hot zone corrections %s with h2hot %s",HotMap.c_str(),hotzone.c_str()));
       if(jp::UL17 and jp::UL18) PrintInfo("Checking because of UL17=true and UL18=true");
     } else {
@@ -1143,12 +1143,12 @@ bool HistosFill::AcceptEvent()
     }
   } // for jetidx
 
-  // Unclustered energy for MPFu (Nov 19, 2020)
-  double uncE_ex = mex, uncE_ey = mey;
+  // Unclustered energy for MPFu (updated the sign on Dec 11, 2020)
+  double uncE_ex = -mex, uncE_ey = -mey;
   for (int jetidx = 0; jetidx != njt; ++jetidx) {
     if (jtpt[jetidx] > 15) {
-      uncE_ex += jtpt[jetidx] * cos(jtphi[jetidx]);
-      uncE_ey += jtpt[jetidx] * sin(jtphi[jetidx]);
+      uncE_ex -= jtpt[jetidx] * cos(jtphi[jetidx]);
+      uncE_ey -= jtpt[jetidx] * sin(jtphi[jetidx]);
     }
   }
 
@@ -1775,7 +1775,7 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double ptavempftp2 = (1 + ptavempf2) / (1 - ptavempf2);
 
             double leadmpf_unc   = uncE_et*cos(DPhi(uncE_phi,jtphi[i0]));
-            double leadmpftp_unc = -leadmpf_unc/jtpt[i0]; //for MPF(pT,leading) = MPF1 + MPFn + MPFu (Nov 30, 2020)
+            double leadmpftp_unc = leadmpf_unc/jtpt[i0]; //for MPF(pT,leading) = MPF1 + MPFn + MPFu (Dec 11, 2020)
 
             double vecsum_px  = jtpt[i0] * cos(jtphi[i0]) + rex[jpt];
             double vecsum_py  = jtpt[i0] * sin(jtphi[i0]) + rey[jpt];
@@ -1789,16 +1789,16 @@ void HistosFill::FillSingleBasic(HistosBasic *h)
             double leadmpf_n     = extrapt*cos(DPhi(extraphi,jtphi[i0]));
             double leadmpftp_n   = leadmpf_n/jtpt[i0];
 
-            // Updated: -met1 + uncE = vecsum + exrapt (Dec 2, 2020)
+            // Updated: -met1 = vecsum + exrapt + uncE_et (Dec 11, 2020)
             double ptavempf_unc   = uncE_et*cos(DPhi(uncE_phi, vec_phi)) / newptsum; //for MPF(pT,ave) = MPF1 + MPFn + MPFu (Dec 3, 2020)
             double ptavempf_one   = vecsum_pt*cos(DPhi(vecsum_phi, vec_phi)) / newptsum;
             double ptavempf_n     = extrapt*cos(DPhi(extraphi, vec_phi)) / newptsum;
-            double ptavempftp_unc = -2*ptavempf_unc / (1 - ptavempf_unc);    // 1 - (1 + ptavempf_unc) / (1 - ptavempf_unc);
+            double ptavempftp_unc = 2*ptavempf_unc / (1 - ptavempf_unc);     //-1 + (1 + ptavempf_unc) / (1 - ptavempf_unc);
             double ptavempftp_one = (1 + ptavempf_one) / (1 - ptavempf_one);
             double ptavempftp_n   = 2*ptavempf_n / (1 - ptavempf_n);         //-1 + (1 + ptavempf_n)   / (1 - ptavempf_n);
 
             double recoilmpf_unc   = uncE_et*cos(DPhi(uncE_phi,recoilphi));
-            double recoilmpftp_unc = recoilmpf_unc/recoilpt;
+            double recoilmpftp_unc = -recoilmpf_unc/recoilpt; //for MPF(pT,recoil) = MPF1 + MPFn + MPFu (Dec 11, 2020)
             double recoilmpf_one   = vecsum_pt*cos(DPhi(vecsum_phi,recoilphi));
             double recoilmpftp_one = 1 - recoilmpf_one/recoilpt;
             double recoilmpf_n     = extrapt*cos(DPhi(extraphi,recoilphi));
@@ -3844,9 +3844,7 @@ bool HistosFill::LoadPuProfiles()
     if (jp::pthatbins)   mcfile += "pileup_Pthat.root";
     //else if (jp::htbins) { if(jp::UL17) mcfile += "pileup_P8MG_UL17.root"; else mcfile += "pileup_P8MG.root"; }
     else if (jp::htbins) {
-      if(jp::UL17) mcfile += "pileup_P8MG_UL17.root";
-      else if(jp::UL18) mcfile = "pileup/MC/ul18/pileup_P8MG.root";
-      else if(jp::UL16) { if(jp::APV) mcfile = "pileup/MC/ul16/pileup_P8MGAPV.root"; else mcfile = "pileup/MC/ul16/pileup_P8MG.root"; }
+      if(jp::UL16 and jp::APV) mcfile += "pileup_P8MGAPV.root";
       else mcfile += "pileup_P8MG.root";
     }
     else                 mcfile += jp::pup8file;
@@ -3856,7 +3854,7 @@ bool HistosFill::LoadPuProfiles()
   }
   if (jp::doPU80mb) {
     datafile = jp::pudtpath + jp::PUIOVs[jp::PUIOVidx] + "pileup_DT_80mb.root";
-    if(jp::htbins and jp::UL17) mcfile = jp::pumcpath+"pileup_P8MG_UL17_maxpu200.root";
+    if(jp::htbins and jp::UL17) mcfile += "pileup_P8MG_UL17_maxpu200.root";
   }
 
   PrintInfo(Form("Processing LoadPuProfiles() using %s and %s ...",datafile.c_str(),mcfile.c_str()),true);
