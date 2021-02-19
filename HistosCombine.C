@@ -113,27 +113,29 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "pnpvvstrpu");
   recurseCombFile(fin, fout, isdt, "htrpu");
   recurseCombFile(fin, fout, isdt, "htrpu2");
-  recurseCombFile(fin, fout, isdt, "pmjb_recoil");
-  recurseCombFile(fin, fout, isdt, "pmjb_leading");
-  recurseCombFile(fin, fout, isdt, "pmjbinv_leading");
-  recurseCombFile(fin, fout, isdt, "pmpfinv_leading");
-  recurseCombFile(fin, fout, isdt, "pmpf_recoil");
+
+  recurseCombFile(fin, fout, isdt, "pmjb_recoil2");
+  recurseCombFile(fin, fout, isdt, "pmjb_leading2");
+  recurseCombFile(fin, fout, isdt, "pmjbinv_leading2");
+  recurseCombFile(fin, fout, isdt, "pmpfinv_leading2");
   recurseCombFile(fin, fout, isdt, "pmpf_recoil2");
-  recurseCombFile(fin, fout, isdt, "pmpf_recoil_unc");
-  recurseCombFile(fin, fout, isdt, "pmpf_recoil_one");
-  recurseCombFile(fin, fout, isdt, "pmpf_recoil_n");
-  recurseCombFile(fin, fout, isdt, "pmpf_leading");
+  recurseCombFile(fin, fout, isdt, "pmpf_recoil22");
+  recurseCombFile(fin, fout, isdt, "pmpf_recoil_unc2");
+  recurseCombFile(fin, fout, isdt, "pmpf_recoil_one2");
+  recurseCombFile(fin, fout, isdt, "pmpf_recoil_n2");
   recurseCombFile(fin, fout, isdt, "pmpf_leading2");
-  recurseCombFile(fin, fout, isdt, "pmpflead_leading");
+  recurseCombFile(fin, fout, isdt, "pmpf_leading22");
   recurseCombFile(fin, fout, isdt, "pmpflead_leading2");
-  recurseCombFile(fin, fout, isdt, "pmpflead_leading_unc");
-  recurseCombFile(fin, fout, isdt, "pmpflead_leading_one");
-  recurseCombFile(fin, fout, isdt, "pmpflead_leading_n");
-  recurseCombFile(fin, fout, isdt, "pmpfleadinv_leading");
+  recurseCombFile(fin, fout, isdt, "pmpflead_leading22");
+  recurseCombFile(fin, fout, isdt, "pmpflead_leading_unc2");
+  recurseCombFile(fin, fout, isdt, "pmpflead_leading_one2");
+  recurseCombFile(fin, fout, isdt, "pmpflead_leading_n2");
   recurseCombFile(fin, fout, isdt, "pmpfleadinv_leading2");
-  recurseCombFile(fin, fout, isdt, "pmjbinv_recoil");
-  recurseCombFile(fin, fout, isdt, "pmpflead_recoil");
+  recurseCombFile(fin, fout, isdt, "pmpfleadinv_leading22");
+  recurseCombFile(fin, fout, isdt, "pmjbinv_recoil2");
   recurseCombFile(fin, fout, isdt, "pmpflead_recoil2");
+  recurseCombFile(fin, fout, isdt, "pmpflead_recoil22");
+
   recurseCombFile(fin, fout, isdt, "pmjb_recoil1");
   recurseCombFile(fin, fout, isdt, "pmjb_leading1");
   recurseCombFile(fin, fout, isdt, "pmjbinv_leading1");
@@ -155,6 +157,7 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "pmjbinv_recoil1");
   recurseCombFile(fin, fout, isdt, "pmpflead_recoil1");
   recurseCombFile(fin, fout, isdt, "pmpflead_recoil21");
+
   recurseCombFile(fin, fout, isdt, "pmjb_recoil0");
   recurseCombFile(fin, fout, isdt, "pmjb_leading0");
   recurseCombFile(fin, fout, isdt, "pmjbinv_leading0");
@@ -176,28 +179,30 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "pmjbinv_recoil0");
   recurseCombFile(fin, fout, isdt, "pmpflead_recoil0");
   recurseCombFile(fin, fout, isdt, "pmpflead_recoil20");
-  recurseCombFile(fin, fout, isdt, "h2mjb_recoil");
-  recurseCombFile(fin, fout, isdt, "h2mjb_leading");
-  recurseCombFile(fin, fout, isdt, "h2mjbinv_leading");
-  recurseCombFile(fin, fout, isdt, "h2mpfinv_leading");
+
+  recurseCombFile(fin, fout, isdt, "h2mjb_recoil2");
+  recurseCombFile(fin, fout, isdt, "h2mjb_leading2");
+  recurseCombFile(fin, fout, isdt, "h2mjbinv_leading2");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_leading2");
-  recurseCombFile(fin, fout, isdt, "h2mpf_recoil");
+  recurseCombFile(fin, fout, isdt, "h2mpfinv_leading22");
   recurseCombFile(fin, fout, isdt, "h2mpf_recoil2");
-  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_unc");
-  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_one");
-  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_n");
-  recurseCombFile(fin, fout, isdt, "h2mpf_leading");
+  recurseCombFile(fin, fout, isdt, "h2mpf_recoil22");
+  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_unc2");
+  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_one2");
+  recurseCombFile(fin, fout, isdt, "h2mpf_recoil_n2");
   recurseCombFile(fin, fout, isdt, "h2mpf_leading2");
-  recurseCombFile(fin, fout, isdt, "h2mpflead_leading");
+  recurseCombFile(fin, fout, isdt, "h2mpf_leading22");
   recurseCombFile(fin, fout, isdt, "h2mpflead_leading2");
-  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_unc");
-  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_one");
-  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_n");
-  recurseCombFile(fin, fout, isdt, "h2mpfleadinv_leading");
+  recurseCombFile(fin, fout, isdt, "h2mpflead_leading22");
+  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_unc2");
+  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_one2");
+  recurseCombFile(fin, fout, isdt, "h2mpflead_leading_n2");
   recurseCombFile(fin, fout, isdt, "h2mpfleadinv_leading2");
-  recurseCombFile(fin, fout, isdt, "h2mjbinv_recoil");
-  recurseCombFile(fin, fout, isdt, "h2mpflead_recoil");
+  recurseCombFile(fin, fout, isdt, "h2mpfleadinv_leading22");
+  recurseCombFile(fin, fout, isdt, "h2mjbinv_recoil2");
   recurseCombFile(fin, fout, isdt, "h2mpflead_recoil2");
+  recurseCombFile(fin, fout, isdt, "h2mpflead_recoil22");
+
   recurseCombFile(fin, fout, isdt, "h2mjb_recoil1");
   recurseCombFile(fin, fout, isdt, "h2mjb_leading1");
   recurseCombFile(fin, fout, isdt, "h2mjbinv_leading1");
@@ -220,6 +225,7 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "h2mjbinv_recoil1");
   recurseCombFile(fin, fout, isdt, "h2mpflead_recoil1");
   recurseCombFile(fin, fout, isdt, "h2mpflead_recoil21");
+
   recurseCombFile(fin, fout, isdt, "h2mjb_recoil0");
   recurseCombFile(fin, fout, isdt, "h2mjb_leading0");
   recurseCombFile(fin, fout, isdt, "h2mjbinv_leading0");
@@ -242,18 +248,20 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "h2mjbinv_recoil0");
   recurseCombFile(fin, fout, isdt, "h2mpflead_recoil0");
   recurseCombFile(fin, fout, isdt, "h2mpflead_recoil20");
-  recurseCombFile(fin, fout, isdt, "pmjb_ptave");
-  recurseCombFile(fin, fout, isdt, "pmjbinv_ptave");
-  recurseCombFile(fin, fout, isdt, "pmpf_ptave");
+
+  recurseCombFile(fin, fout, isdt, "pmjb_ptave2");
+  recurseCombFile(fin, fout, isdt, "pmjbinv_ptave2");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave2");
-  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave");
+  recurseCombFile(fin, fout, isdt, "pmpf_ptave22");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave2");
-  recurseCombFile(fin, fout, isdt, "h2mjb_ptave");
-  recurseCombFile(fin, fout, isdt, "h2mjbinv_ptave");
-  recurseCombFile(fin, fout, isdt, "h2mpf_ptave");
+  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave22");
+  recurseCombFile(fin, fout, isdt, "h2mjb_ptave2");
+  recurseCombFile(fin, fout, isdt, "h2mjbinv_ptave2");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave2");
-  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave");
+  recurseCombFile(fin, fout, isdt, "h2mpf_ptave22");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave2");
+  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave22");
+
   recurseCombFile(fin, fout, isdt, "pmjb_ptave1");
   recurseCombFile(fin, fout, isdt, "pmjbinv_ptave1");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave1");
@@ -266,6 +274,7 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave21");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave1");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave21");
+
   recurseCombFile(fin, fout, isdt, "pmjb_ptave0");
   recurseCombFile(fin, fout, isdt, "pmjbinv_ptave0");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave0");
@@ -278,46 +287,48 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave20");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave0");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave20");
-  recurseCombFile(fin, fout, isdt, "pmpf_ptave_unc");
-  recurseCombFile(fin, fout, isdt, "pmpf_ptave_one");
-  recurseCombFile(fin, fout, isdt, "pmpf_ptave_n");
+
+  recurseCombFile(fin, fout, isdt, "pmpf_ptave_unc2");
+  recurseCombFile(fin, fout, isdt, "pmpf_ptave_one2");
+  recurseCombFile(fin, fout, isdt, "pmpf_ptave_n2");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_unc1");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_one1");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_n1");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_unc0");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_one0");
   recurseCombFile(fin, fout, isdt, "pmpf_ptave_n0");
-  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_unc");
-  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_one");
-  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_n");
+  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_unc2");
+  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_one2");
+  recurseCombFile(fin, fout, isdt, "h2mpf_ptave_n2");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_unc1");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_one1");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_n1");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_unc0");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_one0");
   recurseCombFile(fin, fout, isdt, "h2mpf_ptave_n0");
-  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_unc");
-  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_one");
-  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_n");
+  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_unc2");
+  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_one2");
+  recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_n2");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_unc1");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_one1");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_n1");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_unc0");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_one0");
   recurseCombFile(fin, fout, isdt, "pmpfinv_ptave_n0");
-  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_unc");
-  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_one");
-  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_n");
+  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_unc2");
+  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_one2");
+  recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_n2");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_unc1");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_one1");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_n1");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_unc0");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_one0");
   recurseCombFile(fin, fout, isdt, "h2mpfinv_ptave_n0");
-  recurseCombFile(fin, fout, isdt, "hCRecoil");
-  recurseCombFile(fin, fout, isdt, "pCRecoil");
-  recurseCombFile(fin, fout, isdt, "pCRecoil_leading");
-  recurseCombFile(fin, fout, isdt, "pCRecoil_ptave");
+
+  recurseCombFile(fin, fout, isdt, "hCRecoil2");
+  recurseCombFile(fin, fout, isdt, "pCRecoil2");
+  recurseCombFile(fin, fout, isdt, "pCRecoil_leading2");
+  recurseCombFile(fin, fout, isdt, "pCRecoil_ptave2");
   recurseCombFile(fin, fout, isdt, "hCRecoil1");
   recurseCombFile(fin, fout, isdt, "pCRecoil1");
   recurseCombFile(fin, fout, isdt, "pCRecoil_leading1");
@@ -326,9 +337,7 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "pCRecoil0");
   recurseCombFile(fin, fout, isdt, "pCRecoil_leading0");
   recurseCombFile(fin, fout, isdt, "pCRecoil_ptave0");
-  recurseCombFile(fin, fout, isdt, "prho_recoil");
-  recurseCombFile(fin, fout, isdt, "prho_leading");
-  recurseCombFile(fin, fout, isdt, "prho_ptave");
+
   recurseCombFile(fin, fout, isdt, "prho_recoil0");
   recurseCombFile(fin, fout, isdt, "prho_leading0");
   recurseCombFile(fin, fout, isdt, "prho_ptave0");
@@ -338,9 +347,6 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "prho_recoil2");
   recurseCombFile(fin, fout, isdt, "prho_leading2");
   recurseCombFile(fin, fout, isdt, "prho_ptave2");
-  recurseCombFile(fin, fout, isdt, "h2rho_recoil");
-  recurseCombFile(fin, fout, isdt, "h2rho_leading");
-  recurseCombFile(fin, fout, isdt, "h2rho_ptave");
   recurseCombFile(fin, fout, isdt, "h2rho_recoil0");
   recurseCombFile(fin, fout, isdt, "h2rho_leading0");
   recurseCombFile(fin, fout, isdt, "h2rho_ptave0");
@@ -350,16 +356,30 @@ void HistosCombine(string type = "") {
   recurseCombFile(fin, fout, isdt, "h2rho_recoil2");
   recurseCombFile(fin, fout, isdt, "h2rho_leading2");
   recurseCombFile(fin, fout, isdt, "h2rho_ptave2");
+
+  for (unsigned i = 0; i < 3; ++i) {
+    recurseCombFile(fin, fout, isdt, Form("hrecoilrat%d",i));
+    recurseCombFile(fin, fout, isdt, Form("hrecoilrat2%d",i));
+    recurseCombFile(fin, fout, isdt, Form("hptleadrat%d",i));
+    recurseCombFile(fin, fout, isdt, Form("hptaverat%d",i));
+    recurseCombFile(fin, fout, isdt, Form("h2ptrecoilrat%d",i));
+    //if(jp::ismc) {
+    //  recurseCombFile(fin, fout, isdt, Form("hptleadrat_pre%d",i));
+    //  recurseCombFile(fin, fout, isdt, Form("hptaverat_pre%d",i));
+    //  recurseCombFile(fin, fout, isdt, Form("h2ptrecoilrat_pre%d",i));
+    //}
+  }
+
   if(jp::ismc) {
-    recurseCombFile(fin, fout, isdt, "hCRecoil_ptcl");
-    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl");
-    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2");
-    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2_leading");
-    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2_ptave");
-    recurseCombFile(fin, fout, isdt, "pjtgenptsf");
-    recurseCombFile(fin, fout, isdt, "pjtptsf");
     recurseCombFile(fin, fout, isdt, "pjtgenptsf_recoil");
     recurseCombFile(fin, fout, isdt, "pjtptsf_recoil");
+    recurseCombFile(fin, fout, isdt, "hCRecoil_ptcl2");
+    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2");
+    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl22");
+    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2_leading2");
+    recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2_ptave2");
+    recurseCombFile(fin, fout, isdt, "pjtgenptsf2");
+    recurseCombFile(fin, fout, isdt, "pjtptsf2");
     recurseCombFile(fin, fout, isdt, "hCRecoil_ptcl1");
     recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl1");
     recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl21");
@@ -374,6 +394,73 @@ void HistosCombine(string type = "") {
     recurseCombFile(fin, fout, isdt, "pCRecoil_ptcl2_ptave0");
     recurseCombFile(fin, fout, isdt, "pjtgenptsf0");
     recurseCombFile(fin, fout, isdt, "pjtptsf0");
+    for (unsigned i = 0; i < 9; ++i) {
+      if(i<6) {
+        recurseCombFile(fin, fout, isdt, Form("hptave_all%d",i));
+        recurseCombFile(fin, fout, isdt, Form("hptave_weight_all%d",i));
+        recurseCombFile(fin, fout, isdt, Form("hptlead_all%d",i));
+        recurseCombFile(fin, fout, isdt, Form("hptlead_weight_all%d",i));
+        recurseCombFile(fin, fout, isdt, Form("hptrecoil_all%d",i));
+        recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_all%d",i));
+        //recurseCombFile(fin, fout, isdt, Form("h2ptave_all%d",i));
+        //recurseCombFile(fin, fout, isdt, Form("h2ptlead_all%d",i));
+        //recurseCombFile(fin, fout, isdt, Form("h2ptrecoil_all%d",i));
+      }
+      recurseCombFile(fin, fout, isdt, Form("hptave_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptave_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_weight_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_weight_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_weight_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_weight_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_weight_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptave_weight_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_ud%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptave_phys_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptlead_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_weight_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_weight_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_weight_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_weight_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_weight_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptlead_weight_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_ud%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptlead_phys_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptrecoil_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_ud%d",i));
+      //recurseCombFile(fin, fout, isdt, Form("hptrecoil_weight_no%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_b%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_c%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_g%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_s%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_ud%d",i));
+      recurseCombFile(fin, fout, isdt, Form("hptrecoil_phys_no%d",i));
+    }
   }
   //
   recurseCombFile(fin, fout, isdt, "pchs");
