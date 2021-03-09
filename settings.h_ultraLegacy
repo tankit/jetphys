@@ -310,7 +310,7 @@ namespace jp {
   const string JERDBLoc = "../JRDatabase";
 
   const array<string,yrs> jergt_ = {
-    "Summer16",
+    "Summer20UL16",
     "Summer19UL17",
     "Summer19UL17",
     //"Autumn18"
@@ -318,7 +318,7 @@ namespace jp {
   };
   const string jergt = jergt_.at(yid);
   const array<string,yrs> jervers_ = {
-    "_25nsV1",
+    "_JRV1",
     "_JRV3",
     "_JRV3",
     //"_V4"

@@ -257,8 +257,8 @@ double ptresolution(double pt, double eta) {
 	"Summer16_25nsV1_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
       if(_ul16) {
-        resolutionFile  = "../JRDatabase/textFiles/Summer19UL16"+jp::jervers+"_MC/Summer19UL16"+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
-        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL16"+jp::jervers+"_MC/Summer19UL16"+jp::jervers+"_MC_SF_AK4PFchs.txt";
+        resolutionFile  = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_SF_AK4PFchs.txt";
       }
       string weightFile = "rootfiles/jerweights.root";
       cout << " ******************************************************************************* " << endl
@@ -275,8 +275,8 @@ double ptresolution(double pt, double eta) {
       string scaleFactorFile = "../JRDatabase/textFiles/Fall17_V3_MC/"
 	"Fall17_V3_MC_SF_AK4PFchs.txt";
       if(_ul17) {
-        resolutionFile  = "../JRDatabase/textFiles/Summer19UL17"+jp::jervers+"_MC/Summer19UL17"+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
-        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL17"+jp::jervers+"_MC/Summer19UL17"+jp::jervers+"_MC_SF_AK4PFchs.txt";
+        resolutionFile  = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_SF_AK4PFchs.txt";
       }
       string weightFile = "rootfiles/jerweights.root";
       cout << " ******************************************************************************* " << endl
@@ -293,8 +293,8 @@ double ptresolution(double pt, double eta) {
       string scaleFactorFile = "../JRDatabase/textFiles/Autumn18_V7_MC/"
 	"Autumn18_V7_MC_SF_AK4PFchs.txt";
       if(_ul18) {
-        resolutionFile  = "../JRDatabase/textFiles/Summer19UL18"+jp::jervers+"_MC/Summer19UL18"+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
-        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL18"+jp::jervers+"_MC/Summer19UL18"+jp::jervers+"_MC_SF_AK4PFchs.txt";
+        resolutionFile  = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/"+jp::jergt+jp::jervers+"_MC/"+jp::jergt+jp::jervers+"_MC_SF_AK4PFchs.txt";
       }
       string weightFile = "rootfiles/jerweights.root";
       cout << " ******************************************************************************* " << endl
