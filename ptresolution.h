@@ -256,6 +256,15 @@ double ptresolution(double pt, double eta) {
       string scaleFactorFile = "../JRDatabase/textFiles/Summer16_25nsV1_MC/"
 	"Summer16_25nsV1_MC_SF_AK4PFchs.txt";
       string weightFile = "rootfiles/jerweights.root";
+      if(_ul16) {
+        resolutionFile  = "../JRDatabase/textFiles/Summer19UL16"+jp::jervers+"_MC/Summer19UL16"+jp::jervers+"_MC_PtResolution_AK4PFchs.txt";
+        scaleFactorFile = "../JRDatabase/textFiles/Summer19UL16"+jp::jervers+"_MC/Summer19UL16"+jp::jervers+"_MC_SF_AK4PFchs.txt";
+      }
+      string weightFile = "rootfiles/jerweights.root";
+      cout << " ******************************************************************************* " << endl
+           << " * Loading resolutionFile  ... \"" << resolutionFile  << "\" * " << endl
+           << " * Loading scaleFactorFile ... \"" << scaleFactorFile << "\" * " << endl
+           << " ******************************************************************************* " << endl;
 
       _jer = new JME::JetResolution(resolutionFile);
       _jer_sf = new JME::JetResolutionScaleFactor(scaleFactorFile);
